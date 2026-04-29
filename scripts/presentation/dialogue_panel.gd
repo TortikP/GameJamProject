@@ -118,10 +118,10 @@ func _input(event: InputEvent) -> void:
 	if not is_advance:
 		return
 
-	get_viewport().set_input_as_handled()
-
 	if _has_choices:
-		return  # choices: wait for button click
+		return  # choices: let buttons handle their own clicks
+
+	get_viewport().set_input_as_handled()
 
 	if not _text_complete:
 		# First skip: fill text immediately
