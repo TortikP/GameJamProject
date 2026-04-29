@@ -140,7 +140,7 @@ func _build_chain(id: StringName, visited: Dictionary, depth: int) -> String:
 	var vis2 := visited.duplicate()
 	vis2[id] = true
 
-	var short_text := line.text.left(50) + ("..." if line.text.length() > 50 else "")
+	var short_text: String = line.text.left(50) + ("..." if line.text.length() > 50 else "")
 	var out := indent + "[color=#88ffcc]" + str(id) + "[/color] (" + str(line.speaker) + ") " + short_text + "\n"
 
 	if line.choices.size() > 0:

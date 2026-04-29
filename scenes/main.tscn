@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://btctiby028x41"]
 
 [ext_resource type="Script" uid="uid://cncnapj1uu7gk" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/presentation/dialogue_preview.gd" id="2_preview"]
 
 [node name="Main" type="Node" unique_id=786486902]
 script = ExtResource("1_main")
@@ -34,3 +35,24 @@ offset_bottom = -16.0
 grow_vertical = 0
 text = "Test dialogue"
 
+[node name="DebugBtn" type="Button" parent="UI" unique_id=99991002]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 216.0
+offset_top = -60.0
+offset_right = 400.0
+offset_bottom = -16.0
+grow_vertical = 0
+text = "Dialogue Preview"
+
+[node name="DebugLayer" type="CanvasLayer" parent="." unique_id=99991003]
+layer = 15
+visible = false
+
+[node name="DialoguePreview" type="Control" parent="DebugLayer" unique_id=99991004]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("2_preview")
