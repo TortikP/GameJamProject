@@ -1,11 +1,8 @@
 extends Node
 
 ## Demo controller for hex_grid_demo.tscn.
-## Init order (critical):
-##   1. resolve nodes (grid, tile_map_layer, actor_node)
-##   2. _paint_demo_grid()   — set_cell before HexGrid reads them
-##   3. grid.initialize()    — reads painted cells, builds pathfinder
-##   4. _place_player()      — places actor on a walkable cell
+## TileMapLayer используется только для логики (координаты, соседи, pathfinding).
+## Визуал — Polygon2D-гексы, нарисованные поверх невидимого TileMapLayer.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const PLAYER_ID: StringName = &"player"
@@ -13,14 +10,20 @@ const PLAYER_ID: StringName = &"player"
 @export var grid: HexGrid
 @export var actor_node: Node2D
 
-const KEY_TO_NEIGHBOR: Dictionary = {
-	"hex_move_top":          TileSet.CELL_NEIGHBOR_TOP_SIDE,
-	"hex_move_top_left":     TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,
-	"hex_move_top_right":    TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,
-	"hex_move_bottom":       TileSet.CELL_NEIGHBOR_BOTTOM_SIDE,
-	"hex_move_bottom_left":  TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,
-	"hex_move_bottom_right": TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,
-}
+# ── Визуальные параметры гексов ───────────────────────────────────────────────
+const HEX_RADIUS    := 30.0   # радиус описанной окружности flat-top гекса
+const HEX_GAP       := 0.88   # масштаб для зазора между гексами
+const HEX_OUTLINE   := 2.0    # толщина обводки (отдельный Polygon2D)
+const OUTLINE_COLOR := Color(0.0, 0.0, 0.0, 0.5)
+
+# Цвета по индексу атласа: 0=grass, 1=wall, 2=swamp, 3=acid, 4=fountain
+const TILE_COLORS: Array[Color] = [
+	Color(0.30, 0.62, 0.22),   # grass    — зелёный
+	Color(0.22, 0.20, 0.18),   # wall     — тёмно-серый
+	Color(0.18, 0.40, 0.34),   # swamp    — болотный
+	Color(0.55, 0.80, 0.10),   # acid     — кислотный
+	Color(0.10, 0.48, 0.88),   # fountain — синий
+]
 
 # Atlas column: 0=grass, 1=wall, 2=swamp, 3=acid, 4=fountain
 const _GRID_MAP := [
@@ -36,74 +39,124 @@ const _GRID_MAP := [
 	[0,0,0,0,0,0,0,0,0,0],
 ]
 
+const KEY_TO_NEIGHBOR: Dictionary = {
+	"hex_move_top":          TileSet.CELL_NEIGHBOR_TOP_SIDE,
+	"hex_move_top_left":     TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,
+	"hex_move_top_right":    TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,
+	"hex_move_bottom":       TileSet.CELL_NEIGHBOR_BOTTOM_SIDE,
+	"hex_move_bottom_left":  TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,
+	"hex_move_bottom_right": TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,
+}
+
+var _visual_layer: Node2D
+
 
 func _ready() -> void:
-	# ── Step 1: resolve nodes ─────────────────────────────────────────────────
+	# ── 1. Резолв нод ─────────────────────────────────────────────────────────
 	if grid == null:
 		grid = get_node_or_null("../HexGrid") as HexGrid
 	if grid == null:
-		GameLogger.error("Demo", "HexGrid not found — check scene tree")
+		GameLogger.error("Demo", "HexGrid not found")
 		return
 
-	# Resolve tile_map_layer on grid NOW, before painting
 	if grid.tile_map_layer == null:
 		grid.tile_map_layer = grid.get_node_or_null("Terrain") as TileMapLayer
 	if grid.vfx_overlay == null:
 		grid.vfx_overlay = grid.get_node_or_null("VFXOverlay") as TileMapLayer
-
 	if grid.tile_map_layer == null:
-		GameLogger.error("Demo", "Terrain TileMapLayer not found on HexGrid")
+		GameLogger.error("Demo", "Terrain TileMapLayer not found")
 		return
 
-	# Resolve or create actor node
 	if actor_node == null:
 		actor_node = get_node_or_null("../HexGrid/Actors/PlayerActor") as Node2D
 	if actor_node == null:
 		actor_node = _create_placeholder_actor()
 
-	# ── Step 2: paint cells ───────────────────────────────────────────────────
+	# ── 2. Покраска клеток + отрисовка Polygon2D гексов ──────────────────────
 	_paint_demo_grid()
 
-	# ── Step 3: init grid (reads painted cells, builds pathfinder) ────────────
+	# ── 3. Инициализация HexGrid (читает нарисованные клетки) ────────────────
 	grid.actor_step_started.connect(_on_step_started)
 	grid.actor_step_finished.connect(_on_step_finished)
 	EventBus.tile_effect_triggered.connect(_on_tile_effect_triggered)
 	grid.initialize()
 
-	# ── Step 4: place actor ───────────────────────────────────────────────────
+	# ── 4. Размещение актора ──────────────────────────────────────────────────
 	_place_player()
 
 
+# ── Визуальный слой ──────────────────────────────────────────────────────────
+
+func _paint_demo_grid() -> void:
+	# TileMapLayer невидим — только логика координат и кастомных данных
+	grid.tile_map_layer.visible = false
+
+	# Создаём визуальный слой под акторами
+	_visual_layer = Node2D.new()
+	_visual_layer.name = "VisualHexLayer"
+	_visual_layer.z_index = -1
+	grid.add_child(_visual_layer)
+
+	for row in _GRID_MAP.size():
+		for col in _GRID_MAP[row].size():
+			var coord := Vector2i(col, row)
+			var tile_idx: int = _GRID_MAP[row][col]
+			# set_cell нужен для логики HexGrid (get_cell_tile_data и т.д.)
+			grid.tile_map_layer.set_cell(coord, 0, Vector2i(tile_idx, 0))
+			_draw_hex_tile(coord, tile_idx)
+
+
+func _draw_hex_tile(coord: Vector2i, tile_idx: int) -> void:
+	var center: Vector2 = grid.tile_map_layer.map_to_local(coord)
+	var pts := _hex_polygon(HEX_RADIUS * HEX_GAP)
+	var outline_pts := _hex_polygon(HEX_RADIUS * HEX_GAP + HEX_OUTLINE)
+
+	# Обводка (чуть больший полигон под основным)
+	var bg := Polygon2D.new()
+	bg.polygon = outline_pts
+	bg.color = OUTLINE_COLOR
+	bg.position = center
+	_visual_layer.add_child(bg)
+
+	# Основной тайл
+	var tile := Polygon2D.new()
+	tile.polygon = pts
+	tile.color = TILE_COLORS[tile_idx]
+	tile.position = center
+	_visual_layer.add_child(tile)
+
+
+func _hex_polygon(r: float) -> PackedVector2Array:
+	# Flat-top: первая вершина справа (0°), остальные через 60°
+	var pts: PackedVector2Array = []
+	for i in 6:
+		var a := deg_to_rad(60.0 * i)
+		pts.append(Vector2(cos(a) * r, sin(a) * r))
+	return pts
+
+
+# ── Актор-заглушка ────────────────────────────────────────────────────────────
+
 func _create_placeholder_actor() -> Node2D:
-	## Programmatic placeholder — cyan circle, 20px radius.
-	## Replaced when Katya provides a real sprite.
 	var actors_node: Node2D = grid.get_node_or_null("Actors") as Node2D
 	if actors_node == null:
 		actors_node = grid
 
 	var poly := Polygon2D.new()
 	poly.name = "PlayerActor"
-	var pts: PackedVector2Array = []
-	for i in 12:
-		var a := deg_to_rad(i * 30.0)
-		pts.append(Vector2(cos(a), sin(a)) * 20.0)
-	poly.polygon = pts
-	poly.color = Color(0.2, 0.85, 1.0)
+	poly.polygon = _hex_polygon(18.0)
+	poly.color = Color(0.15, 0.85, 1.0)
 	poly.z_index = 5
 	actors_node.add_child(poly)
-	GameLogger.info("Demo", "Created placeholder actor (cyan circle)")
+	GameLogger.info("Demo", "Placeholder actor created")
 	return poly
 
 
-func _paint_demo_grid() -> void:
-	for row in _GRID_MAP.size():
-		for col in _GRID_MAP[row].size():
-			grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(_GRID_MAP[row][col], 0))
-
+# ── Актор ─────────────────────────────────────────────────────────────────────
 
 func _place_player() -> void:
 	var start := Vector2i(4, 4)
-	for candidate: Vector2i in [Vector2i(4, 4), Vector2i(0, 0), Vector2i(1, 0)]:
+	for candidate: Vector2i in [Vector2i(4, 4), Vector2i(0, 0)]:
 		if grid.is_walkable(candidate):
 			start = candidate
 			break
@@ -143,13 +196,13 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 
 func _on_step_finished(actor_id: StringName, coord: Vector2i) -> void:
 	if actor_id == PLAYER_ID:
-		GameLogger.info("Demo", "Player at %s  kind=%s  effect=%s" % [
+		GameLogger.info("Demo", "at %s  kind=%s  effect=%s" % [
 			str(coord), grid.get_tile_kind(coord), grid.get_effect_id(coord)
 		])
 
 
 func _on_tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id: StringName) -> void:
-	GameLogger.info("HexGrid", "tile_effect_triggered: %s @ %s for %s" % [effect_id, str(coord), actor_id])
+	GameLogger.info("HexGrid", "effect: %s @ %s for %s" % [effect_id, str(coord), actor_id])
 
 
 func _snap_actor_to_coord(coord: Vector2i) -> void:

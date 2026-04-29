@@ -14,8 +14,7 @@ func _ready() -> void:
 	if grid == null:
 		grid = get_parent() as HexGrid
 	color = highlight_color
-	# Build a flat-top hex polygon (64px tile, radius = 32px horizontal, ~37px vertical)
-	_build_hex_shape(32.0)
+	_build_hex_shape(26.0)   # matches HEX_RADIUS * HEX_GAP in demo controller
 	z_index = 10
 
 
