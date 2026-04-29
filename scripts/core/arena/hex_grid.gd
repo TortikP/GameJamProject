@@ -41,11 +41,25 @@ var _moving: bool = false  # lock during async move_actor traversal
 ## In editor-built scenes: connect grid_built signal and call initialize() from
 ## your controller's _ready(). In demo scene: HexPlaceholderBuilder.setup() → initialize().
 func initialize() -> void:
+	# Fallback if NodePath exports didn't resolve (hand-crafted .tscn)
+	if tile_map_layer == null:
+		tile_map_layer = get_node_or_null("Terrain") as TileMapLayer
+	if vfx_overlay == null:
+		vfx_overlay = get_node_or_null("VFXOverlay") as TileMapLayer
+
+	if tile_map_layer == null:
+		GameLogger.error("HexGrid", "tile_map_layer not found — assign in Inspector or name child 'Terrain'")
+		return
+
 	_effect_registry = TileEffectRegistry.new()
 	_effect_registry.load_from_dir("res://data/tile_effects/")
 	_build_tile_map()
 	_build_pathfinder()
 	emit_signal("grid_built")
+	GameLogger.info("HexGrid", "Initialized: %dx%d, %d walkable cells" % [
+		_grid_width, _grid_height,
+		_tiles.values().filter(func(t: HexTile) -> bool: return t.walkable).size()
+	])
 	GameLogger.info("HexGrid", "Initialized: %dx%d, %d walkable cells" % [
 		_grid_width, _grid_height,
 		_tiles.values().filter(func(t: HexTile) -> bool: return t.walkable).size()
