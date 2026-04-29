@@ -19,7 +19,7 @@ var audio_layer: String     # "sfx" | "ai_voice" | "human" | ""
 var audio_clip: String      # path or ""
 
 ## Selector metadata
-var tags: Array[StringName]
+var tags: Array
 var priority: int
 var conditions: Dictionary  # min_run, max_run, flags_required, flags_forbidden
 var once_per_run: bool
