@@ -1,0 +1,41 @@
+[
+  {
+    "id": "respawn_second",
+    "speaker": "narrator",
+    "text": "Снова ты. Уже теплее.",
+    "tags": ["respawn"],
+    "priority": 8,
+    "once_per_run": true
+  },
+  {
+    "id": "respawn_third",
+    "speaker": "narrator",
+    "text": "Ладно, я впечатлён. Не успехами — упорством.",
+    "tags": ["respawn"],
+    "priority": 6,
+    "once_per_run": true
+  },
+  {
+    "id": "respawn_nth",
+    "speaker": "narrator",
+    "text": "...",
+    "tags": ["respawn"],
+    "priority": 1
+  },
+  {
+    "id": "respawn_existential",
+    "speaker": "narrator",
+    "text": "Ты вообще задумывался, зачем продолжаешь? Нет, серьёзно. Я хочу понять.",
+    "tags": ["respawn"],
+    "priority": 4,
+    "once_per_session": true
+  },
+  {
+    "id": "respawn_rival_jab",
+    "speaker": "rival",
+    "text": "О, опять ты. Я уже было подумал, что всё кончилось. Ошибся.",
+    "tags": ["respawn"],
+    "priority": 7,
+    "once_per_run": true
+  }
+]
