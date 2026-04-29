@@ -1,0 +1,44 @@
+[
+  {
+    "id": "boss_intro_early",
+    "speaker": "rival",
+    "text": "Быстро добрался. Или я слишком близко стоял.",
+    "tags": ["boss_intro"],
+    "priority": 90,
+    "conditions": { "min_run": 0, "max_run": 1, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": true
+  },
+  {
+    "id": "boss_taunt",
+    "speaker": "rival",
+    "text": "Ты уверен, что готов? Потому что у меня впечатление обратное.",
+    "tags": ["boss_intro"],
+    "priority": 50,
+    "once_per_run": true
+  },
+  {
+    "id": "boss_tired",
+    "speaker": "rival",
+    "text": "Знаешь, я устал тебя недооценивать. Попробую переоценить — посмотрим, поможет ли.",
+    "tags": ["boss_intro"],
+    "priority": 80,
+    "conditions": { "min_run": 5, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": true
+  },
+  {
+    "id": "boss_defeat_gloat",
+    "speaker": "rival",
+    "text": "Не расстраивайся. Проигрывать — это тоже навык. Ты явно его оттачиваешь.",
+    "tags": ["player_defeated"],
+    "priority": 10,
+    "once_per_run": true
+  },
+  {
+    "id": "boss_player_wins",
+    "speaker": "rival",
+    "text": "Ладно. Ладно. Не ожидал. Но у меня было плохое утро, так что это не считается.",
+    "tags": ["player_won"],
+    "priority": 10,
+    "once_per_run": true
+  }
+]
