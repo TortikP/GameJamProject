@@ -29,7 +29,7 @@ func _ready() -> void:
 	_list.item_selected.connect(_on_item_selected)
 	_play_btn.pressed.connect(_on_play)
 	_request_btn.pressed.connect(_on_request)
-	_close_btn.pressed.connect(func(): get_parent().get_parent().visible = false)
+	_close_btn.pressed.connect(func(): get_parent().visible = false)
 	_play_btn.disabled = true
 	_request_btn.disabled = true
 
