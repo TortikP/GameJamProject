@@ -7,19 +7,21 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 signal line_ended
 signal choice_picked(index: int)
 
+# Internal signal — bridges tween/manual skip to show_line coroutine
+signal _typewriter_done
+
 @onready var _portrait : TextureRect    = $Panel/MarginContainer/HBoxContainer/Portrait
 @onready var _name_lbl : Label          = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Name
 @onready var _text_lbl : RichTextLabel  = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Text
 @onready var _choices  : HBoxContainer  = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Choices
 @onready var _image    : TextureRect    = $Panel/MarginContainer/HBoxContainer/Image
 
-var _placeholder_cache: Dictionary = {}  # speaker_id -> ImageTexture
-var _full_text: String = ""
+var _placeholder_cache: Dictionary = {}
 var _tween: Tween = null
 var _text_complete: bool = false
-var _skip_count: int = 0           # 0 = none, 1 = first skip (fill text), 2 = close
 var _has_choices: bool = false
 var _auto_timer: SceneTreeTimer = null
+var _accept_input: bool = false   # false for 1 frame after show_line to absorb click bleed
 
 
 func _ready() -> void:
@@ -29,19 +31,18 @@ func _ready() -> void:
 
 
 func show_line(line: Object, speaker_data: Dictionary) -> void:
-	_full_text     = line.text
 	_has_choices   = line.choices.size() > 0
 	_text_complete = false
-	_skip_count    = 0
+	_auto_timer    = null
+	_accept_input  = false
 	set_process_input(true)
 
-	if _auto_timer != null:
-		# can't cancel SceneTreeTimer directly — just ignore its signal via _text_complete flag
-		_auto_timer = null
+	# Skip 1 frame to absorb any click that triggered this line
+	await get_tree().process_frame
+	_accept_input = true
 
 	# Speaker name
-	var display_name: String = speaker_data.get("display_name", str(line.speaker))
-	_name_lbl.text = display_name
+	_name_lbl.text = speaker_data.get("display_name", str(line.speaker))
 
 	# Portrait
 	_portrait.texture = _resolve_portrait(line, speaker_data)
@@ -63,32 +64,42 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_choices.hide()
 
 	# Typewriter
-	_text_lbl.text = ""
 	_text_lbl.bbcode_enabled = true
-	_text_lbl.visible_characters = 0
 	_text_lbl.text = line.text
+	_text_lbl.visible_characters = 0
 
 	var chars_per_sec: float = GameSpeed.get_value("ui", "dialogue_typewriter_chars_per_sec", 60.0)
 	var duration: float = float(line.text.length()) / max(chars_per_sec, 1.0)
 
-	if _tween != null and _tween.is_running():
+	if _tween != null:
 		_tween.kill()
 	_tween = create_tween()
 	_tween.tween_property(_text_lbl, "visible_characters", line.text.length(), duration)
-	await _tween.finished
+	_tween.finished.connect(func(): _finish_typewriter(), CONNECT_ONE_SHOT)
 
-	_text_complete = true
-	_text_lbl.visible_characters = -1  # ensure full display
+	await _typewriter_done  # resolves from tween OR manual skip
 
 	if _has_choices:
 		_show_choices(line.choices)
 	else:
 		var auto_delay: float = GameSpeed.get_value("ui", "dialogue_auto_advance_after_sec", 3.0)
 		_auto_timer = get_tree().create_timer(auto_delay)
-		var t = _auto_timer  # capture for closure check
+		var t = _auto_timer
 		await t.timeout
-		if _auto_timer == t:  # not cancelled by new show_line call
-			line_ended.emit()
+		if _auto_timer == t:
+			_emit_line_ended()
+
+
+func _finish_typewriter() -> void:
+	_text_complete = true
+	_text_lbl.visible_characters = -1
+	_typewriter_done.emit()
+
+
+func _emit_line_ended() -> void:
+	set_process_input(false)
+	_auto_timer = null
+	line_ended.emit()
 
 
 func _show_choices(choices: Array) -> void:
@@ -108,6 +119,9 @@ func _on_choice(index: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not _accept_input:
+		return
+
 	var is_advance := false
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		is_advance = true
@@ -119,20 +133,19 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if _has_choices:
-		return  # choices: let buttons handle their own clicks
+		return  # let buttons handle their own clicks
 
 	get_viewport().set_input_as_handled()
 
 	if not _text_complete:
-		# First skip: fast-forward tween so await _tween.finished resolves normally
+		# First click: skip typewriter
 		if _tween != null and _tween.is_running():
-			_tween.custom_step(9999.0)
-		_auto_timer = null
+			_tween.kill()
+		_finish_typewriter()
 	else:
-		# Second skip: close
-		set_process_input(false)
+		# Second click: close / next
 		_auto_timer = null
-		line_ended.emit()
+		_emit_line_ended()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -157,12 +170,8 @@ func _try_load_texture(path: String) -> Texture2D:
 func _make_placeholder(speaker_id: String) -> ImageTexture:
 	if _placeholder_cache.has(speaker_id):
 		return _placeholder_cache[speaker_id]
-
 	var img := Image.create(160, 160, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.35, 0.35, 0.35, 1.0))
-
-	# Draw a simple letter in the centre (no font needed — just a label overlay)
-	# We return the grey square and let the Name label serve as identifier
 	var tex := ImageTexture.create_from_image(img)
 	_placeholder_cache[speaker_id] = tex
 	return tex
