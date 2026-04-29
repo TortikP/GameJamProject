@@ -17,9 +17,9 @@ Engine отделён от View. Engine ничего не знает о пане
 - `scripts/presentation/dialogue_panel.gd`
 - `scenes/ui/dialogue_panel.tscn`
 
-### Dev preview (`scripts/presentation/` + `scenes/meta/`)
+### Dev preview (`scripts/presentation/` + `scenes/dev/`)
 - `scripts/presentation/dialogue_preview.gd`
-- `scenes/meta/dialogue_preview.tscn`
+- `scenes/dev/dialogue_preview.tscn` (новая папка `scenes/dev/` — конвенция для всех debug-сцен команды).
 
 ### Content seed (`data/dialogues/`)
 - `_speakers.json`
@@ -41,11 +41,17 @@ Engine отделён от View. Engine ничего не знает о пане
 
 ### DialogueManager API
 ```gdscript
-func play(id: StringName) -> bool
-func request(event: StringName, context: Dictionary = {}) -> StringName
+func play(id: StringName, force: bool = false) -> bool
+func request(event: StringName, context: Dictionary = {}, force: bool = false) -> StringName
 func is_playing() -> bool
 func clear_queue() -> void
 ```
+
+Семантика `force`:
+- `force=false` (default): если `is_playing()`, возврат сразу (`false` / `&""`) + warn в лог. Используется для ambient-триггеров — не накапливаем стопку диалогов.
+- `force=true`: enqueue. Используется для scripted-моментов (boss intro, end-of-run, ачивка которую нельзя пропустить).
+
+Для `request(..., force=true)` селектор резолвит id **в момент вызова**, и в очередь кладётся уже resolved id. Re-evaluation на dequeue не делаем — состояние тогда непредсказуемо.
 
 ### DialogueDB API
 ```gdscript
@@ -75,13 +81,15 @@ func find_by_event(event: StringName, context: Dictionary, played: Dictionary) -
     "flags_forbidden": []
   },
   "once_per_run": false,
-  "once_per_save": false,
+  "once_per_session": false,
   "next": null,
   "choices": []
 }
 ```
 
 Обязательные поля: `id`, `speaker`, `text`. Остальные — дефолтятся в `from_dict`. `id` уникален по всей базе, дубликат → warn + последний выигрывает.
+
+`once_per_session` означает «один раз за процесс игры», а не «один раз за save» (save-системы у нас нет). Имя такое, чтобы не вводить контентщика в заблуждение.
 
 ### JSON-схема `_speakers.json`
 ```json
@@ -104,7 +112,7 @@ func find_by_event(event: StringName, context: Dictionary, played: Dictionary) -
 ```json
 { "label": "Уйти молча", "next": "respawn_silent_response" }
 ```
-Максимум 3 на реплику. `next` обязателен (нельзя сделать «выбор → конец»). Чтобы закрыть на choice — указываем next на одно-репличную сцену.
+Максимум 3 на реплику. `next: null` (или отсутствие поля) валидно — означает «закончить сцену сразу после этого выбора», панель закроется. Это для естественного «Goodbye»-выбора, который не требует follow-up реплики.
 
 ## Точки интеграции
 
@@ -120,15 +128,17 @@ func find_by_event(event: StringName, context: Dictionary, played: Dictionary) -
 ## Алгоритм `find_by_event`
 
 ```
-Input: event, context (run_count, optional flags), played (dict id→true)
+Input: event, context (run_count, optional flags), played_run, played_session
 1. candidates = [line for line in DB.lines if event in line.tags]
 2. candidates = [c for c in candidates
                   if c.conditions.min_run <= context.run_count <= c.conditions.max_run
                   and all(f in context.flags for f in c.conditions.flags_required)
                   and not any(f in context.flags for f in c.conditions.flags_forbidden)]
-3. eligible = [c for c in candidates if c.id not in played]
+3. eligible = [c for c in candidates
+                 if not (c.once_per_run    and c.id in played_run)
+                 and not (c.once_per_session and c.id in played_session)]
 4. if eligible empty:
-       repeatable = [c for c in candidates if not c.once_per_save and not c.once_per_run]
+       repeatable = [c for c in candidates if not c.once_per_session and not c.once_per_run]
        if repeatable: eligible = repeatable
        else: return null
 5. max_priority = max(c.priority for c in eligible)
@@ -139,22 +149,41 @@ Input: event, context (run_count, optional flags), played (dict id→true)
 ## Жизненный цикл сцены
 
 ```
-DialogueManager.play(id)
-  ├─ if is_playing: enqueue(id), return true
+DialogueManager.play(id, force=false)
+  ├─ if not DB.has_line(id): warn, return false
+  ├─ if is_playing():
+  │    ├─ if force: enqueue(id), return true
+  │    └─ else: warn "drop", return false
   ├─ _scene_start_id = id
+  ├─ _scene_visited = {}                  # cycle detection per-scene
   ├─ _show_line(line)
-  │    ├─ EventBus.dialogue_started.emit(id)
-  │    ├─ AudioDirector.play_dialogue_audio(id, resolved_layer)
+  │    ├─ if line.id in _scene_visited: warn "cycle", goto end_scene
+  │    ├─ _scene_visited[line.id] = true
+  │    ├─ _played_per_run[line.id] = true   if line.once_per_run
+  │    ├─ _played_per_session[line.id] = true if line.once_per_session
+  │    ├─ EventBus.dialogue_started.emit(line.id)
+  │    ├─ AudioDirector.play_dialogue_audio(line.id, resolved_layer)
   │    ├─ panel.show_line(line, speaker)
   │    └─ await panel.line_ended (signal)
-  ├─ if line.choices: await panel.choice_picked → next_id from chosen
+  ├─ if line.choices not empty:
+  │    ├─ idx = await panel.choice_picked
+  │    ├─ next_id = line.choices[idx].next   # may be null → end
   ├─ elif line.next: next_id = line.next
-  ├─ else: end_scene
-  │    ├─ EventBus.dialogue_finished.emit(_scene_start_id)
-  │    ├─ panel.hide()
-  │    └─ pop next from queue, recurse
-  └─ if next_id: _show_line(DB.get_line(next_id)), loop
+  ├─ else: next_id = null
+  ├─ if next_id != null:
+  │    ├─ next_line = DB.get_line(next_id)
+  │    ├─ if next_line == null: warn "missing next", goto end_scene
+  │    └─ goto _show_line(next_line)        # SAME _scene_start_id, SAME _scene_visited
+  └─ end_scene:
+       ├─ EventBus.dialogue_finished.emit(_scene_start_id)
+       ├─ panel.hide()
+       ├─ _scene_start_id = null
+       └─ if _queue not empty: _show_line(DB.get_line(queue.pop_front()))
 ```
+
+**Scene atomicity** обеспечивается тем, что (а) `is_playing()` остаётся true всю сцену, не только текущую реплику; (б) `_queue.pop_front()` происходит только в `end_scene`, после `dialogue_finished.emit`. Никакой внешний триггер не может проскочить между choice и его follow-up.
+
+**Cycle detection.** `_scene_visited` чистится в начале каждой сцены (после pop из очереди). В пределах сцены повторный заход на тот же id → warn + end_scene.
 
 ## Структура `scenes/ui/dialogue_panel.tscn`
 
@@ -179,15 +208,17 @@ DialoguePanel (Control, full-rect)
 - **Пустая `data/dialogues/`.** На старте `loaded 0 dialogues`. Игра живёт. UI не открывает панель. `request` всегда возвращает `&""`.
 - **Speaker без портрета.** Placeholder. Файл-проверка `FileAccess.file_exists`, fallback — серый Texture2D (создаётся в коде на лету один раз).
 - **`text_fx`/`image`/`vfx_overlay` в JSON будут писать раньше чем код готов.** Это ОК. Engine их грузит, View игнорирует с одноразовым warn в лог per-feature. Никита знает что они «зарезервированы, ещё не работают».
-- **Очередь зависает.** Если `play` зовётся пока `is_playing()`, тестируется руками: 2 быстрых клика на «Test dialogue» — оба должны отыграть последовательно.
-- **Choice без next.** Валидация на загрузке: choice без поля `next` → warn + дропаем choice (не реплику целиком).
+- **Зацикленные `next`.** Автор может случайно сделать A→B→A. Защита: `_scene_visited` set, повторный заход → warn + end_scene. Игрок видит не более N реплик за сцену, где N = размер цепи.
+- **Choice ведёт на несуществующий id.** В lifecycle: `if next_line == null: warn + end_scene`. На загрузке — pre-валидация: для каждого `next` (line + choice) проверяем `has_line`, warn если ссылка битая. Дропать ссылку или нет — не дропаем, content authoring должен видеть warn и фиксить. Runtime устойчив всё равно.
+- **Force-флаг злоупотребление.** Если все триггеры идут с `force=true`, скапливается стопка диалогов после боя. Соглашение: `force=true` только для критичных сюжетных моментов (boss intro, end-of-run, ачивка). Ambient — `force=false`. Это контентное правило, не технический guard.
+- **Queue зависает.** Если `play` зовётся пока `is_playing()`, тестируется руками: 2 быстрых клика на «Test dialogue» с `force=false` — второй дропается с warn. С `force=true` (вызывается из preview-сцены ради проверки) — оба отыгрывают последовательно.
 
 ## Что специально НЕ делаем
 
 - **Класс `class_name DialogueLine`.** RefCounted, обращаемся через preload. Причина — `class_name` глобальный, мы видели коллизию `Logger`. Лучше превентивно избежать.
 - **`AnimationPlayer` для текста.** RichTextLabel + `visible_characters` + Tween достаточно. Tween проще отлаживать чем AnimationPlayer.
-- **Перегрузка `play(id, speaker, text, ...)`.** Только id. Если нужна динамическая реплика — создаётся в `data/dialogues/` или появляется отдельный API позже.
-- **Persistent save played-history.** Когда (если) будет save-система — она будет читать `DialogueManager._played_per_save` и восстанавливать. Это +5 строк, не делаем заранее.
+- **Перегрузка `play(id, speaker, text, ...)`.** Только id + force. Если нужна динамическая реплика — создаётся в `data/dialogues/` или появляется отдельный API позже.
+- **Persistent save played-history.** Когда (если) будет save-система — она будет читать `DialogueManager._played_per_session` и восстанавливать. Это +5 строк, не делаем заранее.
 
 ## Что добавляется в `config/game_speed.cfg`
 
