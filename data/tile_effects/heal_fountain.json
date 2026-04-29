@@ -1,0 +1,8 @@
+{
+  "id": "heal_fountain",
+  "kind": "heal",
+  "amount": 3,
+  "applies_to": ["player"],
+  "vfx": "res://assets/vfx/heal_burst.tscn",
+  "sfx": "res://assets/audio/sfx/heal.ogg"
+}

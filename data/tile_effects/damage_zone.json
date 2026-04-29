@@ -1,0 +1,8 @@
+{
+  "id": "damage_zone",
+  "kind": "damage",
+  "amount": 5,
+  "applies_to": ["player", "enemy"],
+  "vfx": "res://assets/vfx/acid_splash.tscn",
+  "sfx": "res://assets/audio/sfx/acid.ogg"
+}

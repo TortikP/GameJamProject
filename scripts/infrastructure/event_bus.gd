@@ -28,3 +28,8 @@ signal rewind_finished
 # Dialogue
 signal dialogue_started(dialogue_id: StringName)
 signal dialogue_finished(dialogue_id: StringName)
+
+# Arena
+signal actor_moved(actor_id: StringName, from: Vector2i, to: Vector2i)
+signal tile_entered(actor_id: StringName, coord: Vector2i)
+signal tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id: StringName)
