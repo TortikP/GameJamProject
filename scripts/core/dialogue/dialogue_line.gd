@@ -31,7 +31,7 @@ var choices: Array          # Array[Dictionary{label, next}]
 
 
 static func from_dict(d: Dictionary) -> Object:
-	var line := load("res://scripts/core/dialogue/dialogue_line.gd").new()
+	var line: Object = load("res://scripts/core/dialogue/dialogue_line.gd").new()
 
 	# Validate required fields
 	if not d.has("id") or str(d["id"]).strip_edges() == "":
