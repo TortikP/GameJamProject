@@ -33,6 +33,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_has_choices   = line.choices.size() > 0
 	_text_complete = false
 	_skip_count    = 0
+	set_process_unhandled_input(true)
 
 	if _auto_timer != null:
 		# can't cancel SceneTreeTimer directly — just ignore its signal via _text_complete flag
@@ -88,8 +89,6 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 		await t.timeout
 		if _auto_timer == t:  # not cancelled by new show_line call
 			line_ended.emit()
-
-	set_process_unhandled_input(true)
 
 
 func _show_choices(choices: Array) -> void:
