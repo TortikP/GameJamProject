@@ -41,14 +41,8 @@ var _moving: bool = false  # lock during async move_actor traversal
 ## In editor-built scenes: connect grid_built signal and call initialize() from
 ## your controller's _ready(). In demo scene: HexPlaceholderBuilder.setup() → initialize().
 func initialize() -> void:
-	# Fallback if NodePath exports didn't resolve (hand-crafted .tscn)
 	if tile_map_layer == null:
-		tile_map_layer = get_node_or_null("Terrain") as TileMapLayer
-	if vfx_overlay == null:
-		vfx_overlay = get_node_or_null("VFXOverlay") as TileMapLayer
-
-	if tile_map_layer == null:
-		GameLogger.error("HexGrid", "tile_map_layer not found — assign in Inspector or name child 'Terrain'")
+		GameLogger.error("HexGrid", "tile_map_layer is null — call from controller after resolving nodes")
 		return
 
 	_effect_registry = TileEffectRegistry.new()
