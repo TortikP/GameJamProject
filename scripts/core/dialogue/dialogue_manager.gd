@@ -91,7 +91,7 @@ func _on_run_started() -> void:
 func _get_panel() -> Node:
 	if _panel == null:
 		var canvas := CanvasLayer.new()
-		canvas.layer = 10
+		canvas.layer = 20
 		canvas.name = "DialogueLayer"
 		get_tree().root.add_child(canvas)
 
