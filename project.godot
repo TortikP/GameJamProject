@@ -20,8 +20,6 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 EventBus="*res://scripts/infrastructure/event_bus.gd"
 GameSpeed="*res://scripts/infrastructure/game_speed.gd"
 AudioDirector="*res://scripts/infrastructure/audio_director.gd"
-DialogueDB="*res://scripts/core/dialogue/dialogue_database.gd"
-DialogueManager="*res://scripts/core/dialogue/dialogue_manager.gd"
 
 [display]
 
