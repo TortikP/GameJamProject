@@ -124,12 +124,10 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 	if not _text_complete:
-		# First skip: fill text immediately
+		# First skip: fast-forward tween so await _tween.finished resolves normally
 		if _tween != null and _tween.is_running():
-			_tween.kill()
-		_text_lbl.visible_characters = -1
-		_text_complete = true
-		_auto_timer = null  # invalidate pending auto-advance
+			_tween.custom_step(9999.0)
+		_auto_timer = null
 	else:
 		# Second skip: close
 		set_process_input(false)
