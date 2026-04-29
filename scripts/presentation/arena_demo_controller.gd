@@ -23,6 +23,12 @@ const KEY_TO_NEIGHBOR: Dictionary = {
 
 
 func _ready() -> void:
+	# Fallback if NodePath exports didn't resolve (hand-crafted .tscn)
+	if grid == null:
+		grid = get_node("../HexGrid") as HexGrid
+	if actor_node == null:
+		actor_node = get_node("../HexGrid/Actors/PlayerActor") as Node2D
+
 	EventBus.tile_effect_triggered.connect(_on_tile_effect_triggered)
 	grid.actor_step_started.connect(_on_step_started)
 	grid.actor_step_finished.connect(_on_step_finished)
