@@ -38,20 +38,40 @@ hex grid, roguelike loop. See jam-concept-pitch.md for details.
 - Constants: `SCREAMING_SNAKE_CASE`
 - Private members: `_leading_underscore`
 
-## Module ownership
+## Module ownership — claim-on-PR
 
-| Module | Owner |
-|--------|-------|
-| Hex arena, battle loop, enemies | Egor |
+We don't pre-assign owners. You **claim** a module by opening the first PR
+(or first spec) for it. Whoever lands first owns the public API. Until claimed,
+anyone can take it — say so in chat first so two people don't pick the same
+thing in parallel.
+
+After claim: rename or break the public API → PR with `breaking:` prefix +
+claimer's approval. Same rule as before, just no upfront table.
+
+### Suggested lanes (skills, not contracts)
+
+Hints — pick from here if you don't know what to grab. Not binding.
+
+| Module | Suggested lead |
+|--------|----------------|
+| Hex arena, battle loop, enemies | Egor (strongest Godot dev) |
 | Spell-craft, modifier engine | Sergey |
-| Roguelike loop, waves, portal, meta-screens UI, DialogueManager (engine) | Alexey |
+| Roguelike loop, waves, portal, meta-screens UI | Alexey |
+| Dialogue engine | any programmer |
+| Dialogue content, flavor texts, voice direction | Nikita |
 | UX integration, polish, audio direction, tone | Andrey |
 | Balance, modifier content, playtest | Stasyan |
-| Dialogue content, flavor texts, voice direction | Nikita (uses Codex Pro) |
-| Tiles, portraits, icons, VFX | Katya (assets via file exchange, no repo access) |
+| Tiles, portraits, icons, VFX | Katya (file exchange, no repo) |
 
-Owner has final say on their module's public API. Renaming public methods or
-signals requires PR with `breaking:` prefix and owner's approval.
+### Currently claimed
+
+Append yourself when you start a feature.
+
+| Feature / module | Claimer |
+|---|---|
+| 001-bootstrap, infrastructure (autoloads, GameSpeed config) | Andrey |
+| 002-hex-grid (spec) | Egor |
+| 003-dialogue-manager | Andrey |
 
 ## Git workflow
 
