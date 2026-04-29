@@ -105,3 +105,13 @@ If running out of time on Saturday:
 2. Ship what's stable.
 3. Polish only what's already working.
 4. Never push broken code to main on Saturday afternoon.
+
+## Known Godot 4.6 traps
+
+A growing list of GDScript / Godot 4.6 gotchas we've actually hit. Read this before writing GDScript — Claude's training data has more Godot 3 examples than 4, so don't trust pattern memory blindly. **When in doubt, link to `docs.godotengine.org/en/4.6/classes/class_X.html` and read the actual signature.**
+
+When we hit a new trap, append a row here in the same PR that fixes it.
+
+| Trap | Fix |
+|---|---|
+| `func log(...)` in a class — GDScript resolves bare `log(...)` calls to `@GlobalScope.log` (natural logarithm, 1 arg). Defining a method `log` doesn't shadow it. | Rename the method to `_log` or anything else. Don't try to "override" global math functions. |
