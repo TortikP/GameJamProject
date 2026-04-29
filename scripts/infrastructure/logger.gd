@@ -1,13 +1,12 @@
-class_name Logger
 extends RefCounted
 ## Logger — stateless tagged logging utility.
 ##
-## Used as a static utility, not an autoload. Calling `Logger.info(...)`
-## resolves to a static method on the class.
+## NOT registered as class_name (collides with internal Godot Logger class)
+## and NOT registered as autoload (Godot 4 static analyzer bugs with both).
+## Consumers preload this script explicitly:
 ##
-## Usage:
+##   const Logger = preload("res://scripts/infrastructure/logger.gd")
 ##   Logger.info("Battle", "spell resolved")
-##   Logger.warn("AudioDirector", "no clip for %s" % id)
 
 enum Level { DEBUG, INFO, WARN, ERROR }
 

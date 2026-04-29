@@ -8,6 +8,8 @@ extends Node
 ##
 ## Owner: Andrey. Filled out as audio direction matures during the jam.
 
+const Logger = preload("res://scripts/infrastructure/logger.gd")
+
 func _ready() -> void:
 	Logger.info("AudioDirector", "ready (stub)")
 
