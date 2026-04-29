@@ -25,7 +25,7 @@ var _auto_timer: SceneTreeTimer = null
 func _ready() -> void:
 	_choices.hide()
 	_image.hide()
-	set_process_unhandled_input(false)
+	set_process_input(false)
 
 
 func show_line(line: Object, speaker_data: Dictionary) -> void:
@@ -33,7 +33,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_has_choices   = line.choices.size() > 0
 	_text_complete = false
 	_skip_count    = 0
-	set_process_unhandled_input(true)
+	set_process_input(true)
 
 	if _auto_timer != null:
 		# can't cancel SceneTreeTimer directly — just ignore its signal via _text_complete flag
@@ -102,12 +102,12 @@ func _show_choices(choices: Array) -> void:
 
 
 func _on_choice(index: int) -> void:
-	set_process_unhandled_input(false)
+	set_process_input(false)
 	_choices.hide()
 	choice_picked.emit(index)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	var is_advance := false
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		is_advance = true
@@ -132,7 +132,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_auto_timer = null  # invalidate pending auto-advance
 	else:
 		# Second skip: close
-		set_process_unhandled_input(false)
+		set_process_input(false)
 		_auto_timer = null
 		line_ended.emit()
 
