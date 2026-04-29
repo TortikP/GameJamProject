@@ -1,12 +1,14 @@
 extends RefCounted
-## Logger — stateless tagged logging utility.
+## GameLogger — stateless tagged logging utility.
 ##
-## NOT registered as class_name (collides with internal Godot Logger class)
-## and NOT registered as autoload (Godot 4 static analyzer bugs with both).
-## Consumers preload this script explicitly:
+## Renamed from Logger because that name collides with Godot's internal C++
+## class `Logger` (core/io/logger.h) and the parser resolves to that, ignoring
+## the user-defined version. Don't rename this back to Logger.
 ##
-##   const Logger = preload("res://scripts/infrastructure/logger.gd")
-##   Logger.info("Battle", "spell resolved")
+## Used via explicit preload (no class_name, no autoload):
+##
+##   const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+##   GameLogger.info("Battle", "spell resolved")
 
 enum Level { DEBUG, INFO, WARN, ERROR }
 
