@@ -43,7 +43,7 @@ offset_top = -60.0
 offset_right = 400.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = "Dialogue Preview"
+text = "Dialogue Preview (F2)"
 
 [node name="DebugLayer" type="CanvasLayer" parent="." unique_id=99991003]
 layer = 15

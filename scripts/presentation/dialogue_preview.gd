@@ -10,6 +10,7 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @onready var _play_btn   : Button        = $VBox/Main/Right/Buttons/PlayBtn
 @onready var _request_btn: Button        = $VBox/Main/Right/Buttons/RequestBtn
 @onready var _tag_lbl    : Label         = $VBox/Main/Right/Buttons/TagLabel
+@onready var _close_btn  : Button        = $VBox/TopBar/CloseBtn
 
 var _all_ids: Array = []
 var _selected_id: StringName = &""
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_list.item_selected.connect(_on_item_selected)
 	_play_btn.pressed.connect(_on_play)
 	_request_btn.pressed.connect(_on_request)
+	_close_btn.pressed.connect(func(): get_parent().get_parent().visible = false)
 	_play_btn.disabled = true
 	_request_btn.disabled = true
 
