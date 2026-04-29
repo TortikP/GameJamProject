@@ -14,8 +14,8 @@
 - [x] T004 [P1] TileSet TILE_SHAPE_HEXAGON, flat-top — программно в `HexPlaceholderBuilder`
   (нет текстурного атласа без Кати; рантайм-сборка удобнее для демо).
   `.tres` создаётся в редакторе после получения ассетов, HexGrid прочитает его корректно.
-- [x] T005 [P1] Custom data layers (walkable, move_cost, tile_kind, effect_id) — в HexPlaceholderBuilder._build_tileset().
-- [x] T006 [P1] 5 placeholder-тайлов (grass/wall/swamp/acid/fountain) — TILE_DEFS + GRID_MAP (10×10 layout).
+- [x] T005 [P1] Custom data layers в hex_terrain.tres: walkable(bool), move_cost(int), tile_kind(StringName), effect_id(StringName)
+- [x] T006 [P1] 5 placeholder-тайлов в hex_terrain.tres + hex_atlas.png (320x74 RGBA, 5 цветных полос)
 
 ## Фаза 3 — Core scripts
 

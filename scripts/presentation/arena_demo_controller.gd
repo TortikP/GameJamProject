@@ -24,13 +24,35 @@ const KEY_TO_NEIGHBOR: Dictionary = {
 
 func _ready() -> void:
 	EventBus.tile_effect_triggered.connect(_on_tile_effect_triggered)
-	# Connect actor visual to grid steps
 	grid.actor_step_started.connect(_on_step_started)
 	grid.actor_step_finished.connect(_on_step_finished)
-	# Build placeholder TileSet, paint 10x10 grid, then init HexGrid
-	HexPlaceholderBuilder.setup(grid.tile_map_layer)
+	# Paint demo grid then initialize (TileSet already assigned via .tres in scene)
+	_paint_demo_grid()
 	grid.initialize()
 	_place_player()
+
+
+# Atlas column -> tile_kind mapping matches hex_terrain.tres
+# 0=grass, 1=wall, 2=swamp, 3=acid(damage_zone), 4=fountain(heal_fountain)
+const _GRID_MAP := [
+	[0,0,0,1,0,0,0,0,0,0],
+	[0,2,0,1,0,0,3,0,0,0],
+	[0,2,0,0,0,0,3,0,0,0],
+	[0,2,0,0,0,0,0,0,4,0],
+	[0,0,0,1,1,0,0,0,0,0],
+	[0,0,0,0,0,0,0,2,0,0],
+	[0,0,3,0,0,0,0,2,0,0],
+	[0,0,0,0,1,0,0,0,0,0],
+	[0,0,0,0,0,0,4,0,2,0],
+	[0,0,0,0,0,0,0,0,0,0],
+]
+
+
+func _paint_demo_grid() -> void:
+	for row in _GRID_MAP.size():
+		for col in _GRID_MAP[row].size():
+			var atlas_col: int = _GRID_MAP[row][col]
+			grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(atlas_col, 0))
 
 
 func _place_player() -> void:
