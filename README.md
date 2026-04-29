@@ -13,6 +13,7 @@
 
 - `CLAUDE.md` — project conventions / constitution. **Read this first.**
 - `HANDOFF.md` — full operational context, timeline, scope rules, fallbacks.
+- `jam-concept-pitch.md` — game concept and theme analysis.
 - `PROJECT_INSTRUCTIONS.md` — template for the `Project Settings → Instructions` field in claude.ai (per-user, with personal token).
 - `specs/NNN-feature-name/` — `spec.md` / `plan.md` / `tasks.md` per feature. See `HANDOFF.md` §19.
 - `scripts/infrastructure/` — autoloads (GameSpeed, EventBus, Logger, AudioDirector).
@@ -20,7 +21,6 @@
 - `scripts/presentation/` — UI, VFX, polish.
 - `data/` — JSON content (modifiers, enemies, spells, dialogues).
 - `config/game_speed.cfg` — all tunable timings.
-- `<name>/` (`andrey/`, `egor/`, `nikita/`, `sergey/`, `alexey/`, `stasyan/`) — personal scratch / drafts / per-dev notes. Each Claude reads its user's folder at session start.
 
 ## Branches
 
