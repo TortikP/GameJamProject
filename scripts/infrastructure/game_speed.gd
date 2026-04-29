@@ -8,7 +8,7 @@ extends Node
 ##   await GameSpeed.wait("battle", "spell_resolve_speed")
 ##   var t: float = GameSpeed.get_value("ui", "dialogue_auto_advance_after_sec", 3.0)
 
-const Logger = preload("res://scripts/infrastructure/logger.gd")
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 const CONFIG_PATH := "res://config/game_speed.cfg"
 
@@ -23,9 +23,9 @@ func reload() -> void:
 	_cfg = ConfigFile.new()
 	var err := _cfg.load(CONFIG_PATH)
 	if err != OK:
-		Logger.error("GameSpeed", "failed to load %s: %s" % [CONFIG_PATH, error_string(err)])
+		GameLogger.error("GameSpeed", "failed to load %s: %s" % [CONFIG_PATH, error_string(err)])
 		return
-	Logger.info("GameSpeed", "config reloaded")
+	GameLogger.info("GameSpeed", "config reloaded")
 
 
 func get_value(section: String, key: String, default: Variant = 1.0) -> Variant:
