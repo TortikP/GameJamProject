@@ -10,7 +10,8 @@
 [node name="Godmode" type="Node2D"]
 
 [node name="HexGrid" parent="." instance=ExtResource("1_hexgrid")]
-position = Vector2(120, 60)
+position = Vector2(240, 90)
+scale = Vector2(2, 2)
 
 [node name="HexCursor" type="Polygon2D" parent="HexGrid"]
 script = ExtResource("6_hexcursor")

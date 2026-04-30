@@ -22,8 +22,8 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const PLAYER_ID: StringName = &"player"
-const GRID_W := 10
-const GRID_H := 10
+const GRID_W := 8
+const GRID_H := 5
 
 @export var grid: HexGrid
 @export var registry: ActorRegistry
