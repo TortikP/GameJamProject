@@ -19,7 +19,7 @@ func _ready() -> void:
 
 
 const HEX_RADIUS := 32.0
-const HEX_SCALE  := 0.95
+const HEX_SCALE  := 1.00
 
 
 func _process(_delta: float) -> void:

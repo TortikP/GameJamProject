@@ -17,7 +17,7 @@ const PLAYER_ID: StringName = &"player"
 # r = tile_size.x / 2 = 32  (flat-top: ширина тайла = 2*r)
 # scale < 1.0 даёт тонкий шов между гексами без отдельного outline-полигона
 const HEX_RADIUS   := 32.0
-const HEX_SCALE    := 0.95   # 5% зазор = шов ~3px — читаемая сетка без оверхеда
+const HEX_SCALE    := 1.00   # без зазора — гексы вплотную
 
 # Цвета по индексу атласа: 0=grass 1=wall 2=swamp 3=acid 4=fountain
 const TILE_COLORS: Array[Color] = [
