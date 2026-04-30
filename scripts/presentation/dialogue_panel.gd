@@ -52,15 +52,23 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 
 	_text_lbl.bbcode_enabled = true
 	_text_lbl.text = line.text
-	_text_lbl.visible_characters = 0
+	# visible_ratio (0..1) handles bbcode correctly — tags are not counted.
+	# visible_characters tweening would also need visible_characters_behavior tuning;
+	# ratio sidesteps that entirely.
+	_text_lbl.visible_ratio = 0.0
 
 	var chars_per_sec: float = GameSpeed.get_value("ui", "dialogue_typewriter_chars_per_sec", 60.0)
-	var duration: float = float(line.text.length()) / max(chars_per_sec, 1.0)
+	# get_total_character_count() returns visible chars (excludes bbcode tags),
+	# so a [b]bold[/b] line gets the right duration regardless of tag overhead.
+	var visible_chars: int = _text_lbl.get_total_character_count()
+	if visible_chars <= 0:
+		visible_chars = line.text.length()  # fallback for empty / pre-layout cases
+	var duration: float = float(visible_chars) / max(chars_per_sec, 1.0)
 
 	if _tween != null:
 		_tween.kill()
 	_tween = create_tween()
-	_tween.tween_property(_text_lbl, "visible_characters", line.text.length(), duration)
+	_tween.tween_property(_text_lbl, "visible_ratio", 1.0, duration)
 	_tween.finished.connect(_on_typewriter_done, CONNECT_ONE_SHOT)
 
 	_state = State.TYPING
@@ -68,7 +76,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 
 
 func _on_typewriter_done() -> void:
-	_text_lbl.visible_characters = -1
+	_text_lbl.visible_ratio = 1.0
 	if _current_line.choices.size() > 0:
 		_show_choices(_current_line.choices)
 		_state = State.CHOICES

@@ -38,7 +38,7 @@ Branch: `andrey/dev-console`. PR target: `staging`.
 - [ ] T020 [P1] `_cmd_request(parts)`: `DialogueManager.request(StringName(parts[1]), {}, true)`. WARN если нет.
 - [ ] T021 [P1] `_cmd_emit(parts)`: проверка против `ALLOWED_SIGNALS`, `EventBus.emit_signal(name)`. WARN если не в списке или EventBus нет.
 - [ ] T022 [P2] `_cmd_speed(parts)`: `GameSpeed._cfg.set_value(section, key, float(value))`, инкремент `_speed_overrides`. WARN если GameSpeed нет.
-- [ ] T023 [P1] `_cmd_db()`: вывести `DialogueDB._lines.keys()` отсортированные через `, `.
+- [ ] T023 [P1] `_cmd_db()`: вывести `DialogueDB.get_all_ids()` отсортированные через `, `.
 - [ ] T024 [P2] `_cmd_inspect(parts)`: подкоманды `dm`/`gs`/`eb` по plan.md §inspect.
 - [ ] T025 [P1] `pause` / `resume` — `get_tree().paused = true/false`. Однострочные, прямо в `_execute` match.
 - [ ] T026 [P1] `clear` — `_log_rtl.clear()`. Однострочно в `_execute`.

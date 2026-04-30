@@ -4,6 +4,7 @@ extends Node
 
 const GameLogger   = preload("res://scripts/infrastructure/game_logger.gd")
 const PANEL_SCENE  := "res://scenes/ui/dialogue_panel.tscn"
+const CANVAS_LAYER := 20   # shared with DevConsole (spec 004) — both modal-ish overlays
 
 var _queue:             Array      = []   # Array[StringName] — resolved ids
 var _played_per_run:    Dictionary = {}   # StringName -> true
@@ -84,6 +85,11 @@ func _make_played_dict() -> Dictionary:
 
 
 func _on_run_started() -> void:
+	# NOTE (TODO 005-roguelike-loop): currently run_started is emitted once at
+	# boot in Main._ready(), so _played_per_run is cleared exactly once and
+	# behaves identically to _played_per_session until the roguelike loop
+	# starts re-emitting run_started on respawn / new run. Author of 005:
+	# decide whether respawn = new run, and emit accordingly.
 	_played_per_run.clear()
 	GameLogger.debug("DialogueManager", "_played_per_run cleared on run_started")
 
@@ -91,7 +97,7 @@ func _on_run_started() -> void:
 func _get_panel() -> Node:
 	if _panel == null:
 		var canvas := CanvasLayer.new()
-		canvas.layer = 20
+		canvas.layer = CANVAS_LAYER
 		canvas.name = "DialogueLayer"
 		get_tree().root.add_child(canvas)
 
@@ -105,74 +111,78 @@ func _get_panel() -> Node:
 func _begin_scene(id: StringName) -> void:
 	_scene_start_id = id
 	_scene_visited  = {}
-	_play_line_async(id)
+	_run_scenes_async(id)
 
 
-func _play_line_async(id: StringName) -> void:
-	# Cycle detection
-	if _scene_visited.has(id):
-		GameLogger.warn("DialogueManager", "cycle detected on '%s' in scene '%s' — ending scene" % [id, _scene_start_id])
-		_end_scene()
-		return
+# Iterative scene runner — flattens the previous recursive _play_line_async.
+# Drives the current scene until next_id is empty, then drains the queue
+# without growing the await stack.
+func _run_scenes_async(first_id: StringName) -> void:
+	var current_scene: StringName = first_id
+	while current_scene != &"":
+		await _play_scene_lines(current_scene)
 
-	var line = DialogueDB.get_line(id)
-	if line == null:
-		GameLogger.warn("DialogueManager", "missing line '%s' — ending scene" % id)
-		_end_scene()
-		return
+		EventBus.dialogue_finished.emit(_scene_start_id)
+		GameLogger.info("DialogueManager", "finished %s" % _scene_start_id)
+		if _panel != null:
+			_panel.hide()
 
-	_scene_visited[id] = true
+		_scene_start_id = &""
+		_scene_visited  = {}
 
-	# Track played sets
-	if line.once_per_run:
-		_played_per_run[id] = true
-	if line.once_per_session:
-		_played_per_session[id] = true
-
-	# Audio + EventBus
-	var speaker_data: Dictionary = DialogueDB.get_speaker(line.speaker)
-	var resolved_layer: String = _resolve_layer(line, speaker_data)
-	EventBus.dialogue_started.emit(id)
-	AudioDirector.play_dialogue_audio(id, resolved_layer)
-
-	GameLogger.info("DialogueManager", "play %s" % id)
-
-	# Show panel and await
-	var panel = _get_panel()
-	panel.show()
-	panel.show_line(line, speaker_data)
-
-	# Determine next after line completes
-	var next_id: StringName = &""
-
-	if line.choices.size() > 0:
-		var choice_idx: int = await panel.choice_picked
-		var chosen = line.choices[choice_idx]
-		next_id = chosen.get("next", &"")
-	else:
-		await panel.line_ended
-		next_id = line.next
-
-	if next_id != &"":
-		_play_line_async(next_id)
-	else:
-		_end_scene()
+		if _queue.is_empty():
+			current_scene = &""
+		else:
+			current_scene = _queue.pop_front()
+			_scene_start_id = current_scene
+			_scene_visited  = {}
 
 
-func _end_scene() -> void:
-	var start := _scene_start_id
-	_scene_start_id = &""
-	_scene_visited  = {}
+# Walks one scene from start_id along next/choice links. Cycle-guarded.
+# Played-flags are set AFTER each line completes, not before — so an
+# interrupted / crashed line does not silently consume a once_per_* slot.
+func _play_scene_lines(start_id: StringName) -> void:
+	var current_id: StringName = start_id
+	while current_id != &"":
+		if _scene_visited.has(current_id):
+			GameLogger.warn("DialogueManager", "cycle detected on '%s' in scene '%s' — ending scene" % [current_id, _scene_start_id])
+			return
 
-	EventBus.dialogue_finished.emit(start)
-	GameLogger.info("DialogueManager", "finished %s" % start)
+		var line = DialogueDB.get_line(current_id)
+		if line == null:
+			GameLogger.warn("DialogueManager", "missing line '%s' — ending scene" % current_id)
+			return
 
-	if _panel != null:
-		_panel.hide()
+		_scene_visited[current_id] = true
 
-	if not _queue.is_empty():
-		var next_id: StringName = _queue.pop_front()
-		_begin_scene(next_id)
+		# Audio + EventBus
+		var speaker_data: Dictionary = DialogueDB.get_speaker(line.speaker)
+		var resolved_layer: String = _resolve_layer(line, speaker_data)
+		EventBus.dialogue_started.emit(current_id)
+		AudioDirector.play_dialogue_audio(current_id, resolved_layer)
+		GameLogger.info("DialogueManager", "play %s" % current_id)
+
+		# Show panel and await user
+		var panel = _get_panel()
+		panel.show()
+		panel.show_line(line, speaker_data)
+
+		var next_id: StringName = &""
+		if line.choices.size() > 0:
+			var choice_idx: int = await panel.choice_picked
+			var chosen = line.choices[choice_idx]
+			next_id = chosen.get("next", &"")
+		else:
+			await panel.line_ended
+			next_id = line.next
+
+		# Mark played only now — the line was actually displayed end-to-end.
+		if line.once_per_run:
+			_played_per_run[current_id] = true
+		if line.once_per_session:
+			_played_per_session[current_id] = true
+
+		current_id = next_id
 
 
 func _resolve_layer(line: Object, speaker_data: Dictionary) -> String:
