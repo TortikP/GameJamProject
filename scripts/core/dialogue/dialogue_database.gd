@@ -87,6 +87,12 @@ func has_line(id: StringName) -> bool:
 	return _lines.has(id)
 
 
+func get_all_ids() -> Array:
+	# Used by dev tools (dialogue_preview, future dev_console `db` command).
+	# Returned array is a copy — caller may sort/filter without affecting DB.
+	return _lines.keys()
+
+
 func get_speaker(id: StringName) -> Dictionary:
 	return _speakers.get(id, {})
 

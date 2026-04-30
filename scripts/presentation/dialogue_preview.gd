@@ -17,7 +17,7 @@ var _selected_id: StringName = &""
 
 
 func _ready() -> void:
-	for id in DialogueDB._lines.keys():
+	for id in DialogueDB.get_all_ids():
 		_all_ids.append(id)
 	_all_ids.sort()
 
