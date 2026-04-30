@@ -12,6 +12,16 @@ hex grid, roguelike loop. See jam-concept-pitch.md for details.
 - JSON / .tres for content
 - Desktop builds (web only if time permits Saturday)
 
+## Design pillars
+
+These two override implementation convenience. PRs that violate them get a hard re-think before merge. Full discussion in `THEME_PLAN.md` §1.5.
+
+1. **Full information visibility.** The player sees everything needed to make an informed (or least-bad) tactical decision *before* committing to it. HP, statuses, incoming threats with damage numbers, ability previews, castability — all on screen, no hidden RNG, no surprise damage. Loss should feel like "I misjudged", never "the game cheated me".
+
+2. **Player–monster symmetry.** Monsters use the same `Actor` and `Ability` (`Target × Effect × Modifier`) contracts as the player. AI is a controller that picks actions from the same primitives the player uses (`grid.move_actor`, `ability.cast`) — not a parallel system. The implicit test: you should be able to take control of any enemy and play it as a character.
+
+What this forbids in practice: enemy-only damage paths, AI-only fields on Actor, hidden RNG rolls behind the scenes, attacks that resolve without a telegraph, "mysterious" status effects without UI representation. When in doubt, ask "would the player accept losing 30% HP to this without warning?" — if no, fix the visibility before merging.
+
 ## Hard rules
 
 ### Architecture
