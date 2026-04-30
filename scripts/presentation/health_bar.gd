@@ -7,7 +7,7 @@ extends Node2D
 
 const WIDTH: float = 30.0
 const HEIGHT: float = 4.0
-const Y_OFFSET: float = -26.0
+const Y_OFFSET: float = -24.0
 const COLOR_BG: Color = Color(0.10, 0.10, 0.10, 0.85)
 const COLOR_HP: Color = Color(0.30, 0.85, 0.30, 1.0)
 const COLOR_FRAME: Color = Color(0, 0, 0, 0.6)

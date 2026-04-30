@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://godmode_player_001"]
+[gd_scene load_steps=3 format=3 uid="uid://godmode_player_001"]
 
 [ext_resource type="Script" path="res://scripts/core/actors/actor.gd" id="1_actor"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="2_sprite"]
 
 [node name="Player" type="Node2D"]
 script = ExtResource("1_actor")
@@ -8,7 +9,7 @@ actor_id = &"player"
 max_hp = 100
 team = &"player"
 
-[node name="Body" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(20, 0, 10, 17.32, -10, 17.32, -20, 0, -10, -17.32, 10, -17.32)
-color = Color(0.05, 0.80, 1.00, 1)
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("2_sprite")
+scale = Vector2(0.05, 0.05)
 z_index = 5
