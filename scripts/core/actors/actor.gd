@@ -45,3 +45,14 @@ func take_damage(amount: int) -> void:
 
 func is_alive() -> bool:
 	return not _dead
+
+
+## Restore HP to max and clear death state. Used by godmode reset (F2),
+## debug/cheat tooling, fountain-tile heal effects, etc.
+func heal_to_full() -> void:
+	_dead = false
+	hp = max_hp
+	# Piggyback existing signal so HealthBar (and anything else listening)
+	# repaints. Amount=0, hp_left=hp — semantic 'state changed, redraw'.
+	damaged.emit(actor_id, 0, hp)
+	GameLogger.info("Actor", "%s healed to full (%d/%d)" % [actor_id, hp, max_hp])

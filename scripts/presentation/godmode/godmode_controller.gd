@@ -346,7 +346,11 @@ func _clear_manekins() -> void:
 		registry.unregister(a.actor_id)
 		a.queue_free()
 	_clear_all_telegraphs()
-	GameLogger.info("Godmode", "cleared %d manekins" % to_remove.size())
+	# F2 doubles as a sandbox reset: revive player and refill HP. Lets the
+	# tester keep playing after death without restarting the scene.
+	if player != null:
+		player.heal_to_full()
+	GameLogger.info("Godmode", "cleared %d manekins, player reset" % to_remove.size())
 
 
 func _on_actor_died(id: StringName) -> void:
