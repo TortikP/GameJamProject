@@ -1,8 +1,11 @@
 extends Node
 
 ## Demo controller for hex_grid_demo.tscn.
-## TileMapLayer используется только для логики (координаты, соседи, pathfinding).
-## Визуал — Polygon2D-гексы, нарисованные поверх невидимого TileMapLayer.
+## Init order (критично):
+##   1. resolve nodes
+##   2. _paint_demo_grid()  ← set_cell ДО того, как HexGrid их читает
+##   3. grid.initialize()   ← читает клетки, строит pathfinder
+##   4. _place_player()
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const PLAYER_ID: StringName = &"player"
@@ -10,20 +13,23 @@ const PLAYER_ID: StringName = &"player"
 @export var grid: HexGrid
 @export var actor_node: Node2D
 
-# ── Визуальные параметры гексов ───────────────────────────────────────────────
-const HEX_RADIUS    := 30.0   # радиус описанной окружности flat-top гекса
-const HEX_GAP       := 0.88   # масштаб для зазора между гексами
-const HEX_OUTLINE   := 2.0    # толщина обводки (отдельный Polygon2D)
-const OUTLINE_COLOR := Color(0.0, 0.0, 0.0, 0.5)
+# ── Визуал ────────────────────────────────────────────────────────────────────
+# r = tile_size.x / 2 = 32  (flat-top: ширина тайла = 2*r)
+# scale < 1.0 даёт тонкий шов между гексами без отдельного outline-полигона
+const HEX_RADIUS   := 32.0
+const HEX_SCALE    := 0.95   # 5% зазор = шов ~3px — читаемая сетка без оверхеда
 
-# Цвета по индексу атласа: 0=grass, 1=wall, 2=swamp, 3=acid, 4=fountain
+# Цвета по индексу атласа: 0=grass 1=wall 2=swamp 3=acid 4=fountain
 const TILE_COLORS: Array[Color] = [
-	Color(0.30, 0.62, 0.22),   # grass    — зелёный
-	Color(0.22, 0.20, 0.18),   # wall     — тёмно-серый
-	Color(0.18, 0.40, 0.34),   # swamp    — болотный
-	Color(0.55, 0.80, 0.10),   # acid     — кислотный
-	Color(0.10, 0.48, 0.88),   # fountain — синий
+	Color(0.15, 0.80, 0.15),   # grass    — насыщенный зелёный
+	Color(0.10, 0.10, 0.10),   # wall     — почти чёрный
+	Color(0.35, 0.12, 0.42),   # swamp    — тёмный фиолетово-коричневый
+	Color(0.88, 1.00, 0.00),   # acid     — ярко-жёлтый (сильно отличается от травы)
+	Color(0.05, 0.50, 1.00),   # fountain — ярко-синий
 ]
+
+# Фоновый цвет сцены (между гексами)
+const BG_COLOR := Color(0.06, 0.06, 0.08)
 
 # Atlas column: 0=grass, 1=wall, 2=swamp, 3=acid, 4=fountain
 const _GRID_MAP := [
@@ -72,26 +78,24 @@ func _ready() -> void:
 	if actor_node == null:
 		actor_node = _create_placeholder_actor()
 
-	# ── 2. Покраска клеток + отрисовка Polygon2D гексов ──────────────────────
+	# ── 2. Покраска клеток → Polygon2D гексы ─────────────────────────────────
 	_paint_demo_grid()
 
-	# ── 3. Инициализация HexGrid (читает нарисованные клетки) ────────────────
+	# ── 3. Инициализация HexGrid ──────────────────────────────────────────────
 	grid.actor_step_started.connect(_on_step_started)
 	grid.actor_step_finished.connect(_on_step_finished)
 	EventBus.tile_effect_triggered.connect(_on_tile_effect_triggered)
 	grid.initialize()
 
-	# ── 4. Размещение актора ──────────────────────────────────────────────────
+	# ── 4. Актор ──────────────────────────────────────────────────────────────
 	_place_player()
 
 
 # ── Визуальный слой ──────────────────────────────────────────────────────────
 
 func _paint_demo_grid() -> void:
-	# TileMapLayer невидим — только логика координат и кастомных данных
-	grid.tile_map_layer.visible = false
+	grid.tile_map_layer.visible = false   # логика только
 
-	# Создаём визуальный слой под акторами
 	_visual_layer = Node2D.new()
 	_visual_layer.name = "VisualHexLayer"
 	_visual_layer.z_index = -1
@@ -101,33 +105,23 @@ func _paint_demo_grid() -> void:
 		for col in _GRID_MAP[row].size():
 			var coord := Vector2i(col, row)
 			var tile_idx: int = _GRID_MAP[row][col]
-			# set_cell нужен для логики HexGrid (get_cell_tile_data и т.д.)
 			grid.tile_map_layer.set_cell(coord, 0, Vector2i(tile_idx, 0))
 			_draw_hex_tile(coord, tile_idx)
 
 
 func _draw_hex_tile(coord: Vector2i, tile_idx: int) -> void:
 	var center: Vector2 = grid.tile_map_layer.map_to_local(coord)
-	var pts := _hex_polygon(HEX_RADIUS * HEX_GAP)
-	var outline_pts := _hex_polygon(HEX_RADIUS * HEX_GAP + HEX_OUTLINE)
+	var pts := _flat_hex_pts(HEX_RADIUS * HEX_SCALE)
 
-	# Обводка (чуть больший полигон под основным)
-	var bg := Polygon2D.new()
-	bg.polygon = outline_pts
-	bg.color = OUTLINE_COLOR
-	bg.position = center
-	_visual_layer.add_child(bg)
-
-	# Основной тайл
-	var tile := Polygon2D.new()
-	tile.polygon = pts
-	tile.color = TILE_COLORS[tile_idx]
-	tile.position = center
-	_visual_layer.add_child(tile)
+	var poly := Polygon2D.new()
+	poly.polygon = pts
+	poly.color = TILE_COLORS[tile_idx]
+	poly.position = center
+	_visual_layer.add_child(poly)
 
 
-func _hex_polygon(r: float) -> PackedVector2Array:
-	# Flat-top: первая вершина справа (0°), остальные через 60°
+func _flat_hex_pts(r: float) -> PackedVector2Array:
+	# Flat-top: вершина 0 справа (0°), остальные через 60°
 	var pts: PackedVector2Array = []
 	for i in 6:
 		var a := deg_to_rad(60.0 * i)
@@ -135,24 +129,34 @@ func _hex_polygon(r: float) -> PackedVector2Array:
 	return pts
 
 
-# ── Актор-заглушка ────────────────────────────────────────────────────────────
+# ── Актор ─────────────────────────────────────────────────────────────────────
 
 func _create_placeholder_actor() -> Node2D:
-	var actors_node: Node2D = grid.get_node_or_null("Actors") as Node2D
+	var actors_node := grid.get_node_or_null("Actors") as Node2D
 	if actors_node == null:
 		actors_node = grid
 
 	var poly := Polygon2D.new()
 	poly.name = "PlayerActor"
-	poly.polygon = _hex_polygon(18.0)
-	poly.color = Color(0.15, 0.85, 1.0)
+	# Маленький белый гекс с ярко-голубой обводкой
+	poly.polygon = _flat_hex_pts(16.0)
+	poly.color = Color(1.0, 1.0, 1.0, 0.95)
 	poly.z_index = 5
+
+	# Обводка — чуть большой голубой гекс позади
+	var outline := Polygon2D.new()
+	outline.polygon = _flat_hex_pts(20.0)
+	outline.color = Color(0.05, 0.80, 1.00)
+	outline.z_index = 4
+	outline.position = Vector2.ZERO
+	actors_node.add_child(outline)
 	actors_node.add_child(poly)
-	GameLogger.info("Demo", "Placeholder actor created")
+
+	# Сохраняем outline чтобы двигать вместе с актором
+	poly.set_meta("outline", outline)
+	GameLogger.info("Demo", "Placeholder actor created (white hex + cyan outline)")
 	return poly
 
-
-# ── Актор ─────────────────────────────────────────────────────────────────────
 
 func _place_player() -> void:
 	var start := Vector2i(4, 4)
@@ -191,7 +195,12 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 	var target_pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var cost: int = grid.get_move_cost(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * cost
-	create_tween().tween_property(actor_node, "position", target_pos, duration)
+	var tw := create_tween()
+	tw.tween_property(actor_node, "position", target_pos, duration)
+	# двигаем outline вместе
+	if actor_node.has_meta("outline"):
+		var outline := actor_node.get_meta("outline") as Node2D
+		create_tween().tween_property(outline, "position", target_pos, duration)
 
 
 func _on_step_finished(actor_id: StringName, coord: Vector2i) -> void:
@@ -206,5 +215,10 @@ func _on_tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id:
 
 
 func _snap_actor_to_coord(coord: Vector2i) -> void:
-	if actor_node != null and grid.tile_map_layer != null:
-		actor_node.position = grid.tile_map_layer.map_to_local(coord)
+	if grid.tile_map_layer == null:
+		return
+	var pos: Vector2 = grid.tile_map_layer.map_to_local(coord)
+	if actor_node != null:
+		actor_node.position = pos
+	if actor_node != null and actor_node.has_meta("outline"):
+		(actor_node.get_meta("outline") as Node2D).position = pos

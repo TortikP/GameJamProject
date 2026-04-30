@@ -4,7 +4,7 @@
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_001"]
 texture = ExtResource("1_hexatlas")
-texture_region_size = Vector2i(64, 74)
+texture_region_size = Vector2i(64, 56)
 use_texture_padding = false
 0:0/0 = 0
 0:0/0/custom_data_0 = true
@@ -35,7 +35,7 @@ use_texture_padding = false
 [resource]
 tile_shape = 2
 tile_offset_axis = 1
-tile_size = Vector2i(64, 74)
+tile_size = Vector2i(64, 56)
 custom_data_layer_0/name = "walkable"
 custom_data_layer_0/type = 1
 custom_data_layer_1/name = "move_cost"

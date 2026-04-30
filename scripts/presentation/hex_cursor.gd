@@ -14,8 +14,12 @@ func _ready() -> void:
 	if grid == null:
 		grid = get_parent() as HexGrid
 	color = highlight_color
-	_build_hex_shape(26.0)   # matches HEX_RADIUS * HEX_GAP in demo controller
+	_build_hex_shape(HEX_RADIUS * HEX_SCALE)
 	z_index = 10
+
+
+const HEX_RADIUS := 32.0
+const HEX_SCALE  := 0.95
 
 
 func _process(_delta: float) -> void:
