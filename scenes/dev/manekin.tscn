@@ -8,6 +8,7 @@
 script = ExtResource("1_manekin")
 max_hp = 20
 team = &"enemy"
+attack_ability_id = &"manekin_attack"
 
 [node name="Body" type="Sprite2D" parent="."]
 texture = ExtResource("3_sprite")

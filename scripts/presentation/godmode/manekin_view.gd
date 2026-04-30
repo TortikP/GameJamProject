@@ -1,8 +1,16 @@
 extends Actor
-## Manekin — passive HP bag for godmode testing. No AI.
+## Manekin — passive HP bag + simple melee. AI lives in GodmodeController.
 ##
-## Visual is a child Polygon2D (red hex r=16) attached in the scene file.
+## Visual is a child Sprite2D (red husk) attached in the scene file.
 ## On death, controller listens to `died` signal and removes from grid + scene.
+
+## Ability ID this manekin uses on attack (set in scene). Empty = no attack.
+@export var attack_ability_id: StringName = &""
+
+## Coord this manekin will attack on its next turn, if any.
+## (-1, -1) = no pending attack. Set by AI at end of turn, consumed at start.
+var attack_intent_coord: Vector2i = Vector2i(-1, -1)
+
 
 func _ready() -> void:
 	team = &"enemy"

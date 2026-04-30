@@ -1,0 +1,6 @@
+{
+  "id": "manekin_attack",
+  "target": {"kind": "single_enemy_adjacent"},
+  "effect": {"kind": "damage", "amount": 4},
+  "modifiers": []
+}

@@ -316,6 +316,7 @@ func _clear_manekins() -> void:
 			to_remove.append(actor)
 	for actor in to_remove:
 		var a: Actor = actor
+		_clear_telegraph(a.actor_id)
 		grid.clear_actor(a.actor_id)
 		registry.unregister(a.actor_id)
 		a.queue_free()
@@ -326,6 +327,7 @@ func _on_actor_died(id: StringName) -> void:
 	var actor: Actor = registry.get_actor(id)
 	if actor == null:
 		return
+	_clear_telegraph(id)
 	grid.clear_actor(id)
 	registry.unregister(id)
 	actor.queue_free()
@@ -344,14 +346,27 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 
 # ── AI ───────────────────────────────────────────────────────────────────────
 #
-# Each enemy takes one greedy step toward the player on world_turn_ended.
-# Sequential — manekin1 awaits, then manekin2 awaits, etc. The _world_processing
-# lock prevents the player from acting (and thus advancing the turn again) while
-# the AI is mid-loop.
+# Two-stage per enemy on world_turn_ended:
+#   1. RESOLVE last turn's attack intent (if any). If player still on the
+#      intent hex, attack lands; else attack misses (wasted turn). Clear
+#      telegraph visual either way.
+#   2. PLAN this turn:
+#      a. If adjacent to player → don't move (preserve attacking position).
+#      b. Else → step one hex toward player.
+#   3. SET intent for next turn: if adjacent (now or after the step) AND
+#      has attack_ability, intent = player's current coord. Show telegraph.
+#
+# Sequential per enemy. _world_processing locks player input during the loop.
+
+const TELEGRAPH_COLOR := Color(0.9, 0.15, 0.15, 0.45)
+const TELEGRAPH_RADIUS := 60.0
+
+var _telegraphs: Dictionary = {}  # StringName actor_id -> Polygon2D
+
 
 func _on_world_turn_ended(_turn: int) -> void:
 	if _world_processing:
-		return  # re-entry guard (shouldn't fire, but cheap insurance)
+		return
 	if player == null or not player.is_alive():
 		return
 	_world_processing = true
@@ -360,7 +375,6 @@ func _on_world_turn_ended(_turn: int) -> void:
 
 
 func _run_enemy_turn() -> void:
-	# Snapshot the enemy list — registry can mutate mid-turn (deaths, spawns).
 	var enemies: Array = []
 	for actor in registry.all():
 		if actor is Actor and (actor as Actor).team == &"enemy":
@@ -369,19 +383,103 @@ func _run_enemy_turn() -> void:
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
-		# Re-check each iteration: actor may have died from a previous step's tile effect
+		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
+			_clear_telegraph(enemy.actor_id)
+			continue
+
+		# 1. Resolve last turn's intent
+		await _resolve_attack_intent(enemy)
 		if not enemy.is_alive():
 			continue
-		if registry.get_actor(enemy.actor_id) == null:
-			continue
+
+		# 2. Plan this turn — step toward player if not adjacent
 		var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
 		var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
 		if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
 			continue
 		var path: Array = grid.find_path(enemy_coord, player_coord)
-		if path.size() <= 2:
-			continue  # no path / already at player / already adjacent
-		var next_hop: Vector2i = path[1]
-		if grid.get_actor_at(next_hop) != &"":
-			continue  # blocked by another actor — skip this enemy this turn
-		await grid.move_actor(enemy.actor_id, next_hop)
+		if path.size() > 2:
+			var next_hop: Vector2i = path[1]
+			if grid.get_actor_at(next_hop) == &"":
+				await grid.move_actor(enemy.actor_id, next_hop)
+
+		# 3. Set new intent if we ended adjacent and have an attack
+		_set_attack_intent(enemy)
+
+
+func _resolve_attack_intent(enemy: Actor) -> void:
+	var intent_var: Variant = enemy.get("attack_intent_coord")
+	if not (intent_var is Vector2i):
+		return  # actor doesn't have attack_intent_coord field — not a manekin
+	var intent: Vector2i = intent_var
+	enemy.set("attack_intent_coord", Vector2i(-1, -1))
+	_clear_telegraph(enemy.actor_id)
+	if intent == Vector2i(-1, -1):
+		return  # no pending attack
+	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
+	if player_coord != intent:
+		GameLogger.info("AI", "%s: attack missed (player moved)" % enemy.actor_id)
+		return
+	var ability_id_var: Variant = enemy.get("attack_ability_id")
+	if not (ability_id_var is StringName) or ability_id_var == &"":
+		return
+	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
+	if ability == null:
+		return
+	var ctx: Dictionary = {
+		"registry": registry,
+		"grid": grid,
+		"target_id": PLAYER_ID,
+		"target_coord": player_coord,
+	}
+	ability.cast(enemy, ctx)
+	await GameSpeed.wait("godmode", "ability_cast_delay")
+
+
+func _set_attack_intent(enemy: Actor) -> void:
+	if not enemy.is_alive():
+		return
+	var ability_id_var: Variant = enemy.get("attack_ability_id")
+	if not (ability_id_var is StringName) or ability_id_var == &"":
+		return
+	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
+	if ability == null:
+		return
+	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
+	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
+	if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
+		return
+	var ctx: Dictionary = {
+		"registry": registry,
+		"grid": grid,
+		"target_id": PLAYER_ID,
+		"target_coord": player_coord,
+	}
+	if not ability.can_apply(enemy, ctx):
+		return
+	enemy.set("attack_intent_coord", player_coord)
+	_show_telegraph(enemy.actor_id, player_coord)
+
+
+# ── Telegraph visuals ────────────────────────────────────────────────────────
+
+func _show_telegraph(actor_id: StringName, coord: Vector2i) -> void:
+	_clear_telegraph(actor_id)
+	var poly := Polygon2D.new()
+	var pts: PackedVector2Array = []
+	for i in 6:
+		var a: float = deg_to_rad(60.0 * i)
+		pts.append(Vector2(cos(a) * TELEGRAPH_RADIUS, sin(a) * TELEGRAPH_RADIUS))
+	poly.polygon = pts
+	poly.color = TELEGRAPH_COLOR
+	poly.position = grid.tile_map_layer.map_to_local(coord)
+	poly.z_index = 3  # above tiles, below actors
+	grid.add_child(poly)
+	_telegraphs[actor_id] = poly
+
+
+func _clear_telegraph(actor_id: StringName) -> void:
+	var poly: Node = _telegraphs.get(actor_id)
+	if poly != null and is_instance_valid(poly):
+		poly.queue_free()
+	_telegraphs.erase(actor_id)
