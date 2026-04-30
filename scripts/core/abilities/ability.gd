@@ -21,6 +21,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var modifiers: Array[AbilityModifier] = []
 
 
+## Cheap pre-check used by UI to grey out un-castable slots. Doesn't run modifiers.
+func can_apply(caster: Actor, ctx: Dictionary) -> bool:
+	if target == null or effect == null:
+		return false
+	return target.can_apply(caster, ctx)
+
+
 ## Returns true if the ability actually resolved (had at least one valid target).
 ## A no-target cast (e.g. clicked empty hex) returns false and consumers should
 ## NOT advance turns on it.

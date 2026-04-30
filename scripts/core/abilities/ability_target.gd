@@ -14,3 +14,10 @@ extends Resource
 func resolve(_caster: Actor, _ctx: Dictionary) -> Array:
 	push_warning("AbilityTarget.resolve() not overridden")
 	return []
+
+
+## True iff at least one valid target exists for ctx. Default impl runs resolve
+## and checks emptiness — fine for cheap targets like single_enemy. Override for
+## targets where resolve is expensive (e.g. zone scans) and want a faster predicate.
+func can_apply(caster: Actor, ctx: Dictionary) -> bool:
+	return not resolve(caster, ctx).is_empty()

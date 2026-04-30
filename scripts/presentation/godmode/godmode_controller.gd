@@ -128,6 +128,29 @@ func _emit_initial_turn() -> void:
 
 # ── Input ────────────────────────────────────────────────────────────────────
 
+func _process(_delta: float) -> void:
+	_update_castability()
+
+
+func _update_castability() -> void:
+	if _slot_bar_node == null or grid == null or registry == null or player == null:
+		return
+	var coord := grid.coord_under_mouse()
+	var target_id: StringName = &""
+	if coord != Vector2i(-1, -1):
+		target_id = grid.get_actor_at(coord)
+	var ctx: Dictionary = {
+		"registry": registry,
+		"grid": grid,
+		"target_id": target_id,
+		"target_coord": coord,
+	}
+	for i in 4:
+		var ability := _slot_bar_node.get_slot(i) as Ability
+		var castable: bool = ability != null and ability.can_apply(player, ctx)
+		_slot_bar_node.set_castable(i, castable)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("godmode_spawn_dummy"):
 		_spawn_manekin()
@@ -165,14 +188,19 @@ func _request_move() -> void:
 	if not grid.is_walkable(coord):
 		GameLogger.info("Godmode", "unreachable: %s" % str(coord))
 		return
-	if grid.get_actor_at(coord) == PLAYER_ID:
+	var from: Vector2i = grid.get_coord(PLAYER_ID)
+	if coord == from:
 		return
 	if grid.get_actor_at(coord) != &"":
 		GameLogger.info("Godmode", "occupied: %s" % str(coord))
 		return
-	var from: Vector2i = grid.get_coord(PLAYER_ID)
+	# Speed = 1: target must be an adjacent walkable hex. find_path returns
+	# [from, ..., to] inclusive — exactly 2 entries means single step.
+	var path: Array = grid.find_path(from, coord)
+	if path.size() != 2:
+		GameLogger.info("Godmode", "too far (speed=1, distance=%d)" % maxi(path.size() - 1, 0))
+		return
 	await grid.move_actor(PLAYER_ID, coord)
-	# Only tick if we actually moved (path may have been empty / unreachable mid-move)
 	if grid.get_coord(PLAYER_ID) != from:
 		TurnManager.advance()
 
