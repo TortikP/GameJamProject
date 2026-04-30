@@ -4,7 +4,7 @@ extends Node
 
 const GameLogger   = preload("res://scripts/infrastructure/game_logger.gd")
 const PANEL_SCENE  := "res://scenes/ui/dialogue_panel.tscn"
-const CANVAS_LAYER := 20   # shared with DevConsole (spec 004) — both modal-ish overlays
+const CANVAS_LAYER := 20   # modal overlay above gameplay UI
 
 var _queue:             Array      = []   # Array[StringName] — resolved ids
 var _played_per_run:    Dictionary = {}   # StringName -> true

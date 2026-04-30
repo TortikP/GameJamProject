@@ -88,7 +88,7 @@ func has_line(id: StringName) -> bool:
 
 
 func get_all_ids() -> Array:
-	# Used by dev tools (dialogue_preview, future dev_console `db` command).
+	# Used by dialogue_preview and other dev tools.
 	# Returned array is a copy — caller may sort/filter without affecting DB.
 	return _lines.keys()
 
