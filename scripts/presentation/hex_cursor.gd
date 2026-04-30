@@ -1,27 +1,28 @@
 class_name HexCursor
 extends Polygon2D
 
-## Follows coord_under_mouse() on the owning HexGrid.
-## Attach as child of hex_grid.tscn root. Assign grid via inspector or _ready auto-find.
+## Подсвечивает гекс под курсором.
+## Дочерняя нода HexGrid. grid резолвится через get_parent() если не задан.
 
 @export var grid: HexGrid
-@export var highlight_color: Color = Color(1.0, 1.0, 1.0, 0.3)
+@export var highlight_color: Color = Color(1.0, 1.0, 1.0, 0.25)
+
+# Должен совпадать с outer radius атласа (BG_R=33)
+const HEX_RADIUS := 33.0
 
 var _last_coord: Vector2i = Vector2i(-1, -1)
 
-
-const HEX_RADIUS := 32.0
-const HEX_SCALE  := 1.00
 
 func _ready() -> void:
 	if grid == null:
 		grid = get_parent() as HexGrid
 	color = highlight_color
-	_build_hex_shape(BG_R)   # подсвечиваем по внешнему радиусу (весь тайл включая обводку)
+	var pts: PackedVector2Array = []
+	for i in 6:
+		var a := deg_to_rad(60.0 * i)
+		pts.append(Vector2(cos(a) * HEX_RADIUS, sin(a) * HEX_RADIUS))
+	polygon = pts
 	z_index = 10
-
-
-const BG_R := 33.0  # совпадает с BG_R в demo controller
 
 
 func _process(_delta: float) -> void:
@@ -36,13 +37,3 @@ func _process(_delta: float) -> void:
 		return
 	visible = true
 	position = grid.tile_map_layer.map_to_local(coord)
-
-
-func _build_hex_shape(r: float) -> void:
-	# Flat-top hexagon: 6 vertices starting from right
-	var pts: PackedVector2Array = []
-	for i in 6:
-		var angle_deg := 60.0 * i
-		var angle_rad := deg_to_rad(angle_deg)
-		pts.append(Vector2(r * cos(angle_rad), r * sin(angle_rad)))
-	polygon = pts
