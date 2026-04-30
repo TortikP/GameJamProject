@@ -22,6 +22,8 @@ GameSpeed="*res://scripts/infrastructure/game_speed.gd"
 AudioDirector="*res://scripts/infrastructure/audio_director.gd"
 DialogueDB="*res://scripts/core/dialogue/dialogue_database.gd"
 DialogueManager="*res://scripts/presentation/dialogue_manager.gd"
+TurnManager="*res://scripts/core/turn/turn_manager.gd"
+AbilityDatabase="*res://scripts/core/abilities/ability_database.gd"
 
 [display]
 
