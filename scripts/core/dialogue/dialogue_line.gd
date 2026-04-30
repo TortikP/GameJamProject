@@ -61,7 +61,7 @@ static func from_dict(d: Dictionary) -> Object:
 	line.next            = StringName(str(d["next"])) if d.get("next") != null else &""
 
 	# tags
-	line.tags = []
+	line.tags = [] as Array[StringName]
 	for t in d.get("tags", []):
 		line.tags.append(StringName(str(t)))
 
