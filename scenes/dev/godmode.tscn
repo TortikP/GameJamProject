@@ -1,15 +1,21 @@
-[gd_scene load_steps=6 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=7 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
 [ext_resource type="Script" path="res://scripts/core/actors/actor_registry.gd" id="3_registry"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/turn_counter.gd" id="4_turncount"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/slot_bar.gd" id="5_slotbar"]
+[ext_resource type="Script" path="res://scripts/presentation/hex_cursor.gd" id="6_hexcursor"]
 
 [node name="Godmode" type="Node2D"]
 
 [node name="HexGrid" parent="." instance=ExtResource("1_hexgrid")]
 position = Vector2(120, 60)
+
+[node name="HexCursor" type="Polygon2D" parent="HexGrid"]
+script = ExtResource("6_hexcursor")
+color = Color(1, 1, 1, 0.25)
+grid = NodePath("..")
 
 [node name="ActorRegistry" type="Node" parent="."]
 script = ExtResource("3_registry")
@@ -36,7 +42,7 @@ offset_left = 16.0
 offset_top = 56.0
 offset_right = 600.0
 offset_bottom = 84.0
-text = "RMB=move  LMB/QWER/1234=cast  F1=spawn dummy  F2=clear"
+text = "RMB=move (1 step)  QWER/1234=select slot  LMB=cast active  F1=spawn dummy  F2=clear"
 theme_override_font_sizes/font_size = 14
 modulate = Color(1, 1, 1, 0.6)
 

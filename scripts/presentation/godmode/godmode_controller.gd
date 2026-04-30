@@ -165,7 +165,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
-			_activate_and_cast(i)
+			# Key only SELECTS the slot. Cast is confirmed by LMB on target.
+			if _slot_bar_node != null:
+				_slot_bar_node.set_active(i)
 			get_viewport().set_input_as_handled()
 			return
 	if event is InputEventMouseButton:
@@ -206,13 +208,6 @@ func _request_move() -> void:
 	await grid.move_actor(PLAYER_ID, coord)
 	if grid.get_coord(PLAYER_ID) != from:
 		TurnManager.advance()
-
-
-func _activate_and_cast(slot_index: int) -> void:
-	if _slot_bar_node == null:
-		return
-	_slot_bar_node.set_active(slot_index)
-	_cast_slot(slot_index)
 
 
 func _request_cast_active() -> void:
