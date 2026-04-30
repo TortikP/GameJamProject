@@ -186,7 +186,7 @@ func _request_cast_active() -> void:
 func _cast_slot(slot_index: int) -> void:
 	if _slot_bar_node == null:
 		return
-	var ability: Ability = _slot_bar_node.get_slot(slot_index)
+	var ability := _slot_bar_node.get_slot(slot_index) as Ability
 	if ability == null:
 		GameLogger.info("Godmode", "slot %d empty" % slot_index)
 		return

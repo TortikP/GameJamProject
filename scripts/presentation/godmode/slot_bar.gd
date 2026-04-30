@@ -12,17 +12,17 @@ const SLOT_COUNT := 4
 
 signal slot_activated(index: int)
 
-## Ability or null per slot. Plain Array intentionally — Godot 4 strict
-## type-check on Array[CustomClass] fails across Variant boundaries
-## (Dictionary.get, duck-typed calls). See CLAUDE.md traps.
-var _slots: Array = []
+## Slot map: int index → Ability instance (or absent if empty).
+## Dictionary intentionally — Godot 4.6 array element type-check fires
+## on Resource subclasses passed through Variant boundaries even on
+## plain Array. Dictionary has no type-check for values. See CLAUDE.md.
+var _slots: Dictionary = {}
 var _buttons: Array[Button] = []
 var _active: int = 0
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 8)
-	_slots.resize(SLOT_COUNT)
 	for i in SLOT_COUNT:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(72, 72)
@@ -34,7 +34,7 @@ func _ready() -> void:
 	_refresh_active_visual()
 
 
-func set_slot(index: int, ability: Ability) -> void:
+func set_slot(index: int, ability) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
 	_slots[index] = ability
@@ -42,10 +42,10 @@ func set_slot(index: int, ability: Ability) -> void:
 	_buttons[index].text = "%s\n%s" % [SLOT_LABELS[index], label_id]
 
 
-func get_slot(index: int) -> Ability:
+func get_slot(index: int):
 	if index < 0 or index >= SLOT_COUNT:
 		return null
-	return _slots[index]
+	return _slots.get(index, null)
 
 
 func get_active() -> int:
