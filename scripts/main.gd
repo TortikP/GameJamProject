@@ -45,22 +45,3 @@ func _on_run_started() -> void:
 
 func _on_test_dialogue_pressed() -> void:
 	DialogueManager.request(&"respawn", {"run_count": 1})
-
-
-func _on_debug_btn_pressed() -> void:
-	_toggle_preview()
-
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
-		_toggle_preview()
-		get_viewport().set_input_as_handled()
-
-
-func _toggle_preview() -> void:
-	if _preview == null:
-		_preview = load(PREVIEW_SCENE).instantiate()
-		_debug_layer.add_child(_preview)
-		_debug_layer.visible = true
-	else:
-		_debug_layer.visible = not _debug_layer.visible
