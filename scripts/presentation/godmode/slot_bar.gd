@@ -12,10 +12,10 @@ const SLOT_COUNT := 4
 
 signal slot_activated(index: int)
 
-var _slots: Array = []  # holds Ability or null per slot. Plain Array — Godot 4
-                        # typed-array check is strict and rejects values that
-                        # arrive via Variant boundary (e.g. duck-typed calls)
-                        # even when runtime type matches.
+## Ability or null per slot. Plain Array intentionally — Godot 4 strict
+## type-check on Array[CustomClass] fails across Variant boundaries
+## (Dictionary.get, duck-typed calls). See CLAUDE.md traps.
+var _slots: Array = []
 var _buttons: Array[Button] = []
 var _active: int = 0
 
