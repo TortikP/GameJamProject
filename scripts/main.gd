@@ -18,10 +18,6 @@ func _ready() -> void:
 	($UI/DebugBtn as Button).pressed.connect(_on_debug_btn_pressed)
 
 
-func _on_run_started() -> void:
-	GameLogger.info("Main", "run_started signalled — EventBus is alive")
-
-
 func _on_test_dialogue_pressed() -> void:
 	DialogueManager.request(&"respawn", {"run_count": 1})
 

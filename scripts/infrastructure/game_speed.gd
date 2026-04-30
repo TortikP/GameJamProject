@@ -31,6 +31,11 @@ func reload() -> void:
 func get_value(section: String, key: String, default: Variant = 1.0) -> Variant:
 	if _cfg == null:
 		return default
+	# Warn on miss — typo'd keys silently returning the default mask bugs.
+	# A 0.5s timer "just working" is worse than a visible error.
+	if not _cfg.has_section_key(section, key):
+		GameLogger.warn("GameSpeed", "missing key [%s] %s — using default %s" % [section, key, str(default)])
+		return default
 	return _cfg.get_value(section, key, default)
 
 
