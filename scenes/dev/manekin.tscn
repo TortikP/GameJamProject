@@ -11,9 +11,10 @@ team = &"enemy"
 
 [node name="Body" type="Sprite2D" parent="."]
 texture = ExtResource("3_sprite")
-scale = Vector2(0.045, 0.045)
+scale = Vector2(0.09, 0.09)
 z_index = 4
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("2_hpbar")
+y_offset = -48.0
 z_index = 6

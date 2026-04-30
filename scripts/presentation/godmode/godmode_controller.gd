@@ -21,6 +21,7 @@ extends Node
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
+const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
 const PLAYER_ID: StringName = &"player"
 const GRID_W := 8
 const GRID_H := 5
@@ -72,6 +73,11 @@ func _ready() -> void:
 		GameLogger.warn("Godmode", "SlotBar not found — abilities won't be visible")
 
 	# 2. Paint, 3. Initialize, 4. Place
+	# Godmode uses its own tileset (128×112 hexes, single grass tile) — keeps
+	# arena_demo's 64×56 untouched.
+	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
+	if grid.vfx_overlay != null:
+		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
 	_paint_grid()
 	grid.actor_step_started.connect(_on_step_started)
 	grid.initialize()

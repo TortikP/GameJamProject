@@ -95,10 +95,17 @@ func _refresh_visual(index: int) -> void:
 	var has_ability: bool = _slots.get(index, null) != null
 	var castable: bool = _castable.get(index, false)
 	if not has_ability:
-		btn.modulate = Color(0.4, 0.4, 0.4)        # empty — dim
-	elif not castable:
-		btn.modulate = Color(0.55, 0.55, 0.55)     # has ability but no valid target
+		btn.modulate = Color(0.4, 0.4, 0.4)
+		btn.scale = Vector2.ONE
 	elif index == _active:
-		btn.modulate = Color(1.25, 1.25, 0.55)     # active + castable — yellow highlight
+		# Active is always visually distinct, even when not castable.
+		# Saturated yellow + slight upscale separates it from siblings.
+		btn.modulate = Color(1.5, 1.5, 0.25) if castable else Color(1.1, 1.1, 0.5)
+		btn.scale = Vector2(1.12, 1.12)
+		btn.pivot_offset = btn.size * 0.5
+	elif not castable:
+		btn.modulate = Color(0.55, 0.55, 0.55)
+		btn.scale = Vector2.ONE
 	else:
-		btn.modulate = Color(1, 1, 1)              # castable, not active — normal
+		btn.modulate = Color(1, 1, 1)
+		btn.scale = Vector2.ONE

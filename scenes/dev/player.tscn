@@ -11,5 +11,5 @@ team = &"player"
 
 [node name="Body" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")
-scale = Vector2(0.05, 0.05)
+scale = Vector2(0.1, 0.1)
 z_index = 5
