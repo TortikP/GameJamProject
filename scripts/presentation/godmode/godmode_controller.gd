@@ -499,7 +499,7 @@ func _plan_intents(enemy: Actor, all_enemies: Array) -> void:
 		return
 
 	# Build set of coords blocked by OTHER enemies (player tile is the goal,
-	# never blocked even when the planning enemy is adjacent).
+	# never blocked).
 	var blocked: Array = []
 	for other in all_enemies:
 		if not (other is Actor):
@@ -511,34 +511,26 @@ func _plan_intents(enemy: Actor, all_enemies: Array) -> void:
 		if c != Vector2i(-1, -1):
 			blocked.append(c)
 
-	# Pathfind to player going AROUND other enemies.
 	var path: Array = grid.find_path_around(enemy_coord, player_coord, blocked)
 
-	# Decide planned move
-	var planned_move: Vector2i = enemy_coord  # default: stand still
-	if path.size() > 2:
-		# Step one hex toward player along the path
-		planned_move = path[1]
-	# else: adjacent or no path — don't move
-	enemy.set("move_intent_coord", planned_move if planned_move != enemy_coord else Vector2i(-1, -1))
+	# Default: do nothing (used when no path or already adjacent without
+	# a usable attack ability).
+	enemy.set("move_intent_coord", Vector2i(-1, -1))
+	enemy.set("attack_intent_coord", Vector2i(-1, -1))
 
-	# Decide planned attack — would the ability hit player from planned_move?
-	var ability_id_var: Variant = enemy.get("attack_ability_id")
-	if not (ability_id_var is StringName) or ability_id_var == &"":
-		return
-	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
-	if ability == null:
-		return
-	var ctx: Dictionary = {
-		"registry": registry, "grid": grid,
-		"target_id": PLAYER_ID, "target_coord": player_coord,
-	}
-	# Probe adjacency from planned_move via path size between planned_move
-	# and player. (We can't just call ability.can_apply because it reads the
-	# enemy's CURRENT coord, not the post-move one.)
-	var probe_path: Array = grid.find_path(planned_move, player_coord)
-	if probe_path.size() == 2:  # exactly adjacent
-		enemy.set("attack_intent_coord", player_coord)
+	if path.size() == 2:
+		# Already adjacent → attack this turn, no movement.
+		# (Pillar 2: symmetric with player — one action per turn.)
+		var ability_id_var: Variant = enemy.get("attack_ability_id")
+		if ability_id_var is StringName and ability_id_var != &"":
+			var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
+			if ability != null:
+				enemy.set("attack_intent_coord", player_coord)
+	elif path.size() > 2:
+		# Not yet adjacent → step one hex closer this turn, no attack.
+		# Attack will happen on the NEXT plan after we arrive in adjacency.
+		enemy.set("move_intent_coord", path[1])
+	# else (path empty): no path through actors — stand still.
 
 
 # ── Telegraph visuals ────────────────────────────────────────────────────────
