@@ -1,6 +1,6 @@
-[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://hexterrain001"]
+[gd_resource type="TileSet" format=3 uid="uid://djjxspt0xg5aa"]
 
-[ext_resource type="Texture2D" path="res://scenes/arena/tilesets/hex_atlas.png" id="1_hexatlas"]
+[ext_resource type="Texture2D" uid="uid://dfqa7xg7ksd4p" path="res://scenes/arena/tilesets/hex_atlas.png" id="1_hexatlas"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_001"]
 texture = ExtResource("1_hexatlas")
@@ -10,17 +10,13 @@ use_texture_padding = false
 0:0/0/custom_data_0 = true
 0:0/0/custom_data_1 = 1
 0:0/0/custom_data_2 = &"grass"
-0:0/0/custom_data_3 = &""
 1:0/0 = 0
-1:0/0/custom_data_0 = false
 1:0/0/custom_data_1 = 1
 1:0/0/custom_data_2 = &"wall"
-1:0/0/custom_data_3 = &""
 2:0/0 = 0
 2:0/0/custom_data_0 = true
 2:0/0/custom_data_1 = 2
 2:0/0/custom_data_2 = &"swamp"
-2:0/0/custom_data_3 = &""
 3:0/0 = 0
 3:0/0/custom_data_0 = true
 3:0/0/custom_data_1 = 1

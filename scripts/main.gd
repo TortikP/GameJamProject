@@ -4,13 +4,19 @@ extends Node
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const ARENA_DEMO := "res://scenes/arena/hex_grid_demo.tscn"
 
+const PREVIEW_SCENE = "res://scenes/dev/dialogue_preview.tscn"
+
+@onready var _debug_layer : CanvasLayer = $DebugLayer
+
+var _preview: Node = null
+
+
 func _ready() -> void:
 	GameLogger.info("Main", "boot complete; emitting run_started")
 	EventBus.run_started.emit()
-
-	var btn := $UI/TestDialogueBtn as Button
-	if btn:
-		btn.pressed.connect(_on_test_dialogue_pressed)
+	
+	($UI/TestDialogueBtn as Button).pressed.connect(_on_test_dialogue_pressed)
+	($UI/DebugBtn as Button).pressed.connect(_on_debug_btn_pressed)
 
 	# Временная кнопка запуска арены (удалить в feature 005)
 	var arena_btn := Button.new()
