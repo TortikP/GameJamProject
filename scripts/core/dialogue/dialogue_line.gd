@@ -3,6 +3,9 @@
 ## Usage: var line = DialogueLine.from_dict(d)
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+# Self-preload for from_dict() factory. Not circular — preload resolves the
+# script file, not a class instance.
+const SELF_SCRIPT = preload("res://scripts/core/dialogue/dialogue_line.gd")
 
 ## Required fields
 var id: StringName
@@ -19,7 +22,7 @@ var audio_layer: String     # "sfx" | "ai_voice" | "human" | ""
 var audio_clip: String      # path or ""
 
 ## Selector metadata
-var tags: Array[StringName]
+var tags: Array
 var priority: int
 var conditions: Dictionary  # min_run, max_run, flags_required, flags_forbidden
 var once_per_run: bool
@@ -31,7 +34,7 @@ var choices: Array          # Array[Dictionary{label, next}]
 
 
 static func from_dict(d: Dictionary) -> Object:
-	var line := load("res://scripts/core/dialogue/dialogue_line.gd").new()
+	var line: Object = SELF_SCRIPT.new()
 
 	# Validate required fields
 	if not d.has("id") or str(d["id"]).strip_edges() == "":

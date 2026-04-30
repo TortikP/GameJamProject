@@ -1,51 +1,41 @@
 extends Control
-## DialoguePanel — View layer for dialogue.
-## Consumes DialogueLine data, emits signals for DialogueManager.
+## DialoguePanel — state-machine view. No await inside — all state transitions
+## are explicit. DialogueManager awaits line_ended / choice_picked signals.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 signal line_ended
 signal choice_picked(index: int)
 
-@onready var _portrait : TextureRect    = $Panel/MarginContainer/HBoxContainer/Portrait
-@onready var _name_lbl : Label          = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Name
-@onready var _text_lbl : RichTextLabel  = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Text
-@onready var _choices  : HBoxContainer  = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Choices
-@onready var _image    : TextureRect    = $Panel/MarginContainer/HBoxContainer/Image
+enum State { IDLE, TYPING, WAITING, CHOICES }
 
-var _placeholder_cache: Dictionary = {}  # speaker_id -> ImageTexture
-var _full_text: String = ""
+@onready var _portrait : TextureRect   = $Panel/MarginContainer/HBoxContainer/Portrait
+@onready var _name_lbl : Label         = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Name
+@onready var _text_lbl : RichTextLabel = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Text
+@onready var _choices  : HBoxContainer = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Choices
+@onready var _image    : TextureRect   = $Panel/MarginContainer/HBoxContainer/Image
+
+var _placeholder_cache: Dictionary = {}
 var _tween: Tween = null
-var _text_complete: bool = false
-var _skip_count: int = 0           # 0 = none, 1 = first skip (fill text), 2 = close
-var _has_choices: bool = false
+var _state: int = State.IDLE
+var _current_line: Object = null
 var _auto_timer: SceneTreeTimer = null
 
 
 func _ready() -> void:
 	_choices.hide()
 	_image.hide()
-	set_process_unhandled_input(false)
+	set_process_input(false)
 
 
 func show_line(line: Object, speaker_data: Dictionary) -> void:
-	_full_text     = line.text
-	_has_choices   = line.choices.size() > 0
-	_text_complete = false
-	_skip_count    = 0
+	_current_line = line
+	_state = State.IDLE   # reset before setup
+	_auto_timer = null
 
-	if _auto_timer != null:
-		# can't cancel SceneTreeTimer directly — just ignore its signal via _text_complete flag
-		_auto_timer = null
-
-	# Speaker name
-	var display_name: String = speaker_data.get("display_name", str(line.speaker))
-	_name_lbl.text = display_name
-
-	# Portrait
+	_name_lbl.text = speaker_data.get("display_name", str(line.speaker))
 	_portrait.texture = _resolve_portrait(line, speaker_data)
 
-	# Image slot
 	if line.image != "":
 		var img_tex = _try_load_texture(line.image)
 		if img_tex != null:
@@ -56,40 +46,50 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	else:
 		_image.hide()
 
-	# Clear choices
 	for child in _choices.get_children():
 		child.queue_free()
 	_choices.hide()
 
-	# Typewriter
-	_text_lbl.text = ""
 	_text_lbl.bbcode_enabled = true
-	_text_lbl.visible_characters = 0
 	_text_lbl.text = line.text
+	# visible_ratio (0..1) handles bbcode correctly — tags are not counted.
+	# visible_characters tweening would also need visible_characters_behavior tuning;
+	# ratio sidesteps that entirely.
+	_text_lbl.visible_ratio = 0.0
 
 	var chars_per_sec: float = GameSpeed.get_value("ui", "dialogue_typewriter_chars_per_sec", 60.0)
-	var duration: float = float(line.text.length()) / max(chars_per_sec, 1.0)
+	# get_total_character_count() returns visible chars (excludes bbcode tags),
+	# so a [b]bold[/b] line gets the right duration regardless of tag overhead.
+	var visible_chars: int = _text_lbl.get_total_character_count()
+	if visible_chars <= 0:
+		visible_chars = line.text.length()  # fallback for empty / pre-layout cases
+	var duration: float = float(visible_chars) / max(chars_per_sec, 1.0)
 
-	if _tween != null and _tween.is_running():
+	if _tween != null:
 		_tween.kill()
 	_tween = create_tween()
-	_tween.tween_property(_text_lbl, "visible_characters", line.text.length(), duration)
-	await _tween.finished
+	_tween.tween_property(_text_lbl, "visible_ratio", 1.0, duration)
+	_tween.finished.connect(_on_typewriter_done, CONNECT_ONE_SHOT)
 
-	_text_complete = true
-	_text_lbl.visible_characters = -1  # ensure full display
+	_state = State.TYPING
+	set_process_input(true)
 
-	if _has_choices:
-		_show_choices(line.choices)
+
+func _on_typewriter_done() -> void:
+	_text_lbl.visible_ratio = 1.0
+	if _current_line.choices.size() > 0:
+		_show_choices(_current_line.choices)
+		_state = State.CHOICES
 	else:
-		var auto_delay: float = GameSpeed.get_value("ui", "dialogue_auto_advance_after_sec", 3.0)
-		_auto_timer = get_tree().create_timer(auto_delay)
-		var t = _auto_timer  # capture for closure check
-		await t.timeout
-		if _auto_timer == t:  # not cancelled by new show_line call
-			line_ended.emit()
+		_state = State.WAITING
+		var delay: float = GameSpeed.get_value("ui", "dialogue_auto_advance_after_sec", 3.0)
+		_auto_timer = get_tree().create_timer(delay)
+		_auto_timer.timeout.connect(_on_auto_advance, CONNECT_ONE_SHOT)
 
-	set_process_unhandled_input(true)
+
+func _on_auto_advance() -> void:
+	if _state == State.WAITING:
+		_close()
 
 
 func _show_choices(choices: Array) -> void:
@@ -103,12 +103,20 @@ func _show_choices(choices: Array) -> void:
 
 
 func _on_choice(index: int) -> void:
-	set_process_unhandled_input(false)
+	_state = State.IDLE
+	set_process_input(false)
 	_choices.hide()
 	choice_picked.emit(index)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _close() -> void:
+	_state = State.IDLE
+	_auto_timer = null
+	set_process_input(false)
+	line_ended.emit()
+
+
+func _input(event: InputEvent) -> void:
 	var is_advance := false
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		is_advance = true
@@ -119,23 +127,21 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_advance:
 		return
 
-	get_viewport().set_input_as_handled()
-
-	if _has_choices:
-		return  # choices: wait for button click
-
-	if not _text_complete:
-		# First skip: fill text immediately
-		if _tween != null and _tween.is_running():
-			_tween.kill()
-		_text_lbl.visible_characters = -1
-		_text_complete = true
-		_auto_timer = null  # invalidate pending auto-advance
-	else:
-		# Second skip: close
-		set_process_unhandled_input(false)
-		_auto_timer = null
-		line_ended.emit()
+	match _state:
+		State.TYPING:
+			get_viewport().set_input_as_handled()
+			if _tween != null:
+				_tween.kill()
+			_tween = null
+			_on_typewriter_done()
+		State.WAITING:
+			get_viewport().set_input_as_handled()
+			_auto_timer = null
+			_close()
+		State.CHOICES:
+			pass  # buttons handle their own clicks
+		State.IDLE:
+			pass  # absorbs click bleed between lines
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -160,12 +166,8 @@ func _try_load_texture(path: String) -> Texture2D:
 func _make_placeholder(speaker_id: String) -> ImageTexture:
 	if _placeholder_cache.has(speaker_id):
 		return _placeholder_cache[speaker_id]
-
 	var img := Image.create(160, 160, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.35, 0.35, 0.35, 1.0))
-
-	# Draw a simple letter in the centre (no font needed — just a label overlay)
-	# We return the grey square and let the Name label serve as identifier
 	var tex := ImageTexture.create_from_image(img)
 	_placeholder_cache[speaker_id] = tex
 	return tex
