@@ -10,16 +10,18 @@ extends Polygon2D
 var _last_coord: Vector2i = Vector2i(-1, -1)
 
 
+const HEX_RADIUS := 32.0
+const HEX_SCALE  := 1.00
+
 func _ready() -> void:
 	if grid == null:
 		grid = get_parent() as HexGrid
 	color = highlight_color
-	_build_hex_shape(HEX_RADIUS * HEX_SCALE)
+	_build_hex_shape(BG_R)   # подсвечиваем по внешнему радиусу (весь тайл включая обводку)
 	z_index = 10
 
 
-const HEX_RADIUS := 32.0
-const HEX_SCALE  := 1.00
+const BG_R := 33.0  # совпадает с BG_R в demo controller
 
 
 func _process(_delta: float) -> void:

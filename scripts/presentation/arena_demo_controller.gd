@@ -14,22 +14,26 @@ const PLAYER_ID: StringName = &"player"
 @export var actor_node: Node2D
 
 # ── Визуал ────────────────────────────────────────────────────────────────────
-# r = tile_size.x / 2 = 32  (flat-top: ширина тайла = 2*r)
-# scale < 1.0 даёт тонкий шов между гексами без отдельного outline-полигона
-const HEX_RADIUS   := 32.0
-const HEX_SCALE    := 1.00   # без зазора — гексы вплотную
+# Flat-top hex, outer radius r=32, tile_size=(64,56).
+# Inner radius = r*√3/2 ≈ 27.7  ← граница до которой fill не может доходить
+# чтобы не перекрывать соседей и оставить видимую обводку.
+#
+# bg_r  = 33.0  → чуть больше 32, перекрывает все зазоры от float-погрешности
+# fill_r = 26.0  → < 27.7, fill не пересекается с соседями → тёмное кольцо = обводка
+# Обводка всегда видна между любыми двумя тайлами, шовов нет.
 
-# Цвета по индексу атласа: 0=grass 1=wall 2=swamp 3=acid 4=fountain
+const BG_R     := 33.0                        # bg-полигон, устраняет зазоры
+const FILL_R   := 26.0                        # fill-полигон, меньше inner radius
+const BG_COLOR_HEX := Color(0.05, 0.05, 0.07) # цвет обводки / фона сетки
+
+# Цвета тайлов: 0=grass 1=wall 2=swamp 3=acid 4=fountain
 const TILE_COLORS: Array[Color] = [
 	Color(0.15, 0.80, 0.15),   # grass    — насыщенный зелёный
 	Color(0.10, 0.10, 0.10),   # wall     — почти чёрный
-	Color(0.35, 0.12, 0.42),   # swamp    — тёмный фиолетово-коричневый
-	Color(0.88, 1.00, 0.00),   # acid     — ярко-жёлтый (сильно отличается от травы)
+	Color(0.45, 0.10, 0.55),   # swamp    — фиолетовый
+	Color(0.92, 1.00, 0.00),   # acid     — ярко-жёлтый
 	Color(0.05, 0.50, 1.00),   # fountain — ярко-синий
 ]
-
-# Фоновый цвет сцены (между гексами)
-const BG_COLOR := Color(0.06, 0.06, 0.08)
 
 # Atlas column: 0=grass, 1=wall, 2=swamp, 3=acid, 4=fountain
 const _GRID_MAP := [
@@ -94,30 +98,45 @@ func _ready() -> void:
 # ── Визуальный слой ──────────────────────────────────────────────────────────
 
 func _paint_demo_grid() -> void:
-	grid.tile_map_layer.visible = false   # логика только
+	grid.tile_map_layer.visible = false
 
 	_visual_layer = Node2D.new()
 	_visual_layer.name = "VisualHexLayer"
-	_visual_layer.z_index = -1
 	grid.add_child(_visual_layer)
+
+	var bg_pts  := _flat_hex_pts(BG_R)
+	var fill_pts := _flat_hex_pts(FILL_R)
+
+	# Два прохода: сначала все bg, потом все fill.
+	# bg (z=0) — тёмный, перекрывает зазоры между тайлами.
+	# fill (z=1) — поверх всех bg; fill_r < inner_radius → не перекрывает соседей.
+	# Видимое тёмное кольцо = обводка.
+	var bg_layer  := Node2D.new()
+	var fill_layer := Node2D.new()
+	bg_layer.z_index   = 0
+	fill_layer.z_index = 1
+	_visual_layer.add_child(bg_layer)
+	_visual_layer.add_child(fill_layer)
 
 	for row in _GRID_MAP.size():
 		for col in _GRID_MAP[row].size():
 			var coord := Vector2i(col, row)
 			var tile_idx: int = _GRID_MAP[row][col]
 			grid.tile_map_layer.set_cell(coord, 0, Vector2i(tile_idx, 0))
-			_draw_hex_tile(coord, tile_idx)
 
+			var center: Vector2 = grid.tile_map_layer.map_to_local(coord)
 
-func _draw_hex_tile(coord: Vector2i, tile_idx: int) -> void:
-	var center: Vector2 = grid.tile_map_layer.map_to_local(coord)
-	var pts := _flat_hex_pts(HEX_RADIUS * HEX_SCALE)
+			var bg := Polygon2D.new()
+			bg.polygon  = bg_pts
+			bg.color    = BG_COLOR_HEX
+			bg.position = center
+			bg_layer.add_child(bg)
 
-	var poly := Polygon2D.new()
-	poly.polygon = pts
-	poly.color = TILE_COLORS[tile_idx]
-	poly.position = center
-	_visual_layer.add_child(poly)
+			var fill := Polygon2D.new()
+			fill.polygon  = fill_pts
+			fill.color    = TILE_COLORS[tile_idx]
+			fill.position = center
+			fill_layer.add_child(fill)
 
 
 func _flat_hex_pts(r: float) -> PackedVector2Array:
