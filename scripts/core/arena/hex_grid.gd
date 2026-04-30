@@ -273,6 +273,24 @@ func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return _pathfinder.find_path(from, to)
 
 
+## Like find_path, but treats `blocked` coords as non-walkable for this query
+## (typically other actors). `from` and `to` themselves are never blocked even
+## if listed. Used by AI to route around teammates.
+func find_path_around(from: Vector2i, to: Vector2i, blocked: Array) -> Array[Vector2i]:
+	var disabled: Array[Vector2i] = []
+	for c in blocked:
+		if c == from or c == to:
+			continue
+		if not (c is Vector2i):
+			continue
+		_pathfinder.set_point_walkable(c, false)
+		disabled.append(c)
+	var result := _pathfinder.find_path(from, to)
+	for c in disabled:
+		_pathfinder.set_point_walkable(c, true)
+	return result
+
+
 func size() -> Vector2i:
 	return Vector2i(_grid_width, _grid_height)
 

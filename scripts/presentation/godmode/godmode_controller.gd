@@ -318,6 +318,21 @@ func _spawn_manekin() -> void:
 	registry.register(manekin)
 	manekin.died.connect(_on_actor_died)
 	GameLogger.info("Godmode", "spawned %s at %s" % [id, str(coord)])
+	# Plan immediately so the player sees the new manekin's intent right away,
+	# without having to end their turn first. Re-plans ALL enemies because
+	# adding a new one can block existing pathing.
+	_replan_all_and_refresh()
+
+
+func _replan_all_and_refresh() -> void:
+	var enemies: Array = []
+	for actor in registry.all():
+		if actor is Actor and (actor as Actor).team == &"enemy":
+			enemies.append(actor)
+	for actor in enemies:
+		if actor is Actor and (actor as Actor).is_alive():
+			_plan_intents(actor as Actor, enemies)
+	_refresh_telegraphs()
 
 
 func _clear_manekins() -> void:
@@ -371,8 +386,10 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 # Sequential per enemy. _world_processing locks player input during the loop.
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
+const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
 
 var _telegraph_hexes: Dictionary = {}  # Vector2i coord -> TelegraphHex node
+var _intent_arrows: Dictionary = {}    # StringName actor_id -> IntentArrow node
 
 
 func _on_world_turn_ended(_turn: int) -> void:
@@ -390,47 +407,65 @@ func _run_enemy_turn() -> void:
 	for actor in registry.all():
 		if actor is Actor and (actor as Actor).team == &"enemy":
 			enemies.append(actor)
-	# Clear all visual telegraphs at start — they'll be rebuilt at the end
-	# from per-enemy intent_coord data after all moves resolve.
 	_clear_all_telegraphs()
+
+	# Phase 1: RESOLVE — execute everyone's planned move, then planned attack.
+	# Movement first so attacks happen from the post-move position.
 	for actor in enemies:
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
 			continue
-
-		# 1. Resolve last turn's intent
-		await _resolve_attack_intent(enemy)
+		await _resolve_move_intent(enemy)
 		if not enemy.is_alive():
 			continue
+		await _resolve_attack_intent(enemy)
 
-		# 2. Plan this turn — step toward player if not adjacent
-		var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
-		var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
-		if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
+	# Phase 2: PLAN — pick next move (route around other actors) and next
+	# attack (if would be adjacent after move). Sets data only; visuals
+	# rebuilt at the end of this loop.
+	for actor in enemies:
+		if not (actor is Actor):
 			continue
-		var path: Array = grid.find_path(enemy_coord, player_coord)
-		if path.size() > 2:
-			var next_hop: Vector2i = path[1]
-			if grid.get_actor_at(next_hop) == &"":
-				await grid.move_actor(enemy.actor_id, next_hop)
+		var enemy: Actor = actor
+		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
+			continue
+		_plan_intents(enemy, enemies)
 
-		# 3. Set new intent if we ended adjacent and have an attack (data only)
-		_set_attack_intent(enemy)
-
-	# Rebuild all visuals once at end — aggregates damage per coord.
 	_refresh_telegraphs()
+
+
+# ── Resolve helpers ──────────────────────────────────────────────────────────
+
+func _resolve_move_intent(enemy: Actor) -> void:
+	var intent_var: Variant = enemy.get("move_intent_coord")
+	if not (intent_var is Vector2i):
+		return
+	var intent: Vector2i = intent_var
+	enemy.set("move_intent_coord", Vector2i(-1, -1))
+	if intent == Vector2i(-1, -1):
+		return
+	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
+	if enemy_coord == intent:
+		return  # already there (somehow)
+	# Check destination is still walkable + unoccupied at execute-time
+	# (another enemy may have ended up there during this Phase 1)
+	if grid.get_actor_at(intent) != &"":
+		GameLogger.info("AI", "%s: move blocked at %s" % [enemy.actor_id, intent])
+		return
+	# move_actor handles validation; await ensures sequential animation
+	await grid.move_actor(enemy.actor_id, intent)
 
 
 func _resolve_attack_intent(enemy: Actor) -> void:
 	var intent_var: Variant = enemy.get("attack_intent_coord")
 	if not (intent_var is Vector2i):
-		return  # actor doesn't have attack_intent_coord field — not a manekin
+		return
 	var intent: Vector2i = intent_var
 	enemy.set("attack_intent_coord", Vector2i(-1, -1))
 	if intent == Vector2i(-1, -1):
-		return  # no pending attack
+		return
 	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
 	if player_coord != intent:
 		GameLogger.info("AI", "%s: attack missed (player moved)" % enemy.actor_id)
@@ -442,37 +477,64 @@ func _resolve_attack_intent(enemy: Actor) -> void:
 	if ability == null:
 		return
 	var ctx: Dictionary = {
-		"registry": registry,
-		"grid": grid,
-		"target_id": PLAYER_ID,
-		"target_coord": player_coord,
+		"registry": registry, "grid": grid,
+		"target_id": PLAYER_ID, "target_coord": player_coord,
 	}
+	# can_apply re-validates adjacency at the moment of cast — knockback /
+	# disruption still neutralizes the attack correctly.
 	ability.cast(enemy, ctx)
 	await GameSpeed.wait("godmode", "ability_cast_delay")
 
 
-func _set_attack_intent(enemy: Actor) -> void:
-	if not enemy.is_alive():
+# ── Plan helpers ─────────────────────────────────────────────────────────────
+
+func _plan_intents(enemy: Actor, all_enemies: Array) -> void:
+	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
+	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
+	if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
 		return
+
+	# Build set of coords blocked by OTHER enemies (player tile is the goal,
+	# never blocked even when the planning enemy is adjacent).
+	var blocked: Array = []
+	for other in all_enemies:
+		if not (other is Actor):
+			continue
+		var o: Actor = other
+		if o == enemy or not o.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(o.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+
+	# Pathfind to player going AROUND other enemies.
+	var path: Array = grid.find_path_around(enemy_coord, player_coord, blocked)
+
+	# Decide planned move
+	var planned_move: Vector2i = enemy_coord  # default: stand still
+	if path.size() > 2:
+		# Step one hex toward player along the path
+		planned_move = path[1]
+	# else: adjacent or no path — don't move
+	enemy.set("move_intent_coord", planned_move if planned_move != enemy_coord else Vector2i(-1, -1))
+
+	# Decide planned attack — would the ability hit player from planned_move?
 	var ability_id_var: Variant = enemy.get("attack_ability_id")
 	if not (ability_id_var is StringName) or ability_id_var == &"":
 		return
 	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
 	if ability == null:
 		return
-	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
-	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
-	if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
-		return
 	var ctx: Dictionary = {
-		"registry": registry,
-		"grid": grid,
-		"target_id": PLAYER_ID,
-		"target_coord": player_coord,
+		"registry": registry, "grid": grid,
+		"target_id": PLAYER_ID, "target_coord": player_coord,
 	}
-	if not ability.can_apply(enemy, ctx):
-		return
-	enemy.set("attack_intent_coord", player_coord)
+	# Probe adjacency from planned_move via path size between planned_move
+	# and player. (We can't just call ability.can_apply because it reads the
+	# enemy's CURRENT coord, not the post-move one.)
+	var probe_path: Array = grid.find_path(planned_move, player_coord)
+	if probe_path.size() == 2:  # exactly adjacent
+		enemy.set("attack_intent_coord", player_coord)
 
 
 # ── Telegraph visuals ────────────────────────────────────────────────────────
@@ -483,23 +545,38 @@ func _refresh_telegraphs() -> void:
 		if is_instance_valid(poly):
 			poly.queue_free()
 	_telegraph_hexes.clear()
+	for arr in _intent_arrows.values():
+		if is_instance_valid(arr):
+			arr.queue_free()
+	_intent_arrows.clear()
+
 	# Aggregate damage per coord across all enemies' intents.
-	var damage_per_coord: Dictionary = {}  # Vector2i -> int
+	var damage_per_coord: Dictionary = {}
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if enemy.team != &"enemy" or not enemy.is_alive():
 			continue
-		var intent_var: Variant = enemy.get("attack_intent_coord")
-		if not (intent_var is Vector2i):
-			continue
-		var coord: Vector2i = intent_var
-		if coord == Vector2i(-1, -1):
-			continue
-		var dmg: int = _enemy_attack_damage(enemy)
-		damage_per_coord[coord] = damage_per_coord.get(coord, 0) + dmg
-	# Render one telegraph per unique coord.
+		# Attack telegraph aggregation
+		var atk_var: Variant = enemy.get("attack_intent_coord")
+		if atk_var is Vector2i and atk_var != Vector2i(-1, -1):
+			var dmg: int = _enemy_attack_damage(enemy)
+			damage_per_coord[atk_var] = damage_per_coord.get(atk_var, 0) + dmg
+		# Movement arrow — one per enemy with a planned move
+		var mv_var: Variant = enemy.get("move_intent_coord")
+		if mv_var is Vector2i and mv_var != Vector2i(-1, -1):
+			var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
+			if enemy_coord != Vector2i(-1, -1):
+				var arrow: Node2D = INTENT_ARROW_SCRIPT.new()
+				arrow.position = Vector2.ZERO
+				arrow.z_index = 4  # above telegraph hex, below actors
+				grid.add_child(arrow)
+				arrow.set("origin", grid.tile_map_layer.map_to_local(enemy_coord))
+				arrow.set("target", grid.tile_map_layer.map_to_local(mv_var))
+				_intent_arrows[enemy.actor_id] = arrow
+
+	# Render one telegraph hex per unique threatened coord.
 	for coord in damage_per_coord.keys():
 		var hex: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		hex.position = grid.tile_map_layer.map_to_local(coord)
@@ -514,6 +591,10 @@ func _clear_all_telegraphs() -> void:
 		if is_instance_valid(poly):
 			poly.queue_free()
 	_telegraph_hexes.clear()
+	for arr in _intent_arrows.values():
+		if is_instance_valid(arr):
+			arr.queue_free()
+	_intent_arrows.clear()
 
 
 ## Best-effort damage forecast for one enemy's pending attack. Reads its

@@ -29,13 +29,14 @@ func _draw() -> void:
 		var a: Vector2 = pts[i]
 		var b: Vector2 = pts[(i + 1) % 6]
 		draw_line(a, b, COLOR_FRAME, 2.0, true)
-	# Damage label
+	# Damage label — pushed above the hex so it isn't hidden by an actor sprite
+	# standing on the threatened tile.
 	if damage <= 0:
 		return
 	var font: Font = ThemeDB.fallback_font
 	var text: String = "-%d" % damage
 	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE)
-	var pos: Vector2 = Vector2(-size.x * 0.5, size.y * 0.35)
+	var pos: Vector2 = Vector2(-size.x * 0.5, -RADIUS - 6.0)
 	# Drop shadow for readability over light/dark hexes
 	draw_string(font, pos + Vector2(1, 1), text,
 		HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE, TEXT_SHADOW)

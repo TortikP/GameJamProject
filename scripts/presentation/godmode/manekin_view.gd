@@ -11,6 +11,11 @@ extends Actor
 ## (-1, -1) = no pending attack. Set by AI at end of turn, consumed at start.
 var attack_intent_coord: Vector2i = Vector2i(-1, -1)
 
+## Coord this manekin will MOVE to next turn (one step). (-1, -1) = stay put.
+## Resolved before attack on the AI's turn — meaning the attack is from
+## the move_intent position, not the current position.
+var move_intent_coord: Vector2i = Vector2i(-1, -1)
+
 
 func _ready() -> void:
 	team = &"enemy"
