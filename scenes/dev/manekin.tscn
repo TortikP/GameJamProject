@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://manekin_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/godmode/manekin_view.gd" id="1_manekin"]
-[ext_resource type="Script" path="res://scripts/presentation/godmode/health_bar.gd" id="2_hpbar"]
+[ext_resource type="Script" path="res://scripts/presentation/health_bar.gd" id="2_hpbar"]
 
 [node name="Manekin" type="Node2D"]
 script = ExtResource("1_manekin")

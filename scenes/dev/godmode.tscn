@@ -3,8 +3,8 @@
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
 [ext_resource type="Script" path="res://scripts/core/actors/actor_registry.gd" id="3_registry"]
-[ext_resource type="Script" path="res://scripts/presentation/godmode/turn_counter.gd" id="4_turncount"]
-[ext_resource type="Script" path="res://scripts/presentation/godmode/slot_bar.gd" id="5_slotbar"]
+[ext_resource type="Script" path="res://scripts/presentation/turn_counter.gd" id="4_turncount"]
+[ext_resource type="Script" path="res://scripts/presentation/slot_bar.gd" id="5_slotbar"]
 [ext_resource type="Script" path="res://scripts/presentation/hex_cursor.gd" id="6_hexcursor"]
 
 [node name="Godmode" type="Node2D"]
