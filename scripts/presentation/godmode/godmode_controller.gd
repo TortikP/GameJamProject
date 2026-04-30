@@ -76,15 +76,18 @@ func _ready() -> void:
 	grid.initialize()
 	_place_player()
 
-	# 5. Seed slots
-	_seed_slots()
+	# 5. Seed slots — DEFERRED. Sibling order in scene tree means SlotBar._ready
+	#    fires AFTER GodmodeController._ready (HUD is a later sibling), so its
+	#    buttons array is empty when we get here. call_deferred runs after the
+	#    rest of the frame's _ready calls.
+	_seed_slots.call_deferred()
 	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_activated"):
 		_slot_bar_node.slot_activated.connect(_on_slot_activated)
 
 	# Reset turn counter for this session
 	TurnManager.reset()
-	# Force HUD to show initial value
-	EventBus.world_turn_ended.emit(TurnManager.current())
+	# Force HUD to show initial value — also deferred so TurnLabel has connected.
+	_emit_initial_turn.call_deferred()
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=cast, F1=spawn dummy, F2=clear")
 
@@ -117,6 +120,10 @@ func _seed_slots() -> void:
 		return
 	_slot_bar_node.set_slot(0, debug_punch)
 	_slot_bar_node.set_active(0)
+
+
+func _emit_initial_turn() -> void:
+	EventBus.world_turn_ended.emit(TurnManager.current())
 
 
 # ── Input ────────────────────────────────────────────────────────────────────

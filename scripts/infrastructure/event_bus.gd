@@ -7,6 +7,11 @@ extends Node
 ##
 ## Naming convention: snake_case, past tense (battle_started, wave_spawned).
 
+# Signals here are intentionally public API: emitted/connected from other scripts,
+# never from EventBus itself. Suppress GDScript's "declared but never used in this
+# class" warning for the whole file — it's noise.
+@warning_ignore_start("unused_signal")
+
 # Battle
 signal battle_started(arena_id: StringName)
 signal battle_ended(victory: bool)
