@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://manekin_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/godmode/manekin_view.gd" id="1_manekin"]
+
+[node name="Manekin" type="Node2D"]
+script = ExtResource("1_manekin")
+max_hp = 20
+team = &"enemy"
+
+[node name="Body" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(16, 0, 8, 13.856, -8, 13.856, -16, 0, -8, -13.856, 8, -13.856)
+color = Color(0.85, 0.18, 0.18, 1)
+z_index = 4

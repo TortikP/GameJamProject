@@ -3,6 +3,7 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const ARENA_DEMO := "res://scenes/arena/hex_grid_demo.tscn"
+const GODMODE_SCENE := "res://scenes/dev/godmode.tscn"
 
 func _ready() -> void:
 	GameLogger.info("Main", "boot complete; emitting run_started")
@@ -20,9 +21,22 @@ func _ready() -> void:
 	arena_btn.pressed.connect(_on_arena_pressed)
 	$UI.add_child(arena_btn)
 
+	# Кнопка запуска Godmode (feature 004-godmode-base)
+	var godmode_btn := Button.new()
+	godmode_btn.text = "▶  Godmode (sandbox)"
+	godmode_btn.anchors_preset = Control.PRESET_CENTER
+	godmode_btn.custom_minimum_size = Vector2(220, 48)
+	godmode_btn.position = Vector2(0, 60)
+	godmode_btn.pressed.connect(_on_godmode_pressed)
+	$UI.add_child(godmode_btn)
+
 
 func _on_arena_pressed() -> void:
 	get_tree().change_scene_to_file(ARENA_DEMO)
+
+
+func _on_godmode_pressed() -> void:
+	get_tree().change_scene_to_file(GODMODE_SCENE)
 
 
 func _on_run_started() -> void:

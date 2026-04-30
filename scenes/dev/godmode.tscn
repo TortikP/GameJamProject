@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3 uid="uid://godmode_001"]
+
+[ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
+[ext_resource type="Script" path="res://scripts/core/actors/actor_registry.gd" id="3_registry"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/turn_counter.gd" id="4_turncount"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/slot_bar.gd" id="5_slotbar"]
+
+[node name="Godmode" type="Node2D"]
+
+[node name="HexGrid" parent="." instance=ExtResource("1_hexgrid")]
+position = Vector2(120, 60)
+
+[node name="ActorRegistry" type="Node" parent="."]
+script = ExtResource("3_registry")
+
+[node name="GodmodeController" type="Node" parent="."]
+script = ExtResource("2_controller")
+grid = NodePath("../HexGrid")
+registry = NodePath("../ActorRegistry")
+slot_bar = NodePath("../HUD/SlotBar")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TurnLabel" type="Label" parent="HUD"]
+script = ExtResource("4_turncount")
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 220.0
+offset_bottom = 48.0
+text = "Turn: 1"
+theme_override_font_sizes/font_size = 22
+
+[node name="HelpLabel" type="Label" parent="HUD"]
+offset_left = 16.0
+offset_top = 56.0
+offset_right = 600.0
+offset_bottom = 84.0
+text = "RMB=move  LMB/QWER/1234=cast  F1=spawn dummy  F2=clear"
+theme_override_font_sizes/font_size = 14
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="SlotBar" type="HBoxContainer" parent="HUD"]
+script = ExtResource("5_slotbar")
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -96.0
+offset_right = 160.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1

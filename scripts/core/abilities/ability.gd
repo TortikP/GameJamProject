@@ -21,15 +21,18 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var modifiers: Array[AbilityModifier] = []
 
 
-func cast(caster: Actor, ctx: Dictionary) -> void:
+## Returns true if the ability actually resolved (had at least one valid target).
+## A no-target cast (e.g. clicked empty hex) returns false and consumers should
+## NOT advance turns on it.
+func cast(caster: Actor, ctx: Dictionary) -> bool:
 	if target == null or effect == null:
 		GameLogger.error("Ability", "%s: target or effect is null" % id)
-		return
+		return false
 
 	var targets: Array = target.resolve(caster, ctx)
 	if targets.is_empty():
 		GameLogger.info("Ability", "%s: no targets" % id)
-		return
+		return false
 
 	for m in modifiers:
 		m.before_apply(caster, targets, ctx)
@@ -49,3 +52,4 @@ func cast(caster: Actor, ctx: Dictionary) -> void:
 		if t != null:
 			target_ids.append(t.actor_id)
 	EventBus.ability_cast.emit(caster.actor_id, id, target_ids)
+	return true
