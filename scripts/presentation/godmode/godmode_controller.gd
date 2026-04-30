@@ -115,10 +115,13 @@ func _seed_slots() -> void:
 	if _slot_bar_node == null:
 		return
 	var debug_punch: Ability = AbilityDatabase.get_ability(&"debug_punch")
-	if debug_punch == null:
+	if debug_punch != null:
+		_slot_bar_node.set_slot(0, debug_punch)
+	else:
 		GameLogger.warn("Godmode", "debug_punch not found in AbilityDatabase")
-		return
-	_slot_bar_node.set_slot(0, debug_punch)
+	var melee_punch: Ability = AbilityDatabase.get_ability(&"melee_punch")
+	if melee_punch != null:
+		_slot_bar_node.set_slot(1, melee_punch)
 	_slot_bar_node.set_active(0)
 
 

@@ -17,6 +17,7 @@ const ABILITIES_DIR := "res://data/abilities/"
 
 const TARGET_KINDS: Dictionary = {
 	"single_enemy": preload("res://scripts/core/abilities/targets/single_enemy_target.gd"),
+	"single_enemy_adjacent": preload("res://scripts/core/abilities/targets/single_enemy_adjacent_target.gd"),
 }
 
 const EFFECT_KINDS: Dictionary = {
