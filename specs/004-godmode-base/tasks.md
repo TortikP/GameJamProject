@@ -22,4 +22,4 @@
 - [x] T018 [P1] main.gd: добавить кнопку "Godmode" → change_scene_to_file. Не ломать существующую "Arena Demo".
 - [x] T019 [P1] Smoke-test plan: ручной чеклист в `specs/004-godmode-base/SMOKE.md` — 7 пунктов из spec.md "Acceptance verification". Прогнать, отметить.
 - [ ] T020 [P2] F5 hot-reload `game_speed.cfg` тестирован в Godmode. (depends T017)
-- [ ] T021 [P2] Push ветку, запостить URL для PR. (depends T019)
+- [x] T021 [P2] Push ветку, запостить URL для PR. (depends T019)
