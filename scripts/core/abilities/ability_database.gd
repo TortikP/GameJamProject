@@ -38,7 +38,7 @@ func _ready() -> void:
 
 
 func get_ability(id: StringName) -> Ability:
-	return _by_id.get(id, null)
+	return _by_id.get(id, null) as Ability
 
 
 func has_ability(id: StringName) -> bool:
