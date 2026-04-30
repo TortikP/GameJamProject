@@ -155,10 +155,31 @@ func _update_castability() -> void:
 		"target_id": target_id,
 		"target_coord": coord,
 	}
+	# Slot castability tints
 	for i in 4:
 		var ability := _slot_bar_node.get_slot(i) as Ability
 		var castable: bool = ability != null and ability.can_apply(player, ctx)
 		_slot_bar_node.set_castable(i, castable)
+
+	# Damage preview on enemies — only the hovered one shows red strip,
+	# others get cleared. Active slot's ability is the source.
+	var active_idx: int = _slot_bar_node.get_active()
+	var active_ability := _slot_bar_node.get_slot(active_idx) as Ability
+	var hover_target: Actor = registry.get_actor(target_id) if target_id != &"" else null
+	var preview_for_hover: int = 0
+	if active_ability != null and hover_target != null and hover_target.team == &"enemy":
+		if active_ability.can_apply(player, ctx):
+			preview_for_hover = active_ability.predicted_damage_to(player, hover_target, ctx)
+	for actor in registry.all():
+		if not (actor is Actor):
+			continue
+		var a: Actor = actor
+		if a.team != &"enemy":
+			continue
+		var hp_bar: Node = a.get_node_or_null("HealthBar")
+		if hp_bar == null or not hp_bar.has_method("set_preview_damage"):
+			continue
+		hp_bar.set_preview_damage(preview_for_hover if a == hover_target else 0)
 
 
 func _unhandled_input(event: InputEvent) -> void:

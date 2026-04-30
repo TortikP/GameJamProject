@@ -28,6 +28,15 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 	return target.can_apply(caster, ctx)
 
 
+## Best-effort damage forecast for hover-preview UI. Currently just reads
+## DamageEffect.amount; returns 0 for non-damage effects. Modifiers can
+## later expose a multiplier hook if needed (jam scope: skip).
+func predicted_damage_to(_caster: Actor, _target: Actor, _ctx: Dictionary) -> int:
+	if effect is DamageEffect:
+		return (effect as DamageEffect).amount
+	return 0
+
+
 ## Returns true if the ability actually resolved (had at least one valid target).
 ## A no-target cast (e.g. clicked empty hex) returns false and consumers should
 ## NOT advance turns on it.
