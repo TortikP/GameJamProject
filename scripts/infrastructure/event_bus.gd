@@ -7,6 +7,11 @@ extends Node
 ##
 ## Naming convention: snake_case, past tense (battle_started, wave_spawned).
 
+# Signals here are intentionally public API: emitted/connected from other scripts,
+# never from EventBus itself. Suppress GDScript's "declared but never used in this
+# class" warning for the whole file — it's noise.
+@warning_ignore_start("unused_signal")
+
 # Battle
 signal battle_started(arena_id: StringName)
 signal battle_ended(victory: bool)
@@ -33,3 +38,11 @@ signal dialogue_finished(dialogue_id: StringName)
 signal actor_moved(actor_id: StringName, from: Vector2i, to: Vector2i)
 signal tile_entered(actor_id: StringName, coord: Vector2i)
 signal tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id: StringName)
+
+# Turn loop
+signal player_turn_ended(turn: int)
+signal world_turn_ended(turn: int)
+
+# Combat (composed-ability era; spell_cast above is legacy)
+signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: Array)
+signal actor_died(id: StringName)

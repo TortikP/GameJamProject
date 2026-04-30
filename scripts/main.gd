@@ -3,6 +3,7 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const ARENA_DEMO := "res://scenes/arena/hex_grid_demo.tscn"
+const GODMODE_SCENE := "res://scenes/dev/godmode.tscn"
 
 const PREVIEW_SCENE = "res://scenes/dev/dialogue_preview.tscn"
 
@@ -26,9 +27,22 @@ func _ready() -> void:
 	arena_btn.pressed.connect(_on_arena_pressed)
 	$UI.add_child(arena_btn)
 
+	# Кнопка запуска Godmode (feature 004-godmode-base)
+	var godmode_btn := Button.new()
+	godmode_btn.text = "▶  Godmode (sandbox)"
+	godmode_btn.anchors_preset = Control.PRESET_CENTER
+	godmode_btn.custom_minimum_size = Vector2(220, 48)
+	godmode_btn.position = Vector2(0, 60)
+	godmode_btn.pressed.connect(_on_godmode_pressed)
+	$UI.add_child(godmode_btn)
+
 
 func _on_arena_pressed() -> void:
 	get_tree().change_scene_to_file(ARENA_DEMO)
+
+
+func _on_godmode_pressed() -> void:
+	get_tree().change_scene_to_file(GODMODE_SCENE)
 
 
 func _on_run_started() -> void:
@@ -37,22 +51,3 @@ func _on_run_started() -> void:
 
 func _on_test_dialogue_pressed() -> void:
 	DialogueManager.request(&"respawn", {"run_count": 1})
-
-
-func _on_debug_btn_pressed() -> void:
-	_toggle_preview()
-
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
-		_toggle_preview()
-		get_viewport().set_input_as_handled()
-
-
-func _toggle_preview() -> void:
-	if _preview == null:
-		_preview = load(PREVIEW_SCENE).instantiate()
-		_debug_layer.add_child(_preview)
-		_debug_layer.visible = true
-	else:
-		_debug_layer.visible = not _debug_layer.visible

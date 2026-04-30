@@ -12,6 +12,16 @@ hex grid, roguelike loop. See jam-concept-pitch.md for details.
 - JSON / .tres for content
 - Desktop builds (web only if time permits Saturday)
 
+## Design pillars
+
+These two override implementation convenience. PRs that violate them get a hard re-think before merge. Full discussion in `THEME_PLAN.md` §1.5.
+
+1. **Full information visibility.** The player sees everything needed to make an informed (or least-bad) tactical decision *before* committing to it. HP, statuses, incoming threats with damage numbers, ability previews, castability — all on screen, no hidden RNG, no surprise damage. Loss should feel like "I misjudged", never "the game cheated me".
+
+2. **Player–monster symmetry.** Monsters use the same `Actor` and `Ability` (`Target × Effect × Modifier`) contracts as the player. AI is a controller that picks actions from the same primitives the player uses (`grid.move_actor`, `ability.cast`) — not a parallel system. The implicit test: you should be able to take control of any enemy and play it as a character.
+
+What this forbids in practice: enemy-only damage paths, AI-only fields on Actor, hidden RNG rolls behind the scenes, attacks that resolve without a telegraph, "mysterious" status effects without UI representation. When in doubt, ask "would the player accept losing 30% HP to this without warning?" — if no, fix the visibility before merging.
+
 ## Hard rules
 
 ### Architecture
@@ -138,3 +148,4 @@ When we hit a new trap, append a row here in the same PR that fixes it.
 | **Logger / utility classes**: `class_name Logger` collides with an internal Godot C++ class `Logger` (defined in `core/io/logger.h`). The parser resolves `Logger.method()` to that engine class, not your script, and you get `Static function "info()" not found in base "GDScriptNativeClass"` plus a "shadows a native class" warning. Same shape of error appears with autoload registration of utility classes. Renaming to anything non-colliding (e.g. `GameLogger`) is the only reliable fix. | For any stateless utility script: don't use names that match Godot internals (Logger is one of them — avoid). Use a project-prefixed name (`GameLogger`, `JamMath`, etc.). Don't use `class_name` or autoload — instead, explicit preload at the top of consumers: `const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")`. Methods are `static func name(...)` (multi-line — inline form misbehaves in 4.6). This pattern doesn't depend on the global class registry. |
 | `var x := load("res://path/to/script.gd").new()` — `:=` не может вывести тип, `load()` возвращает `Resource`, `.new()` — `Object`. Godot падает с "Cannot infer the type". | Явная аннотация: `var x: Object = load(...).new()`. |
 | `cat > file.gd << 'HEREDOC'` для записи GDScript — bash single-quoted heredoc сохраняет `\\n` как литеральный `\n`, `\\"` как `\"`, итого escape-последовательности в строках GDScript ломаются и Godot выдаёт Parse error. | Писать GDScript файлы через `python3 -c "with open(...) as f: f.write(content)"` или через `create_file` tool. Никаких bash heredoc для .gd файлов. |
+| `Array[CustomClass]` (типизованный массив с пользовательским классом) — Godot 4.6 при присваивании `arr[i] = value` делает строгую проверку, и сюрприз: **даже plain `Array` иногда отказывается принять `Resource`-подкласс**, если значение пришло через Variant-границу (`Dictionary.get()`, duck-typed call на `Node` без `as`-каста, параметр функции с типом `CustomClass`). Падает с `Invalid assignment of index 'N' (on base: 'Array' or 'Array[X]') with value of type 'Resource (X)'`. | Кувалда: `var _store: Dictionary = {}` вместо Array. У словаря значения не типизуются совсем. Доступ `_store[i] = v` / `_store.get(i, null)`. На границах функций — параметры без типа (`func set(i: int, v) -> void`) либо явно `Variant`. Принимаем потерю автокомплита. Для джемного кода — это меньшее зло. |
