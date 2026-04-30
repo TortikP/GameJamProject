@@ -458,8 +458,9 @@ If running out of time on Saturday:
 
 ### `DialogueManager` (Алексей)
 
-`scripts/core/dialogue/dialogue_manager.gd` + `scenes/ui/dialogue_panel.tscn`.
+`scripts/presentation/dialogue_manager.gd` + `scenes/ui/dialogue_panel.tscn`.
 - Autoload-стиль, но как обычный класс (для тестируемости).
+- Лежит в `presentation/`, а не `core/`, потому что инстанцирует и владеет UI-панелью. `scripts/core/dialogue/` остаётся для чисто-данных (`dialogue_database.gd`, `dialogue_line.gd`).
 - Читает `data/dialogues/*.json` при старте.
 - API: `play(dialogue_id: String)`, `play_random_by_tag(tag: String)`, очередь.
 - Сигналы через EventBus: `dialogue_started`, `dialogue_finished`.
