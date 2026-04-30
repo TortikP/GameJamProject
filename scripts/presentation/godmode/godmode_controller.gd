@@ -197,6 +197,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clear_manekins()
 		get_viewport().set_input_as_handled()
 		return
+	if event.is_action_pressed("wait_turn"):
+		_wait_turn()
+		get_viewport().set_input_as_handled()
+		return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
 			# Key only SELECTS the slot. Cast is confirmed by LMB on target.
@@ -217,6 +221,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 # ── Actions ──────────────────────────────────────────────────────────────────
+
+func _wait_turn() -> void:
+	if grid._moving or _world_processing:
+		return
+	GameLogger.info("Godmode", "player skipped turn")
+	TurnManager.advance()
+
 
 func _request_move() -> void:
 	if grid._moving or _world_processing:
@@ -316,10 +327,10 @@ func _clear_manekins() -> void:
 			to_remove.append(actor)
 	for actor in to_remove:
 		var a: Actor = actor
-		_clear_telegraph(a.actor_id)
 		grid.clear_actor(a.actor_id)
 		registry.unregister(a.actor_id)
 		a.queue_free()
+	_clear_all_telegraphs()
 	GameLogger.info("Godmode", "cleared %d manekins" % to_remove.size())
 
 
@@ -327,10 +338,11 @@ func _on_actor_died(id: StringName) -> void:
 	var actor: Actor = registry.get_actor(id)
 	if actor == null:
 		return
-	_clear_telegraph(id)
 	grid.clear_actor(id)
 	registry.unregister(id)
 	actor.queue_free()
+	# An enemy died → its intent is gone, refresh visuals to drop its label
+	_refresh_telegraphs()
 
 
 # ── Movement animation (mirror of arena_demo_controller) ─────────────────────
@@ -358,10 +370,9 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 #
 # Sequential per enemy. _world_processing locks player input during the loop.
 
-const TELEGRAPH_COLOR := Color(0.9, 0.15, 0.15, 0.45)
-const TELEGRAPH_RADIUS := 60.0
+const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
 
-var _telegraphs: Dictionary = {}  # StringName actor_id -> Polygon2D
+var _telegraph_hexes: Dictionary = {}  # Vector2i coord -> TelegraphHex node
 
 
 func _on_world_turn_ended(_turn: int) -> void:
@@ -379,12 +390,14 @@ func _run_enemy_turn() -> void:
 	for actor in registry.all():
 		if actor is Actor and (actor as Actor).team == &"enemy":
 			enemies.append(actor)
+	# Clear all visual telegraphs at start — they'll be rebuilt at the end
+	# from per-enemy intent_coord data after all moves resolve.
+	_clear_all_telegraphs()
 	for actor in enemies:
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
-			_clear_telegraph(enemy.actor_id)
 			continue
 
 		# 1. Resolve last turn's intent
@@ -403,8 +416,11 @@ func _run_enemy_turn() -> void:
 			if grid.get_actor_at(next_hop) == &"":
 				await grid.move_actor(enemy.actor_id, next_hop)
 
-		# 3. Set new intent if we ended adjacent and have an attack
+		# 3. Set new intent if we ended adjacent and have an attack (data only)
 		_set_attack_intent(enemy)
+
+	# Rebuild all visuals once at end — aggregates damage per coord.
+	_refresh_telegraphs()
 
 
 func _resolve_attack_intent(enemy: Actor) -> void:
@@ -413,7 +429,6 @@ func _resolve_attack_intent(enemy: Actor) -> void:
 		return  # actor doesn't have attack_intent_coord field — not a manekin
 	var intent: Vector2i = intent_var
 	enemy.set("attack_intent_coord", Vector2i(-1, -1))
-	_clear_telegraph(enemy.actor_id)
 	if intent == Vector2i(-1, -1):
 		return  # no pending attack
 	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
@@ -458,28 +473,56 @@ func _set_attack_intent(enemy: Actor) -> void:
 	if not ability.can_apply(enemy, ctx):
 		return
 	enemy.set("attack_intent_coord", player_coord)
-	_show_telegraph(enemy.actor_id, player_coord)
 
 
 # ── Telegraph visuals ────────────────────────────────────────────────────────
 
-func _show_telegraph(actor_id: StringName, coord: Vector2i) -> void:
-	_clear_telegraph(actor_id)
-	var poly := Polygon2D.new()
-	var pts: PackedVector2Array = []
-	for i in 6:
-		var a: float = deg_to_rad(60.0 * i)
-		pts.append(Vector2(cos(a) * TELEGRAPH_RADIUS, sin(a) * TELEGRAPH_RADIUS))
-	poly.polygon = pts
-	poly.color = TELEGRAPH_COLOR
-	poly.position = grid.tile_map_layer.map_to_local(coord)
-	poly.z_index = 3  # above tiles, below actors
-	grid.add_child(poly)
-	_telegraphs[actor_id] = poly
+func _refresh_telegraphs() -> void:
+	# Clear all current visuals.
+	for poly in _telegraph_hexes.values():
+		if is_instance_valid(poly):
+			poly.queue_free()
+	_telegraph_hexes.clear()
+	# Aggregate damage per coord across all enemies' intents.
+	var damage_per_coord: Dictionary = {}  # Vector2i -> int
+	for actor in registry.all():
+		if not (actor is Actor):
+			continue
+		var enemy: Actor = actor
+		if enemy.team != &"enemy" or not enemy.is_alive():
+			continue
+		var intent_var: Variant = enemy.get("attack_intent_coord")
+		if not (intent_var is Vector2i):
+			continue
+		var coord: Vector2i = intent_var
+		if coord == Vector2i(-1, -1):
+			continue
+		var dmg: int = _enemy_attack_damage(enemy)
+		damage_per_coord[coord] = damage_per_coord.get(coord, 0) + dmg
+	# Render one telegraph per unique coord.
+	for coord in damage_per_coord.keys():
+		var hex: Node2D = TELEGRAPH_HEX_SCRIPT.new()
+		hex.position = grid.tile_map_layer.map_to_local(coord)
+		hex.z_index = 3
+		hex.set("damage", damage_per_coord[coord])
+		grid.add_child(hex)
+		_telegraph_hexes[coord] = hex
 
 
-func _clear_telegraph(actor_id: StringName) -> void:
-	var poly: Node = _telegraphs.get(actor_id)
-	if poly != null and is_instance_valid(poly):
-		poly.queue_free()
-	_telegraphs.erase(actor_id)
+func _clear_all_telegraphs() -> void:
+	for poly in _telegraph_hexes.values():
+		if is_instance_valid(poly):
+			poly.queue_free()
+	_telegraph_hexes.clear()
+
+
+## Best-effort damage forecast for one enemy's pending attack. Reads its
+## attack_ability and asks the ability what damage would land.
+func _enemy_attack_damage(enemy: Actor) -> int:
+	var ability_id_var: Variant = enemy.get("attack_ability_id")
+	if not (ability_id_var is StringName) or ability_id_var == &"":
+		return 0
+	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
+	if ability == null:
+		return 0
+	return ability.predicted_damage_to(enemy, player, {})

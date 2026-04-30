@@ -42,7 +42,7 @@ offset_left = 16.0
 offset_top = 56.0
 offset_right = 600.0
 offset_bottom = 84.0
-text = "RMB=move (1 step)  QWER/1234=select slot  LMB=cast active  F1=spawn dummy  F2=clear"
+text = "RMB=move (1 step)  SPACE=wait  QWER/1234=select  LMB=cast  F1=spawn dummy  F2=clear"
 theme_override_font_sizes/font_size = 14
 modulate = Color(1, 1, 1, 0.6)
 
