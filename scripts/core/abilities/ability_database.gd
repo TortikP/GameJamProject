@@ -25,7 +25,7 @@ const EFFECT_KINDS: Dictionary = {
 }
 
 const MODIFIER_KINDS: Dictionary = {
-	# empty on this PR; populated by 005-modifiers feature
+	"knockback": preload("res://scripts/core/abilities/modifiers/knockback_modifier.gd"),
 }
 
 const ABILITY_SCRIPT := preload("res://scripts/core/abilities/ability.gd")

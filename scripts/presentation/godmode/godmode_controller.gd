@@ -32,6 +32,7 @@ const GRID_H := 10
 
 var _slot_bar_node: Node
 var _next_manekin_idx: int = 1
+var _world_processing: bool = false  # true while AI takes its turn — locks player input
 
 
 func _ready() -> void:
@@ -89,7 +90,10 @@ func _ready() -> void:
 	# Force HUD to show initial value — also deferred so TurnLabel has connected.
 	_emit_initial_turn.call_deferred()
 
-	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=cast, F1=spawn dummy, F2=clear")
+	# AI: enemies act each world turn
+	EventBus.world_turn_ended.connect(_on_world_turn_ended)
+
+	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────
@@ -122,6 +126,9 @@ func _seed_slots() -> void:
 	var melee_punch: Ability = AbilityDatabase.get_ability(&"melee_punch")
 	if melee_punch != null:
 		_slot_bar_node.set_slot(1, melee_punch)
+	var knockback_punch: Ability = AbilityDatabase.get_ability(&"knockback_punch")
+	if knockback_punch != null:
+		_slot_bar_node.set_slot(2, knockback_punch)
 	_slot_bar_node.set_active(0)
 
 
@@ -185,7 +192,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # ── Actions ──────────────────────────────────────────────────────────────────
 
 func _request_move() -> void:
-	if grid._moving:
+	if grid._moving or _world_processing:
 		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
@@ -223,7 +230,7 @@ func _cast_slot(slot_index: int) -> void:
 	if ability == null:
 		GameLogger.info("Godmode", "slot %d empty" % slot_index)
 		return
-	if grid._moving:
+	if grid._moving or _world_processing:
 		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
@@ -300,8 +307,54 @@ func _on_actor_died(id: StringName) -> void:
 # ── Movement animation (mirror of arena_demo_controller) ─────────────────────
 
 func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> void:
-	if actor_id != PLAYER_ID:
+	var actor: Actor = registry.get_actor(actor_id)
+	if actor == null:
 		return
 	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
-	create_tween().tween_property(player, "position", pos, duration)
+	create_tween().tween_property(actor, "position", pos, duration)
+
+
+# ── AI ───────────────────────────────────────────────────────────────────────
+#
+# Each enemy takes one greedy step toward the player on world_turn_ended.
+# Sequential — manekin1 awaits, then manekin2 awaits, etc. The _world_processing
+# lock prevents the player from acting (and thus advancing the turn again) while
+# the AI is mid-loop.
+
+func _on_world_turn_ended(_turn: int) -> void:
+	if _world_processing:
+		return  # re-entry guard (shouldn't fire, but cheap insurance)
+	if player == null or not player.is_alive():
+		return
+	_world_processing = true
+	await _run_enemy_turn()
+	_world_processing = false
+
+
+func _run_enemy_turn() -> void:
+	# Snapshot the enemy list — registry can mutate mid-turn (deaths, spawns).
+	var enemies: Array = []
+	for actor in registry.all():
+		if actor is Actor and (actor as Actor).team == &"enemy":
+			enemies.append(actor)
+	for actor in enemies:
+		if not (actor is Actor):
+			continue
+		var enemy: Actor = actor
+		# Re-check each iteration: actor may have died from a previous step's tile effect
+		if not enemy.is_alive():
+			continue
+		if registry.get_actor(enemy.actor_id) == null:
+			continue
+		var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
+		var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
+		if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
+			continue
+		var path: Array = grid.find_path(enemy_coord, player_coord)
+		if path.size() <= 2:
+			continue  # no path / already at player / already adjacent
+		var next_hop: Vector2i = path[1]
+		if grid.get_actor_at(next_hop) != &"":
+			continue  # blocked by another actor — skip this enemy this turn
+		await grid.move_actor(enemy.actor_id, next_hop)
