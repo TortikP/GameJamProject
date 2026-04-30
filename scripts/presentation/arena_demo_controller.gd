@@ -85,23 +85,15 @@ func _create_placeholder_actor() -> Node2D:
 	if actors_node == null:
 		actors_node = grid
 
-	# Белый гекс с голубой обводкой — заменяется спрайтом
-	var outline := Polygon2D.new()
-	outline.polygon = _hex_pts(20.0)
-	outline.color   = Color(0.05, 0.80, 1.00)
-	outline.z_index = 4
-	actors_node.add_child(outline)
-
-	var fill := Polygon2D.new()
-	fill.name    = "PlayerActor"
-	fill.polygon = _hex_pts(14.0)
-	fill.color   = Color(1.0, 1.0, 1.0, 0.95)
-	fill.z_index = 5
-	fill.set_meta("outline", outline)
-	actors_node.add_child(fill)
+	var poly := Polygon2D.new()
+	poly.name    = "PlayerActor"
+	poly.polygon = _hex_pts(18.0)
+	poly.color   = Color(0.05, 0.80, 1.00)
+	poly.z_index = 5
+	actors_node.add_child(poly)
 
 	GameLogger.info("Demo", "Placeholder actor created")
-	return fill
+	return poly
 
 
 func _hex_pts(r: float) -> PackedVector2Array:
@@ -149,8 +141,6 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
 	create_tween().tween_property(actor_node, "position", pos, duration)
-	if actor_node.has_meta("outline"):
-		create_tween().tween_property(actor_node.get_meta("outline") as Node2D, "position", pos, duration)
 
 
 func _on_step_finished(actor_id: StringName, coord: Vector2i) -> void:
@@ -165,10 +155,6 @@ func _on_tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id:
 
 
 func _snap_actor_to_coord(coord: Vector2i) -> void:
-	if grid.tile_map_layer == null:
+	if grid.tile_map_layer == null or actor_node == null:
 		return
-	var pos: Vector2 = grid.tile_map_layer.map_to_local(coord)
-	if actor_node != null:
-		actor_node.position = pos
-	if actor_node != null and actor_node.has_meta("outline"):
-		(actor_node.get_meta("outline") as Node2D).position = pos
+	actor_node.position = grid.tile_map_layer.map_to_local(coord)
