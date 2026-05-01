@@ -1,28 +1,47 @@
-# 013-refactor-wave-1 — spec (RESERVED, awaiting 012)
+# 013-refactor-wave-1 — combat-feedback wiring + F6 keybind
 
-**Owner:** TBD (per finding cluster — assigned после `specs/012-ultrareview/findings.md`)
-**Status:** Reserved — пустой stub. Не имплементить. Не планировать. Не открывать PR.
+**Owner:** Andrey (per `specs/012-ultrareview/findings.md` AC-A5 cluster).
+**Implementer:** Egor (override of AC-A5 owner-implements rule, granted in chat).
+**Status:** Active.
 
 ## Назначение
 
-Слот зарезервирован под первую волну рефактор-PR'ов после ультра-ревью (см. `specs/012-ultrareview/spec.md`).
+Фиксы трёх P1-finding'ов из 012 — все в кластере «combat-feedback wiring» + одна зацепленная collision F6.
 
-Не заполняется сейчас — содержание будет известно только после `012/findings.md`. Ожидаемый scope: **P1-findings из 012,** по одному owner'у на PR (см. 012 AC-A5 правила нарезки).
+Без этих фиксов нарушены:
+- **Pillar 1 (full information visibility)** — игрок не видит ни floating combat numbers, ни combat log при битве; обе подписки висят на несуществующих сигналах EventBus.
+- **010/AC** — F6 как тоггл CrtPostFx «в любой сцене» не работает в godmode, потому что godmode_controller перехватывает F6 первым через `set_input_as_handled()` и кастует test_vamp_strike.
 
-## Возможные исходы после 012
+## Findings — что закрываем
 
-| Что нашли в 012 | Что происходит здесь |
-|---|---|
-| P1-findings есть и сгруппированы | `spec.md` этого slot'а перезаписывается реальной спекой первой волны refactor'ов с конкретными file paths и AC. |
-| P1-findings = 0 (всё чисто) | Этот slot закрывается без PR. Folder остаётся пустым как «numbered slot consumed». Следующая фича получает номер 014. |
-| P1 много, P2 много | 013 — только P1. P2 идёт в 014. **Не смешивать.** |
+| ID | Sev | Файл | Что не работает |
+|---|---|---|---|
+| F-001 | P1 | `scripts/presentation/godmode/godmode_controller.gd:368-373` + `scripts/presentation/crt/crt_post_fx.gd:25` | F6 перехвачен godmode debug-cast'ом, CrtPostFx тоггл не срабатывает в godmode. |
+| F-002 | P1 | `scripts/presentation/floating_number_layer.gd:21-22,38-50` | Подписан на `EventBus.damage_dealt` / `heal_done` — обоих сигналов нет, layer пустой. |
+| F-003 | P1 | `scripts/presentation/combat_log.gd:23,25` | Та же мёртвая подписка — combat_log пустой. |
 
-## Зависимость
+Бонус: F-006 (P2, было запланировано в 014c) закрывается автоматически — `_resolve_actor_pos` parent-walk удаляется, `world_pos` приходит в payload сигнала.
 
-- **Upstream:** 012-ultrareview мержен в staging.
+## Acceptance criteria
 
-## Что НЕ делать
+- **AC-1 (F-001):** в godmode F6 переключает CRT (видно в логе `CrtPostFx toggled ON/OFF`). Debug-cast test_vamp_strike перенесён на F8 — лог запуска `Godmode` обновлён.
+- **AC-2 (F-002):** при ударе по manekin'у в godmode над целью спавнится floating number с цветом `UiTheme.SEM_DAMAGE` и знаком `−`. Хил спавнит `+` с `UiTheme.SEM_HEAL`.
+- **AC-3 (F-003):** при ударе/хиле строка появляется в `CombatLog` (открывается на L). Цвет соответствует semantic-токену.
+- **AC-4 (EventBus contract):** добавлены два сигнала
+  - `damage_dealt(target_id: StringName, amount: int, world_pos: Vector2)`
+  - `heal_done(target_id: StringName, amount: int, world_pos: Vector2)`
+  Эмитятся из `Actor.take_damage` и `Actor.heal` (positive amount only). `world_pos = self.global_position`.
+- **AC-5 (no extra scope):** не трогаются `Actor.damaged` (legacy сигнал остаётся), `status_applied` (ждёт status engine, lazy-bind в combat_log не пересматривается), F-014 (skill_cast empty target_ids — это 014).
+- **AC-6 (CLAUDE.md hard rule check):** новые сигналы — snake_case past tense, EventBus only, no inline `Color(...)`, no bare `create_timer`, no hardcoded content. Все слова из § Hard rules выполнены.
 
-- Не писать код в эту ветку (слот зарезервирован, не активен).
-- Не накидывать сюда tasks.md / plan.md заранее — пустой stub до момента активации.
-- Не присваивать owner'a сейчас — он определяется кластером finding'ов, а не желанием.
+## Out of scope
+
+- F-004/F-005 (Actor/HexGrid extends Node2D — P2 architecture, 014a).
+- F-006 (parent-walk for actor pos) — закрывается побочно, but формально logged как «closed via 013».
+- Status_applied wiring (ждёт status engine, не моя зона как 013).
+- Manual profiler pass AC-A9 from 012 (отдельная задача Егора — не код-фикс).
+
+## Зависимости
+
+- **Upstream:** `andrey/012-audit-pass` мержен (PR #37), findings.md в staging — ✓.
+- **Downstream:** 014c уменьшается на 1 finding (F-006 закрыт здесь).
