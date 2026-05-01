@@ -74,6 +74,7 @@ func _build_skill(data: Dictionary) -> Skill:
 		var ab: Ability = AbilityDatabase._build_ability_from_dict(ab_data)
 		if ab != null:
 			skill.abilities.append(ab)
+			AbilityDatabase.register_ability(ab)  # visible to overlay / inspector
 
 	if skill.abilities.is_empty():
 		GameLogger.warn("SkillDatabase", "%s: no valid abilities — skipping skill" % sid)

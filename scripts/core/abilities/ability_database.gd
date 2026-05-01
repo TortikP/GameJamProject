@@ -62,6 +62,14 @@ func get_ability(id: StringName) -> Ability:
 	return _by_id.get(id, null) as Ability
 
 
+## Called by SkillDatabase to register abilities embedded in skills,
+## so move_range_overlay / actor_inspector can look them up by ID.
+func register_ability(ability: Ability) -> void:
+	if ability == null or ability.id == &"":
+		return
+	_by_id[ability.id] = ability
+
+
 func has_ability(id: StringName) -> bool:
 	return _by_id.has(id)
 
@@ -75,7 +83,7 @@ func all_ids() -> Array:
 func _load_dir(path: String) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
-		GameLogger.warn("AbilityDatabase", "dir not found: %s" % path)
+		GameLogger.info("AbilityDatabase", "no standalone files in %s (abilities live in skills)" % path)
 		return
 	dir.list_dir_begin()
 	var fname := dir.get_next()

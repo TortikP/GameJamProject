@@ -614,19 +614,18 @@ func _resolve_attack_intent(enemy: Actor) -> void:
 	if player_coord != intent:
 		GameLogger.info("AI", "%s: attack missed (player moved)" % enemy.actor_id)
 		return
-	var ability_id_var: Variant = enemy.get("attack_ability_id")
-	if not (ability_id_var is StringName) or ability_id_var == &"":
+	var skill_id_var: Variant = enemy.get("attack_skill_id")
+	if not (skill_id_var is StringName) or skill_id_var == &"":
 		return
-	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
-	if ability == null:
+	var skill: Skill = SkillDatabase.get_skill(skill_id_var)
+	if skill == null:
 		return
 	var ctx: Dictionary = {
 		"registry": registry, "grid": grid,
 		"target_id": PLAYER_ID, "target_coord": player_coord,
 	}
-	# can_apply re-validates adjacency at the moment of cast — knockback /
-	# disruption still neutralizes the attack correctly.
-	ability.cast(enemy, ctx)
+	# can_apply re-validates adjacency at the moment of cast.
+	skill.cast(enemy, ctx)
 	await GameSpeed.wait("godmode", "ability_cast_delay")
 
 
@@ -659,12 +658,9 @@ func _plan_intents(enemy: Actor, all_enemies: Array) -> void:
 	enemy.set("attack_intent_coord", Vector2i(-1, -1))
 
 	if path.size() == 2:
-		# Already adjacent → attack this turn, no movement.
-		# (Pillar 2: symmetric with player — one action per turn.)
-		var ability_id_var: Variant = enemy.get("attack_ability_id")
-		if ability_id_var is StringName and ability_id_var != &"":
-			var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
-			if ability != null:
+		var skill_id_var: Variant = enemy.get("attack_skill_id")
+		if skill_id_var is StringName and skill_id_var != &"":
+			if SkillDatabase.has_skill(skill_id_var):
 				enemy.set("attack_intent_coord", player_coord)
 	elif path.size() > 2:
 		# Not yet adjacent → step one hex closer this turn, no attack.
@@ -736,13 +732,13 @@ func _clear_all_telegraphs() -> void:
 ## Best-effort damage forecast for one enemy's pending attack. Reads its
 ## attack_ability and asks the ability what damage would land.
 func _enemy_attack_damage(enemy: Actor) -> int:
-	var ability_id_var: Variant = enemy.get("attack_ability_id")
-	if not (ability_id_var is StringName) or ability_id_var == &"":
+	var skill_id_var: Variant = enemy.get("attack_skill_id")
+	if not (skill_id_var is StringName) or skill_id_var == &"":
 		return 0
-	var ability: Ability = AbilityDatabase.get_ability(ability_id_var)
-	if ability == null:
+	var skill: Skill = SkillDatabase.get_skill(skill_id_var)
+	if skill == null:
 		return 0
-	return ability.predicted_damage_to(enemy, player, {})
+	return skill.predicted_damage_to(enemy, player, {})
 
 
 # ── Ability picker (RMB on slot) ───────────────────────────────────────────

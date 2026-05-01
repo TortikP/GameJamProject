@@ -57,6 +57,8 @@ func resolve(caster: Actor, primary_target: Variant, ctx: Dictionary) -> Array:
 			var occ_id: StringName = grid.get_actor_at(coord)
 			if occ_id == &"":
 				continue
+			if occ_id == caster.actor_id:
+				continue   # caster immune to own zone AoE
 			var actor: Actor = registry.get_actor(occ_id) if registry != null else null
 			if actor != null and actor.is_alive():
 				result.append(actor)
