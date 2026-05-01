@@ -5,9 +5,9 @@ extends Node2D
 ## Lives at world-space (parent under HexGrid or arena root). Each spawned
 ## number is a child Label that auto-frees.
 ##
-## Listener wiring: damage_dealt and heal_done signals are post-007. Until
-## those exist, callers can spawn() directly. We connect lazily — only if
-## the signal exists on EventBus at _ready time.
+## Listener wiring: EventBus.damage_dealt and heal_done exist since 013-refactor-wave-1.
+## Lazy-bind via has_signal() kept so test scenes that swap EventBus for a stub
+## don't crash on _ready.
 
 const FloatingNumberScene: PackedScene = preload("res://scenes/ui/floating_number.tscn")
 
@@ -17,7 +17,6 @@ var _last_spawn_ms: Dictionary = {}  # actor_id → ticks_msec of last spawn
 
 
 func _ready() -> void:
-	# Wire to forward-compat signals if EventBus has them.
 	if EventBus.has_signal("damage_dealt"):
 		EventBus.connect("damage_dealt", _on_damage_dealt)
 	if EventBus.has_signal("heal_done"):
@@ -33,41 +32,22 @@ func spawn(world_pos: Vector2, amount: int, kind: StringName) -> void:
 		n.setup(world_pos, amount, kind)
 
 
-# ── Forward-compat signal handlers ───────────────────────────────────────────
-# These will be wired by 007/008 after EventBus gains the signals. For Phase 2
-# they simply don't fire (signal absent).
+# ── EventBus signal handlers ────────────────────────────────────────────────
+# 013/F-002: signal payload carries actor's global_position so we don't need
+# to walk a registry to find it (closes F-006 from 012). Convert global → local
+# of this layer before handing to spawn(), since FloatingNumber.setup writes
+# straight into Label.position (local to parent).
 
-func _on_damage_dealt(target_id: StringName, amount: int) -> void:
-	var pos: Variant = _resolve_actor_pos(target_id)
-	if pos == null:
-		return
+func _on_damage_dealt(target_id: StringName, amount: int, world_pos: Vector2) -> void:
 	_throttle(target_id)
-	spawn(pos, amount, &"damage")
+	spawn(to_local(world_pos), amount, &"damage")
 
 
-func _on_heal_done(target_id: StringName, amount: int) -> void:
-	var pos: Variant = _resolve_actor_pos(target_id)
-	if pos == null:
-		return
+func _on_heal_done(target_id: StringName, amount: int, world_pos: Vector2) -> void:
 	_throttle(target_id)
-	spawn(pos, amount, &"heal")
+	spawn(to_local(world_pos), amount, &"heal")
 
 
 func _throttle(actor_id: StringName) -> void:
 	# Records timestamp for future stagger logic; no-op for now.
 	_last_spawn_ms[actor_id] = Time.get_ticks_msec()
-
-
-func _resolve_actor_pos(actor_id: StringName) -> Variant:
-	# Walk parent chain looking for an ActorRegistry sibling. Best-effort —
-	# returns null if registry isn't reachable. Real wiring happens in 007.
-	var n := get_parent()
-	while n != null:
-		var reg := n.get_node_or_null("ActorRegistry")
-		if reg != null and reg.has_method("by_id"):
-			var actor: Node = reg.by_id(actor_id)
-			if actor != null and actor is Node2D:
-				return (actor as Node2D).position
-			return null
-		n = n.get_parent()
-	return null

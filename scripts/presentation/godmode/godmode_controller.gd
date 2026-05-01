@@ -365,12 +365,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_wait_turn()
 		get_viewport().set_input_as_handled()
 		return
-	# 007-skill-system: F6 = cast test_vamp_strike on nearest enemy (dev smoke test)
-	if event is InputEventKey and (event as InputEventKey).pressed:
-		if (event as InputEventKey).keycode == KEY_F6:
-			_debug_cast_test_skill()
-			get_viewport().set_input_as_handled()
-			return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
 			# activate() in SlotBar toggles: press active slot again = deselect (-1)
@@ -885,31 +879,7 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
 
 
-# ── 007 skill dev smoke test (F6) ──────────────────────────────────────────
-## Casts test_vamp_strike on first alive non-player actor. F6 hotkey.
-## Verifies: damage → heal caster; modifier stacking (see AC scenarios 1,3,6,8).
-func _debug_cast_test_skill() -> void:
-	var skill: Skill = SkillDatabase.get_skill(&"test_vamp_strike")
-	if skill == null:
-		GameLogger.warn("Godmode", "F6: test_vamp_strike not in SkillDatabase")
-		return
-	# Pick first alive non-player actor
-	var target_id: StringName = &""
-	for a in registry.all():
-		var actor := a as Actor
-		if actor == null or actor.actor_id == PLAYER_ID:
-			continue
-		if actor.is_alive():
-			target_id = actor.actor_id
-			break
-	if target_id == &"":
-		GameLogger.info("Godmode", "F6: no valid target for test skill")
-		return
-	var ctx: Dictionary = {
-		"registry": registry,
-		"grid": grid,
-		"target_id": target_id,
-		"target_coord": grid.get_coord(target_id),
-	}
-	var result: bool = skill.cast(player, ctx)
-	GameLogger.info("Godmode", "F6 test_vamp_strike cast=%s target=%s" % [str(result), target_id])
+# ── 007 skill dev smoke test ──────────────────────────────────────────────
+# Removed in 013: standalone hotkey was redundant once godmode gained
+# RMB-assign of any skill to QWER slots. test_vamp_strike still lives in
+# data/skills/ — assign to a slot via RMB on the skill button to smoke-test.

@@ -2,8 +2,8 @@ extends PanelContainer
 ## CombatLog — ring-buffer log of last N battle events (damage / heal / status).
 ## Toggled by L key. Disabled by default in production; enabled in Godmode.
 ##
-## Wire-up: lazy-binds EventBus.damage_dealt / heal_done / status_applied if
-## those signals exist (post-007/008). Until then, callers can append manually.
+## Wire-up: EventBus.damage_dealt / heal_done exist since 013-refactor-wave-1.
+## status_applied is still a forward-compat lazy-bind (waits for status engine).
 
 const RING_SIZE: int = 50
 
@@ -81,14 +81,20 @@ func toggle() -> void:
 	visible = not visible
 
 
-# ── Signal handlers (forward-compat) ─────────────────────────────────────────
+# ── Signal handlers ──────────────────────────────────────────────────────────
+# damage_dealt / heal_done — wired by EventBus connect in _ready (013).
+# status_applied — still lazy-bound, waits for status engine.
 
-func _on_damage_dealt(target_id: StringName, amount: int) -> void:
+# 013/F-003: handlers accept world_pos to match EventBus signal arity. CombatLog
+# doesn't render in world space, so the position is ignored — leading underscore
+# silences GDScript's unused-parameter warning.
+
+func _on_damage_dealt(target_id: StringName, amount: int, _world_pos: Vector2) -> void:
 	var turn: int = TurnManager.current() if TurnManager.has_method("current") else 0
 	append(turn, &"?", &"hits", target_id, amount, &"damage")
 
 
-func _on_heal_done(target_id: StringName, amount: int) -> void:
+func _on_heal_done(target_id: StringName, amount: int, _world_pos: Vector2) -> void:
 	var turn: int = TurnManager.current() if TurnManager.has_method("current") else 0
 	append(turn, &"?", &"heals", target_id, amount, &"heal")
 

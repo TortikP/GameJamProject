@@ -48,6 +48,14 @@ signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: A
 signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
 signal actor_died(id: StringName)
 
+# Combat feedback (013-refactor-wave-1, F-002/F-003)
+# Emitted by Actor.take_damage / Actor.heal. Listeners: floating_number_layer
+# (spawns world-space numbers) and combat_log (ring buffer). amount is always
+# positive — heal uses heal_done, damage uses damage_dealt. world_pos is the
+# actor's global_position at emit time so listeners don't need a registry walk.
+signal damage_dealt(target_id: StringName, amount: int, world_pos: Vector2)
+signal heal_done(target_id: StringName, amount: int, world_pos: Vector2)
+
 # UI infrastructure (009-ui-kit)
 signal ui_theme_reloaded
 signal ui_toast_requested(text: String, duration_sec: float, level: StringName)  # level ∈ info/success/warn/error
