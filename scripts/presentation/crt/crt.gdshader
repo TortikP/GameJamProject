@@ -79,14 +79,7 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec2 cuv = barrel(uv);
 
-	// Early-exit for bezel — saves all texture work outside the curved frame.
-	// Cheap branch (fully-coalesced for warps in the bezel zone), big win on
-	// rounded corners where ~5–10% of fragments live.
 	float bz = bezel_mask(cuv);
-	if (bz >= 1.0) {
-		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
-		return;
-	}
 	float screen_mask = 1.0 - bz;
 
 	// Center-aware chromatic aberration. Edges fringe more than the middle.
