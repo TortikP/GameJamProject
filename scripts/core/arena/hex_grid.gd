@@ -39,7 +39,9 @@ var _moving: bool = false  # lock during async move_actor traversal
 
 ## Call this after the TileMapLayer has a TileSet assigned and cells painted.
 ## In editor-built scenes: connect grid_built signal and call initialize() from
-## your controller's _ready(). In demo scene: HexPlaceholderBuilder.setup() → initialize().
+## your controller's _ready(). Demo / godmode scenes paint cells procedurally
+## from the controller before calling initialize() (see arena_demo_controller
+## and godmode_controller for the pattern).
 func initialize() -> void:
 	if tile_map_layer == null:
 		GameLogger.error("HexGrid", "tile_map_layer is null — call from controller after resolving nodes")
