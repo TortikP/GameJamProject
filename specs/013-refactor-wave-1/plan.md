@@ -44,8 +44,9 @@ signal heal_done(target_id: StringName, amount: int, world_pos: Vector2)
 
 ### Godmode controller (`scripts/presentation/godmode/godmode_controller.gd`)
 
-- Line 370: `KEY_F6` → `KEY_F8`.
-- Line 136 `GameLogger.info("Godmode", "ready. RMB=move, ...")` — заменить упоминание F6 не появляется в строке (debug-cast не упомянут вообще). Нужно дополнить: добавить `F8=debug-cast test_vamp_strike` в startup log.
+- Удалён F8 keybind block в `_unhandled_input` (раньше — F6 → перенесён на F8 → теперь снят полностью).
+- Удалена функция `_debug_cast_test_skill()` (~30 строк, единственный caller был F-хоткей). Заменена коротким комментарием-маркером, что smoke-test теперь делается RMB-assign'ом скилла в slot bar.
+- Startup log line чистый — без F6/F8.
 
 ## Что НЕ трогается
 
@@ -58,7 +59,7 @@ signal heal_done(target_id: StringName, amount: int, world_pos: Vector2)
 
 1. Открыть `scenes/dev/godmode.tscn`, F5.
 2. F6 — должен переключиться CRT. В консоли: `[CrtPostFx] toggled OFF`. Снова F6 — `ON`.
-3. F8 — каст test_vamp_strike, лог `[Godmode] cast test_vamp_strike on ...`.
+3. ~~F8 — каст test_vamp_strike~~ — снято в follow-up: smoke-test через RMB-assign `test_vamp_strike` в QWER slot.
 4. F1 — спавн manekin. ЛКМ + Q (slot 0) — каст skill_debug_punch. Над manekin должно появиться красное `−N`. В лог CombatLog (L) добавилась строка `T... ? hits manekin_1 -N`.
 5. Если manekin спавнит у player — каст skill_debug_heal на себя (?). Если нет хил-скилла в slot — пропустить heal проверку, AC-2/3 для heal накроется тестами 014a.
 

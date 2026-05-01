@@ -24,7 +24,7 @@
 
 ## Acceptance criteria
 
-- **AC-1 (F-001):** в godmode F6 переключает CRT (видно в логе `CrtPostFx toggled ON/OFF`). Debug-cast test_vamp_strike перенесён на F8 — лог запуска `Godmode` обновлён.
+- **AC-1 (F-001):** в godmode F6 переключает CRT (видно в логе `CrtPostFx toggled ON/OFF`). Standalone debug-cast хоткей удалён вместе с `_debug_cast_test_skill()` — RMB-assign на QWER слот покрывает потребность; `data/skills/test_vamp_strike.json` остаётся как тестовый skill.
 - **AC-2 (F-002):** при ударе по manekin'у в godmode над целью спавнится floating number с цветом `UiTheme.SEM_DAMAGE` и знаком `−`. Хил спавнит `+` с `UiTheme.SEM_HEAL`.
 - **AC-3 (F-003):** при ударе/хиле строка появляется в `CombatLog` (открывается на L). Цвет соответствует semantic-токену.
 - **AC-4 (EventBus contract):** добавлены два сигнала
