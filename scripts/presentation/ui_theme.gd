@@ -74,6 +74,23 @@ const FS_BODY       := 14
 const FS_SMALL      := 11
 const FS_NUM_LARGE  := 24
 const FS_NUM_SMALL  := 12
+# `num_huge` is for in-world combat text crits — has to read from across the
+# screen at a glance. See `Visibility doctrine` in CLAUDE.md.
+const FS_NUM_HUGE   := 40
+
+# ── Overhead actor UI (HP bar above sprite) ──────────────────
+# Visibility doctrine: world UI must read at default zoom without leaning in.
+# These are bigger than the original 30×4×9px bar — that was readable on a
+# screenshot but invisible during actual play.
+const BAR_WIDTH_OVERHEAD     := 64.0
+const BAR_HEIGHT_OVERHEAD    := 10.0
+const BAR_FONT_SIZE_OVERHEAD := 18
+
+# ── Outline / shadow for in-world text ───────────────────────
+# Combat text and HP digits sit on top of arbitrary backgrounds (grass, fire,
+# blood, UI panels). Without a strong outline they vanish on busy frames.
+const WORLD_TEXT_OUTLINE_SIZE  := 4
+const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 
 # ── Lookups ──────────────────────────────────────────────────
 
@@ -193,7 +210,7 @@ static func make_button_stylebox(state: String = "normal") -> StyleBoxFlat:
 
 
 ## Apply standardized font size + color to a Label by kind.
-## kind ∈ "display" / "header" / "body" / "small" / "num_large" / "num_small"
+## kind ∈ "display" / "header" / "body" / "small" / "num_large" / "num_huge" / "num_small"
 static func apply_label_kind(lbl: Label, kind: String) -> void:
 	var fs: int = FS_BODY
 	var col: Color = TEXT
@@ -213,11 +230,22 @@ static func apply_label_kind(lbl: Label, kind: String) -> void:
 		"num_large":
 			fs = FS_NUM_LARGE
 			col = TEXT
+		"num_huge":
+			fs = FS_NUM_HUGE
+			col = TEXT
 		"num_small":
 			fs = FS_NUM_SMALL
 			col = TEXT
 	lbl.add_theme_font_size_override("font_size", fs)
 	lbl.add_theme_color_override("font_color", col)
+
+
+## Apply a strong dark outline to a Label so it reads against any background.
+## Use for ALL in-world text (combat numbers, overhead bars, status icons).
+## Idempotent — call again after theme reload.
+static func apply_world_text_outline(lbl: Label) -> void:
+	lbl.add_theme_constant_override("outline_size", WORLD_TEXT_OUTLINE_SIZE)
+	lbl.add_theme_color_override("font_outline_color", WORLD_TEXT_OUTLINE_COLOR)
 
 
 ## Apply the full button-state stylebox set to a Button.

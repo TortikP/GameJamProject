@@ -159,6 +159,38 @@ clamp-to-edge артефакт: barrel-curvature на левом борту за
 - [x] T101 [P0] Видимая картинка сжимается на ~2% по каждой оси. Незаметно на
       фоне закругления и безеля. Альтернатива — SubViewport-rebuild — стоит
       полудня переделок и не нужна.
+
+## v8 — visibility doctrine + tweaking guide
+
+После того как CRT-эффект устаканился, Андрей попросил две вещи в рамках той же спеки:
+- Гид по крутилкам шейдера для будущей подкрутки.
+- Поднять размер и контраст HP над персонажами + ввести правило что вся in-world
+  UI должна быть крупная.
+
+- [x] T110 [P0] **`tweaking.md` в спеке** — описание всех uniform'ов CRT-шейдера:
+      где открывать в Godot, что делает каждая ручка, готовые пресеты-ориентиры
+      ("Subtle / Trinitron / Cringe-retro"), что крутить если игра тормозит.
+- [x] T111 [P0] **HealthBar над персонажами**:
+      - Размеры из UiTheme: WIDTH 30→64, HEIGHT 4→10, FONT_SIZE 9→18, рамка 1→2 px.
+      - HP-цифры теперь с тёмной обводкой (`draw_string_outline` + `WORLD_TEXT_OUTLINE_*`)
+        — читаются над любым фоном.
+      - Хардкоды константа за константа выкинуты, всё через UiTheme.
+- [x] T112 [P0] **FloatingNumber (плавающие боевые цифры)**:
+      - Все типы получают `apply_world_text_outline` — без обводки терялись над текстурами.
+      - Крит: размер `display` (32) → новый `num_huge` (40). Стало больно от попадания.
+- [x] T113 [P0] **TelegraphHex (число входящего урона на угрожаемой клетке)**:
+      - Свой ad-hoc shadow (offset+text) заменён на стандартную обводку через UiTheme.
+      - Размер из `BAR_FONT_SIZE_OVERHEAD` константы (тот же 18, но не хардкод).
+- [x] T114 [P0] **UiTheme — новые константы**:
+      - `FS_NUM_HUGE = 40` для крита
+      - `BAR_WIDTH_OVERHEAD / BAR_HEIGHT_OVERHEAD / BAR_FONT_SIZE_OVERHEAD` для in-world UI
+      - `WORLD_TEXT_OUTLINE_SIZE / _COLOR` — единые параметры обводки
+      - `apply_world_text_outline(label)` — хелпер для Label'ов
+      - `apply_label_kind` теперь знает `"num_huge"`.
+- [x] T115 [P0] **CLAUDE.md — Visibility doctrine.** Новая секция между Design pillars
+      и Hard rules. Утверждает: всё in-world UI читается с дефолт-зума за 0.3 сек,
+      размеры из UiTheme.* (никаких локальных `FONT_SIZE = 9`), обводка обязательна,
+      крупнее > влезает в layout. Касается всех future-PR.
       ⚠ Не хватило: при `cuv` OOB v6-маска даёт всё ещё `bz≈0.3`, через 70%
       артефакта проходило. Перевернул логику в v7, см. T100.
 

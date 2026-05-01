@@ -10,7 +10,6 @@ extends Node2D
 ## WHAT will happen, not just THAT something will). See spec AC-R7, T072.
 
 const RADIUS: float = 60.0
-const FONT_SIZE: int = 18
 
 ## Semantic tag drives hex color. &"" → SEM_DAMAGE (red, the default).
 var semantic_tag: StringName = &"":
@@ -53,15 +52,17 @@ func _draw() -> void:
 		var b: Vector2 = pts[(i + 1) % 6]
 		draw_line(a, b, frame_col, 2.0, true)
 	# Damage label — pushed above the hex so it isn't hidden by an actor sprite
-	# standing on the threatened tile.
+	# standing on the threatened tile. Crisp dark outline (visibility doctrine
+	# in CLAUDE.md — incoming-damage telegraphs are Pillar 1 critical UI).
 	if damage <= 0:
 		return
 	var font: Font = ThemeDB.fallback_font
+	var font_size: int = UiTheme.BAR_FONT_SIZE_OVERHEAD
 	var text: String = "-%d" % damage
-	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE)
+	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
 	var pos: Vector2 = Vector2(-size.x * 0.5, -RADIUS - 6.0)
-	# Drop shadow for readability over light/dark hexes
-	draw_string(font, pos + Vector2(1, 1), text,
-		HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE, Color(0, 0, 0, 0.85))
+	draw_string_outline(font, pos, text,
+		HORIZONTAL_ALIGNMENT_CENTER, -1, font_size,
+		UiTheme.WORLD_TEXT_OUTLINE_SIZE, UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	draw_string(font, pos, text,
-		HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE, UiTheme.TEXT)
+		HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, UiTheme.TEXT)
