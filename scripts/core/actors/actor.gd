@@ -71,6 +71,9 @@ func take_damage(amount: int) -> void:
 		return
 	hp = max(0, hp - amount)
 	damaged.emit(actor_id, amount, hp)
+	# 013/F-002: world-space feedback channel (floating numbers, combat log).
+	# Separate from `damaged` — that's HP-state for HealthBar; this is UI events.
+	EventBus.damage_dealt.emit(actor_id, amount, global_position)
 	GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, amount, hp, max_hp])
 	if hp == 0:
 		_dead = true
@@ -90,6 +93,9 @@ func heal(amount: int) -> void:
 	# Reuse damaged signal with negative amount as "healed" convention.
 	# hp_left is the new hp. Listeners use amount <= 0 to detect heals.
 	damaged.emit(actor_id, -healed, hp)
+	# 013/F-002: dedicated UI-event channel — positive amount, separate signal.
+	# Listeners that only want heals don't need to filter the legacy `damaged`.
+	EventBus.heal_done.emit(actor_id, healed, global_position)
 	GameLogger.info("Actor", "%s +%d hp (%d/%d)" % [actor_id, healed, hp, max_hp])
 
 
