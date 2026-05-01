@@ -1,5 +1,5 @@
 extends Camera2D
-## GodmodeCamera — Camera2D with mouse-wheel zoom, clamp, smooth lerp, zoom-to-cursor.
+## GodmodeCamera — Camera2D with mouse-wheel zoom and MMB pan.
 ##
 ## All tunables in config/game_speed.cfg [godmode]:
 ##   zoom_step          — zoom increment per wheel tick
@@ -9,11 +9,16 @@ extends Camera2D
 ## Zoom-to-cursor invariant: the world point under the mouse remains under the
 ## mouse after zoom. Formula assumes anchor_mode = ANCHOR_MODE_DRAG_CENTER (default)
 ## and no camera rotation.
+##
+## Pan: hold MMB and drag. Speed compensated for zoom level.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 var _zoom_target: Vector2 = Vector2.ONE
 var _zoom_tween: Tween
+
+var _panning: bool = false
+var _pan_last: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -28,6 +33,24 @@ func _center_on_player() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# --- MMB pan ---
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_MIDDLE:
+			_panning = mb.pressed
+			_pan_last = mb.position
+			if _panning:
+				get_viewport().set_input_as_handled()
+			return
+
+	if event is InputEventMouseMotion and _panning:
+		var mm := event as InputEventMouseMotion
+		# relative is in screen pixels; divide by zoom to get world-space delta
+		position -= mm.relative / zoom.x
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- Wheel zoom ---
 	if not (event is InputEventMouseButton):
 		return
 	var mb := event as InputEventMouseButton
@@ -62,9 +85,6 @@ func _apply_zoom(new_z: float, mouse_screen: Vector2, zmin: float, zmax: float) 
 	_zoom_tween.tween_property(self, "zoom", _zoom_target, dur)
 
 	# Zoom-to-cursor: shift camera so that mouse_world_before stays under cursor.
-	# At target zoom: mouse_world_after = global_position + (mouse_screen - vp_center) / new_z
-	# We want mouse_world_before == mouse_world_after, so:
-	#   camera offset += (mouse_world_before - mouse_world_after)
 	var vp_center: Vector2 = get_viewport_rect().size * 0.5
 	var mouse_world_after: Vector2 = global_position + (mouse_screen - vp_center) / new_z
 	var delta: Vector2 = mouse_world_before - mouse_world_after
