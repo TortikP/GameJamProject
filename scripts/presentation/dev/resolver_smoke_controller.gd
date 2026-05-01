@@ -62,10 +62,10 @@ class HexGridStub extends HexGrid:
 	func place_object(coord: Vector2i, obj_id: StringName) -> void:
 		_obj_map[coord] = obj_id
 
-	func place_actor(actor_id: StringName, coord: Vector2i) -> void:
+	func place_actor(actor_id: StringName, coord: Vector2i) -> bool:
 		_actor_coord[actor_id] = coord
 		_coord_actor[coord] = actor_id
-
+		return true
 	func move_actor_to(actor_id: StringName, new_coord: Vector2i) -> void:
 		var old: Vector2i = _actor_coord.get(actor_id, Vector2i(-1, -1))
 		if old != Vector2i(-1, -1):
