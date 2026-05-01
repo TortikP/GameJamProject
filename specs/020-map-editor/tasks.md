@@ -48,19 +48,19 @@
 - [x] **T026a** [P1] Autosave: debounced Timer 1.5s, `_mark_dirty()` дёргается из всех placement-handler'ов + name-change + replace-all. На `_ready` редактора — recovery prompt если `__autosave__.json` свежий (≤24ч) (depends T002, T009)
 - [x] **T027** [P1] Load flow (editor) — dirty check + confirm-save + FileDialog + LevelSerializer.load + apply to editor (depends T002, T025)
 - [x] **T028** [P1] Playtest flow — validate + write `__playtest__.json` + ActiveLevel.queue + change_scene godmode (depends T026, T003)
-- [ ] **T029** [P1] Add `__playtest__.json` AND `__autosave__.json` to `.gitignore` (depends T028, T026a)
+- [x] **T029** [P1] Add `__playtest__.json` AND `__autosave__.json` to `.gitignore` (depends T028, T026a)
 
 ## Phase 5 — Game-side integration (~1-2 ч)
 
-- [ ] **T030** [P1] `godmode_controller.gd` — patch `_ready()`: ActiveLevel.has_queued() → load path; иначе оригинальный paint+place (см. plan.md). Тщательно протестировать что non-queued path 1:1 как до патча (depends T005, T003)
-- [ ] **T031** [P1] `main_menu.gd` + `main_menu.tscn` — добавить `MapEditorButton` (text `"Map Editor [Ctrl+E]"`) и `LoadCustomLevelButton` + handlers (depends T028)
-- [ ] **T032** [P1] `project.godot` — input action `dev_open_editor` (Ctrl+E) (depends T031)
-- [ ] **T033** [P1] Hotkey listener в `main_menu.gd`, `map_editor_controller.gd`, `godmode_controller.gd`. В редакторе — no-op (уже здесь). В остальных — change_scene → map_editor (depends T032)
-- [ ] **T034** [P2] `config/game_speed.cfg` — секция `[editor]` с `spawner_swap=0.2`, `place_feedback=0.05`, `hover_pulse=0.6`. Использовать в overlay'ях через `GameSpeed.get_value("editor", key)` (если ключ отсутствует — graceful default)
+- [x] **T030** [P1] `godmode_controller.gd` — patch `_ready()`: ActiveLevel.has_queued() → load path через helper `_try_load_queued_level()`. На любом фейле (load fail, no tileset, no player spawner) → false → fallback к оригинальному procedural пути. (depends T005, T003)
+- [x] **T031** [P1] `main_menu.gd` + `main_menu.tscn` — добавить `MapEditorButton` (text `"Map Editor [Ctrl+E]"`) и `LoadCustomLevelButton` + handlers (depends T028)
+- [x] **T032** [P1] `project.godot` — input action `dev_open_editor` (Ctrl+E) (depends T031)
+- [x] **T033** [P1] Hotkey listener в `main_menu.gd`, `godmode_controller.gd`. В редакторе hotkey не нужен (уже здесь). (depends T032)
+- [ ] **T034** [P2] `config/game_speed.cfg` — секция `[editor]` с `spawner_swap=0.2`, `place_feedback=0.05`, `hover_pulse=0.6`. **Deferred** — текущий код этих timings не использует (player spawner singleton — instant; hover/delete highlights перерисовываются на change). Когда добавится polish (fade-out swap, hover pulse) — добавить cfg секцию.
 
 ## Phase 6 — Sample + smoke (~1 ч)
 
-- [ ] **T035** [P1] `data/maps/sample.json` — рукотворная карта 8×6 с player + 2 manekin + lava_pool + wooden_barrel (см. plan.md)
+- [x] **T035** [P1] `data/maps/sample.json` — рукотворная карта 8×6 с player + 2 manekin + lava_pool + wooden_barrel (см. plan.md)
 - [ ] **T036** [P1] Smoke (manual): главное меню → Load Custom Level → sample.json → бой стартует на этой карте, player и манекены в правильных позициях, lava_pool блокирует движение по своему хексу
 - [ ] **T037** [P1] Smoke (manual): Ctrl+E из главного меню → редактор → нарисовать пол → положить player + manekin + объект → Save "smoke_test" → файл в `data/maps/smoke_test.json` валидный JSON
 - [ ] **T038** [P1] Smoke (manual): редактор → Playtest на свежей карте без сохранения → бой стартует (через `__playtest__.json`)
@@ -70,7 +70,7 @@
 - [ ] **T042** [P1] Smoke (manual): редактор → RMB → LMB по другому хексу с тайлом-в-палитре → highlight снят, тайл положен
 - [ ] **T042a** [P1] Smoke (manual): редактор → положить разные типы тайлов → RMB по кнопке тайла во FloorPalette → пункт «Заменить все «X» на этот» → confirm → все тайлы X заменились
 - [ ] **T042b** [P1] Smoke (manual): редактор → закрыть без save → снова открыть → ConfirmModal «Восстановить?» → восстановилось состояние
-- [ ] **T043** [P2] Update HANDOFF.md §18 — упомянуть 019 в работе / смержено
+- [x] **T043** [P2] Update HANDOFF.md §18 — упомянуть 020 в работе / смержено
 
 ## Phase 7 — Стасян onboarding (~30 мин, не блокер)
 

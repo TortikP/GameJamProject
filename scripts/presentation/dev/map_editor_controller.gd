@@ -277,9 +277,14 @@ func _place_floor(coord: Vector2i, source_id: int, atlas: Vector2i) -> void:
 
 func _erase_floor(coord: Vector2i) -> void:
 	grid.tile_map_layer.erase_cell(coord)
-	# Remove floor entry + any object/spawner on it
-	_level.floor_cells = _level.floor_cells.filter(
-		func(f: Dictionary) -> bool: return f.coord != coord)
+	# Remove floor entry + any object/spawner on it. Build a typed Array in
+	# place rather than .filter() (which returns untyped Array and would
+	# trip the Array[Dictionary] type assignment at runtime in Godot 4).
+	var kept_floor: Array[Dictionary] = []
+	for f in _level.floor_cells:
+		if f.coord != coord:
+			kept_floor.append(f)
+	_level.floor_cells = kept_floor
 	_remove_object_at(coord)
 	_remove_spawner_at(coord)
 	_mark_dirty()
@@ -389,15 +394,21 @@ func _find_player_spawner() -> Vector2i:
 
 
 func _remove_object_at(coord: Vector2i) -> void:
-	_level.objects = _level.objects.filter(
-		func(o: Dictionary) -> bool: return o.coord != coord)
+	var kept: Array[Dictionary] = []
+	for o in _level.objects:
+		if o.coord != coord:
+			kept.append(o)
+	_level.objects = kept
 	if _objects_overlay != null and _objects_overlay.has_method("clear_object"):
 		_objects_overlay.clear_object(coord)
 
 
 func _remove_spawner_at(coord: Vector2i) -> void:
-	_level.spawners = _level.spawners.filter(
-		func(s: Dictionary) -> bool: return s.coord != coord)
+	var kept: Array[Dictionary] = []
+	for s in _level.spawners:
+		if s.coord != coord:
+			kept.append(s)
+	_level.spawners = kept
 	if _spawners_overlay != null and _spawners_overlay.has_method("clear_spawner"):
 		_spawners_overlay.clear_spawner(coord)
 

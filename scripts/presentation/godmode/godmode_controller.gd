@@ -84,13 +84,21 @@ func _ready() -> void:
 	# 2. Paint, 3. Initialize, 4. Place
 	# Godmode uses its own tileset (128×112 hexes, single grass tile) — keeps
 	# arena_demo's 64×56 untouched.
-	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
-	if grid.vfx_overlay != null:
-		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
-	_paint_grid()
+	#
+	# 020 — if ActiveLevel.has_queued(), load that level instead of running
+	# the procedural _paint_grid + _place_player path. Falls through to the
+	# original flow on any load failure (logged warn, still playable).
 	grid.actor_step_started.connect(_on_step_started)
-	grid.initialize()
-	_place_player()
+	var loaded_via_active_level: bool = false
+	if ActiveLevel.has_queued():
+		loaded_via_active_level = _try_load_queued_level()
+	if not loaded_via_active_level:
+		grid.tile_map_layer.tile_set = GODMODE_TERRAIN
+		if grid.vfx_overlay != null:
+			grid.vfx_overlay.tile_set = GODMODE_TERRAIN
+		_paint_grid()
+		grid.initialize()
+		_place_player()
 
 	# 019 — wire tile object runtime resolver. Must be after grid.initialize()
 	# so registries are populated. add_child before setup so the node is in
@@ -158,6 +166,51 @@ func _paint_grid() -> void:
 	for row in GRID_H:
 		for col in GRID_W:
 			grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(0, 0))
+
+
+## 020 — paint + spawn from a queued LevelData. Returns true on success.
+## Failure modes (level can't load, no player spawner) → return false and let
+## the caller fall back to the procedural _paint_grid + _place_player path.
+func _try_load_queued_level() -> bool:
+	var queued_path: String = ActiveLevel.consume()
+	var level: LevelData = LevelSerializer.load_from(queued_path)
+	if level == null:
+		GameLogger.warn("Godmode", "Failed to load queued level %s — fallback" % queued_path)
+		return false
+	# Tile set first — paint depends on it.
+	var ts: TileSet = load(level.tileset_path) as TileSet
+	if ts == null:
+		GameLogger.warn("Godmode", "Tileset not found: %s — fallback" % level.tileset_path)
+		return false
+	grid.tile_map_layer.tile_set = ts
+	if grid.vfx_overlay != null:
+		grid.vfx_overlay.tile_set = ts
+	# Paint floor from level data
+	grid.tile_map_layer.clear()
+	for cell in level.floor_cells:
+		grid.tile_map_layer.set_cell(cell.coord, cell.source_id, cell.atlas_coord)
+	# Init grid (reads custom_data, builds HexTile dict + pathfinder)
+	grid.initialize()
+	# Apply objects + spawners (LevelLoader handles registry + place_actor)
+	var actors_node: Node = grid.get_node_or_null("Actors")
+	if actors_node == null:
+		actors_node = grid
+	var spawned_player: Actor = LevelLoader.apply_to(grid, registry, level, actors_node)
+	if spawned_player != null:
+		player = spawned_player
+	else:
+		# No player spawner in level → procedural fallback for player only,
+		# keep loaded floor + objects + enemies. Edge case; editor's validate()
+		# blocks this on Save/Playtest, but Load Custom Level files written
+		# by hand may not have one.
+		GameLogger.warn("Godmode", "Loaded level has no player spawner — placing default")
+		_place_player()
+	# Camera follow
+	var camera: Node = get_node_or_null("../GodmodeCamera")
+	if camera != null and camera.has_method("set_follow_target") and player != null:
+		camera.set_follow_target(player)
+	GameLogger.info("Godmode", "Loaded custom level '%s'" % level.name)
+	return true
 
 
 func _place_player() -> void:
@@ -382,6 +435,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("godmode_clear"):
 		_clear_manekins()
 		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("dev_open_editor"):
+		# 020 — global hotkey: jump straight to the map editor from any battle.
+		get_viewport().set_input_as_handled()
+		get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
 		return
 	if event.is_action_pressed("wait_turn"):
 		_wait_turn()
