@@ -11,6 +11,7 @@ const SLOT_LABELS := ["Q", "W", "E", "R"]
 const SLOT_COUNT := 4
 
 signal slot_activated(index: int)
+signal slot_right_clicked(index: int)  # for ability picker popup
 
 ## Slot map: int index → Ability instance (or absent if empty).
 ## Dictionary intentionally — Godot 4.6 array element type-check fires
@@ -30,6 +31,7 @@ func _ready() -> void:
 		btn.text = SLOT_LABELS[i] + "\n—"
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.pressed.connect(_on_button_pressed.bind(i))
+		btn.gui_input.connect(_on_button_gui_input.bind(i))
 		add_child(btn)
 		_buttons.append(btn)
 	_refresh_all()
@@ -86,6 +88,14 @@ func activate(index: int) -> void:
 
 func _on_button_pressed(index: int) -> void:
 	activate(index)
+
+
+func _on_button_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT:
+			slot_right_clicked.emit(index)
+			get_viewport().set_input_as_handled()
 
 
 func _refresh_all() -> void:

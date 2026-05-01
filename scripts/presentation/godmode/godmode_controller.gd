@@ -39,6 +39,8 @@ var _overlay: Node        # MoveRangeOverlay
 var _selected: Actor      # currently inspected actor (default: player)
 var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
+var _ability_picker: PopupMenu = null   # right-click slot → pick ability
+var _picker_target_slot: int = 0        # which slot the picker is assigning to
 
 
 func _ready() -> void:
@@ -95,6 +97,9 @@ func _ready() -> void:
 	_seed_slots.call_deferred()
 	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_activated"):
 		_slot_bar_node.slot_activated.connect(_on_slot_activated)
+	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_right_clicked"):
+		_slot_bar_node.slot_right_clicked.connect(_on_slot_right_clicked)
+		_build_ability_picker.call_deferred()
 
 	# Inspector + overlay — resolve
 	if not inspector_path.is_empty():
@@ -738,6 +743,39 @@ func _enemy_attack_damage(enemy: Actor) -> int:
 	if ability == null:
 		return 0
 	return ability.predicted_damage_to(enemy, player, {})
+
+
+# ── Ability picker (RMB on slot) ───────────────────────────────────────────
+
+## Builds a PopupMenu with all AbilityDatabase IDs. Called once in _ready().
+func _build_ability_picker() -> void:
+	_ability_picker = PopupMenu.new()
+	_ability_picker.name = "AbilityPicker"
+	add_child(_ability_picker)
+	var ids: Array = AbilityDatabase.all_ids()
+	ids.sort()
+	for i in ids.size():
+		_ability_picker.add_item(str(ids[i]), i)
+	_ability_picker.id_pressed.connect(_on_ability_picker_selected.bind(ids))
+
+
+func _on_slot_right_clicked(slot_index: int) -> void:
+	if _ability_picker == null:
+		return
+	_picker_target_slot = slot_index
+	_ability_picker.popup(Rect2i(DisplayServer.mouse_get_position(), Vector2i.ZERO))
+
+
+func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
+	if item_id < 0 or item_id >= ids.size():
+		return
+	var ability_id: StringName = StringName(ids[item_id])
+	var ability: Ability = AbilityDatabase.get_ability(ability_id)
+	if ability == null:
+		return
+	if _slot_bar_node != null:
+		_slot_bar_node.set_slot(_picker_target_slot, ability)
+	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, ability_id])
 
 
 # ── 007 skill dev smoke test (F6) ──────────────────────────────────────────
