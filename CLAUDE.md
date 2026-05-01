@@ -97,6 +97,7 @@ Append yourself when you start a feature.
 | 003-dialogue-manager | Andrey |
 | 007-skill-system (Skill, Ability, Area, Effect, ParameterModifier engines) | Egor |
 | 009-ui-kit (spec; Phase 4 blocked on 007 + 008) | Andrey |
+| 018-tile-objects (data class + registry, HexGrid wiring, EventBus signals) | Sergey (spec) → Andrey (impl) |
 
 ## Git workflow
 

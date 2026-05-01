@@ -23,14 +23,14 @@
 
 ## Группа C — интеграция с arena (трогает файлы Egor — coord required)
 
-- [ ] **T004** [P1] `scripts/core/arena/hex_tile.gd` — добавить `var object_id: StringName` и параметр в `_init` с default `&""`. Никаких других правок. depends: T002.
-- [ ] **T005** [P1] `scripts/core/arena/hex_grid.gd` — в `_build_tile_map` читать custom data layer `"object_id"`, передавать в `HexTile._init`. Создать инстанс `TileObjectRegistry`, вызвать `load_from_dir("res://data/tile_objects/")`. depends: T003, T004.
+- [x] **T004** [P1] `scripts/core/arena/hex_tile.gd` — добавить `var object_id: StringName` и параметр в `_init` с default `&""`. Никаких других правок. depends: T002.
+- [x] **T005** [P1] `scripts/core/arena/hex_grid.gd` — в `_build_tile_map` читать custom data layer `"object_id"`, передавать в `HexTile._init`. Создать инстанс `TileObjectRegistry`, вызвать `load_from_dir("res://data/tile_objects/")`. depends: T003, T004.
   - **T005a** [P1] [P] Проверить (T001) что в TileSet есть custom data layer `"object_id"` типа String. Если нет — добавить руками в Godot editor (TileSet inspector → Custom Data → +). Это не код-задача. Делает Sergey локально перед F5.
-- [ ] **T006** [P1] `scripts/core/arena/hex_pathfinder.gd` — добавить query в registry в проверке проходимости. Точное место — по результату T001. depends: T003, T005.
+- [x] **T006** [P1] `scripts/core/arena/hex_pathfinder.gd` — добавить query в registry в проверке проходимости. Точное место — по результату T001. depends: T003, T005.
 
 ## Группа D — EventBus (опционально, по результату T001)
 
-- [ ] **T007** [P1] EventBus файл (путь по T001) — добавить 3 сигнала per AC-O7. Если EventBus отсутствует — открыть как **отдельную мини-фичу** перед 018 (тогда T007 → блокер; иначе ловушка по архитектуре). depends: T001.
+- [x] **T007** [P1] EventBus файл (путь по T001) — добавить 3 сигнала per AC-O7. Если EventBus отсутствует — открыть как **отдельную мини-фичу** перед 018 (тогда T007 → блокер; иначе ловушка по архитектуре). depends: T001.
 
 ## Группа E — content (parallel после T003)
 
@@ -50,8 +50,8 @@
 
 ## Группа G — doc / coord
 
-- [ ] **T017** [P3] [P] Обновить root `CLAUDE.md` ownership table: добавить строку «Tile objects (data + registry) — Sergey» в подходящее место. Или, если ownership уже разбит по модулям — упомянуть в `Spell-craft, modifier engine | Sergey` строке расширение скоупа. depends: T002 концептуально.
-- [ ] **T018** [P3] [P] `HANDOFF.md` — упомянуть 018 в «текущие специ» / соответствующей секции (точное место — по результату чтения HANDOFF при implement). depends: T002.
+- [x] **T017** [P3] [P] Обновить root `CLAUDE.md` ownership table: добавить строку «Tile objects (data + registry) — Sergey» в подходящее место. Или, если ownership уже разбит по модулям — упомянуть в `Spell-craft, modifier engine | Sergey` строке расширение скоупа. depends: T002 концептуально.
+- [x] **T018** [P3] [P] `HANDOFF.md` — упомянуть 018 в «текущие специ» / соответствующей секции (точное место — по результату чтения HANDOFF при implement). depends: T002.
 
 ## Группа H — push + PR
 
