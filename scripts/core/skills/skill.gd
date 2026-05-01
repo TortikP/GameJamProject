@@ -57,6 +57,11 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 		var resolved: bool = ab.cast(caster, ctx)
 		if resolved:
 			any_resolved = true
+			# 015 / F-014: aggregate per-ability target_ids into skill-level emit.
+			# Read last_target_ids immediately after cast() — see Ability docstring.
+			for tid in ab.last_target_ids:
+				if not all_target_ids.has(tid):
+					all_target_ids.append(tid)
 
 	if any_resolved:
 		_cd_remaining = cooldown

@@ -41,7 +41,8 @@ func setup(text: String, duration_sec: float, level: StringName) -> void:
 	# Fade-in via modulate
 	modulate.a = 0.0
 	var fade_in := create_tween()
-	fade_in.tween_property(self, "modulate:a", 1.0, 0.18)
+	var fade_in_sec: float = float(GameSpeed.get_value("ui", "toast_fade_in_sec", 0.18))
+	fade_in.tween_property(self, "modulate:a", 1.0, fade_in_sec)
 	if duration_sec > 0.0:
 		var dismiss_timer := get_tree().create_timer(duration_sec, true, false, true)
 		dismiss_timer.timeout.connect(_dismiss)
@@ -49,7 +50,8 @@ func setup(text: String, duration_sec: float, level: StringName) -> void:
 
 func _dismiss() -> void:
 	var fade_out := create_tween()
-	fade_out.tween_property(self, "modulate:a", 0.0, 0.20)
+	var fade_out_sec: float = float(GameSpeed.get_value("ui", "toast_fade_out_sec", 0.20))
+	fade_out.tween_property(self, "modulate:a", 0.0, fade_out_sec)
 	fade_out.tween_callback(func():
 		dismissed.emit()
 		queue_free()

@@ -101,13 +101,16 @@ func _try_rule(actor: Actor, rule: TacticRule, ctx: Dictionary) -> bool:
 
 	# Filter: ready + has valid target + target in range.
 	var candidates: Array = _build_target_candidates(actor, rule.target_selector, ctx)
+	# 015 / F-015: single duplicate of ctx, mutated in-place per candidate.
+	# Keeping it inside the loop allocated a new Dict per matched skill — wasted
+	# work in the AI hot path. sel_ctx is local, drops out of scope after loop.
+	var sel_ctx: Dictionary = ctx.duplicate()
 	var selectable: Array = []   # Array of {skill, target}
 	for entry in matched:
 		var s: Skill = entry.skill
 		if not s.is_ready():
 			continue
 		# For densest_enemy_hex, the selector needs the candidate skill to compute area shape.
-		var sel_ctx: Dictionary = ctx.duplicate()
 		sel_ctx["candidate_skill"] = s
 		var target: Variant = rule.target_selector.resolve(actor, candidates, sel_ctx)
 		if target == null:

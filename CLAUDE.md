@@ -61,6 +61,23 @@ Concrete:
 - Constants: `SCREAMING_SNAKE_CASE`
 - Private members: `_leading_underscore`
 
+### Accepted compromises (post-jam debt)
+
+The following violate the "core knows nothing of presentation" rule above. They are
+accepted for the duration of the jam and tracked in `specs/012-ultrareview/findings.md`
+(F-004, F-005). Don't rewrite them in 72h — the cost is ~40 file touches across
+HexGrid, registry, controllers.
+
+- **`Actor extends Node2D`** (`scripts/core/actors/actor.gd`) — core entity carries
+  presentation semantics (`position`, sprite-children expectation in subclasses).
+  Post-jam: `Actor extends Resource` (data) + `ActorView extends Node2D` (visual binding).
+- **`HexGrid extends Node2D`** with `@export var tile_map_layer / vfx_overlay`
+  (`scripts/core/arena/hex_grid.gd`) — same shape; core class holds direct rendering nodes.
+  Post-jam: `HexGrid` for `Vector2i` math + `HexGridView` for tile rendering.
+
+New code in `scripts/core/` must still NOT introduce additional Node2D dependencies
+or presentation references. The compromise is grandfathered, not a license to expand.
+
 ## Module ownership — claim-on-PR
 
 We don't pre-assign owners. You **claim** a module by opening the first PR

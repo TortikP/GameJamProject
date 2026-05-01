@@ -11,7 +11,6 @@ extends Node2D
 ## (enemy AI) lands, controllers pass `semantic_tag` from cast_intent to color
 ## by tag (damage→red, heal→green, control→purple). See spec AC-R5, T070.
 
-const COLOR_SHADOW: Color = Color(0, 0, 0, 0.55)
 const WIDTH: float = 4.0
 const HEAD_LEN: float = 18.0
 const HEAD_HALF_W: float = 10.0
@@ -56,7 +55,7 @@ func _draw() -> void:
 	var shaft_end: Vector2 = end - dir * HEAD_LEN
 	var color: Color = _get_color()
 	# Drop shadow first (1px offset)
-	draw_line(start + Vector2(1, 1), shaft_end + Vector2(1, 1), COLOR_SHADOW, WIDTH + 2.0, true)
+	draw_line(start + Vector2(1, 1), shaft_end + Vector2(1, 1), UiTheme.SHADOW_SOFT_COLOR, WIDTH + 2.0, true)
 	draw_line(start, shaft_end, color, WIDTH, true)
 	# Arrowhead (filled triangle)
 	var perp: Vector2 = Vector2(-dir.y, dir.x)
@@ -69,5 +68,5 @@ func _draw() -> void:
 	var shadow_pts: PackedVector2Array = []
 	for p in head_pts:
 		shadow_pts.append(p + Vector2(1, 1))
-	draw_colored_polygon(shadow_pts, COLOR_SHADOW)
+	draw_colored_polygon(shadow_pts, UiTheme.SHADOW_SOFT_COLOR)
 	draw_colored_polygon(head_pts, color)

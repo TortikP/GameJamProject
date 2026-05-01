@@ -88,7 +88,7 @@ func _create_placeholder_actor() -> Node2D:
 	var poly := Polygon2D.new()
 	poly.name    = "PlayerActor"
 	poly.polygon = _hex_pts(18.0)
-	poly.color   = Color(0.05, 0.80, 1.00)
+	poly.color   = UiTheme.SEM_MOVE
 	poly.z_index = 5
 	actors_node.add_child(poly)
 
