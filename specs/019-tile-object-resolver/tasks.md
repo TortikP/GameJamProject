@@ -24,6 +24,6 @@
 
 ## Группа D — post-merge (manual)
 
-- [ ] **T008** [P2] *manual: Andrey* — в godmode_controller добавить `TileObjectResolver` по паттерну из plan.md. Smoke: шаг в lava_pool → damage лог.
+- [x] **T008** [P2] *manual: Andrey* — в godmode_controller добавить `TileObjectResolver` по паттерну из plan.md. Smoke: шаг в lava_pool → damage лог. **DONE в этой сессии.**
 - [ ] **T009** [P3] *manual: Sergey* — вызвать `resolver.damage_object(coord, amount, caster_id)` из spell/ability resolve path когда цель — тайл с объектом.
 - [ ] **T010** [P3] *manual: Egor* — review 3 методов в `hex_grid.gd` (аддитивно, не ломает API).
