@@ -452,6 +452,14 @@ func _cast_slot(slot_index: int) -> void:
 
 func _on_slot_activated(_index: int) -> void:
 	_refresh_overlay()
+	# 009-T044+: push active spell into PlayerStatusPanel description block.
+	# -1 = deselect → pass null which collapses the spell section.
+	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	if psp != null and psp.has_method("set_active_spell"):
+		var ability = null
+		if _index != -1 and _slot_bar_node != null:
+			ability = _slot_bar_node.get_slot(_index)
+		psp.set_active_spell(ability)
 
 
 # ── Spawning ─────────────────────────────────────────────────────────────────

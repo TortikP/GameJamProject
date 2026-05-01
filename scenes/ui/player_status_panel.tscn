@@ -36,3 +36,20 @@ size_flags_horizontal = 3
 text = "0/0"
 
 [node name="StatusIconStrip" parent="VBox" instance=ExtResource("2_strip")]
+
+[node name="SpellSection" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="SpellHeader" type="Label" parent="VBox/SpellSection"]
+layout_mode = 2
+text = "Active spell"
+
+[node name="SpellName" type="Label" parent="VBox/SpellSection"]
+layout_mode = 2
+text = "—"
+
+[node name="SpellDesc" type="Label" parent="VBox/SpellSection"]
+layout_mode = 2
+text = ""
+autowrap_mode = 2

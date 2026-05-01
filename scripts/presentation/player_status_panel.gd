@@ -10,6 +10,10 @@ extends PanelContainer
 @onready var _hp_label: Label   = $VBox/HpRow/HpLabel
 @onready var _hp_value: Label   = $VBox/HpRow/HpValue
 @onready var _strip: HBoxContainer = $VBox/StatusIconStrip
+@onready var _spell_section: VBoxContainer = $VBox/SpellSection
+@onready var _spell_header: Label = $VBox/SpellSection/SpellHeader
+@onready var _spell_name: Label = $VBox/SpellSection/SpellName
+@onready var _spell_desc: Label = $VBox/SpellSection/SpellDesc
 
 var _actor: Actor = null
 
@@ -17,6 +21,8 @@ var _actor: Actor = null
 func _ready() -> void:
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
+	# Spell section starts collapsed — no slot active means nothing to show.
+	_spell_section.visible = false
 
 
 func _apply_theme() -> void:
@@ -24,6 +30,9 @@ func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_name_label, "header")
 	UiTheme.apply_label_kind(_hp_label, "small")
 	UiTheme.apply_label_kind(_hp_value, "num_large")
+	UiTheme.apply_label_kind(_spell_header, "small")
+	UiTheme.apply_label_kind(_spell_name, "header")
+	UiTheme.apply_label_kind(_spell_desc, "small")
 
 
 ## Bind to player actor. Auto-listens to damaged and statuses_changed
@@ -65,6 +74,35 @@ func _disconnect() -> void:
 func push_statuses(entries: Array) -> void:
 	if _strip and _strip.has_method("set_statuses"):
 		_strip.set_statuses(entries)
+
+
+## Show description of currently selected spell. Pass null to clear (e.g., on
+## slot deselect). Same defensive guard as bind_player — caller may invoke
+## from another node's _ready before our @onready resolves.
+func set_active_spell(ability) -> void:
+	if not is_node_ready():
+		ready.connect(set_active_spell.bind(ability), CONNECT_ONE_SHOT)
+		return
+	if ability == null:
+		_spell_section.visible = false
+		return
+	_spell_name.text = String(ability.id)
+	_spell_desc.text = _format_ability_desc(ability)
+	_spell_section.visible = true
+
+
+func _format_ability_desc(ability) -> String:
+	# Mirror tooltip format from actor_inspector — minimal info pre-007.
+	# 007 will replace with SkillFormatter helper handling modifier breakdown.
+	var lines: Array[String] = []
+	if ability.effect != null:
+		if ability.effect is DamageEffect:
+			lines.append("Damage: %d" % (ability.effect as DamageEffect).amount)
+		else:
+			lines.append("Effect: %s" % ability.effect.get_class())
+	if ability.target != null:
+		lines.append("Target: %s" % ability.target.get_class())
+	return "\n".join(lines)
 
 
 func _refresh_all() -> void:
