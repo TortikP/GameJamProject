@@ -26,6 +26,7 @@
 - [x] **T004** [P1] `scripts/core/arena/hex_tile.gd` — добавить `var object_id: StringName` и параметр в `_init` с default `&""`. Никаких других правок. depends: T002.
 - [x] **T005** [P1] `scripts/core/arena/hex_grid.gd` — в `_build_tile_map` читать custom data layer `"object_id"`, передавать в `HexTile._init`. Создать инстанс `TileObjectRegistry`, вызвать `load_from_dir("res://data/tile_objects/")`. depends: T003, T004.
   - **T005a** [P1] [P] Проверить (T001) что в TileSet есть custom data layer `"object_id"` типа String. Если нет — добавить руками в Godot editor (TileSet inspector → Custom Data → +). Это не код-задача. Делает Sergey локально перед F5.
+  - **DONE (Andrey, текстом):** добавлен слой `custom_data_layer_4` в `scenes/arena/tilesets/hex_terrain.tres`. Тип `21` (StringName) — консистентно с `effect_id` и `tile_kind`. Existing атлас-тайлы не имеют значения для этого слоя → получают default `&""` → `HexTile.object_id = &""` → registry-noop. Backward-compat сохранён. Painting объектов на конкретные ячейки TileMap-а — отдельный шаг дизайнера в редакторе (для smoke-сцены или production-арены).
 - [x] **T006** [P1] `scripts/core/arena/hex_pathfinder.gd` — добавить query в registry в проверке проходимости. Точное место — по результату T001. depends: T003, T005.
 
 ## Группа D — EventBus (опционально, по результату T001)
