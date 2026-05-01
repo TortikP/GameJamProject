@@ -1,7 +1,102 @@
 # 012-ultrareview — spec
 
-**Owner:** Andrey (claim-on-PR; integration / UX / polish lead per CLAUDE.md)
-**Status:** Draft — open for AC review
+**Owner:** Egor (handed off from Andrey 2026-05-01 — partial audit done, see Handoff section)
+**Status:** In progress — partial audit, ~30% coverage. Continuation required.
+
+---
+
+## Handoff (2026-05-01, andrey/Claude → egor)
+
+**Snapshot SHA:** `13b4065` (Merge PR #36 `egor/008-plan-tasks` into staging — последний коммит на момент захода в аудит).
+**Branch:** `andrey/012-audit-pass`. Pair-work, не переименовываем — коммить в неё. Если хочешь свой prefix — checkout новой ветки от текущей head, но истории всё равно мало, не критично.
+
+### F-D0 (уже зафиксировано, до старта аудита)
+
+PR #35 (012/spec → staging) был замержен только с первым коммитом (`40da41c`). Второй (`b1c512e`) — D13 leak/resource hygiene + AC-A9 manual профайлер от Egor + AC-A10 cross-ref правила — push прошёл уже после merge. В staging его не было. Я **cherry-pick'нул его в эту ветку** (`6092c49`) — D13/AC-A9/AC-A10 теперь в спеке, не теряются. Когда мерджим 012 в staging — придут вместе.
+
+### Что покрыто (partial)
+
+| Domain | Status | Findings |
+|---|---|---|
+| D1 — core/presentation isolation | ✅ done | 2 P2 |
+| D2 — EventBus discipline | ⚠️ partial | 1 P1 + 2 P2; signal-naming clean. Cross-module direct refs не докопал (godmode→autoloads OK, но другие presentation файлы не прошёл сквозным грепом). |
+| D3 — UiTheme единственный источник | ✅ done | 2 P2 + 5 P3 |
+| D4 — GameSpeed для timings | ✅ done | 3 P2 |
+| D5 — content в `data/` | ✅ done (light) | 2 P3 (accepted compromises) |
+| D6 — naming conventions | ❌ not started | mechanical, ~5 минут |
+| D7 — visibility doctrine | ✅ done | clean — 25 файлов presentation/ юзают UiTheme labels, 72 refs, draw_string_outline везде где нужно |
+| D8 — Pillar 1 (full info visibility) | ⚠️ touched | 1 P1 (F-016) родился отсюда — combat numbers fully dead. Domain-pass не закончен. |
+| D9 — Pillar 2 (player-monster symmetry) | ❌ not started | теперь у тебя в 008 реальный AI код, есть что проверять |
+| D10 — Godot 4.6 traps | ❌ not started | mechanical, по строке trap-таблицы один grep — ~20 минут |
+| D11 — spec ↔ impl drift | ❌ not started | 11 spec.md прочитать, для каждого проверить AC vs staging — самый трудоёмкий, ~2 часа |
+| D12 — dead code / orphan scenes | ⚠️ partial | 3 кандидата найдены, нужен sweep всех presentation/ + scenes/ui/ |
+| D13 — leak / resource hygiene | ❌ not started | mechanical greps по 7 подпунктам D13.a–D13.g (см. spec ниже) |
+
+### Preliminary findings (НЕ финальный формат — раскладывать в `findings.md` по AC-A1)
+
+Нумерация условная (`F-D?-NAME`) — в финальном `findings.md` дай свой `F-001`, `F-002` подряд. Это просто заметки.
+
+#### P1 (критическое, **в 013-refactor-wave-1**)
+
+- **F-D2-COMBAT-NUMBERS-DEAD** — `scripts/presentation/floating_number_layer.gd` целиком dead receiver:
+  - Listen'ит `EventBus.damage_dealt` / `EventBus.heal_done` — этих сигналов в EventBus нет (32 сигнала, ни одного из этих).
+  - `.spawn()` directly никто не вызывает (grep по godmode_controller, damage_effect.gd, heal_effect.gd, всему presentation/ — пусто).
+  - FloatingNumberLayer instance'ится в `scenes/dev/godmode.tscn:44`, но в рантайме никогда не получает событий и никогда не отрисовывает числа.
+  - **→ floating combat numbers полностью нефункциональны в актуальном геймплее.**
+  - Нарушает Pillar 1 (full info visibility): игрок не видит damage numbers когда наносит/получает урон.
+  - Точка остановки моего аудита — проследил до `scripts/core/actors/actor.gd:69` (`take_damage` эмитит локальный `damaged` signal на актере, но не на EventBus).
+  - Fix-варианты для 013:
+    - (a) Добавить `damage_dealt(target_id: StringName, amount: int, world_pos: Vector2)` в EventBus, эмитить из `Actor.take_damage` (требует знать world_pos — `actor.position` подойдёт). Layer уже подписан, ничего больше менять не надо.
+    - (b) `godmode_controller` подписывается на `actor.damaged` каждой сущности и сам зовёт `floating_layer.spawn(...)`. Минусы: layer становится pull, godmode держит ref на layer.
+    - (c) `EventBus.floating_number_requested(world_pos, amount, kind)` + emit'ы из `damage_effect.gd` / `heal_effect.gd`. Самый чистый, но требует знать pos в effect — обычно есть через target.
+
+#### P2 (архитектурный долг, **в 014-refactor-wave-2**)
+
+- **F-D1-ACTOR-NODE2D** — `scripts/core/actors/actor.gd:2` `extends Node2D`. Core сущность с visual-семантикой (`position`, Sprite2D-children). Pragmatic compromise для джема. Post-jam refactor: split в `Actor extends Resource` (data) + `ActorView extends Node2D` (визуал).
+- **F-D1-HEXGRID-NODE2D** — `scripts/core/arena/hex_grid.gd:2,21-22` `extends Node2D`, `@export var tile_map_layer: TileMapLayer`, `vfx_overlay: TileMapLayer`. Тот же compromise. Post-jam: `HexGrid` (logic, Vector2i + offset math) + `HexGridView` (rendering).
+- **F-D2-FNL-PARENT-WALK** — `scripts/presentation/floating_number_layer.gd:62-72` `_resolve_actor_pos` walks parent chain looking for ActorRegistry sibling. Comment `Real wiring happens in 007` — но 007 уже мерджен. Это TODO-завис. Если фиксим F-D2-COMBAT-NUMBERS-DEAD по варианту (a) — весь `_resolve_actor_pos` исчезает (pos приходит готовый).
+- **F-D3-CYAN-LITERAL** — `scripts/presentation/arena_demo_controller.gd:91` `Color(0.05, 0.80, 1.00)` raw cyan. → `UiTheme.SEM_MOVE` или удалить (вероятно debug placeholder).
+- **F-D3-INTENT-SHADOW** — `scripts/presentation/intent_arrow.gd:14` `const COLOR_SHADOW: Color = Color(0, 0, 0, 0.55)`. → reference `UiTheme.WORLD_TEXT_OUTLINE_COLOR` (alpha 0.95) или новый `UiTheme.SHADOW_SOFT` constant.
+- **F-D4-FN-DURATION-CONST** — `scripts/presentation/floating_number.gd:11-12` `DURATION_MS = 700`, `CRIT_DURATION_MS = 1100`. → `GameSpeed.get_value("ui", "floating_number_duration_ms", 700)` + `..._crit_duration_ms`. Add to `config/game_speed.cfg`.
+- **F-D4-TOAST-FADE-IN** — `scripts/presentation/toast_item.gd:44` `0.18` literal fade-in. → `GameSpeed.get_value("ui", "toast_fade_in_sec", 0.18)`.
+- **F-D4-TOAST-FADE-OUT** — `scripts/presentation/toast_item.gd:52` `0.20` literal fade-out. → `GameSpeed.get_value("ui", "toast_fade_out_sec", 0.20)`.
+
+#### P3 (косметика / низкий приоритет, **в 015+ если время**)
+
+- **F-D3-TILE-COLORS** — `scripts/presentation/hex_placeholder_builder.gd:18-22` 5 raw tile colors (grass/wall/swamp/acid/fountain). См. F-D12-PLACEHOLDER-DEAD — файл скорее всего к удалению, тогда finding снимается автоматически.
+- **F-D3-RUN-SUMMARY-STYLEBOX** — `scripts/presentation/run_summary.gd:109-115` inline `StyleBoxFlat.new()`. См. F-D12-RUN-SUMMARY-DEAD — файл orphan, finding снимается при удалении.
+- **F-D3-SLOTBAR-FOCUS** — `scripts/presentation/slot_bar.gd:184-185` magic multipliers `focus.r * 1.3, focus.g * 1.3, focus.b * 0.5`. → `UiTheme.SELECTION_HIGHLIGHT_COLOR` или helper `UiTheme.brighten_for_selection(focus)`.
+- **F-D3-SLOTBAR-HOVER** — `scripts/presentation/slot_bar.gd:196` `Color(1.10, 1.10, 1.10) if hovered else Color.WHITE`. → `UiTheme.HOVER_BRIGHTEN` constant.
+- **F-D3-PILL-STYLEBOX** — `scripts/presentation/status_icon_strip.gd:97-101` local `_make_pill_stylebox(family)`. → `UiTheme.make_pill_stylebox(family)`.
+- **F-D5-DEBUG-SKILLS** — `scripts/presentation/godmode/godmode_controller.gd:166,171,174` hardcoded `&"skill_debug_punch"`, `&"skill_melee_punch"`, `&"skill_knockback_punch"`. Acceptable for dev/debug controller. Post-jam: `data/godmode/debug_skills.json`.
+- **F-D5-TAG-MAPPING** — `scripts/presentation/godmode/godmode_controller.gd:722-740` tag→semantic_kind hardcoded match. Closed enum из 008/AC-I4, acceptable. Post-jam: `data/ui/tag_color_mapping.json`.
+- **F-D6-CLAUDE-MD-LOGGER** — `CLAUDE.md` §Architecture #3 пишет «Autoloads (GameSpeed, EventBus, **Logger**, AudioDirector, UiTheme)» — но `Logger` не autoload (trap-таблица говорит использовать `GameLogger` через `preload`). Doc drift. Update: «`Logger`» → «`GameLogger` (preload, not autoload — see traps table)». **Не код-finding,** doc-fix.
+- **F-D12-PORTAL-DEAD** — `scripts/presentation/portal_transition.gd` + `scenes/ui/portal_transition.tscn`. Никем не preload'ится / не instance'ится (grep по всему scripts/+scenes/ — только селф-ссылки). Dead.
+- **F-D12-PLACEHOLDER-DEAD** — `scripts/presentation/hex_placeholder_builder.gd`. `class_name HexPlaceholderBuilder.setup(...)` нигде не вызывается. `arena_demo_controller` имеет inline `_create_placeholder_actor` (line 83) и сам пишет в `tile_map_layer` (line 78). Только doc-comment в `hex_grid.gd:42` ссылается. Dead.
+- **F-D12-RUN-SUMMARY-DEAD** — `scripts/presentation/run_summary.gd` + `scenes/ui/run_summary.tscn`. Никем не preload'ится / не instance'ится. `EventBus.run_summary_shown` emit'ится в `run_summary.gd:50` без listener'ов в проекте. Dead.
+
+### Где копать дальше (priority order)
+
+В порядке убывания прибыли:
+
+1. **D11 spec ↔ impl drift** — самый трудоёмкий, но самый ценный. По одному `spec.md` на 001-011, читать AC, сверять со staging. Подозрение что F-D2-COMBAT-NUMBERS-DEAD — не одинокий: где-то ещё AC помечен `[x]` но behavior не реализован.
+2. **D10 Godot 4.6 traps** — mechanical, по строке trap-таблицы CLAUDE.md один grep. 6 traps × 1 grep = 6 команд, ~20 минут.
+3. **D13 leak / resource hygiene** — твоя домена (D13 primary reviewer + AC-A9 manual профайлер). Совмести с D10 — обе mechanical-grep heavy.
+4. **D9 Pillar 2 (symmetry)** — теперь у тебя в 008 реальный AI код. Manekin как minimal Actor — все ли его поля используются? AI и player через одинаковые `grid.move_actor`/`ability.cast`? Hidden enemy-only damage paths? `Actor.take_damage` симметрично применяется к обоим?
+5. **D6 naming** — самое лёгкое, на конец.
+6. **Доделать D2** — sweep всех presentation/ файлов (за пределами godmode) на cross-module ссылки. Возможно ничего и нет, но проверить надо.
+7. **Доделать D12** — sweep всех `class_name X` + `scenes/ui/*.tscn` на orphan: для каждого root scene/класса grep на usages.
+8. **AC-A9 manual профайлер** — `profiler-snapshot.md`, ~30 минут в Godot 4.6 при реальном геймплее (волны манекенов + battle loop). Если не успеешь до finalization 012 — переноси acceptance в 013.
+9. **Final `findings.md`** — собрать все findings (мои preliminary + твои новые) в формат AC-A1: единая таблица + per-domain секции + per-owner rollup (AC-A3) + per-spec drift (AC-A4) + AC-A5 backlog для 013.
+
+### Замечания
+
+- AC-A6: **read-only.** Если в процессе ловишь желание поправить опечатку — finding в `findings.md`, не fix в этом PR.
+- F-D2-COMBAT-NUMBERS-DEAD — самое важное что я нашёл. Если докопаешь и подтвердишь — это первая P1 в 013, перед стасяновским balance.
+- F-D6-CLAUDE-MD-LOGGER — doc-fix, можно либо записать как finding (тогда это часть 013/014), либо аккуратно поправить в этом же PR (формально нарушает AC-A6, но 1-строчная дока — обсуждаемо). На твоё усмотрение.
+- Branch у тебя есть pull rights (project rule: pair-work). Просто `git fetch && git checkout andrey/012-audit-pass` и продолжай.
+
+---
 
 ## Цель
 
