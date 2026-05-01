@@ -98,12 +98,12 @@ Ability.cast(caster, ctx):
   └── SkillDatabase._ready()    → сканит data/skills/*.json
          для каждого skill JSON:
            для каждого ability в skill:
-             ab = AbilityDatabase._build_ability_from_dict(ab_data)
+             ab = AbilityDatabase.build_ability_from_dict(ab_data)
              skill.abilities.append(ab)
              AbilityDatabase.register_ability(ab)   ← embedded ability видна по ID
 ```
 
-**Почему `_build_ability_from_dict` публичный (без `_`):** SkillDatabase использует его для парсинга embedded abilities. Andrey использует тот же путь.
+**Почему `build_ability_from_dict` публичный (без `_`):** SkillDatabase использует его для парсинга embedded abilities. Andrey использует тот же путь. (Имя нормализовано в 016 — был `_build_ability_from_dict`, см. F-030.)
 
 **Регистрация в AbilityDatabase нужна для:** `MoveRangeOverlay` (enemy path, использует ID), `ActorInspector` (тултипы по ID). Для слотов игрока overlay получает Ability-объекты напрямую от skill — lookup по ID не нужен.
 

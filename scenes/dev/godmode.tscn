@@ -53,6 +53,7 @@ registry = NodePath("../ActorRegistry")
 slot_bar = NodePath("../HUD/SlotBar")
 inspector_path = NodePath("../HUD/ActorInspector")
 overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
+player_status_panel_path = NodePath("../HUD/PlayerStatusPanel")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
