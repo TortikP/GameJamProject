@@ -217,7 +217,19 @@ func _bind_hex_at(coord: Vector2i) -> void:
 func _refresh_overlay() -> void:
 	if _overlay == null or _selected == null:
 		return
-	_overlay.show_for(_selected, registry)
+	# For player: show only the active spell's range (or nothing if no spell selected).
+	# For enemies: show their attack ability range.
+	var ability_ids: Array = []
+	if _selected == player:
+		if _slot_bar_node != null:
+			var active: int = _slot_bar_node.get_active()
+			if active != -1:
+				var ab := _slot_bar_node.get_slot(active) as Ability
+				if ab != null:
+					ability_ids = [ab.id]
+	else:
+		ability_ids = _selected.get_abilities()
+	_overlay.show_for(_selected, registry, ability_ids)
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:

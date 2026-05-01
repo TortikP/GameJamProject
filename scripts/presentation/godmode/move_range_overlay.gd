@@ -32,7 +32,9 @@ func clear() -> void:
 
 ## Show reachable hexes for `actor`. `registry` is ActorRegistry — used to
 ## build the occupied list so BFS doesn't route through other actors.
-func show_for(actor: Actor, registry: Node) -> void:
+## `ability_ids` — which abilities to draw attack range for. Pass [] to skip
+## attack range entirely (e.g. when no spell is selected).
+func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 	clear()
 	if _grid == null or actor == null:
 		return
@@ -68,7 +70,7 @@ func show_for(actor: Actor, registry: Node) -> void:
 	# Collect all coords reachable by any of this actor's abilities.
 	# Shown in orange, drawn ON TOP of move range (higher z).
 	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
-	for ability_id in actor.get_abilities():
+	for ability_id in ability_ids:
 		var ability: Ability = AbilityDatabase.get_ability(ability_id)
 		if ability == null or ability.target == null:
 			continue
