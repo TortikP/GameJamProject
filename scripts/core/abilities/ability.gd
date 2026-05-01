@@ -25,6 +25,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var effects: Array[AbilityEffect] = []
 @export var modifiers: Array[ParameterModifier] = []
 
+# 015 / F-014: populated by cast() before EventBus.ability_cast emit so
+# Skill.cast can aggregate per-ability target_ids into its own skill_cast
+# emit. Overwritten on every cast() call — read immediately after cast()
+# returns true; do not cache. Sharing an Ability resource across simultaneous
+# casts is unsafe (turn manager is sequential, so this is fine in practice).
+var last_target_ids: Array = []
+
 
 ## Cheap pre-check for UI (grey-out un-castable slots). Doesn't run area/effects.
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
@@ -95,6 +102,7 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 		if victim is Actor:
 			target_ids.append((victim as Actor).actor_id)
 
+	last_target_ids = target_ids
 	EventBus.ability_cast.emit(caster.actor_id, id, target_ids)
 	return true
 

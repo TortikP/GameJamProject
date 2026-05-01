@@ -46,11 +46,11 @@ Sequential кластерами (по concern из findings.md slicing). Оди�
 
 ## E — F-014 (skill_cast aggregates target_ids)
 
-- [ ] E1. `scripts/core/abilities/ability.gd` — добавить публичное поле `var last_target_ids: Array = []` после `@export var modifiers` block с doc-comment про overwrite-on-cast.
-- [ ] E2. `scripts/core/abilities/ability.gd:cast` — перед `EventBus.ability_cast.emit(...)` (line 98): `last_target_ids = target_ids`.
-- [ ] E3. `scripts/core/skills/skill.gd:cast` — внутри `for ab in abilities:` после `if resolved:` agg'ать ids в `all_target_ids` (без дубликатов).
-- [ ] E4. Manual smoke: cast skill_debug_punch в godmode на manekin'а — Output не падает; добавить `print(target_ids)` в EventBus.skill_cast listener (временно) проверить непустой.
-- [ ] E5. Commit: `fix(015): F-014 — Skill.cast aggregates target_ids from Ability.last_target_ids`.
+- [x] E1. `scripts/core/abilities/ability.gd` — добавить публичное поле `var last_target_ids: Array = []` после `@export var modifiers` block с doc-comment про overwrite-on-cast.
+- [x] E2. `scripts/core/abilities/ability.gd:cast` — перед `EventBus.ability_cast.emit(...)` (line 98): `last_target_ids = target_ids`.
+- [x] E3. `scripts/core/skills/skill.gd:cast` — внутри `for ab in abilities:` после `if resolved:` agg'ать ids в `all_target_ids` (без дубликатов).
+- [x] E4. Manual smoke: cast skill_debug_punch в godmode на manekin'а — Output не падает; добавить `print(target_ids)` в EventBus.skill_cast listener (временно) проверить непустой. (deferred to Egor)
+- [x] E5. Commit: `fix(015): F-014 — Skill.cast aggregates target_ids from Ability.last_target_ids`.
 
 ## F — F-015 (single ctx.duplicate() in _try_rule)
 
