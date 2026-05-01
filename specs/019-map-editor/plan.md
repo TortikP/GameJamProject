@@ -25,7 +25,8 @@
 | `scenes/dev/map_editor.tscn` | NEW scene file | scene |
 | `data/maps/_schema.md` | NEW schema doc для Стасяна | ~80 |
 | `data/maps/sample.json` | NEW pre-made test map | ~50 |
-| `config/game_speed.cfg` | +section `[editor]`: `spawner_swap=0.2`, `place_feedback=0.05` | +5 |
+| `.gitignore` | +`data/maps/__playtest__.json`, +`data/maps/__autosave__.json` | +2 |
+| `config/game_speed.cfg` | +section `[editor]`: `spawner_swap=0.2`, `place_feedback=0.05`, `autosave_debounce=1.5` | +5 |
 | `project.godot` | +autoload `ActiveLevel`, +input action `dev_open_editor` (Ctrl+E) | +10 |
 
 Итого: 13 новых файлов кода / 3 новых ассета (sample, schema doc, scene) / 5 правок существующих. Чисто additive — никаких rename / delete / breaking-API.
@@ -239,9 +240,10 @@ RMB handler:
 - HUD CanvasLayer с панелями + ToastLayer + ConfirmModal
 
 `map_editor.tscn` стартует с пустой картой:
-- `_initial_paint()` рисует 5×5 квадрат грассы (`source_id=0, atlas=(0,0)` из godmode_terrain) — чтобы было куда сразу класть объекты.
+- `_initial_paint()` рисует 25×25 квадрат грассы (`source_id=0, atlas=(0,0)` из godmode_terrain) — широкая канва для рисования коридоров / нестандартных форм через Erase. Карты не обязаны быть прямоугольными.
 - `dirty = false` после initial paint (initial paint не считается изменением).
 - `LevelData` собирается синхронно — каждое placement-действие апдейтит `_level: LevelData`. Save = `LevelSerializer.save(_level, ...)`.
+- При `_ready` редактора: проверка `__autosave__.json` → если есть и свежий → ConfirmModal → восстановить или удалить.
 
 ## Категоризация объектов в палитре
 
@@ -281,6 +283,93 @@ func _passes_filter(obj: TileObject) -> bool:
         return false
     return true
 ```
+
+## Replace-all (RMB по кнопке тайла во FloorPalette)
+
+```gdscript
+# floor_palette_panel.gd — связан с map_editor_controller
+
+func _on_tile_button_gui_input(event: InputEvent, source_id: int, atlas: Vector2i) -> void:
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+        _show_replace_menu(source_id, atlas)
+
+func _show_replace_menu(target_source: int, target_atlas: Vector2i) -> void:
+    # Собрать tile_kinds, реально использованные в _level.floor_cells (исключая target).
+    var used_kinds: Dictionary = {}  # (source_id, atlas) -> tile_kind label
+    for f in _controller.get_level().floor_cells:
+        var key := [f.source_id, f.atlas_coord]
+        if key == [target_source, target_atlas]:
+            continue
+        if not used_kinds.has(key):
+            used_kinds[key] = _resolve_tile_kind(f.source_id, f.atlas_coord)
+    if used_kinds.is_empty():
+        EventBus.ui_toast_requested.emit("Нечего заменять — других типов нет", 2.0, &"info")
+        return
+    var menu := PopupMenu.new()
+    add_child(menu)
+    var keys: Array = used_kinds.keys()
+    for i in keys.size():
+        menu.add_item("Заменить все «%s» на этот" % used_kinds[keys[i]], i)
+    menu.id_pressed.connect(_on_replace_picked.bind(keys, target_source, target_atlas, menu))
+    menu.popup(Rect2i(DisplayServer.mouse_get_position(), Vector2i.ZERO))
+
+func _on_replace_picked(item_id: int, keys: Array, to_source: int, to_atlas: Vector2i, menu: PopupMenu) -> void:
+    var from_key: Array = keys[item_id]
+    var count := _count_floor_of_type(from_key[0], from_key[1])
+    var ok: bool = await _controller.confirm_modal.ask(
+        "Заменить %d тайлов на этот тип?" % count, "", "Заменить", "Отмена")
+    menu.queue_free()
+    if not ok:
+        return
+    _controller.apply_replace_all(from_key[0], from_key[1], to_source, to_atlas)
+```
+
+`MapEditorController.apply_replace_all` — батч update `_level.floor_cells` + `tile_map_layer.set_cell` + `_mark_dirty()` + toast. Объекты и спавнеры на затронутых хексах не трогаются (тип пола меняется, что лежит сверху — остаётся).
+
+## Autosave
+
+```gdscript
+const AUTOSAVE_PATH := "res://data/maps/__autosave__.json"
+const AUTOSAVE_DEBOUNCE_SEC := 1.5
+const AUTOSAVE_MAX_AGE_SEC := 86400  # 24 часа
+
+@onready var _autosave_timer: Timer = Timer.new()
+
+func _ready() -> void:
+    ...
+    _autosave_timer.one_shot = true
+    _autosave_timer.wait_time = AUTOSAVE_DEBOUNCE_SEC
+    _autosave_timer.timeout.connect(_do_autosave)
+    add_child(_autosave_timer)
+    _check_autosave_recovery.call_deferred()
+
+func _mark_dirty() -> void:
+    _dirty = true
+    _autosave_timer.start()  # restarts countdown each call → debounce
+
+func _do_autosave() -> void:
+    LevelSerializer.save(_level, AUTOSAVE_PATH)  # no validate, no toast
+
+func _check_autosave_recovery() -> void:
+    if not FileAccess.file_exists(AUTOSAVE_PATH):
+        return
+    var age: int = int(Time.get_unix_time_from_system() - FileAccess.get_modified_time(AUTOSAVE_PATH))
+    if age > AUTOSAVE_MAX_AGE_SEC:
+        DirAccess.remove_absolute(AUTOSAVE_PATH)
+        return
+    var ok: bool = await confirm_modal.ask("Восстановить несохранённую сессию?", "", "Восстановить", "Начать с нуля")
+    if ok:
+        var level: LevelData = LevelSerializer.load(AUTOSAVE_PATH)
+        if level != null:
+            _apply_level(level)
+            _dirty = true  # restored content needs re-saving
+    else:
+        DirAccess.remove_absolute(AUTOSAVE_PATH)
+```
+
+`_mark_dirty()` вызывается из всех handler'ов: place floor, erase, place object, place spawner, replace-all, name change. На launch — отложенный (`call_deferred`) recovery prompt, чтобы UI успел отрисоваться до модалки.
+
+`__autosave__.json` уходит в `.gitignore` (как и `__playtest__.json`).
 
 ## Spawners — список из `data/enemies/`
 
@@ -350,7 +439,9 @@ dev_open_editor={
 5. change_scene_to_file("res://scenes/dev/godmode.tscn")
 ```
 
-`__playtest__.json` — leading double-underscore чтобы файл не путали с пользовательскими картами. Не в gitignore — в gitignore добавляется.
+Save в `__playtest__.json` — это снэпшот для godmode-loader'а, **не** требование к пользователю заранее жмякнуть Save. Прогресс сам по себе уже защищён autosave'ом (`__autosave__.json`). `__playtest__.json` — чисто транспортный файл между редактором и боевой сценой.
+
+`__playtest__.json` — leading double-underscore чтобы файл не путали с пользовательскими картами. В gitignore.
 
 ## godmode_controller.gd patches
 

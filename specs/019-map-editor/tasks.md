@@ -17,7 +17,7 @@
 ## Phase 1 — Editor scene scaffolding (~2 ч)
 
 - [ ] **T008** [P1] `scenes/dev/map_editor.tscn` — root Node2D + Camera2D + HexGrid инстанс + HUD CanvasLayer заглушки (no UI yet) (depends 002)
-- [ ] **T009** [P1] `scripts/presentation/dev/map_editor_controller.gd` — _ready: resolve nodes, initial 5×5 grass paint, no input yet (depends T008)
+- [ ] **T009** [P1] `scripts/presentation/dev/map_editor_controller.gd` — _ready: resolve nodes, initial 25×25 grass paint, no input yet (depends T008)
 - [ ] **T010** [P1] `scripts/presentation/dev/objects_overlay.gd` — Node2D, метод `set_object(coord, object_id)` спавнит/заменяет Sprite2D ребёнка с texture из `TileObject.sprite_path` (depends T009)
 - [ ] **T011** [P1] `scripts/presentation/dev/spawners_overlay.gd` — то же для спавнеров (player Unicode-глиф, enemy с тинтом по hash) (depends T010)
 - [ ] **T012** [P1] `scripts/presentation/dev/hover_highlight.gd` — рисует контур текущего гекса под курсором (depends T009)
@@ -35,6 +35,7 @@
 ## Phase 3 — Palette UI (~3-4 ч)
 
 - [ ] **T020** [P1] `floor_palette_panel.gd` + scene — TileSet dropdown, кнопки тайлов из выбранного TileSet (рендерим превьюшки из атласа), Erase кнопка (depends T009)
+- [ ] **T020a** [P1] Replace-all: RMB по кнопке тайла → PopupMenu со списком уже использованных tile_kind (исключая сам этот) → ConfirmModal с кол-вом → batch update `_level.floor_cells` + `tile_map_layer.set_cell` + toast + mark_dirty (depends T020, T014)
 - [ ] **T021** [P1] `object_palette_panel.gd` — TabBar (Spawners / Obstacles / Interactive), filter row (3 type checkboxes + Has-effect), категоризация из plan.md (depends 018 TileObjectRegistry)
 - [ ] **T022** [P1] Spawners tab content — `_build_spawner_list()` из `data/enemies/*.json` + player (depends T021)
 - [ ] **T023** [P1] Obstacles + Interactive tab content — `TileObjectRegistry.all()` через категоризатор + filter (depends T021)
@@ -44,9 +45,10 @@
 
 - [ ] **T025** [P1] `level_meta_panel.gd` + scene — name input + 4 кнопки (Save / Load / Playtest / Exit) — стилизация через UiTheme (depends T009)
 - [ ] **T026** [P1] Save flow — sanitize + validate + ConfirmModal на overwrite + LevelSerializer.save + toast (depends T002, T025)
+- [ ] **T026a** [P1] Autosave: debounced Timer 1.5s, `_mark_dirty()` дёргается из всех placement-handler'ов + name-change + replace-all. На `_ready` редактора — recovery prompt если `__autosave__.json` свежий (≤24ч) (depends T002, T009)
 - [ ] **T027** [P1] Load flow (editor) — dirty check + confirm-save + FileDialog + LevelSerializer.load + apply to editor (depends T002, T025)
 - [ ] **T028** [P1] Playtest flow — validate + write `__playtest__.json` + ActiveLevel.queue + change_scene godmode (depends T026, T003)
-- [ ] **T029** [P1] Add `__playtest__.json` to `.gitignore` (depends T028)
+- [ ] **T029** [P1] Add `__playtest__.json` AND `__autosave__.json` to `.gitignore` (depends T028, T026a)
 
 ## Phase 5 — Game-side integration (~1-2 ч)
 
@@ -66,6 +68,8 @@
 - [ ] **T040** [P1] Smoke (manual): редактор → положить объект → попытка положить второй на тот же хекс → ConfirmModal «Тайл занят»
 - [ ] **T041** [P1] Smoke (manual): редактор → RMB по объекту (красный) → второй RMB → объект исчез
 - [ ] **T042** [P1] Smoke (manual): редактор → RMB → LMB по другому хексу с тайлом-в-палитре → highlight снят, тайл положен
+- [ ] **T042a** [P1] Smoke (manual): редактор → положить разные типы тайлов → RMB по кнопке тайла во FloorPalette → пункт «Заменить все «X» на этот» → confirm → все тайлы X заменились
+- [ ] **T042b** [P1] Smoke (manual): редактор → закрыть без save → снова открыть → ConfirmModal «Восстановить?» → восстановилось состояние
 - [ ] **T043** [P2] Update HANDOFF.md §18 — упомянуть 019 в работе / смержено
 
 ## Phase 7 — Стасян onboarding (~30 мин, не блокер)
@@ -92,16 +96,20 @@ T030 + T031 → T036, T038
 
 Минимально работающий редактор (cut order):
 1. Сначала отрезать **T019** (drag-existing) — чисто quality-of-life.
-2. Затем **T013 → T012** — overlays приятные но не критичные (LMB всё равно работает без визуала pending-delete? нет, T013 нужен для UX RMB. Не резать).
-3. **T034** — game_speed для editor — не блокер, hardcode 0.2 fallback в коде.
-4. **T020 (Erase кнопка)** в floor palette — без неё работает, но удалять пол через RMB-двойной можно.
+2. Затем **T020a** (replace-all) — приятно, но при 25×25 заливке заново пол перекрашивается рукой за минуту.
+3. **T013 → T012** — overlays приятные но не критичные (LMB всё равно работает без визуала pending-delete? нет, T013 нужен для UX RMB. Не резать).
+4. **T034** — game_speed для editor — не блокер, hardcode 0.2 fallback в коде.
+5. **T020 (Erase кнопка)** в floor palette — без неё работает, но удалять пол через RMB-двойной можно.
+
+**T026a (autosave) НЕ режется** — Andrey явно попросил, и без него легко потерять прогресс при крэше / случайном Esc.
 
 Минимальная демоверсия:
 - T001-T011 (data + scaffolding + overlays)
 - T014-T018 (input + collision)
 - T020-T024 (palettes minimum)
 - T025-T028 (save + load + playtest)
+- T026a (autosave — обязательный)
 - T030-T033 (game integration + main menu)
 - T035-T038 (sample + 3 smokes)
 
-= 22 P1-таска, ~10-12 ч одного человека.
+= 23 P1-таска, ~10-12 ч одного человека.

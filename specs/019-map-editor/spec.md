@@ -71,6 +71,7 @@ MapEditor (Node2D)
 - Дропдаун выбора TileSet: `godmode_terrain.tres` / `hex_terrain.tres` (значение пишется в `LevelData.tileset_path`).
 - Кнопки тайлов из выбранного TileSet (одна кнопка на каждую `(source_id, atlas_coord)` пару, лейбл — `tile_kind` из custom data, иконка — превью из атласа).
 - Кнопка **Erase** — отдельный mode, LMB снимает тайл.
+- **Replace-all** жест: RMB по кнопке тайла → `PopupMenu` с пунктами `Заменить все «<tile_kind X>» на этот` для каждого `tile_kind`, реально присутствующего в текущей карте (исключая сам этот тайл). Выбор → `ConfirmModal "Заменить N тайлов «X» на «Y»?"` → apply: `LevelData.floor_cells.filter(it.atlas_coord == X)` переписываются на новый atlas, `FloorLayer.set_cell` обновляется батчем. Toast `"Заменено N тайлов"`. Это даёт «заливку» одного типа другим без необходимости рисовать вручную после смены идеи.
 
 **ObjectPalettePanel (правая):**
 - Вкладки (TabBar): **Spawners**, **Obstacles**, **Interactive**.
@@ -101,7 +102,9 @@ States:
 - LMB-release на пустом гексе пола → переместить.
 - LMB-release на занятом → popup-отказ.
 
-### Save / Load / Playtest
+### Save / Load / Playtest / Autosave
+
+- **Autosave (защита от потери прогресса).** После любого изменения (placement, erase, replace-all, name edit) в редакторе запускается debounced таймер 1.5 сек. При срабатывании — `LevelSerializer.save(_level, "res://data/maps/__autosave__.json")` без модалок и валидации (autosave может содержать невалидные состояния — нет player-спавнера, etc.). Файл всегда перезаписывается. Эти 1.5 сек — окно для пакетной записи (если пользователь активно кликает, autosave не дёргается каждый клик). При открытии редактора (Ctrl+E или Map Editor button) — если `__autosave__.json` существует И его mtime ≤ 24 часов назад → `ConfirmModal.ask("Восстановить несохранённую сессию?", confirm="Восстановить", cancel="Начать с нуля")`. Cancel → autosave удаляется.
 
 - **Save:** `LevelMetaPanel.SaveButton` → `LevelData.validate()` → если ошибка → toast warn, не пишем. Иначе `LevelSerializer.save(level, "res://data/maps/<sanitized_name>.json")`. Sanitize: lowercase, `[a-z0-9_-]`, остальные → `_`. Если файл существует — `ConfirmModal.ask("Перезаписать?", danger=true)`.
 - **Load (в редакторе):** `LevelMetaPanel.LoadButton` → если в редакторе есть несохранённые изменения (флаг dirty) → `ConfirmModal.ask("Сохранить текущую карту?", confirm="Сохранить", cancel="Не сохранять")`. После — file picker (`FileDialog` с фильтром `*.json` в `res://data/maps/`). Выбор → `LevelSerializer.load(path)` → `MapEditorController.apply(level)`.
@@ -138,7 +141,7 @@ func has_queued() -> bool: return queued_path != ""
 - **AC-E1 (data class).** `LevelData` в `scripts/core/maps/level_data.gd` — pure data + `validate() -> Array[String]` (массив сообщений об ошибках, пустой = валидно). `LevelSerializer.save(level, path) -> bool` и `LevelSerializer.load(path) -> LevelData`. JSON через `JSON.stringify(d, "\t")` (читаемо для человека).
 - **AC-E2 (apply path).** `LevelLoader.apply_to(grid: HexGrid, registry: ActorRegistry, level: LevelData)` красит `FloorLayer.set_cell` по `floor[]`, ставит объекты через новый `HexGrid.set_tile_object(coord, object_id)` (additive setter), спавнит player + врагов в позиции спавнеров. После apply — `grid.initialize()` уже вызван контроллером сцены, loader не зовёт его повторно.
 - **AC-E3 (godmode integration).** В `godmode_controller._ready()` перед `_paint_grid` / `_place_player` — проверка `ActiveLevel.has_queued()`. Если да: `_paint_grid()` пропускается, `_place_player()` пропускается, вызывается `LevelLoader.apply_to(...)` после `grid.initialize()`. Existing path (нет queued) работает побайтово как раньше.
-- **AC-E4 (editor scene).** `scenes/dev/map_editor.tscn` запускается через Ctrl+E из любой сцены или из главного меню. На пустой карте — поле имени, пустой пол (стартует с минимального 5x5 покрашенного quad'а грассы для удобства; пользователь может стирать/расширять).
+- **AC-E4 (editor scene).** `scenes/dev/map_editor.tscn` запускается через Ctrl+E из любой сцены или из главного меню. На пустой карте — поле имени, стартовая 25×25 grass-канва (`source_id=0, atlas=(0,0)` из дефолтного `godmode_terrain.tres`) — даёт сразу обширную область для «коридоров»/нестандартных форм через Erase. Карты не обязаны быть прямоугольными — можно стирать гексы, оставлять дыры, делать кишки-коридоры. Нет проверки связности (ответственность дизайнера).
 - **AC-E5 (placement validation).** Попытка положить объект на тайл, где уже объект или спавнер — `ConfirmModal`-style popup «Тайл занят» с одной кнопкой OK (не danger, не интрузивный — модалка просто закрывается, ничего не меняется). Toast тут не подходит (надо чтобы пользователь подтвердил, что увидел).
 - **AC-E6 (delete two-step).** RMB по гексу → `DeleteHighlight` рисует красный полигон. Повторный RMB по нему → удаление. RMB по другому → highlight перенаправляется. LMB → highlight снимается + LMB-действие выполняется (если есть placement-mode).
 - **AC-E7 (palette tabs).** ObjectPalette имеет 3 вкладки: Spawners, Obstacles, Interactive. Категоризация — `breakable OR behavior_effect_id != &""` → Interactive, иначе → Obstacles. Spawners тачается отдельно (не из TileObjectRegistry, а из `data/enemies/*.json` + хардкод player).
@@ -150,6 +153,8 @@ func has_queued() -> bool: return queued_path != ""
 - **AC-E13 (playtest).** Editor Playtest → validate → write to `__playtest__.json` (даже если основной файл не сохранён) → ActiveLevel.queue → change_scene godmode. Возврат из godmode (Esc → main menu или новый «Back to editor» в pause-меню — последнее в out_of_scope для v1) — не специфицировано в 019. Минимум: Esc → main menu работает, оттуда снова Ctrl+E.
 - **AC-E14 (sample map).** `data/maps/sample.json` — pre-made тестовая карта 8×6, content-blueprint Стасяна: грасса пол, 1 player спавнер, 2 manekin спавнера, 2 объекта (lava_pool, wooden_barrel). Грузится из главного меню → бой запускается, player ставится в свою клетку, манекены — в свои.
 - **AC-E15 (schema doc).** `data/maps/_schema.md` — формат JSON для Стасяна (если он захочет править руками; редактор — основной путь). Структура — 1:1 с `LevelData`.
+- **AC-E16 (replace-all).** RMB по кнопке тайла во FloorPalette → `PopupMenu` со списком других tile_kind, реально присутствующих в текущей карте. Выбор → `ConfirmModal "Заменить N тайлов «X» на «Y»?"` → batch update `LevelData.floor_cells` + `FloorLayer.set_cell` + toast `"Заменено N тайлов"`. Если в карте нет других типов кроме самого этого — popup пустой / не открывается с toast «Нечего заменять». Replace-all считается изменением (триггерит autosave + dirty).
+- **AC-E17 (autosave).** После любого изменения в редакторе debounced timer (1.5 сек) пишет `res://data/maps/__autosave__.json` без валидации (может быть невалидным состоянием). При открытии редактора — если `__autosave__.json` существует и mtime ≤ 24 часа → `ConfirmModal "Восстановить несохранённую сессию?"` → восстанавливает или удаляет файл. **Playtest не требует явного Save** — autosave + временный `__playtest__.json` snapshot покрывают потерю прогресса.
 
 ## Open Questions — RESOLVED
 
@@ -163,6 +168,9 @@ func has_queued() -> bool: return queued_path != ""
 - **Системы тегов на объектах** (forest/church/dungeon — для подмены под тему). Future-work, отдельная спека.
 - **Биомы** в любой форме. Не существуют сейчас, не вводим.
 - **Per-tile metadata** кроме floor source/atlas (нет «эта клетка — алтарь», нет per-tile biome, нет per-tile elevation). Если понадобится — отдельной фичей расширения схемы.
+- **Canvas resize / expand-on-paint.** Стартовая канва 25×25 фиксирована для v1. Если кому-то надо больше — стирается край и руками рисуются новые тайлы за границей (можно — `set_cell` принимает любые `Vector2i`). Кнопка «расширить канву на N» — out_of_scope.
+- **Connectivity validation.** Карта может быть несвязной (изолированные острова). Дизайнерская ответственность; редактор не предупреждает.
+- **Flood-fill connected region** (paint bucket по связной области одного типа). Replace-all делает глобальную замену по типу — другая семантика, но покрывает большинство кейсов «случайно нарисовал не тем тайлом, хочу поменять оптом». Если понадобится connected-flood — отдельной мелкой фичей.
 - **Multi-tile объекты.** 1 тайл = 1 объект (наследие 018).
 - **Procedural-генерация** карт. Только ручной редактор.
 - **Undo/redo.** Случайно стёр пол — придётся перерисовать. Save-чаще, чтобы не больно.
@@ -185,4 +193,5 @@ func has_queued() -> bool: return queued_path != ""
 ## История правок
 
 - 2026-05-02 v1 — first draft. Pre-clarify: фильтр «по локации» = новое поле в TileObject, биомы как система. ✗
-- 2026-05-02 v2 — clarify-round: «локация» = карта (синоним), связи объект↔локация нет, биомов нет. Спека упрощена. Текущая версия.
+- 2026-05-02 v2 — clarify-round: «локация» = карта (синоним), связи объект↔локация нет, биомов нет. Спека упрощена.
+- 2026-05-02 v3 — review-round Andrey'а: (a) autosave вместо принудительного save перед playtest, (b) initial canvas 25×25, (c) replace-all через RMB по кнопке тайла во FloorPalette. AC-E4, AC-E13 уточнены, добавлены AC-E16 (replace-all), AC-E17 (autosave). Текущая версия.
