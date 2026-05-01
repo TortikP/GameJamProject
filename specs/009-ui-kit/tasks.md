@@ -25,16 +25,16 @@ Foundation. Без этого ничего из остального не име
 
 Перекраска существующих виджетов под палитру. Behaviour не трогается. Каждый рефит — отдельный коммит для лёгкого revert.
 
-- [ ] **T010** [P1] Refit `scripts/presentation/health_bar.gd`: убрать inline `Color(...)`, использовать `UiTheme.HP_*`, `UiTheme.team_color()`, `UiTheme.hp_color_for(ratio)`. Подписаться на `EventBus.ui_theme_reloaded` → `queue_redraw()`. AC-R1.
-- [ ] **T011** [P1] Refit `scripts/presentation/slot_bar.gd`: палитра через UiTheme, добавить hover-стейт (mouse_entered/exited на каждой кнопке). AC-R2.
-- [ ] **T012** [P1] Refit `scripts/presentation/godmode/actor_inspector.gd`: палитра через UiTheme, добавить team-badge node, добавить `@export var dev_mode: bool = true` с swap visibility SpinBox ↔ Label. AC-R3.
-- [ ] **T013** [P1] Refit `scripts/presentation/dialogue_panel.gd` + `scenes/ui/dialogue_panel.tscn`: убрать inline SubResource StyleBox, в `_ready()` повесить `UiTheme.make_panel_stylebox()`. AC-R4.
-- [ ] **T014** [P1] Refit `scripts/presentation/intent_arrow.gd`: цвет через `UiTheme.SEM_*`. AC-R5.
-- [ ] **T015** [P2] Refit `scripts/presentation/hex_cursor.gd`: 4 cast_mode'а с разными цветами + новый inspect-mode рисующий 6 hex-corner brackets (геометрия из `design/components/c10-c11-cursor-fct.html`). AC-R6.
-- [ ] **T016** [P2] Refit `scripts/presentation/telegraph_hex.gd`: цвет через UiTheme + новый параметр `semantic_tag: StringName` (forward-compat для 007). AC-R7.
-- [ ] **T017** [P2] Refit `scripts/presentation/godmode/move_range_overlay.gd`: цвета через `UiTheme.TEAM_*`. AC-R8.
-- [ ] **T018** [P2] Поглотить `scripts/presentation/turn_counter.gd` в `top_hud_bar.gd` (Phase 2 T030). Когда T030 будет готов — удалить turn_counter.gd, перенаправить ноду в godmode.tscn. **Этот таск обнулить если T030 сделан без поглощения.**
-- [ ] **T019** [P3] Регрессионный смоук Phase 1: запуск Godmode, выполнение acceptance scenarios из 003-dialogue-manager и 006-actors-info-window. Если что-то не работает — фикс в этой же фазе. (depends T010-T017)
+- [x] **T010** [P1] Refit `scripts/presentation/health_bar.gd`: убрать inline `Color(...)`, использовать `UiTheme.HP_*`, `UiTheme.team_color()`, `UiTheme.hp_color_for(ratio)`. Подписаться на `EventBus.ui_theme_reloaded` → `queue_redraw()`. AC-R1.
+- [x] **T011** [P1] Refit `scripts/presentation/slot_bar.gd`: палитра через UiTheme, добавить hover-стейт (mouse_entered/exited на каждой кнопке). AC-R2.
+- [x] **T012** [P1] Refit `scripts/presentation/godmode/actor_inspector.gd`: палитра через UiTheme, добавить team-badge node, добавить `@export var dev_mode: bool = true` с swap visibility SpinBox ↔ Label. AC-R3.
+- [x] **T013** [P1] Refit `scripts/presentation/dialogue_panel.gd` + `scenes/ui/dialogue_panel.tscn`: убрать inline SubResource StyleBox, в `_ready()` повесить `UiTheme.make_panel_stylebox()`. AC-R4.
+- [x] **T014** [P1] Refit `scripts/presentation/intent_arrow.gd`: цвет через `UiTheme.SEM_*`. AC-R5.
+- [x] **T015** [P2] Refit `scripts/presentation/hex_cursor.gd`: 4 cast_mode'а с разными цветами + новый inspect-mode рисующий 6 hex-corner brackets (геометрия из `design/components/c10-c11-cursor-fct.html`). AC-R6.
+- [x] **T016** [P2] Refit `scripts/presentation/telegraph_hex.gd`: цвет через UiTheme + новый параметр `semantic_tag: StringName` (forward-compat для 007). AC-R7.
+- [x] **T017** [P2] Refit `scripts/presentation/godmode/move_range_overlay.gd`: цвета через `UiTheme.TEAM_*`. AC-R8.
+- [x] **T018** [P2] Поглотить `scripts/presentation/turn_counter.gd` в `top_hud_bar.gd` (Phase 2 T030). Когда T030 будет готов — удалить turn_counter.gd, перенаправить ноду в godmode.tscn. **Этот таск обнулить если T030 сделан без поглощения.** — *выполнено в T030: turn_counter.gd удалён, godmode.tscn обновлён.*
+- [~] **T019** [P3] Регрессионный смоук Phase 1: запуск Godmode, выполнение acceptance scenarios из 003-dialogue-manager и 006-actors-info-window. Если что-то не работает — фикс в этой же фазе. (depends T010-T017) — *static review only; runtime smoke deferred to first Godot launch on Andrey's machine.*
 
 **Definition of done Phase 1:** все 8 виджетов рефит-нуты, regression scenarios зелёные, F5 hot-reload меняет цвета.
 

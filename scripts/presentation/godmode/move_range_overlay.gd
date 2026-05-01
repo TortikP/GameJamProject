@@ -5,15 +5,12 @@ extends Node2D
 ## Lives as a child of HexGrid in godmode.tscn. Rendered below actors (z_index 2).
 ## Call show_for() whenever the selected actor or its speed changes.
 ## Call clear() to hide all highlights.
+##
+## Palette: team colors via UiTheme.team_color, attack range via UiTheme.SEM_DEBUFF
+## (orange — visually distinct from team blue/red, signals "this is reachable for
+## an attack, not movement"). All colors derived once on each show_for call.
 
-const RADIUS: float = 60.0       # must match godmode_terrain.tres hex size
-const COLOR_ALLY: Color  = Color(0.40, 0.70, 1.00, 0.22)
-const COLOR_ENEMY: Color = Color(1.00, 0.40, 0.40, 0.22)
-const COLOR_SELF: Color  = Color(0.30, 1.00, 0.45, 0.35)  # current hex of selected actor
-const COLOR_OUTLINE_ALLY:  Color = Color(0.40, 0.70, 1.00, 0.55)
-const COLOR_OUTLINE_ENEMY: Color = Color(1.00, 0.40, 0.40, 0.55)
-const COLOR_ATTACK:         Color = Color(1.00, 0.60, 0.00, 0.28)
-const COLOR_ATTACK_OUTLINE: Color = Color(1.00, 0.72, 0.10, 0.72)
+const RADIUS: float = 60.0  # must match godmode_terrain.tres hex size
 
 var _grid: Node = null  # HexGrid
 var _polys: Array[Node2D] = []
@@ -54,13 +51,15 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 
 	var reachable: Array[Vector2i] = _grid.reachable_within(actor_coord, actor.speed, occupied)
 
-	# Colour scheme based on team
-	var is_enemy: bool = actor.team == &"enemy"
-	var fill_col: Color = COLOR_ENEMY if is_enemy else COLOR_ALLY
-	var outline_col: Color = COLOR_OUTLINE_ENEMY if is_enemy else COLOR_OUTLINE_ALLY
+	# Resolve colors via UiTheme. Team color drives both fill (low alpha) and
+	# outline (higher alpha). Self-hex uses heal-green for "you are here".
+	var team_base: Color = UiTheme.team_color(actor.team)
+	var fill_col: Color = Color(team_base.r, team_base.g, team_base.b, 0.22)
+	var outline_col: Color = Color(team_base.r, team_base.g, team_base.b, 0.55)
+	var self_fill: Color = Color(UiTheme.SEM_HEAL.r, UiTheme.SEM_HEAL.g, UiTheme.SEM_HEAL.b, 0.35)
 
-	# Draw self-hex (accent)
-	_add_hex(actor_coord, COLOR_SELF, outline_col)
+	# Draw self-hex (accent — marker for current position)
+	_add_hex(actor_coord, self_fill, outline_col)
 
 	# Draw reachable hexes
 	for coord in reachable:
@@ -68,7 +67,11 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 
 	# ── Attack range ──────────────────────────────────────────────────────────
 	# Collect all coords reachable by any of this actor's abilities.
-	# Shown in orange, drawn ON TOP of move range (higher z).
+	# Shown in debuff-orange, drawn ON TOP of move range (higher z).
+	var attack_base: Color = UiTheme.SEM_DEBUFF
+	var attack_fill: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.28)
+	var attack_outline: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.72)
+
 	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
 	for ability_id in ability_ids:
 		var ability: Ability = AbilityDatabase.get_ability(ability_id)
@@ -79,7 +82,7 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 			attack_coords[c] = true
 
 	for coord in attack_coords.keys():
-		_add_hex(coord, COLOR_ATTACK, COLOR_ATTACK_OUTLINE, 3)
+		_add_hex(coord, attack_fill, attack_outline, 3)
 
 
 func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2) -> void:

@@ -5,6 +5,15 @@ extends HBoxContainer
 ## UI-only. Doesn't cast itself — controller listens to slot_activated and decides.
 ## Active slot is highlighted; activation also re-emits the signal so input from
 ## either keys or mouse-clicks-on-slot can drive casting.
+##
+## States per slot:
+##   empty                                      — dim, no hover
+##   filled+disabled (out of range / no target) — dim grey, light hover
+##   filled+castable                            — bright, hover slightly brighter
+##   active                                     — focus tint + scale-pop
+##
+## Cooldown overlay (numeric Label centered when Skill.cooldown_remaining > 0)
+## is Phase 4 (T062, blocked on 007).
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const SLOT_LABELS := ["Q", "W", "E", "R"]
@@ -18,20 +27,25 @@ signal slot_activated(index: int)
 ## plain Array. Dictionary has no type-check for values. See CLAUDE.md.
 var _slots: Dictionary = {}
 var _castable: Dictionary = {}  # int → bool — set by controller each frame
+var _hovered: Dictionary = {}   # int → bool — mouse over slot
 var _buttons: Array[Button] = []
 var _active: int = -1  # -1 = no spell selected
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 8)
+	add_theme_constant_override("separation", UiTheme.SP_2)
 	for i in SLOT_COUNT:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(72, 72)
 		btn.text = SLOT_LABELS[i] + "\n—"
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.pressed.connect(_on_button_pressed.bind(i))
+		btn.mouse_entered.connect(_on_mouse_entered.bind(i))
+		btn.mouse_exited.connect(_on_mouse_exited.bind(i))
+		UiTheme.apply_button_styling(btn)
 		add_child(btn)
 		_buttons.append(btn)
+	EventBus.ui_theme_reloaded.connect(_on_theme_reloaded)
 	_refresh_all()
 
 
@@ -88,6 +102,24 @@ func _on_button_pressed(index: int) -> void:
 	activate(index)
 
 
+func _on_mouse_entered(index: int) -> void:
+	_hovered[index] = true
+	_refresh_visual(index)
+
+
+func _on_mouse_exited(index: int) -> void:
+	_hovered[index] = false
+	_refresh_visual(index)
+
+
+func _on_theme_reloaded() -> void:
+	# Rebuild styleboxes (StyleBoxFlat instances are not shared per CLAUDE.md;
+	# re-apply via helper). Modulate / scale state preserved by _refresh_all.
+	for btn in _buttons:
+		UiTheme.apply_button_styling(btn)
+	_refresh_all()
+
+
 func _refresh_all() -> void:
 	for i in SLOT_COUNT:
 		_refresh_visual(i)
@@ -99,17 +131,28 @@ func _refresh_visual(index: int) -> void:
 	var btn := _buttons[index]
 	var has_ability: bool = _slots.get(index, null) != null
 	var castable: bool = _castable.get(index, false)
+	var hovered: bool = _hovered.get(index, false)
+	# Modulate is layered on top of the stylebox — kept simple to avoid
+	# stylebox recompilation per state change. Active state uses FOCUS tint.
 	if not has_ability:
-		btn.modulate = Color(0.4, 0.4, 0.4)
+		# Empty slot — strong dim, ignore hover.
+		btn.modulate = Color(UiTheme.TEXT_FAINT, 1.0)
 		btn.scale = Vector2.ONE
 	elif index == _active:
 		# Active is always visually distinct, even when not castable.
-		btn.modulate = Color(1.5, 1.5, 0.25) if castable else Color(1.1, 1.1, 0.5)
+		# Focus tint via UiTheme.FOCUS modulation (yellowish brighten).
+		var focus := UiTheme.FOCUS
+		btn.modulate = Color(focus.r * 1.3, focus.g * 1.3, focus.b * 0.5, 1.0) \
+			if castable else Color(focus.r, focus.g, focus.b * 0.7, 1.0)
 		btn.scale = Vector2(1.12, 1.12)
 		btn.pivot_offset = btn.size * 0.5
 	elif not castable:
-		btn.modulate = Color(0.55, 0.55, 0.55)
+		# Filled but disabled (out of range / cooldown / no target).
+		# Light hover overlay still applies — affords discoverability.
+		var base := Color(UiTheme.TEXT_DIM.r, UiTheme.TEXT_DIM.g, UiTheme.TEXT_DIM.b, 1.0)
+		btn.modulate = base.lightened(0.10) if hovered else base
 		btn.scale = Vector2.ONE
 	else:
-		btn.modulate = Color(1, 1, 1)
+		# Castable — full bright; hover slightly more.
+		btn.modulate = Color(1.10, 1.10, 1.10) if hovered else Color.WHITE
 		btn.scale = Vector2.ONE

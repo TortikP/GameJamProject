@@ -22,9 +22,8 @@ zoom = Vector2(1, 1)
 [node name="HexGrid" parent="." instance=ExtResource("1_hexgrid")]
 position = Vector2(160, 90)
 
-[node name="HexCursor" type="Polygon2D" parent="HexGrid"]
+[node name="HexCursor" type="Node2D" parent="HexGrid"]
 script = ExtResource("6_hexcursor")
-color = Color(1, 1, 1, 0.25)
 grid = NodePath("..")
 
 [node name="MoveRangeOverlay" type="Node2D" parent="HexGrid"]

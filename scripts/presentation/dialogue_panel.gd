@@ -1,6 +1,9 @@
 extends Control
 ## DialoguePanel — state-machine view. No await inside — all state transitions
 ## are explicit. DialogueManager awaits line_ended / choice_picked signals.
+##
+## Palette: applied via UiTheme in _ready (overrides .tscn-set inline stylebox).
+## Subscribes to ui_theme_reloaded so F5 restyles without restart.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -9,6 +12,7 @@ signal choice_picked(index: int)
 
 enum State { IDLE, TYPING, WAITING, CHOICES }
 
+@onready var _panel    : Panel         = $Panel
 @onready var _portrait : TextureRect   = $Panel/MarginContainer/HBoxContainer/Portrait
 @onready var _name_lbl : Label         = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Name
 @onready var _text_lbl : RichTextLabel = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Text
@@ -26,6 +30,30 @@ func _ready() -> void:
 	_choices.hide()
 	_image.hide()
 	set_process_input(false)
+	_apply_theme()
+	EventBus.ui_theme_reloaded.connect(_apply_theme)
+
+
+## Re-applies UiTheme palette to all themable nodes in this panel. Idempotent.
+## Replaces the .tscn-baked SubResource StyleBoxFlat with a fresh UiTheme one;
+## relabels Name/Text with header/body kinds.
+func _apply_theme() -> void:
+	# Build a fresh stylebox each call — UiTheme rule: don't share StyleBoxFlat
+	# instances between nodes (their bg_color is mutable).
+	var sb := UiTheme.make_panel_stylebox()
+	# Dialogue panel sits at the bottom of the screen — round only top corners
+	# for a "tray" look. Keep horizontal borders for clean delimitation.
+	sb.corner_radius_top_left     = 6
+	sb.corner_radius_top_right    = 6
+	sb.corner_radius_bottom_left  = 0
+	sb.corner_radius_bottom_right = 0
+	if _panel:
+		_panel.add_theme_stylebox_override("panel", sb)
+	if _name_lbl:
+		UiTheme.apply_label_kind(_name_lbl, "header")
+	if _text_lbl:
+		_text_lbl.add_theme_font_size_override("normal_font_size", UiTheme.FS_BODY)
+		_text_lbl.add_theme_color_override("default_color", UiTheme.TEXT)
 
 
 func show_line(line: Object, speaker_data: Dictionary) -> void:
@@ -96,6 +124,7 @@ func _show_choices(choices: Array) -> void:
 	for i in choices.size():
 		var btn := Button.new()
 		btn.text = choices[i].get("label", "...")
+		UiTheme.apply_button_styling(btn)
 		var idx := i
 		btn.pressed.connect(func(): _on_choice(idx))
 		_choices.add_child(btn)
@@ -167,7 +196,7 @@ func _make_placeholder(speaker_id: String) -> ImageTexture:
 	if _placeholder_cache.has(speaker_id):
 		return _placeholder_cache[speaker_id]
 	var img := Image.create(160, 160, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0.35, 0.35, 0.35, 1.0))
+	img.fill(UiTheme.BG_PANEL_2)
 	var tex := ImageTexture.create_from_image(img)
 	_placeholder_cache[speaker_id] = tex
 	return tex

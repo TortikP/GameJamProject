@@ -9,8 +9,7 @@
 [node name="HexGrid" parent="." unique_id=1561406945 instance=ExtResource("1_hexscene")]
 position = Vector2(100, 50)
 
-[node name="HexCursor" type="Polygon2D" parent="HexGrid" unique_id=1003904000]
-color = Color(1, 1, 1, 0.3)
+[node name="HexCursor" type="Node2D" parent="HexGrid" unique_id=1003904000]
 script = ExtResource("3_hexcursor")
 grid = NodePath("..")
 
