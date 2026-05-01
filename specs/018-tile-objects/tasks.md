@@ -45,7 +45,7 @@
 
 ## Группа F — dev smoke
 
-- [ ] **T015** [P1] `scenes/dev/tile_objects_smoke.tscn` — NEW dev-сцена. На арене расставлены все 6 объектов через TileMap. Включает PlayerActor + 1 Manekin для smoke-атак. depends: T005, T009-T014, T005a.
+- [x] **T015** [P1] `scenes/dev/tile_objects_smoke.tscn` — NEW dev-сцена. **Скоуп урезан:** без TileMap-painting, т.к. T005a (custom data layer в TileSet) — manual editor-step. Сцена грузит обе registry, дампит все 6 объектов + verify `burning.duration=2`, подписывается на 4 новых EventBus сигнала, F1–F4 эмитят их вручную для smoke. После T005a + покраски TileMap-а в редакторе можно дополнить сценой HexGrid + actors. depends: T005, T009-T014, T005a.
 - [ ] **T016** [P1] *manual: Sergey* — F5 на `tile_objects_smoke.tscn`, прогнать AC-O8 чек-лист (см. plan §Тестирование). Записать в `tasks.md` под T016 — pass/fail и что отвалилось. depends: T015.
 
 ## Группа G — doc / coord
