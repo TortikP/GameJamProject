@@ -20,6 +20,7 @@ signal died(id: StringName)
 @export var actor_id: StringName = &""
 @export var max_hp: int = 100
 @export var team: StringName = &"neutral"   # &"player" / &"enemy" / &"neutral"
+@export var behavior_id: StringName = &""   # 008: id in BehaviorDatabase. &"" → fallback default_melee.
 @export var speed: int = 1                  # hex steps per turn (0 = immobile)
 @export var damage_bonus: int = 0           # flat bonus added to any DamageEffect cast by this actor
 
@@ -27,6 +28,11 @@ var hp: int = 0
 var _dead: bool = false
 var _ability_ids: Array[StringName] = []
 var _skills: Array = []   # Array[Skill] — plain Array to avoid typed-array Variant edge cases (CLAUDE.md trap)
+# 008: AI-planned (or player-issued) cast for the next resolve tick. null = no cast this turn.
+# Type intentionally untyped (Variant) — CastIntent class is loaded lazily; keeping this as a
+# concrete type would force every Actor consumer to preload it. Read via `actor.cast_intent`.
+var cast_intent: Resource = null
+var move_intent_coord: Vector2i = Vector2i(-1, -1)   # 008: planned move target. (-1,-1) = no move.
 
 
 ## Returns ability ids available to this actor (set externally by controller or subclass).

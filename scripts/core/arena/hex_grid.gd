@@ -286,6 +286,19 @@ func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return _pathfinder.find_path(from, to)
 
 
+## Hex step-distance between two coords, ignoring actor occupancy.
+## Returns -1 if unreachable through walkable terrain.
+## Used by AI conditions (range checks) — for shooting/AOE range, not movement
+## planning (movement uses find_path_around with blocks).
+func hex_distance(from: Vector2i, to: Vector2i) -> int:
+	if from == to:
+		return 0
+	var path := _pathfinder.find_path(from, to)
+	if path.is_empty():
+		return -1
+	return path.size() - 1
+
+
 ## Like find_path, but treats `blocked` coords as non-walkable for this query
 ## (typically other actors). `from` and `to` themselves are never blocked even
 ## if listed. Used by AI to route around teammates.
