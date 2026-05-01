@@ -1,6 +1,6 @@
-[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://godmode_terrain_001"]
+[gd_resource type="TileSet" format=3 uid="uid://cf6y3rx4avmtq"]
 
-[ext_resource type="Texture2D" path="res://scenes/dev/godmode_atlas.png" id="1_godmodeatlas"]
+[ext_resource type="Texture2D" uid="uid://bikimpmut5wvt" path="res://scenes/dev/godmode_atlas.png" id="1_godmodeatlas"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_001"]
 texture = ExtResource("1_godmodeatlas")
@@ -10,7 +10,6 @@ use_texture_padding = false
 0:0/0/custom_data_0 = true
 0:0/0/custom_data_1 = 1
 0:0/0/custom_data_2 = &"grass"
-0:0/0/custom_data_3 = &""
 
 [resource]
 tile_shape = 3
