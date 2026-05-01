@@ -14,7 +14,12 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_linear, repeat_disabl
 
 // --- Geometry ---------------------------------------------------------------
 uniform float curvature : hint_range(0.0, 0.5) = 0.08;
-uniform float bezel_softness : hint_range(0.0, 0.2) = 0.04;
+// Bezel-rim soft fade width in UV. With the new bezel_mask logic this is the
+// full visible darkening rim (was just the OOB-fade in v1–v6, so 0.04 looked
+// thinner before). Lowered to 0.025 → ~32 px on 1280-wide viewport — about
+// the same apparent rim thickness as before, just everything fully inside
+// [0,1] now so no clamp-to-edge artefacts.
+uniform float bezel_softness : hint_range(0.0, 0.2) = 0.025;
 
 // --- Scanlines --------------------------------------------------------------
 // Pitch in PHYSICAL pixels — locked to FRAGCOORD.y so we don't beat against
@@ -68,15 +73,23 @@ vec2 barrel(vec2 uv) {
 	return c + 0.5;
 }
 
-// 0 inside the curved screen region, → 1 in the bezel area.
-// Tiny inset of 5 UV-units pulls the bezel fade slightly inward so that the
-// few pixels where barrel curvature pushes cuv outside [0,1] get masked by
-// the bezel — covers residual clamp-to-edge sample artifacts on the rim.
+// Bezel mask. 1 = bezel (fully opaque black covering), 0 = visible screen.
+//
+// Inverted vs. the previous version: now the fade goes FROM the boundary
+// inward over `bezel_softness` UV. Critical effect: ANY cuv outside [0,1]
+// (which barrel curvature does at the corners and edges) returns 1 — full
+// bezel. This is what kills clamp-to-edge sample stripes once and for all:
+// even if `cuv_safe` succeeds in sampling valid content, screen_mask = 0 in
+// that region zeroes the contribution out.
+//
+// Cost: the visible "screen" loses a bezel_softness-wide soft rim where
+// content fades to black. With default 0.04 that's ~50 px on each edge —
+// reads as actual CRT bezel glass, not a bug.
 float bezel_mask(vec2 cuv) {
-	vec2 inset = vec2(0.005);
-	vec2 d = max(inset - cuv, cuv - (vec2(1.0) - inset));
-	float outside = max(d.x, d.y);
-	return smoothstep(0.0, bezel_softness, outside);
+	vec2 d = max(-cuv, cuv - vec2(1.0));
+	float oob = max(d.x, d.y);              // negative inside, ≥ 0 OOB
+	float dist_inside = max(-oob, 0.0);     // distance from nearest edge, 0 if OOB
+	return 1.0 - smoothstep(0.0, bezel_softness, dist_inside);
 }
 
 void fragment() {
