@@ -43,15 +43,20 @@ uniform float bloom_threshold : hint_range(0.0, 1.0) = 0.45;
 // --- Vignette ---------------------------------------------------------------
 uniform float vignette_strength : hint_range(0.0, 2.0) = 0.42;
 
-// --- Brightness recovery ----------------------------------------------------
+// --- Brightness recovery + tone shaping -------------------------------------
 // scanline × aperture × vignette × gamma combined dim the image to ~60% of
-// source. This boost is applied AFTER all multiplicative dimming so the screen
-// reads as warm-bright, not muddy.
-uniform float boost : hint_range(0.5, 2.5) = 1.35;
+// source. `boost` is a multiplicative lift applied AFTER all dimming.
+// `contrast` is a classic pivot-at-0.5 contrast curve, applied right after
+// boost — pushes blacks darker and whites whiter without touching mid greys.
+uniform float boost : hint_range(0.5, 2.5) = 1.5;
+uniform float contrast : hint_range(0.5, 2.0) = 1.12;
 
-// --- Optional 50 Hz hum (off by default) ------------------------------------
-uniform float hum_strength : hint_range(0.0, 0.2) = 0.0;
-uniform float hum_speed = 0.6;
+// --- Optional 50 Hz hum (slow vertical brightness roll, on by default now) --
+// hum_bands = how many sinusoidal bands are visible across screen height at
+// any instant. 2.0 reads more "real CRT mains hum" than a single full cycle.
+uniform float hum_strength : hint_range(0.0, 0.2) = 0.04;
+uniform float hum_speed = 0.30;
+uniform float hum_bands = 2.0;
 
 const float TWO_PI = 6.28318530718;
 
@@ -139,9 +144,15 @@ void fragment() {
 	// Recover brightness lost to the multiplicative chain above.
 	col *= boost;
 
-	// Optional 50 Hz hum — slow vertical brightness roll. Off by default.
+	// Contrast around mid-grey. Subtle by default — darks slightly darker,
+	// lights slightly lighter, mids untouched.
+	col = (col - vec3(0.5)) * contrast + vec3(0.5);
+
+	// 50 Hz mains hum — slow vertical sinusoidal brightness roll. `hum_bands`
+	// controls how many bands are visible at once; a single full cycle reads
+	// too uniform, two bands look more like real CRT mains interference.
 	if (hum_strength > 0.0) {
-		float hum = sin((cuv.y + TIME * hum_speed) * TWO_PI) * hum_strength;
+		float hum = sin((cuv.y * hum_bands + TIME * hum_speed) * TWO_PI) * hum_strength;
 		col *= 1.0 - hum;
 	}
 
