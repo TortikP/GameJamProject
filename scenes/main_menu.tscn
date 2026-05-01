@@ -54,6 +54,14 @@ disabled = true
 layout_mode = 2
 text = "Godmode (dev)"
 
+[node name="MapEditorButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Map Editor [Ctrl+E]"
+
+[node name="LoadCustomLevelButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Load Custom Level"
+
 [node name="SettingsButton" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Settings"
@@ -67,3 +75,13 @@ layout_mode = 2
 text = "Quit"
 
 [node name="SettingsPanel" parent="." instance=ExtResource("2_sp")]
+
+[node name="LoadFileDialog" type="FileDialog" parent="."]
+title = "Open a Level"
+size = Vector2i(720, 480)
+ok_button_text = "Open"
+file_mode = 0
+access = 0
+current_dir = "res://data/maps/"
+filters = PackedStringArray("*.json ; Map JSON files")
+use_native_dialog = false

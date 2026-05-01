@@ -713,7 +713,7 @@ JSON-формат:
 
 **Не работайте после полуночи.** Серьёзно. Завтра тема + 72 часа интенсива. Силы нужны.
 
-**В работе сейчас:** `018-tile-objects` (data-driven статика на тайлах: камни/лава/фонтаны/бочки). Spec написал Sergey, реализацию ведёт Андрей на ветке `andrey/spec-018-tile-objects`. После мержа в staging — Стасян может добавлять объекты JSON-ом в `data/tile_objects/` по `data/tile_objects/_schema.md`. Runtime-резолвер триггеров (`019-tile-object-resolver`) — follow-up Сергея.
+**В работе сейчас:** `020-map-editor` (data-driven mouse-driven editor для карт: пол/объекты/спавнеры → `data/maps/*.json`, Playtest сразу в бой). Ветка `andrey/020-map-editor-impl`, spec/plan/tasks в `specs/020-map-editor/`. После мержа Стасян может рисовать карты мышью или править JSON руками по `data/maps/_schema.md`. **Смерженное в staging:** `018-tile-objects` (data-driven статика тайлов: камни/лава/фонтаны/бочки), `019-tile-object-resolver` (runtime триггеры этих объектов).
 
 ---
 

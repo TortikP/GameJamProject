@@ -428,6 +428,15 @@ func get_all_tile_object_ids() -> Dictionary:
 	return result
 
 
+## 020 — public hook to rebuild the A* graph after batch tile_object mutations.
+## Used by LevelLoader when applying a LevelData with N objects: call
+## set_tile_object_id() N times then rebuild_pathfinder() once. Cheaper than
+## rebuilding per-call. Resolver (019) does NOT currently call this; objects
+## destroyed mid-battle don't update pathfinder routing — known follow-up.
+func rebuild_pathfinder() -> void:
+	_build_pathfinder()
+
+
 # ── Internal ─────────────────────────────────────────────────────────────────
 
 func _check_tile_effect(actor_id: StringName, coord: Vector2i) -> void:
