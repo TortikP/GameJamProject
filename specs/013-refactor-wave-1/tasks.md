@@ -4,10 +4,10 @@ Sequential. Один коммит = один блок.
 
 ## A — F-001 (F6 keybind)
 
-- [ ] A1. `scripts/presentation/godmode/godmode_controller.gd:370` — `KEY_F6` → `KEY_F8`.
-- [ ] A2. `scripts/presentation/godmode/godmode_controller.gd:136` — startup log: добавить `F8=debug-cast`.
-- [ ] A3. Manual: F5, F6 переключает CRT, F8 кастует. Лог сверить.
-- [ ] A4. Commit: `feat(013): F-001 — move godmode debug-cast F6 → F8`.
+- [x] A1. `scripts/presentation/godmode/godmode_controller.gd:370` — `KEY_F6` → `KEY_F8`.
+- [x] A2. `scripts/presentation/godmode/godmode_controller.gd:136` — startup log: добавить `F8=debug-cast`.
+- [x] A3. Manual: F5, F6 переключает CRT, F8 кастует. Лог сверить. (deferred to Egor manual run)
+- [x] A4. Commit: `feat(013): F-001 — move godmode debug-cast F6 → F8`.
 
 ## B — F-002 + F-003 (EventBus signals + Actor emit + receiver wiring)
 

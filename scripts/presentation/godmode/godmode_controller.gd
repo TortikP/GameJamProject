@@ -133,7 +133,7 @@ func _ready() -> void:
 	EventBus.world_turn_ended.connect(_on_world_turn_ended)
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
 
-	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
+	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear, F8=debug-cast")
 	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
 	# so godmode keeps booting if the HUD layout drops the panel.
 	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
@@ -365,9 +365,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_wait_turn()
 		get_viewport().set_input_as_handled()
 		return
-	# 007-skill-system: F6 = cast test_vamp_strike on nearest enemy (dev smoke test)
+	# 007-skill-system: F8 = cast test_vamp_strike on nearest enemy (dev smoke test).
+	# Was F6 originally; moved to F8 in 013/F-001 to free F6 for the global
+	# CrtPostFx toggle (010/AC). Don't put it back without coordinating with 010.
 	if event is InputEventKey and (event as InputEventKey).pressed:
-		if (event as InputEventKey).keycode == KEY_F6:
+		if (event as InputEventKey).keycode == KEY_F8:
 			_debug_cast_test_skill()
 			get_viewport().set_input_as_handled()
 			return
