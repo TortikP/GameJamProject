@@ -42,13 +42,17 @@ func setup(world_pos: Vector2, amount: int, kind: StringName) -> void:
 		&"crit":
 			prefix = "CRIT "
 			color = UiTheme.SEM_DAMAGE
-			size_kind = "display"
+			# Crits land hard — biggest in-world text size we have.
+			size_kind = "num_huge"
 	if kind == &"miss":
 		text = "miss"
 	else:
 		text = "%s%d" % [prefix, abs(amount)]
 	UiTheme.apply_label_kind(self, size_kind)
 	add_theme_color_override("font_color", color)
+	# All in-world combat text gets the strong dark outline so it reads against
+	# any background — visibility doctrine in CLAUDE.md.
+	UiTheme.apply_world_text_outline(self)
 	position = world_pos
 	# Center horizontally on the spawn point — Label's text aligns to its rect
 	# left edge by default; we want the rect centered on world_pos.

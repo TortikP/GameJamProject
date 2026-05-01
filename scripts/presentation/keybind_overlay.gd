@@ -20,6 +20,7 @@ const _BINDS: Array = [
 	["F1",          "Spawn dummy (godmode)"],
 	["F2",          "Clear actors (godmode)"],
 	["F5",          "Reload speed config"],
+	["F6",          "Toggle CRT effect"],
 ]
 
 @onready var _panel: PanelContainer = $Center/Panel
