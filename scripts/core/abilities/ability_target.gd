@@ -27,3 +27,12 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 ## Default: empty. Override in spatial subclasses.
 func get_range_hexes(_caster_coord: Vector2i, _grid: HexGrid) -> Array[Vector2i]:
 	return []
+
+
+## Coord that the area's hover-preview should anchor on (i.e. what `primary`
+## the presentation passes into `AbilityArea.get_affected_hexes`). Default:
+## the hex under the cursor — preview follows the mouse, matching how
+## EntityTarget / HexTarget actually resolve at cast time. SelfTarget overrides
+## this to caster_coord so self-cast AoE previews stay glued to the caster.
+func preview_anchor_coord(_caster_coord: Vector2i, hover_coord: Vector2i) -> Vector2i:
+	return hover_coord

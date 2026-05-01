@@ -131,6 +131,50 @@ if camera != null and camera.has_method("set_follow_target"):
   ```
 - Внутри цикла оставить только `sel_ctx["candidate_skill"] = s` (line 111). Удалить переписывание дубликата.
 
+### B-001 — self-target AoE preview anchor
+
+#### AbilityTarget (`scripts/core/abilities/ability_target.gd`)
+
+Добавить виртуальный метод после `get_range_hexes`:
+
+```gdscript
+## Coord that the area's hover-preview should anchor on (i.e. what `primary`
+## the presentation passes into `AbilityArea.get_affected_hexes`). Default:
+## the hex under the cursor — preview follows the mouse, matching how
+## EntityTarget / HexTarget actually resolve at cast time. SelfTarget overrides
+## this to caster_coord so self-cast AoE previews stay glued to the caster.
+func preview_anchor_coord(_caster_coord: Vector2i, hover_coord: Vector2i) -> Vector2i:
+    return hover_coord
+```
+
+#### SelfTarget (`scripts/core/abilities/targets/self_target.gd`)
+
+Override:
+
+```gdscript
+func preview_anchor_coord(caster_coord: Vector2i, _hover_coord: Vector2i) -> Vector2i:
+    return caster_coord
+```
+
+#### GodmodeController (`scripts/presentation/godmode/godmode_controller.gd:326`)
+
+Внутри AoE preview loop (`# Zone AoE preview — repaint every frame`) вместо `coord` передавать в `ab.area.get_affected_hexes` результат `ab.target.preview_anchor_coord(caster_coord, coord)`:
+
+```gdscript
+var anchor: Vector2i = coord
+if ab.target != null:
+    anchor = ab.target.preview_anchor_coord(caster_coord, coord)
+var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, anchor, grid)
+```
+
+`ab.target == null` fallback оставлен для kill-switch (ability c misconfigured target всё равно отметит ошибку в `Ability.cast`, preview просто не упадёт).
+
+#### Что НЕ трогается в B-001
+
+- `AI selector_densest_enemy_hex.gd:37` — там вызов `get_affected_hexes` идёт с enemy-coord'ами как primary в цикле. AI rules с self-targeting через `selector_densest_enemy_hex` концептуально невалидны (selector ищет densest **enemy** — ему target=Self не релевантен), seo selector path не ломаем.
+- Real cast path (`Ability.cast`) — баг чисто в preview, реальный resolve уже работает корректно: `target.resolve()` возвращает caster, `area.resolve(caster, primary=caster, ctx)` — `_coord_of(primary=Actor)` уже даёт caster_coord. Preview просто рассинхронен с resolve.
+- `cast_range_overlay.gd` — для SelfTarget `get_range_hexes() = []`, поэтому overlay пуст. Это отдельный UX-вопрос (надо ли подсвечивать caster hex как «active slot indicator»?), out-of-scope для B-001.
+
 ### CLAUDE.md — F-004 / F-005 doc note
 
 В § Architecture (Hard rules) после правила 5 (UiTheme) добавить новый блок:
@@ -171,6 +215,7 @@ in 015-refactor-wave-2 as documented debt.
 6. **F-007:** в `scenes/arena/arena_demo.tscn` (если ещё запускается) — placeholder polygon player'а должен быть `SEM_MOVE` (светло-серый), не cyan.
 7. **F-008:** `IntentArrow` в playthrough (008-AI tick) — drop-shadow визуально не отличим от текущего (тот же alpha 0.55).
 8. **F-015:** профайлер не нужен — это micro-opt; smoke-test = AI планирует → Output `[AIPlanner]` без crash'а.
+9. **B-001:** assign skill с `SelfTarget+ZoneCircleArea` (любой self-AoE) на Q-slot в godmode. Активировать слот — водить мышкой по полю. AoE preview должна оставаться вокруг кастера, не ездить с курсором. Затем переключить на skill_debug_punch (HexTarget+SelfArea single-hex) — preview снова следует за мышкой как hex-marker. Spawn manekin рядом, реальный cast — попадание совпадает с preview.
 
 ## Risk
 

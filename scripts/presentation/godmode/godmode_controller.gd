@@ -323,7 +323,13 @@ func _update_castability() -> void:
 				var ab := ab_obj as Ability
 				if ab == null or ab.area == null:
 					continue
-				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, coord, grid)
+				# Anchor the preview where the area will actually resolve at cast time.
+				# SelfTarget pins this to caster_coord; spatial targets (Hex/Entity)
+				# fall through to hover_coord. See AbilityTarget.preview_anchor_coord.
+				var anchor: Vector2i = coord
+				if ab.target != null:
+					anchor = ab.target.preview_anchor_coord(caster_coord, coord)
+				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, anchor, grid)
 				for c in affected:
 					if not zone_hexes.has(c):
 						zone_hexes.append(c)
