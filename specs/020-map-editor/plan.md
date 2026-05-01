@@ -1,4 +1,4 @@
-# 019-map-editor — plan
+# 020-map-editor — plan
 
 **Spec:** [`spec.md`](./spec.md)
 

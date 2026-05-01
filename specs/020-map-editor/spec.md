@@ -1,4 +1,4 @@
-# 019-map-editor — spec
+# 020-map-editor — spec
 
 **Owner:** Andrey (UX / dev-tooling, integration). Живёт в `scripts/presentation/dev/` и `scripts/core/maps/`.
 **Coordination:**
@@ -7,7 +7,7 @@
 - **Stasyan** — после мержа делает карты мышью, JSON падает в `data/maps/`, схема в `data/maps/_schema.md`.
 - **Alexey** — runtime-loader уровня (`LevelLoader`) живёт в Andrey-владении. Когда появится 005-roguelike-loop, тот же loader подключится туда. Сейчас playtest = текущая боевая сцена (godmode-движок) с подгруженной картой.
 
-**Status:** Draft. Жду явного go от Andrey'а; имплементацию запускаю отдельной командой на ветке `andrey/019-map-editor-impl`.
+**Status:** Draft. Жду явного go от Andrey'а; имплементацию запускаю отдельной командой на ветке `andrey/020-map-editor-impl`.
 
 ## Цель
 
