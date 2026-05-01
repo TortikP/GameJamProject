@@ -17,7 +17,6 @@ func _ready() -> void:
 	EventBus.run_started.emit()
 	
 	($UI/TestDialogueBtn as Button).pressed.connect(_on_test_dialogue_pressed)
-	($UI/DebugBtn as Button).pressed.connect(_on_debug_btn_pressed)
 
 	# Временная кнопка запуска арены (удалить в feature 005)
 	var arena_btn := Button.new()
