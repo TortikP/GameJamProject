@@ -35,7 +35,8 @@
 
 - [ ] **T008** [P2] [P] `data/tile_objects/_schema.md` — schema doc для Стасяна. Описывает все поля, их типы, дефолты, ограничения по level. depends: T003.
 - [ ] **T009** [P2] [P] `data/tile_objects/mountain.json` — ELEVATION, no behavior, no destructible. depends: T003.
-- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone, `applies_on_enter=true`, `applies_on_turn_end=true`, `aura_radius=0`, `applies_on_attacked=false`, `linger_status_id="burning"`, `linger_duration=2`, tags=[liquid, hazard]. depends: T003.
+- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone, `applies_on_enter=true`, `applies_on_turn_end=true`, `aura_radius=0`, `applies_on_attacked=false`, `linger_effect_id="burning"`, tags=[liquid, hazard]. depends: T003.
+- [ ] **T010b** [P2] [P] `data/tile_effects/burning.json` — NEW tile_effect: `kind: "damage", amount: 2, duration: 2, applies_to: ["player", "enemy"]`. Расширение TileEffectRegistry для парсинга `duration` int (default 0 — backward-compat). depends: T003.
 - [ ] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain, `aura_radius=1`, остальные триггеры false, `linger_*` пустые, not breakable. depends: T003.
 - [ ] **T012** [P2] [P] `data/tile_objects/wooden_barrel.json` — SMALL non-walkable, breakable hp=2, tags=[wood, flammable], on_destroy_effect_id=damage_zone. depends: T003.
 - [ ] **T013** [P2] [P] `data/tile_objects/wooden_table.json` — SMALL non-walkable, breakable hp=2, tags=[wood, furniture, flammable], no behavior. depends: T003.
@@ -77,11 +78,7 @@
 ## Группа I — post-merge
 
 - [ ] **T021** [P3] *manual: Sergey* — после merge в staging: пинг Стасяну «018 в staging, можешь добавлять tile objects через JSON, схема в `data/tile_objects/_schema.md`». depends: T020 + merge.
-- [ ] **T022** [P3] *manual: Sergey* — план follow-up. После 018:
-  - **`019-tile-object-resolver`** (мой scope) — runtime-триггеры для tile-объектов: подписка на `tile_object_actor_exited` → `actor.add_status(...)`, отдельный turn-system tick для aura/turn_end. Без этого 018 — только данные, без поведения.
-  - **`020-actor-status`** (Alexey'ский scope, координация с ним) — реализация `Actor.add_status` + тиканье статусов + UI-индикаторы. Нужно для linger DoT в 018, для `StatusEffect` ability-эффекта (007) и для будущих control-эффектов из 008.
-  
-  Эти две фичи можно делать параллельно — 018 graceful degrades без обеих, и они независимы между собой. depends: T020 + merge.
+- [ ] **T022** [P3] *manual: Sergey* — после 018 merge: запланировать **`019-tile-object-resolver`** (мой скоуп) — runtime-триггеры: подписка на EventBus сигналы, применение `behavior_effect_id` per флагам, применение `linger_effect_id` с duration при `tile_object_actor_exited`, aura-тик в turn system. Без resolver'а 018 — данные без поведения. depends: T020 + merge.
 
 ---
 
@@ -101,4 +98,5 @@
 ## История правок
 
 - 2026-05-01 — draft v1, заблокирован OQ-ответами.
-- 2026-05-02 — v2: OQ-1/2/3 разрешены. Implement gate снят. T010/T011 контент-задачи обновлены под flag-based триггеры + linger. T022 follow-up расширен — две независимые фичи (`019-tile-object-resolver`, `020-actor-status`).
+- 2026-05-02 — v2: OQ gate снят; flag-based триггеры; linger через linger_status_id (actor-status dep).
+- 2026-05-02 — v3: linger упрощён — `linger_effect_id` → tile_effect с `duration`. T010 обновлён, добавлен T010b (burning.json + duration-парсинг в TileEffectRegistry). Actor-status dependency убрана. T022 упрощён до одной follow-up фичи.
