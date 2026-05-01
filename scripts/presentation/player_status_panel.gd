@@ -28,7 +28,16 @@ func _apply_theme() -> void:
 
 ## Bind to player actor. Auto-listens to damaged and statuses_changed
 ## (latter is a placeholder; emit is post-007 work).
+##
+## Safe to call before our own _ready: if @onready vars aren't resolved yet,
+## defers the bind until the `ready` signal fires. Godmode_controller binds
+## us from its _ready, which runs before HUD subtree's _ready (Godot calls
+## _ready bottom-up per scene-tree order; sibling subtrees follow source order).
 func bind_player(actor: Actor) -> void:
+	if not is_node_ready():
+		# CONNECT_ONE_SHOT so re-binding before _ready doesn't pile listeners.
+		ready.connect(bind_player.bind(actor), CONNECT_ONE_SHOT)
+		return
 	if _actor == actor:
 		return
 	if _actor != null:
