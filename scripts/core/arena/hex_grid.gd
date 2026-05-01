@@ -109,6 +109,15 @@ func get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 	return _get_walkable_neighbours(coord)
 
 
+## Returns every walkable coord in the grid. Used by infinite-range abilities.
+func get_all_walkable_coords() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for coord in _tiles:
+		if (_tiles[coord] as HexTile).walkable:
+			result.append(coord)
+	return result
+
+
 func _get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	var neighbour_dirs: Array = [
