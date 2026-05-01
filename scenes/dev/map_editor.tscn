@@ -71,17 +71,16 @@ grow_vertical = 0
 
 [node name="ObjectPalettePanel" type="PanelContainer" parent="HUD"]
 script = ExtResource("11_op")
-anchors_preset = 6
+anchors_preset = 11
 anchor_left = 1.0
-anchor_top = 0.5
+anchor_top = 0.0
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -260.0
+anchor_bottom = 1.0
+offset_left = -280.0
 offset_top = 80.0
 offset_right = -16.0
-offset_bottom = 220.0
+offset_bottom = -240.0
 grow_horizontal = 0
-grow_vertical = 2
 
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 

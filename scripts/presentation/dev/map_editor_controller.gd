@@ -117,17 +117,31 @@ func _ready() -> void:
 	_wire_object_palette()
 	_wire_meta_panel()
 
-	# 5. Autosave timer
+	# 5. Autosave timer (recovery prompt deferred to step 7 once we know
+	#    whether a queued level is taking precedence)
 	_autosave_timer = Timer.new()
 	_autosave_timer.one_shot = true
 	_autosave_timer.wait_time = AUTOSAVE_DEBOUNCE_SEC
 	_autosave_timer.timeout.connect(_do_autosave)
 	add_child(_autosave_timer)
-	_check_autosave_recovery.call_deferred()
 
 	# 6. Initial level baseline
 	_rebuild_level_floor_from_canvas()
 	_dirty = false  # initial paint isn't a user edit
+
+	# 7. If we arrived here from a Back-to-Editor / queued path, load that
+	# level on top of the initial canvas. Skip autosave recovery in this
+	# case — the queued level is the explicit source of truth right now;
+	# we don't want to nag about a stale __autosave__.json.
+	if ActiveLevel.has_queued():
+		var queued_path: String = ActiveLevel.consume()
+		var loaded: LevelData = LevelSerializer.load_from(queued_path)
+		if loaded != null:
+			_apply_level(loaded)
+			_dirty = false  # just-loaded state isn't yet a user edit
+			GameLogger.info("MapEditor", "Resumed queued level: %s" % queued_path)
+	else:
+		_check_autosave_recovery.call_deferred()
 
 	GameLogger.info("MapEditor", "ready. LMB=place/paint, RMB=delete (2-step), Erase from FloorPalette")
 
@@ -646,6 +660,9 @@ func _on_playtest_requested() -> void:
 	if not LevelSerializer.save(_level, PLAYTEST_PATH):
 		EventBus.ui_toast_requested.emit("Не удалось записать playtest", 2.0, &"error")
 		return
+	# Mark origin so the playtest scene can offer Back-to-Editor; queue the
+	# same path so godmode loads it on _ready.
+	ActiveLevel.mark_playtest(PLAYTEST_PATH)
 	ActiveLevel.queue(PLAYTEST_PATH)
 	get_tree().change_scene_to_file(GODMODE_SCENE)
 

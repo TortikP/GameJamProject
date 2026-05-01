@@ -17,6 +17,7 @@ const MODAL_ID: StringName = &"pause_menu"
 @onready var _panel: PanelContainer = $Center/Panel
 @onready var _title: Label = $Center/Panel/VBox/Title
 @onready var _resume_btn: Button = $Center/Panel/VBox/ResumeButton
+@onready var _back_to_editor_btn: Button = $Center/Panel/VBox/BackToEditorButton
 @onready var _restart_btn: Button = $Center/Panel/VBox/RestartButton
 @onready var _settings_btn: Button = $Center/Panel/VBox/SettingsButton
 @onready var _menu_btn: Button = $Center/Panel/VBox/MainMenuButton
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
 	_resume_btn.pressed.connect(close)
+	_back_to_editor_btn.pressed.connect(_on_back_to_editor)
 	_restart_btn.pressed.connect(_on_restart)
 	_settings_btn.pressed.connect(_on_settings)
 	_menu_btn.pressed.connect(_on_main_menu)
@@ -43,13 +45,17 @@ func _apply_theme() -> void:
 	if _panel:
 		_panel.add_theme_stylebox_override("panel", UiTheme.make_modal_stylebox())
 	UiTheme.apply_label_kind(_title, "display")
-	for btn in [_resume_btn, _restart_btn, _settings_btn, _menu_btn, _quit_btn]:
+	for btn in [_resume_btn, _back_to_editor_btn, _restart_btn, _settings_btn, _menu_btn, _quit_btn]:
 		UiTheme.apply_button_styling(btn)
 
 
 func open() -> void:
 	if visible:
 		return
+	# Refresh "Back to Editor" visibility — only relevant when the current
+	# run came from the map editor's Playtest button (020).
+	if _back_to_editor_btn != null:
+		_back_to_editor_btn.visible = ActiveLevel.can_return_to_editor()
 	visible = true
 	UiHelpers.emit_modal_opened(MODAL_ID, true)
 	_resume_btn.grab_focus()
@@ -97,9 +103,26 @@ func _on_main_menu() -> void:
 	var ok: bool = await _confirm.ask("Return to main menu?", "Current run will end.",
 			"Main Menu", "Cancel", true)
 	if ok:
+		# 020 — leaving for main menu invalidates the playtest-origin link;
+		# clear it so a future Ctrl+E from a different battle doesn't try to
+		# return us to a stale editor session.
+		ActiveLevel.clear_playtest_origin()
+		ActiveLevel.clear()
 		close()
 		EventBus.main_menu_entered.emit()
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+
+## 020 — Back-to-Editor: only visible when ActiveLevel.can_return_to_editor().
+## Re-queues the playtest origin path so the editor reopens with the same
+## map. We don't clear playtest_origin_path here in case the user wants to
+## bounce back-and-forth (editor → playtest → editor → playtest).
+func _on_back_to_editor() -> void:
+	if not ActiveLevel.can_return_to_editor():
+		return
+	ActiveLevel.queue(ActiveLevel.get_playtest_origin())
+	close()
+	get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
 
 
 func _on_quit() -> void:

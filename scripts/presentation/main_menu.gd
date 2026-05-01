@@ -30,6 +30,11 @@ const RUN_SCENE: String = "res://scenes/dev/godmode.tscn"
 
 
 func _ready() -> void:
+	# 020 — Main menu is the "all state clean" reset point. Clear any stale
+	# ActiveLevel slots from a previous run/playtest so Start Run / Godmode
+	# can't accidentally pick up a queued level or stale playtest origin.
+	ActiveLevel.clear()
+	ActiveLevel.clear_playtest_origin()
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
 	_start_btn.pressed.connect(_on_start)

@@ -33,6 +33,10 @@ horizontal_alignment = 1
 [node name="ResumeButton" type="Button" parent="Center/Panel/VBox"]
 text = "Resume"
 
+[node name="BackToEditorButton" type="Button" parent="Center/Panel/VBox"]
+visible = false
+text = "Back to Editor"
+
 [node name="RestartButton" type="Button" parent="Center/Panel/VBox"]
 text = "Restart Run"
 

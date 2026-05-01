@@ -438,6 +438,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("dev_open_editor"):
 		# 020 — global hotkey: jump straight to the map editor from any battle.
+		# If this run originated from the editor's Playtest (ActiveLevel marks
+		# the path), queue it back so the editor reopens with the same map
+		# instead of a fresh canvas.
+		if ActiveLevel.can_return_to_editor():
+			ActiveLevel.queue(ActiveLevel.get_playtest_origin())
 		get_viewport().set_input_as_handled()
 		get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
 		return

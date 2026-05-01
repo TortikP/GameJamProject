@@ -91,9 +91,15 @@ func _build_ui() -> void:
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override("separation", 4)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(220, 380)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.add_child(_content)
 	vbox.add_child(scroll)
+
+	# VBox itself should fill the panel so the scroll has room to expand.
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 
 func _make_filter(label: String, default_on: bool) -> CheckBox:
