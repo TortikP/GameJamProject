@@ -38,14 +38,18 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_linear, repeat_disabl
 
 uniform float curvature : hint_range(0.0, 0.5) = 0.08;
 uniform float scanline_strength : hint_range(0.0, 1.0) = 0.35;
-uniform float scanline_count = 720.0;     // привязка к игровому viewport
-uniform float aperture_strength : hint_range(0.0, 1.0) = 0.25;
-uniform float vignette_strength : hint_range(0.0, 2.0) = 0.6;
-uniform float chroma_strength : hint_range(0.0, 5.0) = 1.2;  // в пикселях экрана
-uniform float warm_strength : hint_range(0.0, 1.0) = 0.18;
-uniform float bloom_strength : hint_range(0.0, 1.0) = 0.35;
+uniform float scanline_pitch_px = 3.0;   // привязка к ФИЗИЧЕСКИМ пикселям окна
+                                          // (FRAGCOORD.y) — не муарит против
+                                          // фактического размера viewport'а
+uniform float aperture_strength : hint_range(0.0, 1.0) = 0.15;
+uniform float vignette_strength : hint_range(0.0, 2.0) = 0.42;
+uniform float chroma_strength : hint_range(0.0, 6.0) = 1.6;
+uniform float warm_strength : hint_range(0.0, 1.0) = 0.28;
+uniform float bloom_strength : hint_range(0.0, 1.5) = 0.55;
 uniform float bezel_softness : hint_range(0.0, 0.2) = 0.04;
-uniform vec3  warm_tint = vec3(1.08, 1.00, 0.86); // янтарь
+uniform float boost : hint_range(0.5, 2.5) = 1.35;
+uniform vec3  warm_tint : source_color = vec3(1.18, 1.04, 0.78);   // янтарь
+uniform vec3  phosphor_glow : source_color = vec3(0.030, 0.018, 0.008);
 ```
 
 Pipeline на каждый фрагмент:
@@ -53,7 +57,8 @@ Pipeline на каждый фрагмент:
 2. Если `curved_uv` вышло за `[0..1]` (за рамкой кинескопа) — выводим чёрный + bezel-soft-mask. `bezel_softness` даёт мягкую границу, не «зубчатую».
 3. **chroma**: 3 сэмпла `screen_tex` со смещениями ±`chroma_strength * SCREEN_PIXEL_SIZE` для R и B каналов.
 4. **bloom-ish**: 4-tap простой box-blur по соседним пикселям + добавляем со смешением `bloom_strength` к ярким (luma > 0.6) местам.
-5. **scanline**: умножаем на `mix(1.0 - scanline_strength, 1.0, 0.5 + 0.5 * cos(curved_uv.y * scanline_count * 2π))`.
+5. **scanline**: умножаем на `mix(1.0 - scanline_strength, 1.0, 0.5 + 0.5 * cos(FRAGCOORD.y * 2π / scanline_pitch_px))` —
+   привязка к физическим пикселям окна, без муара.
 6. **aperture mask**: домножаем на `vec3(1, 1-a, 1-a/2)` со сдвигом по `floor(SCREEN_UV.x * width / 3.0) % 3` (RGB-триплеты, хорошо видны при достаточно крупном пикселе).
 7. **warm grade**: `color = mix(color, color * warm_tint, warm_strength)`, плюс лёгкое `pow(color, vec3(0.95))` чтоб тени стали тёплее.
 8. **vignette**: `color *= 1.0 - vignette_strength * smoothstep(0.5, 1.4, length(uv_centered))`.
