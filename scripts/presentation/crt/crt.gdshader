@@ -69,8 +69,12 @@ vec2 barrel(vec2 uv) {
 }
 
 // 0 inside the curved screen region, → 1 in the bezel area.
+// Tiny inset of 5 UV-units pulls the bezel fade slightly inward so that the
+// few pixels where barrel curvature pushes cuv outside [0,1] get masked by
+// the bezel — covers residual clamp-to-edge sample artifacts on the rim.
 float bezel_mask(vec2 cuv) {
-	vec2 d = max(vec2(0.0) - cuv, cuv - vec2(1.0));
+	vec2 inset = vec2(0.005);
+	vec2 d = max(inset - cuv, cuv - (vec2(1.0) - inset));
 	float outside = max(d.x, d.y);
 	return smoothstep(0.0, bezel_softness, outside);
 }
@@ -92,17 +96,27 @@ void fragment() {
 	vec2 chroma_dir = from_center * length(from_center) * 2.0;
 	vec2 chroma_offset = chroma_dir * chroma_strength * SCREEN_PIXEL_SIZE * screen_mask;
 
-	vec3 sa = texture(screen_tex, cuv + chroma_offset).rgb;
-	vec3 sb = texture(screen_tex, cuv - chroma_offset).rgb;
+	// All texture sampling uses `cuv_safe` — clamped a few pixels inside the
+	// texture edge. Without this, when barrel pushes cuv slightly outside [0,1]
+	// (typical at left/right rim), texture clamp-to-edge replicates the edge
+	// column → visible vertical stripe of repeated pixel data. Sampling from
+	// the inset gives real game content instead, then bezel mask fades it to
+	// black smoothly.
+	vec2 sample_margin = SCREEN_PIXEL_SIZE * 4.0;
+	vec2 cuv_safe = clamp(cuv, sample_margin, vec2(1.0) - sample_margin);
+
+	vec3 sa = texture(screen_tex, cuv_safe + chroma_offset).rgb;
+	vec3 sb = texture(screen_tex, cuv_safe - chroma_offset).rgb;
 	vec3 col = vec3(sa.r, (sa.g + sb.g) * 0.5, sb.b);
 
 	// Bloom: two diagonal samples (down from four cardinal). Gated by strength
 	// so setting `bloom_strength = 0` in the inspector skips the work entirely
-	// instead of multiplying it out at the end.
+	// instead of multiplying it out at the end. Radius also fades by screen_mask
+	// so the diagonal samples don't reach beyond the bezel either.
 	if (bloom_strength > 0.0) {
-		vec2 px = SCREEN_PIXEL_SIZE * 2.0;
-		vec3 d1 = texture(screen_tex, cuv + vec2( px.x,  px.y)).rgb;
-		vec3 d2 = texture(screen_tex, cuv + vec2(-px.x, -px.y)).rgb;
+		vec2 px = SCREEN_PIXEL_SIZE * 2.0 * screen_mask;
+		vec3 d1 = texture(screen_tex, cuv_safe + vec2( px.x,  px.y)).rgb;
+		vec3 d2 = texture(screen_tex, cuv_safe + vec2(-px.x, -px.y)).rgb;
 		vec3 blur = (d1 + d2) * 0.5;
 		vec3 bright = max(blur - vec3(bloom_threshold), vec3(0.0));
 		col += bright * bloom_strength;
