@@ -27,8 +27,9 @@ What this forbids in practice: enemy-only damage paths, AI-only fields on Actor,
 ### Architecture
 1. scripts/core/ knows nothing about specific textures, audio files, or scenes.
 2. scripts/presentation/ depends on core, not the other way around.
-3. Autoloads (GameSpeed, EventBus, Logger, AudioDirector) are accessible from anywhere.
+3. Autoloads (GameSpeed, EventBus, Logger, AudioDirector, UiTheme) are accessible from anywhere.
 4. Cross-system communication goes through EventBus signals, not direct references.
+5. UI colors and spacing — only via `UiTheme.X`. No `Color(...)` inline in `scripts/presentation/`. New stylebox? `UiTheme.make_*_stylebox()`. New label kind? Extend `UiTheme.apply_label_kind`.
 
 ### Timing
 5. NO hardcoded timer values. Use `GameSpeed.wait(section, key)` or read

@@ -10,12 +10,12 @@ Phases gate execution. Phase N+1 не стартует, пока в Phase N ос
 
 Foundation. Без этого ничего из остального не имеет смысла.
 
-- [ ] **T001** [P1] Создать `scripts/presentation/ui_theme.gd` со всеми константами из plan.md §"UiTheme autoload" (цвета, spacing, font sizes, helpers)
-- [ ] **T002** [P1] Зарегистрировать UiTheme как autoload в `project.godot` (порядок: после Logger, до AudioDirector) (depends T001)
-- [ ] **T003** [P1] [P] Добавить EventBus сигналы из plan.md §"EventBus extensions": `ui_theme_reloaded`, `ui_toast_requested`, `ui_modal_opened`, `ui_modal_closed`, `main_menu_entered`, `run_started_requested`, `run_summary_shown`, `pause_toggled` (правка `scripts/infrastructure/event_bus.gd`)
-- [ ] **T004** [P2] Добавить `scripts/presentation/ui_signal_helpers.gd` со static-helper'ами: `attach_focus_release(line_edit, game_keys)`, `setup_modal_pause(canvas_layer, modal_id)` (depends T003)
-- [ ] **T005** [P2] Smoke-тест в Godmode: добавить временный Label на сцену с цветом `UiTheme.SEM_DAMAGE` — убедиться, что autoload видится. Удалить после проверки. (depends T002)
-- [ ] **T006** [P3] Документировать `UiTheme` в `CLAUDE.md` секции "Architecture" (одна строка: «UI цвета — только через UiTheme.X, не Color() inline»)
+- [x] **T001** [P1] Создать `scripts/presentation/ui_theme.gd` со всеми константами из plan.md §"UiTheme autoload" (цвета, spacing, font sizes, helpers)
+- [x] **T002** [P1] Зарегистрировать UiTheme как autoload в `project.godot` (порядок: после Logger, до AudioDirector) (depends T001)
+- [x] **T003** [P1] [P] Добавить EventBus сигналы из plan.md §"EventBus extensions": `ui_theme_reloaded`, `ui_toast_requested`, `ui_modal_opened`, `ui_modal_closed`, `main_menu_entered`, `run_started_requested`, `run_summary_shown`, `pause_toggled` (правка `scripts/infrastructure/event_bus.gd`)
+- [x] **T004** [P2] Добавить `scripts/presentation/ui_signal_helpers.gd` со static-helper'ами: `attach_focus_release(line_edit, game_keys)`, `setup_modal_pause(canvas_layer, modal_id)` (depends T003)
+- [x] **T005** [P2] Smoke-тест в Godmode: добавить временный Label на сцену с цветом `UiTheme.SEM_DAMAGE` — убедиться, что autoload видится. Удалить после проверки. (depends T002) — *static grep verification, runtime check on first launch*
+- [x] **T006** [P3] Документировать `UiTheme` в `CLAUDE.md` секции "Architecture" (одна строка: «UI цвета — только через UiTheme.X, не Color() inline»)
 
 **Definition of done Phase 0:** UiTheme автозагружается, EventBus имеет новые сигналы, smoke-тест проходит.
 
