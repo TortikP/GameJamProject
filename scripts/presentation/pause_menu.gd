@@ -99,7 +99,7 @@ func _on_main_menu() -> void:
 	if ok:
 		close()
 		EventBus.main_menu_entered.emit()
-		# Host loads main_menu.tscn — done in MainMenu host scripts.
+		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 func _on_quit() -> void:
