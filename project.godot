@@ -29,6 +29,7 @@ SkillDatabase="*res://scripts/core/skills/skill_database.gd"
 BehaviorDatabase="*res://scripts/core/ai/behavior_database.gd"
 EnemyAIPlanner="*res://scripts/core/ai/enemy_ai_planner.gd"
 CrtPostFx="*res://scenes/presentation/crt_post_fx.tscn"
+ActiveLevel="*res://scripts/infrastructure/active_level.gd"
 
 [display]
 

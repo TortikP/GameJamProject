@@ -6,13 +6,13 @@
 
 ## Phase 0 — Data layer (~2-3 ч)
 
-- [ ] **T001** [P1] `scripts/core/maps/level_data.gd` — `class_name LevelData`, поля + `validate()` + `to_dict()` / `from_dict()` (см. plan.md API)
-- [ ] **T002** [P1] `scripts/core/maps/level_serializer.gd` — `static save() / load()`, JSON через `JSON.stringify(d, "\t")`, FileAccess errors → GameLogger.error (depends T001)
-- [ ] **T003** [P1] `scripts/infrastructure/active_level.gd` — autoload, queued_path slot, queue/consume/has_queued/clear
-- [ ] **T004** [P1] `project.godot` — register `ActiveLevel` autoload (depends T003)
-- [ ] **T005** [P1] `scripts/core/maps/level_loader.gd` — `static apply_to(grid, registry, level)`. Floor paint → grid.initialize() (caller does it) → set_tile_object loop → spawn player + enemies (depends T001, hex_grid setter T006)
-- [ ] **T006** [P1] `scripts/core/arena/hex_grid.gd` — `set_tile_object(coord, object_id)` setter + rebuild_pathfinder. Plus optional `apply_level_data` thin wrapper (depends 002 hex_grid existing)
-- [ ] **T007** [P2] `data/maps/_schema.md` — schema doc для Стасяна, 1:1 c LevelData
+- [x] **T001** [P1] `scripts/core/maps/level_data.gd` — `class_name LevelData`, поля + `validate()` + `to_dict()` / `from_dict()` (см. plan.md API)
+- [x] **T002** [P1] `scripts/core/maps/level_serializer.gd` — `static save() / load_from()` (named `load_from` to avoid shadowing built-in `load`), JSON через `JSON.stringify(d, "\t")`, FileAccess errors → GameLogger.error (depends T001)
+- [x] **T003** [P1] `scripts/infrastructure/active_level.gd` — autoload, queued_path slot, queue/consume/has_queued/clear
+- [x] **T004** [P1] `project.godot` — register `ActiveLevel` autoload (depends T003)
+- [x] **T005** [P1] `scripts/core/maps/level_loader.gd` — `static apply_to(grid, registry, level, actors_node)`. Caller paints floor + initializes; loader does objects + rebuild_pathfinder + spawners. Returns spawned player Actor (depends T001, hex_grid setter T006)
+- [x] **T006** [P1] `scripts/core/arena/hex_grid.gd` — public `rebuild_pathfinder()` (additive). `set_tile_object_id` already exists from 019, no duplicate API. Egor — keeping per-call rebuild out of the existing setter to preserve 019 semantics; LevelLoader batches then calls rebuild once.
+- [x] **T007** [P2] `data/maps/_schema.md` — schema doc для Стасяна, 1:1 c LevelData
 
 ## Phase 1 — Editor scene scaffolding (~2 ч)
 
