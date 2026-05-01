@@ -1,0 +1,14 @@
+{
+  "id": "boss_intro",
+  "speaker": "rival",
+  "text": "So you made it this far. I'm almost impressed.",
+  "tags": ["boss_intro"],
+  "priority": 100,
+  "conditions": {
+    "min_run": 2,
+    "max_run": 999,
+    "flags_required": [],
+    "flags_forbidden": []
+  },
+  "once_per_run": true
+}

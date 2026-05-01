@@ -1,0 +1,102 @@
+name: Telegram notifications
+
+# Notifies the team's Telegram forum topic on three events:
+#   1. New branch pushed (excluding main / staging which are protected).
+#   2. Pull request opened.
+#   3. Pull request closed (merged or not).
+#
+# Required repo secrets:
+#   - TG_BOT_TOKEN  : token from @BotFather, e.g. 123456:ABC...
+#   - TG_CHAT_ID    : negative chat id of the supergroup, e.g. -1003945367444
+#   - TG_THREAD_ID  : forum topic message_thread_id, e.g. 209
+#
+# If any secret is missing, curl just fails silently (404) — no broken builds.
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - staging
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Branch created
+        if: github.event_name == 'push' && github.event.created == true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+          BRANCH: ${{ github.ref_name }}
+          AUTHOR: ${{ github.actor }}
+        run: |
+          MSG="🌱 ${AUTHOR} создал ветку ${BRANCH}"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TG_THREAD_ID}" \
+            --data-urlencode "text=${MSG}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            -o /dev/null -w "TG response: %{http_code}\n"
+
+      - name: PR opened
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          MSG="🔀 PR #${PR_NUM} открыт
+          ${PR_AUTHOR}: ${PR_HEAD} → ${PR_BASE}
+          ${PR_TITLE}
+          ${PR_URL}"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TG_THREAD_ID}" \
+            --data-urlencode "text=${MSG}" \
+            -o /dev/null -w "TG response: %{http_code}\n"
+
+      - name: PR merged
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_MERGER: ${{ github.event.pull_request.merged_by.login }}
+        run: |
+          MSG="✅ PR #${PR_NUM} вмерджен в ${PR_BASE} (${PR_HEAD}) — ${PR_MERGER}
+          ${PR_TITLE}"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TG_THREAD_ID}" \
+            --data-urlencode "text=${MSG}" \
+            -o /dev/null -w "TG response: %{http_code}\n"
+
+      - name: PR closed without merge
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          MSG="❌ PR #${PR_NUM} закрыт без мерджа: ${PR_HEAD} → ${PR_BASE}"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TG_THREAD_ID}" \
+            --data-urlencode "text=${MSG}" \
+            -o /dev/null -w "TG response: %{http_code}\n"

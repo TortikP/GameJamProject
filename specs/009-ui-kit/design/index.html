@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UI Kit — Game Jam</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  .catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-3);
+    margin-top: var(--sp-4);
+  }
+  .cat-group {
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    background: var(--ui-bg-panel);
+    padding: var(--sp-4);
+  }
+  .cat-group h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 var(--sp-3) 0;
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--ui-border);
+    color: var(--ui-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cat-list li {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-2);
+    border-radius: 4px;
+  }
+  .cat-list li:hover { background: var(--ui-bg-panel-2); }
+  .cat-list .id {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-faint);
+  }
+  .cat-list a {
+    color: var(--ui-text);
+    text-decoration: none;
+  }
+  .cat-list a:hover { color: var(--team-player); text-decoration: underline; }
+  .status {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    padding: 2px var(--sp-2);
+    border-radius: 4px;
+    border: 1px solid var(--ui-border);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .status.done   { color: var(--sem-heal);  border-color: var(--sem-heal); }
+  .status.todo   { color: var(--ui-text-faint); }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--sp-3);
+    margin: var(--sp-4) 0 var(--sp-5) 0;
+  }
+  .meta .card {
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    background: var(--ui-bg-panel);
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .meta .card .lbl {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .meta .card .val {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--ui-text);
+    margin-top: 2px;
+  }
+
+  /* token previews */
+  .token-section { margin-top: var(--sp-5); }
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--sp-2);
+  }
+  .swatch {
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--ui-bg-panel);
+  }
+  .swatch .chip {
+    height: 40px;
+    border-bottom: 1px solid var(--ui-border);
+  }
+  .swatch .meta-row {
+    padding: var(--sp-2);
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+  }
+  .swatch .meta-row .name { color: var(--ui-text); }
+  .swatch .meta-row .hex  { color: var(--ui-text-faint); display: block; }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb">UI KIT // GAME JAM // 1920×1080</div>
+    <h1>Functional, ugly, Godot-translatable UI kit</h1>
+    <p class="subtitle">
+      HTML/React mockups for hand-translation into Godot 4.6 <code>Control</code> trees.
+      Layout, states, data flow, edge cases — polish happens in Godot, by an artist, after the kit is locked.
+    </p>
+  </header>
+
+  <section class="meta">
+    <div class="card">
+      <div class="lbl">Resolution target</div>
+      <div class="val">1920×1080 (works at 1280×720)</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Body / numeric font</div>
+      <div class="val">system-ui / ui-monospace</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Spacing scale</div>
+      <div class="val">4 · 8 · 12 · 16 · 24 · 32</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Corners</div>
+      <div class="val">4px panels, 0px elsewhere</div>
+    </div>
+  </section>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">Component catalog</h2>
+
+  <div class="catalog">
+
+    <div class="cat-group">
+      <h2>Combat HUD</h2>
+      <ul class="cat-list">
+        <li><span class="id">C1</span><a href="components/c1-top-hud.html">Top HUD bar</a><span class="status done">DONE</span></li>
+        <li><span class="id">C2</span><a href="components/c2-skill-slot-bar.html">Skill slot bar</a><span class="status done">DONE</span></li>
+        <li><span class="id">C3</span><a href="components/c3-player-status-panel.html">Player status panel</a><span class="status done">DONE</span></li>
+        <li><span class="id">C4</span><a href="components/c4-hp-bar.html">HP bar (world-space)</a><span class="status done">DONE</span></li>
+        <li><span class="id">C5</span><a href="components/c5-status-icon-strip.html">Status icon strip</a><span class="status done">DONE</span></li>
+        <li><span class="id">C6</span><a href="components/c6-telegraph-hex.html">Telegraph hex</a><span class="status done">DONE</span></li>
+        <li><span class="id">C7</span><a href="components/c7-movement-preview.html">Movement preview path</a><span class="status done">DONE</span></li>
+        <li><span class="id">C8</span><a href="components/c8-cast-range.html">Cast-range overlay</a><span class="status done">DONE</span></li>
+        <li><span class="id">C9</span><a href="components/c9-intent-arrow.html">Intent arrow</a><span class="status done">DONE</span></li>
+        <li><span class="id">C10</span><a href="components/c10-c11-cursor-fct.html">Hex cursor</a><span class="status done">DONE</span></li>
+        <li><span class="id">C11</span><a href="components/c10-c11-cursor-fct.html">Floating combat text</a><span class="status done">DONE</span></li>
+      </ul>
+    </div>
+
+    <div class="cat-group">
+      <h2>Inspectors</h2>
+      <ul class="cat-list">
+        <li><span class="id">C12</span><a href="components/c12-actor-inspector.html">Actor inspector panel</a><span class="status done">DONE</span></li>
+        <li><span class="id">C13</span><a href="components/c13-c15-inspector-tooltip.html">Hex inspector subpanel</a><span class="status done">DONE</span></li>
+        <li><span class="id">C14</span><a href="components/c14-skill-tooltip.html">Skill tooltip (rich)</a><span class="status done">DONE</span></li>
+        <li><span class="id">C15</span><a href="components/c13-c15-inspector-tooltip.html">Generic tooltip</a><span class="status done">DONE</span></li>
+      </ul>
+    </div>
+
+    <div class="cat-group">
+      <h2>Dialogue layer</h2>
+      <ul class="cat-list">
+        <li><span class="id">C16</span><a href="components/c16-c17-dialogue.html">Dialogue panel (NPC)</a><span class="status done">DONE</span></li>
+        <li><span class="id">C17</span><a href="components/c16-c17-dialogue.html">Internal voice panel</a><span class="status done">DONE</span></li>
+        <li><span class="id">C18</span><a href="components/c18-choice-row.html">Choice button row</a><span class="status done">DONE</span></li>
+      </ul>
+    </div>
+
+    <div class="cat-group">
+      <h2>Meta-loop</h2>
+      <ul class="cat-list">
+        <li><span class="id">C19</span><a href="components/c19-modifier-pick.html">Modifier-pick screen</a><span class="status done">DONE</span></li>
+        <li><span class="id">C20</span><a href="components/c20-portal-transition.html">Wave / portal transition</a><span class="status done">DONE</span></li>
+        <li><span class="id">C21</span><a href="components/c21-run-summary.html">Run summary / death</a><span class="status done">DONE</span></li>
+        <li><span class="id">C22</span><a href="components/c22-c23-menus.html">Main menu</a><span class="status done">DONE</span></li>
+        <li><span class="id">C23</span><a href="components/c22-c23-menus.html">Pause menu</a><span class="status done">DONE</span></li>
+        <li><span class="id">C24</span><a href="components/c24-settings.html">Settings panel</a><span class="status done">DONE</span></li>
+      </ul>
+    </div>
+
+    <div class="cat-group">
+      <h2>System</h2>
+      <ul class="cat-list">
+        <li><span class="id">C25</span><span>Generic confirm modal</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C26</span><span>Toast / notification</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C27</span><span>Combat log</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C28</span><span>Help / keybind overlay</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C29</span><span>Loading cover</span><span class="status todo">TODO</span></li>
+      </ul>
+    </div>
+
+    <div class="cat-group">
+      <h2>Dev / sandbox</h2>
+      <ul class="cat-list">
+        <li><span class="id">C30</span><span>Spawn picker</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C31</span><span>Tile-effect picker</span><span class="status todo">TODO</span></li>
+        <li><span class="id">C32</span><span>Actor stat editor</span><span class="status todo">TODO</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <section class="token-section">
+    <h2 class="section-title">Color tokens (§5)</h2>
+
+    <h3 style="font-size:14px;color:var(--ui-text-dim);text-transform:uppercase;letter-spacing:0.06em;margin:var(--sp-4) 0 var(--sp-2);">Surfaces</h3>
+    <div class="token-grid">
+      <div class="swatch"><div class="chip" style="background:#0c0e12"></div><div class="meta-row"><span class="name">--ui-bg-screen</span><span class="hex">#0c0e12</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#161a22"></div><div class="meta-row"><span class="name">--ui-bg-panel</span><span class="hex">#161a22</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#1f2530"></div><div class="meta-row"><span class="name">--ui-bg-panel-2</span><span class="hex">#1f2530</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#2a313e"></div><div class="meta-row"><span class="name">--ui-bg-elevated</span><span class="hex">#2a313e</span></div></div>
+    </div>
+
+    <h3 style="font-size:14px;color:var(--ui-text-dim);text-transform:uppercase;letter-spacing:0.06em;margin:var(--sp-4) 0 var(--sp-2);">Semantic</h3>
+    <div class="token-grid">
+      <div class="swatch"><div class="chip" style="background:#d94b4b"></div><div class="meta-row"><span class="name">--sem-damage</span><span class="hex">#d94b4b</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#4cc987"></div><div class="meta-row"><span class="name">--sem-heal</span><span class="hex">#4cc987</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#9b6bd1"></div><div class="meta-row"><span class="name">--sem-control</span><span class="hex">#9b6bd1</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#5aa9e6"></div><div class="meta-row"><span class="name">--sem-buff</span><span class="hex">#5aa9e6</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#e09b3a"></div><div class="meta-row"><span class="name">--sem-debuff</span><span class="hex">#e09b3a</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#cfd3da"></div><div class="meta-row"><span class="name">--sem-move</span><span class="hex">#cfd3da</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#b6936a"></div><div class="meta-row"><span class="name">--sem-create</span><span class="hex">#b6936a</span></div></div>
+    </div>
+
+    <h3 style="font-size:14px;color:var(--ui-text-dim);text-transform:uppercase;letter-spacing:0.06em;margin:var(--sp-4) 0 var(--sp-2);">Team</h3>
+    <div class="token-grid">
+      <div class="swatch"><div class="chip" style="background:#5fb6f5"></div><div class="meta-row"><span class="name">--team-player</span><span class="hex">#5fb6f5</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#d94b4b"></div><div class="meta-row"><span class="name">--team-enemy</span><span class="hex">#d94b4b</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#9aa3b2"></div><div class="meta-row"><span class="name">--team-neutral</span><span class="hex">#9aa3b2</span></div></div>
+    </div>
+
+    <h3 style="font-size:14px;color:var(--ui-text-dim);text-transform:uppercase;letter-spacing:0.06em;margin:var(--sp-4) 0 var(--sp-2);">State / focus</h3>
+    <div class="token-grid">
+      <div class="swatch"><div class="chip" style="background:#f5d97a"></div><div class="meta-row"><span class="name">--ui-focus</span><span class="hex">#f5d97a</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#3a414e"></div><div class="meta-row"><span class="name">--ui-disabled</span><span class="hex">#3a414e</span></div></div>
+    </div>
+  </section>
+
+  <section class="token-section">
+    <h2 class="section-title">Type scale (§4)</h2>
+    <div style="display:flex;flex-direction:column;gap:var(--sp-3);background:var(--ui-bg-panel);border:1px solid var(--ui-border);border-radius:4px;padding:var(--sp-4);">
+      <div style="font:700 32px system-ui,sans-serif;">display 32 / system-ui 700</div>
+      <div style="font:600 18px system-ui,sans-serif;">header 18 / system-ui 600</div>
+      <div style="font:14px system-ui,sans-serif;">body 14 / system-ui</div>
+      <div style="font:11px system-ui,sans-serif;color:var(--ui-text-dim);">small 11 / system-ui</div>
+      <div style="font:24px ui-monospace,monospace;">numeric-large 24 / monospace · 100/100</div>
+      <div style="font:12px ui-monospace,monospace;">numeric-small 12 / monospace · 50/100</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

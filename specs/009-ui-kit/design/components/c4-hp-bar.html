@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C4 — HP bar (world-space) — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C4: HP bar (world-space) -----------------------------
+     Spec contract:
+       width: 30px  height: 4px  (real in-game size)
+       parts:  bg + fill (green/orange/red by %)
+             + preview strip (red, right-aligned, incoming dmg)
+             + 1px frame
+             + numeric label "current/max" above bar (centered)
+       same widget for player AND enemies (Pillar 2)
+     The .hpbar element is what translates to a Godot Control node.
+     ---------------------------------------------------------------- */
+
+  .hpbar {
+    --hp-w: 30px;
+    --hp-h: 4px;
+    --hp-pct: 1;       /* 0..1 */
+    --hp-prev: 0;      /* 0..1, fraction of bar that the red preview strip eats */
+    --hp-color: var(--hp-fill);
+
+    width: var(--hp-w);
+    height: var(--hp-h);
+    background: var(--hp-bg);
+    border: 1px solid #000;
+    position: relative;
+    box-sizing: content-box;
+  }
+  .hpbar .fill {
+    position: absolute;
+    inset: 0;
+    width: calc(var(--hp-pct) * 100%);
+    background: var(--hp-color);
+    transition: width 120ms, background 120ms;
+  }
+  .hpbar .preview {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* preview strip sits at the right edge of the FILL, eating into it */
+    right: calc((1 - var(--hp-pct)) * 100%);
+    width: calc(var(--hp-prev) * 100%);
+    max-width: calc(var(--hp-pct) * 100%);
+    background: var(--hp-preview);
+    opacity: 0.85;
+  }
+  .hpbar .label {
+    position: absolute;
+    bottom: calc(var(--hp-h) + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--ui-text);
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    white-space: nowrap;
+  }
+
+  /* HP color modifiers (computed from %) */
+  .hpbar.low   { --hp-color: var(--hp-low); }
+  .hpbar.crit  { --hp-color: var(--hp-crit); }
+
+  /* Team accent: thin colored frame around the bar */
+  .hpbar.team-player  { box-shadow: 0 0 0 1px var(--team-player); }
+  .hpbar.team-enemy   { box-shadow: 0 0 0 1px var(--team-enemy); }
+  .hpbar.team-neutral { box-shadow: 0 0 0 1px var(--team-neutral); }
+  /* NOTE: box-shadow used here only as 1px outline. In Godot this maps to
+     StyleBoxFlat.border_width_* — not a real CSS shadow. (§6 forbids real shadows.) */
+
+  /* -------- Stage helpers (page only) ---------------------------- */
+  /* The HP bar is tiny (30×4). We show it on a small grey square that
+     stands in for the actor sprite, plus a 4× magnifier underneath. */
+
+  .actor-stub {
+    width: 64px;
+    height: 64px;
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+  }
+  .actor-stub .hpbar {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .magnifier {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px dashed var(--ui-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  .magnifier .lbl {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+  }
+  .magnifier .scale4 {
+    transform: scale(4);
+    transform-origin: center;
+    margin: 12px 0;
+  }
+
+  /* numbers row */
+  .nums {
+    display: flex;
+    gap: var(--sp-3);
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+  .nums b { color: var(--ui-text); font-weight: 400; }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C4</div>
+    <h1>C4 — HP bar (world-space)</h1>
+    <p class="subtitle">
+      Tiny bar above every actor sprite. Shows current / max HP, an incoming-damage preview strip,
+      and a numeric label. <b>Same widget for player and enemies</b> (Pillar 2).
+      Real size: <code>30×4</code> px; the magnifier strip below each card shows it at 4×.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid">
+
+    <!-- 1. Full HP, player team -->
+    <div class="state-card">
+      <h3>Full HP <span class="pill">player · 100/100</span></h3>
+      <p class="caption">Default state. Green fill at 100%. Player team accent (cyan 1px outline).</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-player" style="--hp-pct:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">100/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-player" style="--hp-pct:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>100%</b></span><span>color <b>--hp-fill</b></span></div>
+      </div>
+    </div>
+
+    <!-- 2. Mid HP, enemy team -->
+    <div class="state-card">
+      <h3>Mid HP <span class="pill">enemy · 60/100</span></h3>
+      <p class="caption">Green fill at 60%. Enemy team accent (red 1px outline). No incoming damage.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-enemy" style="--hp-pct:0.6;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">60/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-enemy" style="--hp-pct:0.6;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>60%</b></span><span>color <b>--hp-fill</b></span></div>
+      </div>
+    </div>
+
+    <!-- 3. Low HP -->
+    <div class="state-card">
+      <h3>Low HP <span class="pill">enemy · 25/100</span></h3>
+      <p class="caption">HP &le; 30% → switch fill to <code>--hp-low</code> (orange).</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar low team-enemy" style="--hp-pct:0.25;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">25/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar low team-enemy" style="--hp-pct:0.25;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>25%</b></span><span>color <b>--hp-low</b></span></div>
+      </div>
+    </div>
+
+    <!-- 4. Critical HP -->
+    <div class="state-card">
+      <h3>Critical HP <span class="pill">enemy · 12/100</span></h3>
+      <p class="caption">HP &le; 15% → switch fill to <code>--hp-crit</code> (red). Same red as preview strip; team outline still distinguishes.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar crit team-enemy" style="--hp-pct:0.12;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">12/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar crit team-enemy" style="--hp-pct:0.12;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>12%</b></span><span>color <b>--hp-crit</b></span></div>
+      </div>
+    </div>
+
+    <!-- 5. Incoming damage preview -->
+    <div class="state-card">
+      <h3>Incoming damage preview <span class="pill">enemy · 60→45</span></h3>
+      <p class="caption">During <code>cast_mode == casting</code>, HP bars of all targets in cast area show a red strip eating into the right edge of the fill. Width = predicted dmg / max HP.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-enemy" style="--hp-pct:0.6;--hp-prev:0.15;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">60/100 (-15)</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-enemy" style="--hp-pct:0.6;--hp-prev:0.15;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>60%</b></span><span>preview <b>15%</b></span><span>after-hit <b>45/100</b></span></div>
+      </div>
+    </div>
+
+    <!-- 6. Lethal damage preview -->
+    <div class="state-card">
+      <h3>Lethal preview <span class="pill">enemy · 25→0</span></h3>
+      <p class="caption">Preview strip is clamped to current fill — i.e. it cannot extend into the empty bg. When lethal, entire fill turns red.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar low team-enemy" style="--hp-pct:0.25;--hp-prev:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">25/100 (-30 LETHAL)</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar low team-enemy" style="--hp-pct:0.25;--hp-prev:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>25%</b></span><span>preview <b>clamped to fill</b></span></div>
+      </div>
+    </div>
+
+    <!-- 7. Player at full -->
+    <div class="state-card">
+      <h3>Player at half <span class="pill">player · 50/100</span></h3>
+      <p class="caption">Same widget, player accent. Confirms Pillar 2 — no player-only variant.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-player" style="--hp-pct:0.5;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">50/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-player" style="--hp-pct:0.5;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>50%</b></span></div>
+      </div>
+    </div>
+
+    <!-- 8. Neutral (manekin) -->
+    <div class="state-card">
+      <h3>Neutral target <span class="pill">manekin · 30/30</span></h3>
+      <p class="caption">Neutral team (gray outline). Used by training dummies / props. Bar still shows as a sanity check that the widget is alive.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-neutral" style="--hp-pct:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">30/30</div>
+          </div>
+          [MANEKIN]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-neutral" style="--hp-pct:1;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>100%</b></span></div>
+      </div>
+    </div>
+
+    <!-- 9. Empty / dead -->
+    <div class="state-card">
+      <h3>Empty / dead <span class="pill">enemy · 0/100</span></h3>
+      <p class="caption">When HP reaches 0 the bar persists for one frame at 0% (no fill, only bg + frame), then is hidden by the actor's death sequence. Mockup shows the 0% frame — useful as the "no actor here" empty state too.</p>
+      <div class="stage">
+        <div class="actor-stub">
+          <div class="hpbar team-enemy" style="--hp-pct:0;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+            <div class="label">0/100</div>
+          </div>
+          [ACTOR]
+        </div>
+      </div>
+      <div class="magnifier">
+        <span class="lbl">×4 magnified</span>
+        <div class="scale4">
+          <div class="hpbar team-enemy" style="--hp-pct:0;">
+            <div class="fill"></div>
+            <div class="preview"></div>
+          </div>
+        </div>
+        <div class="nums"><span>fill <b>0%</b></span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">Anchor in the 1920×1080 layout</h2>
+  <div class="context-strip">
+    <div class="label">Where this lives — world-space, follows actor in arena</div>
+    <div class="frame">
+      <div class="zone" style="left:0;right:0;top:0;height:5.2%;">TOP HUD</div>
+      <div class="zone" style="left:0;right:16.7%;top:5.2%;bottom:11.1%;">ARENA · HP bars sit world-space above each actor</div>
+      <div class="zone" style="right:0;top:5.2%;width:16.7%;bottom:11.1%;">INSPECTOR · COMBAT LOG</div>
+      <div class="zone" style="left:0;right:0;bottom:0;height:11.1%;">BOTTOM BAR</div>
+
+      <!-- exemplar pin showing a bar position in the arena -->
+      <div class="zone target" style="left:30%;top:35%;width:50px;height:50px;">
+        <div style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);width:30px;height:4px;background:var(--hp-bg);outline:1px solid #000;">
+          <div style="width:60%;height:100%;background:var(--hp-fill);"></div>
+        </div>
+        bar↑
+      </div>
+    </div>
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C4 HP bar (world-space)</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Persistent, always-visible HP readout above every actor. Same widget for player and enemies (Pillar 2); unifies team accent, fill color, incoming-damage preview into one cheap drawable.</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>World-space, parented to the actor sprite, offset <code>(0, -14)</code> px from sprite top-edge. <b>Width 30, height 4.</b> Bar does not scale with camera zoom in jam scope (Godot: render in actor's local CanvasLayer at zoom-compensated transform).</dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>hp:        int     # 0..max_hp
+max_hp:    int
+team:      enum   { player, enemy, neutral }
+preview:   int    # incoming dmg from cast preview, 0 = no preview
+visible:   bool   # hidden if false (dead, fog-of-war)</pre>
+        </dd>
+
+        <dt>Color rules</dt>
+        <dd>
+          <pre>pct = hp / max_hp
+if pct &lt;= 0.15:  fill = --hp-crit
+elif pct &lt;= 0.30: fill = --hp-low
+else:             fill = --hp-fill
+
+frame outline = --team-{team}
+preview width = clamp(preview / max_hp, 0, pct)  # cannot exceed current fill</pre>
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Lethal preview:</b> preview width clamps to fill width — never extends into empty area.<br/>
+          • <b>HP overheal &gt; max:</b> bar caps at 100% fill; numeric label shows true value (e.g. <code>120/100</code>).<br/>
+          • <b>0/0 actor:</b> hide bar entirely (visible=false).<br/>
+          • <b>Multi-source preview:</b> sum incoming damage from all preview sources before passing as <code>preview</code> input. Aggregation happens upstream.<br/>
+          • <b>Tiny actor (sprite &lt; 30px wide):</b> bar still 30px wide, can extend past sprite silhouette. Acceptable.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          Custom <code>Control</code> with <code>_draw()</code> override (cheaper than 4 nested ProgressBars):
+          <pre class="tree"><span class="n">HpBar</span> : Control                         <span class="c"># custom_minimum_size = Vector2(30, 4)</span>
+  <span class="c"># exports: hp:int  max_hp:int  team:int  preview:int  visible:bool</span>
+  <span class="c"># _draw():</span>
+  <span class="c">#   1. fill rect (30,4) with --hp-bg</span>
+  <span class="c">#   2. fill rect (pct*30, 4) with chosen --hp-* color</span>
+  <span class="c">#   3. fill rect at right edge of fill, width=preview_pct*30, with --hp-preview</span>
+  <span class="c">#   4. draw_rect 1px black frame</span>
+  <span class="c">#   5. draw 1px team color frame outside (offset -1, +2 size)</span>
+  <span class="n">Label</span> (numeric)                            <span class="c"># anchor bottom of HpBar, offset y=-12</span>
+                                              <span class="c"># theme_override_font_sizes/font_size = 10</span>
+                                              <span class="c"># add_theme_constant_override("outline_size", 2)</span></pre>
+          Connect to actor signals: <code>hp_changed(new)</code>, <code>preview_changed(amount)</code>. <code>queue_redraw()</code> on either.
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

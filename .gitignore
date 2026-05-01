@@ -1,5 +1,6 @@
 # Godot 4+ specific ignores
 .godot/
+*.uid
 .nomedia
 
 # Godot-specific ignores
@@ -15,3 +16,8 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# 020 — map editor transients (debounced autosave + Playtest snapshot).
+# These are dev-loop scratch state, never meant to be committed.
+data/maps/__autosave__.json
+data/maps/__playtest__.json

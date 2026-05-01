@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/presentation/dialogue_preview.gd" id="1_script"]
+
+[node name="DialoguePreview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Dialogue Preview"
+
+[node name="TopBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SearchBar" type="LineEdit" parent="VBox/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Filter by id..."
+
+[node name="TagFilter" type="OptionButton" parent="VBox/TopBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 0)
+
+[node name="CloseBtn" type="Button" parent="VBox/TopBar"]
+layout_mode = 2
+text = "✕"
+
+[node name="Main" type="HSplitContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 280
+
+[node name="List" type="ItemList" parent="VBox/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Right" type="VBoxContainer" parent="VBox/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Info" type="RichTextLabel" parent="VBox/Main/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_active = true
+text = "[color=#888888](выбери реплику)[/color]"
+
+[node name="Buttons" type="HBoxContainer" parent="VBox/Main/Right"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlayBtn" type="Button" parent="VBox/Main/Right/Buttons"]
+layout_mode = 2
+text = "▶ Play (force)"
+disabled = true
+
+[node name="RequestBtn" type="Button" parent="VBox/Main/Right/Buttons"]
+layout_mode = 2
+text = "⟳ Request by tag"
+disabled = true
+
+[node name="TagLabel" type="Label" parent="VBox/Main/Right/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 1.0, 0.8, 1.0)
+text = ""

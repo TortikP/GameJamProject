@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cd51n58b6wg1b"]
+
+[ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="1_hexscene"]
+[ext_resource type="Script" uid="uid://des7qunqb45ud" path="res://scripts/presentation/arena_demo_controller.gd" id="2_democontroller"]
+[ext_resource type="Script" uid="uid://31jk88henj0f" path="res://scripts/presentation/hex_cursor.gd" id="3_hexcursor"]
+
+[node name="HexGridDemo" type="Node2D" unique_id=1390339833]
+
+[node name="HexGrid" parent="." unique_id=1561406945 instance=ExtResource("1_hexscene")]
+position = Vector2(100, 50)
+
+[node name="HexCursor" type="Node2D" parent="HexGrid" unique_id=1003904000]
+script = ExtResource("3_hexcursor")
+grid = NodePath("..")
+
+[node name="DemoController" type="Node" parent="." unique_id=1468935625]
+script = ExtResource("2_democontroller")
+grid = NodePath("../HexGrid")

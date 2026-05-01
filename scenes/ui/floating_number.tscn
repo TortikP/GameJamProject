@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://floating_number_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/floating_number.gd" id="1_fn"]
+
+[node name="FloatingNumber" type="Label"]
+script = ExtResource("1_fn")
+z_index = 8
+text = "0"
+horizontal_alignment = 1

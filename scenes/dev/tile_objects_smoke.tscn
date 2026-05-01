@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://b018smk018smk0"]
+
+[ext_resource type="Script" path="res://scripts/presentation/dev/tile_objects_smoke_controller.gd" id="1_smoke"]
+
+[node name="TileObjectsSmoke" type="Node2D"]
+
+[node name="SmokeController" type="Node" parent="."]
+script = ExtResource("1_smoke")
+
+[node name="Help" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 800.0
+offset_bottom = 220.0
+text = "018 tile-objects smoke
+─────────────────────────
+Console output (Output panel) shows:
+  • All 6 tile objects loaded with their fields
+  • burning tile_effect verified (duration=2)
+  • F1–F4 emit & log the 4 EventBus signals
+
+Full in-arena smoke (lava walk, barrel break, fountain aura) requires
+the TileSet 'object_id' custom data layer (T005a, manual in editor).
+"
+theme_override_font_sizes/font_size = 14

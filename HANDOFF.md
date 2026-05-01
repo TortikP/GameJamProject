@@ -116,12 +116,6 @@ jam-project/
 ├── PROJECT_INSTRUCTIONS.md      # содержимое для Project Settings в claude.ai
 ├── jam-concept-pitch.md         # концепт игры
 ├── README.md                    # как запустить, что где
-├── andrey/                      # personal scratch / drafts / per-dev notes
-├── egor/                        # Клод читает <user>/ в начале каждой сессии
-├── nikita/
-├── sergey/
-├── alexey/
-├── stasyan/
 ├── specs/                       # spec-driven dev: spec.md/plan.md/tasks.md per feature
 │   ├── 001-bootstrap/
 │   ├── 002-hex-grid/
@@ -420,7 +414,6 @@ If running out of time on Saturday:
 - Пишешь четыре autoload-файла из секции 6.
 - `config/game_speed.cfg` — стартовая версия.
 - В корень: `CLAUDE.md` из секции 7, **`HANDOFF.md` (этот документ)**, **`jam-concept-pitch.md`**, **`PROJECT_INSTRUCTIONS.md` (шаблон с placeholder'ом для токена)**. Чтобы любой Клод/Codex в команде имел контекст из репы.
-- Создай личные папки: `andrey/`, `egor/`, `nikita/`, `sergey/`, `alexey/`, `stasyan/`. В каждой `.gitkeep` + короткий `README.md` ("место для личных черновиков, заметок, prompts; Клод читает в начале каждой сессии").
 - Папка `specs/` создаётся пустой с `.gitkeep`. Внутрь сразу кладёшь `specs/001-bootstrap/` со spec/plan/tasks (см. §19).
 - Короткий `README.md` — что это, как запустить, ссылка на CLAUDE.md и HANDOFF.md.
 - Один initial commit прямо в `main` (это разовое исключение — дальше всё через PR в staging).
@@ -465,8 +458,9 @@ If running out of time on Saturday:
 
 ### `DialogueManager` (Алексей)
 
-`scripts/core/dialogue/dialogue_manager.gd` + `scenes/ui/dialogue_panel.tscn`.
+`scripts/presentation/dialogue_manager.gd` + `scenes/ui/dialogue_panel.tscn`.
 - Autoload-стиль, но как обычный класс (для тестируемости).
+- Лежит в `presentation/`, а не `core/`, потому что инстанцирует и владеет UI-панелью. `scripts/core/dialogue/` остаётся для чисто-данных (`dialogue_database.gd`, `dialogue_line.gd`).
 - Читает `data/dialogues/*.json` при старте.
 - API: `play(dialogue_id: String)`, `play_random_by_tag(tag: String)`, очередь.
 - Сигналы через EventBus: `dialogue_started`, `dialogue_finished`.
@@ -713,12 +707,13 @@ JSON-формат:
 3. Локально создать Godot-проект со структурой из секции 5.
 4. Написать 4 autoload из секции 6.
 5. Положить `CLAUDE.md`, `HANDOFF.md`, `jam-concept-pitch.md`, `PROJECT_INSTRUCTIONS.md` в корень.
-6. Создать личные папки (`andrey/ egor/ nikita/ sergey/ alexey/ stasyan/`) с README.
-7. Initial commit на main. Затем `andrey/bootstrap → staging` → ревью → merge.
+6. Initial commit на main. Затем `andrey/bootstrap → staging` → ревью → merge.
 
 Если за вечер успеваете дойти до заготовок (секция 9) — отлично, это будут фичи `002-hex-grid` (Егор) и `003-dialogue-manager` (Алексей). Если нет — сделаете утром четверга.
 
 **Не работайте после полуночи.** Серьёзно. Завтра тема + 72 часа интенсива. Силы нужны.
+
+**В работе сейчас:** `020-map-editor` (data-driven mouse-driven editor для карт: пол/объекты/спавнеры → `data/maps/*.json`, Playtest сразу в бой). Ветка `andrey/020-map-editor-impl`, spec/plan/tasks в `specs/020-map-editor/`. После мержа Стасян может рисовать карты мышью или править JSON руками по `data/maps/_schema.md`. **Смерженное в staging:** `018-tile-objects` (data-driven статика тайлов: камни/лава/фонтаны/бочки), `019-tile-object-resolver` (runtime триггеры этих объектов).
 
 ---
 
@@ -755,7 +750,7 @@ JSON-формат:
 
 `specs/001-bootstrap/spec.md`:
 - **Цель:** репа готова к пятничному кодингу.
-- **Acceptance:** 5 коллабораторов с write (Егор, Сергей, Алексей, Никита, Стасян) + Андрей; branch protection на main и staging; Godot 4.6.2 проект с 4 рабочими autoload; F5 hot-reload `game_speed.cfg` работает; личные папки (`andrey/ egor/ nikita/ sergey/ alexey/ stasyan/`) созданы; первый PR `andrey/bootstrap → staging` смерджен.
+- **Acceptance:** 5 коллабораторов с write (Егор, Сергей, Алексей, Никита, Стасян) + Андрей; branch protection на main и staging; Godot 4.6.2 проект с 4 рабочими autoload; F5 hot-reload `game_speed.cfg` работает; первый PR `andrey/bootstrap → staging` смерджен.
 - **Out of scope:** HexGrid, DialogueManager, любая игровая логика, CI/CD.
 - **Owner:** Андрей.
 
@@ -778,7 +773,6 @@ JSON-формат:
 - [ ] T012 [P1] 4 autoload в project.godot (depends T008-T011)
 - [ ] T013 [P1] config/game_speed.cfg стартовый
 - [ ] T014 [P1] CLAUDE.md, HANDOFF.md, jam-concept-pitch.md, PROJECT_INSTRUCTIONS.md в корень
-- [ ] T015 [P1] Личные папки andrey/ egor/ nikita/ sergey/ alexey/ stasyan/ с README
 - [ ] T016 [P1] README.md краткий в корень
 - [ ] T017 [P1] specs/001-bootstrap/{spec,plan,tasks}.md
 - [ ] T018 [P1] Initial commit на main (depends T002-T017)

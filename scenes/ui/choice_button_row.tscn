@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://choice_button_row_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/choice_button_row.gd" id="1_cbr"]
+
+[node name="ChoiceButtonRow" type="HBoxContainer"]
+script = ExtResource("1_cbr")
+theme_override_constants/separation = 12

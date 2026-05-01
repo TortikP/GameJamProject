@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C26 — Toast — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* ============================================================
+     C26 toast / notification
+     - Short non-blocking messages, anchored top-right of viewport
+     - Stack of up to 3 visible; older ones collapse into "+N more"
+     - Severity = left bar color; icon optional
+     - Dismiss: timeout (5 / 8 / 12s by severity) OR click x
+     ============================================================ */
+
+  .viewport {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .viewport::before {
+    /* hint of underlying combat HUD so anchor reads */
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.35) 100%),
+      repeating-linear-gradient(45deg,
+        rgba(255,255,255,0.012) 0 2px,
+        transparent 2px 8px);
+  }
+  .viewport .anchor-label {
+    position: absolute;
+    top: 8px; left: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* anchor: 12px from top-right, gap 8px between toasts */
+  .toast-stack {
+    position: absolute;
+    top: 12px; right: 12px;
+    display: flex; flex-direction: column;
+    gap: 8px;
+    width: 320px;
+    max-width: 40%;
+  }
+
+  .toast {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    display: grid;
+    grid-template-columns: 3px 1fr auto;
+    overflow: hidden;
+  }
+  .toast .bar { background: var(--ui-border-strong); }
+  .toast.sev-info     .bar { background: var(--team-player); }
+  .toast.sev-success  .bar { background: var(--sem-heal); }
+  .toast.sev-warn     .bar { background: var(--sem-debuff); }
+  .toast.sev-error    .bar { background: var(--sem-damage); }
+
+  .toast .body {
+    padding: 8px 10px 8px 12px;
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    gap: 8px;
+    align-items: start;
+  }
+  .toast .icon {
+    width: 14px; height: 14px;
+    margin-top: 2px;
+    color: var(--ui-text-dim);
+  }
+  .toast.sev-info     .icon { color: var(--team-player); }
+  .toast.sev-success  .icon { color: var(--sem-heal); }
+  .toast.sev-warn     .icon { color: var(--sem-debuff); }
+  .toast.sev-error    .icon { color: var(--sem-damage); }
+
+  .toast .text {
+    font-size: 12px;
+    color: var(--ui-text);
+    line-height: 1.4;
+  }
+  .toast .text strong {
+    font-weight: 600;
+  }
+  .toast .meta {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+  .toast .action {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-focus);
+    text-decoration: underline;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  .toast .close {
+    background: transparent;
+    border: none;
+    color: var(--ui-text-faint);
+    font-size: 14px;
+    line-height: 1;
+    padding: 6px 8px;
+    cursor: pointer;
+    align-self: start;
+  }
+  .toast .close:hover { color: var(--ui-text); }
+
+  /* progress sliver showing dismissal countdown */
+  .toast .timer {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: var(--ui-border);
+    position: relative;
+  }
+  .toast .timer .left {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    background: var(--ui-text-faint);
+  }
+  .toast.sev-info     .timer .left { background: var(--team-player); }
+  .toast.sev-success  .timer .left { background: var(--sem-heal); }
+  .toast.sev-warn     .timer .left { background: var(--sem-debuff); }
+  .toast.sev-error    .timer .left { background: var(--sem-damage); }
+
+  /* "+N more" collapsed pill */
+  .more-pill {
+    align-self: flex-end;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  /* === stage-only: rest of HUD silhouette === */
+  .hud-shadow {
+    position: absolute;
+    border: 1px dashed var(--ui-border);
+    background: var(--ui-bg-panel);
+    opacity: 0.6;
+    color: var(--ui-text-faint);
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hud-shadow.top    { top: 0; left: 0; right: 0; height: 36px; border-width: 0 0 1px 0; }
+  .hud-shadow.skill  { left: 50%; transform: translateX(-50%); bottom: 8px; width: 360px; height: 56px; }
+
+  /* fullscreen-toast variant */
+  .full-toast {
+    position: absolute;
+    top: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--sem-damage);
+    border-left-width: 4px;
+    padding: 10px 16px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--sem-damage);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.55);
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C26</div>
+    <h1>C26 — Toast / notification</h1>
+    <p class="subtitle">
+      Non-blocking system messages anchored top-right. 4 severities, 3 visible at once, the rest collapse
+      into a "+N more" pill. Combat logs use C27 instead — toasts are for system/meta events
+      (autosave, modifier ready, controller disconnect).
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <!-- 1. anchor on full HUD -->
+    <div class="state-card">
+      <h3>Anchor · top-right of viewport</h3>
+      <p class="caption">Toasts dock under the top HUD strip and never overlap C2 skill bar or C12 inspector. Width 320, gap 8.</p>
+      <div class="stage" style="padding:0;min-height:300px;">
+        <div class="viewport">
+          <div class="hud-shadow top">C1 top hud</div>
+          <div class="hud-shadow skill">C2 skill bar</div>
+          <div class="anchor-label">1920 × 1080 viewport</div>
+          <div class="toast-stack">
+            <div class="toast sev-success">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon">
+                  <svg viewBox="0 0 14 14" width="14" height="14"><path d="M2 7l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div>
+                  <div class="text"><strong>Autosaved</strong></div>
+                  <div class="meta">slot 1 · 14:03</div>
+                </div>
+              </div>
+              <button class="close" aria-label="dismiss">×</button>
+              <div class="timer"><div class="left" style="width:62%;"></div></div>
+            </div>
+
+            <div class="toast sev-info">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon">
+                  <svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="7" y1="6" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/></svg>
+                </div>
+                <div>
+                  <div class="text">Modifier pick available — <strong>1 unspent</strong>.</div>
+                  <span class="action">Open picker (M)</span>
+                </div>
+              </div>
+              <button class="close">×</button>
+              <div class="timer"><div class="left" style="width:88%;"></div></div>
+            </div>
+
+            <div class="toast sev-warn">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon">
+                  <svg viewBox="0 0 14 14" width="14" height="14"><path d="M7 1.5 L13 12 L1 12 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><line x1="7" y1="5.5" x2="7" y2="9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.5" r="0.7" fill="currentColor"/></svg>
+                </div>
+                <div>
+                  <div class="text">Controller disconnected.</div>
+                  <div class="meta">reconnect or use kb+m</div>
+                </div>
+              </div>
+              <button class="close">×</button>
+              <div class="timer"><div class="left" style="width:30%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. severity sampler -->
+    <div class="state-card">
+      <h3>Severity sampler</h3>
+      <p class="caption">Bar color + icon are the only severity affordances. Chrome stays identical so the eye finds bar/icon instead of layout.</p>
+      <div class="stage" style="align-items:flex-start;flex-direction:column;gap:var(--sp-2);padding-top:var(--sp-4);">
+        <div style="display:flex;flex-direction:column;gap:8px;width:320px;">
+
+          <div class="toast sev-info">
+            <div class="bar"></div>
+            <div class="body">
+              <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="7" y1="6" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/></svg></div>
+              <div><div class="text"><strong>INFO</strong> · 8s timeout</div><div class="meta">e.g. modifier ready, server ping</div></div>
+            </div>
+            <button class="close">×</button>
+            <div class="timer"><div class="left" style="width:55%;"></div></div>
+          </div>
+
+          <div class="toast sev-success">
+            <div class="bar"></div>
+            <div class="body">
+              <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><path d="M2 7l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div><div class="text"><strong>SUCCESS</strong> · 5s timeout</div><div class="meta">e.g. autosave, settings saved</div></div>
+            </div>
+            <button class="close">×</button>
+            <div class="timer"><div class="left" style="width:55%;"></div></div>
+          </div>
+
+          <div class="toast sev-warn">
+            <div class="bar"></div>
+            <div class="body">
+              <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><path d="M7 1.5 L13 12 L1 12 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><line x1="7" y1="5.5" x2="7" y2="9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.5" r="0.7" fill="currentColor"/></svg></div>
+              <div><div class="text"><strong>WARN</strong> · 8s timeout</div><div class="meta">e.g. controller disconnected</div></div>
+            </div>
+            <button class="close">×</button>
+            <div class="timer"><div class="left" style="width:55%;"></div></div>
+          </div>
+
+          <div class="toast sev-error">
+            <div class="bar"></div>
+            <div class="body">
+              <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="9.5" y1="4.5" x2="4.5" y2="9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+              <div><div class="text"><strong>ERROR</strong> · sticky (no timer)</div><div class="meta">e.g. save write failed</div></div>
+            </div>
+            <button class="close">×</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. overflow / collapse -->
+    <div class="state-card">
+      <h3>Overflow · "+N more"</h3>
+      <p class="caption">Past 3 visible toasts, the oldest collapses into a pill that opens a scrollable history. Errors never collapse — they push older info toasts down.</p>
+      <div class="stage" style="padding:0;min-height:300px;">
+        <div class="viewport">
+          <div class="hud-shadow top">C1 top hud</div>
+          <div class="anchor-label">overflow</div>
+          <div class="toast-stack">
+            <div class="more-pill">+ 4 earlier · click to expand</div>
+            <div class="toast sev-error">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="9.5" y1="4.5" x2="4.5" y2="9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+                <div>
+                  <div class="text"><strong>Save write failed</strong></div>
+                  <div class="meta">slot 2 · disk full</div>
+                  <span class="action">Retry · open folder</span>
+                </div>
+              </div>
+              <button class="close">×</button>
+            </div>
+            <div class="toast sev-info">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="7" y1="6" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/></svg></div>
+                <div>
+                  <div class="text">Wave 5 starts in 8s.</div>
+                </div>
+              </div>
+              <button class="close">×</button>
+              <div class="timer"><div class="left" style="width:18%;"></div></div>
+            </div>
+            <div class="toast sev-success">
+              <div class="bar"></div>
+              <div class="body">
+                <div class="icon"><svg viewBox="0 0 14 14" width="14" height="14"><path d="M2 7l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div>
+                  <div class="text">Settings saved.</div>
+                </div>
+              </div>
+              <button class="close">×</button>
+              <div class="timer"><div class="left" style="width:75%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. fullscreen-banner variant -->
+    <div class="state-card">
+      <h3>Fullscreen banner · combat-blocking error</h3>
+      <p class="caption">When a system error must NOT be missed mid-combat (network desync, save corrupt), the toast promotes to a top-center banner that blocks input until acknowledged. Reserve for &lt;1 case per session.</p>
+      <div class="stage" style="padding:0;min-height:300px;">
+        <div class="viewport">
+          <div class="hud-shadow top">C1 top hud</div>
+          <div class="hud-shadow skill">C2 skill bar</div>
+          <div class="anchor-label">blocking error</div>
+          <div class="full-toast">
+            ⚠ desync detected · run paused — <span style="color:var(--ui-text);text-decoration:underline;">acknowledge</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C26 Toast</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Non-blocking system messages. Combat events (damage, heal, status applied) go through C11 floating combat text and C27 combat log — <em>never</em> through C26.</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Top-right, 12 px from viewport edge. Width 320 px (40% of viewport on small res). Toast height auto. Stack gap 8 px. Capped at 3 visible; older entries collapse into a "+N more" pill that expands a scrollable history.</dd>
+
+        <dt>Severities &amp; defaults</dt>
+        <dd>
+          <pre>INFO     8s   blue   ⓘ
+SUCCESS  5s   green  ✓
+WARN     8s   amber  △
+ERROR    ∞    red    ✕   <span class="c"># sticky; user must dismiss</span></pre>
+          Reduce-motion (C24 a11y) drops the slide-in/out animation but keeps the timer sliver.
+        </dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>Toast {
+  severity   : INFO | SUCCESS | WARN | ERROR
+  text       : RichString          # bold + 1 link allowed
+  meta       : String?             # right-of-text small caps
+  action     : { label, signal }?  # 1 inline action max
+  ttl        : Float? (sec)        # default by severity
+  group_key  : String?             # collapse duplicates
+}</pre>
+        </dd>
+
+        <dt>Outputs</dt>
+        <dd>
+          <code>signal action_clicked(toast_id)</code><br/>
+          <code>signal dismissed(toast_id, reason)</code> — reason ∈ <code>{timeout, click, x, programmatic}</code>
+        </dd>
+
+        <dt>Group / dedupe</dt>
+        <dd>If a new toast has the same <code>group_key</code> as a visible one, the existing toast updates in place and its timer resets — instead of stacking duplicates. Used heavily by autosave + controller-state messages.</dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Modal open (C25):</b> toasts pause their timer and dim to 60% opacity until the modal closes. They don't disappear under it.<br/>
+          • <b>Cutscene / portal transition (C20):</b> queue is suppressed; on return, only ERROR toasts replay.<br/>
+          • <b>HiDPI &amp; safe area:</b> anchor offsets respect <code>SafeArea</code> so handhelds don't clip the close button.<br/>
+          • <b>Localization:</b> width is fixed; long strings wrap up to 3 lines, then truncate with "…" and the toast becomes click-to-expand into the C26 history pane.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">ToastLayer</span> : CanvasLayer  <span class="c"># singleton autoload</span>
+  <span class="n">VBoxContainer</span> stack  <span class="c"># anchored top-right</span>
+    <span class="n">PanelContainer</span> toast    <span class="c"># StyleBoxFlat per severity</span>
+      <span class="n">HBoxContainer</span>
+        <span class="n">ColorRect</span> bar (3px)
+        <span class="n">VBoxContainer</span> body
+          <span class="n">HBoxContainer</span> (TextureRect icon, RichTextLabel text)
+          <span class="n">Label</span> meta
+          <span class="n">LinkButton</span> action
+        <span class="n">Button</span> close (flat)
+      <span class="n">ProgressBar</span> timer (1px, no chrome)</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

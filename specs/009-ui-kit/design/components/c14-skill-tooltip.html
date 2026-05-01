@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C14 — Skill tooltip — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C14: Skill tooltip (rich) -------------------------- */
+  .tt {
+    width: 320px;
+    background: var(--ui-bg-elevated);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    color: var(--ui-text);
+    font-family: system-ui, sans-serif;
+  }
+  .tt header {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2);
+    align-items: baseline;
+  }
+  .tt header .name { font-size: 16px; font-weight: 600; }
+  .tt header .cd {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+  .tt header .cd.ready { color: var(--sem-heal); }
+
+  .tt .ability {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+  }
+  .tt .ability:last-of-type { border-bottom: none; }
+  .tt .ability .head {
+    display: flex;
+    gap: var(--sp-2);
+    align-items: center;
+    margin-bottom: var(--sp-2);
+  }
+  .tt .ability .step {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+  }
+  .tt .ability .target-area {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+  .tt .effect-line {
+    display: grid;
+    grid-template-columns: 12px 1fr auto;
+    gap: var(--sp-2);
+    align-items: baseline;
+    padding: 2px 0;
+    font-size: 13px;
+  }
+  .tt .effect-line .dot {
+    width: 8px; height: 8px;
+    background: var(--c, var(--ui-text-dim));
+    margin-top: 4px;
+  }
+  .tt .effect-line.damage  { --c: var(--sem-damage); }
+  .tt .effect-line.heal    { --c: var(--sem-heal); }
+  .tt .effect-line.control { --c: var(--sem-control); }
+  .tt .effect-line.buff    { --c: var(--sem-buff); }
+  .tt .effect-line.debuff  { --c: var(--sem-debuff); }
+  .tt .effect-line.move    { --c: var(--sem-move); }
+  .tt .effect-line .num {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+  }
+  .tt .effect-line .num .arrow { color: var(--ui-text-faint); }
+  .tt .effect-line .num .delta { color: var(--sem-buff); font-size: 11px; margin-left: 4px; }
+
+  .tt footer {
+    padding: var(--sp-2) var(--sp-4);
+    border-top: 1px solid var(--ui-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+  }
+  .tag {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: 2px var(--sp-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .tt-stage {
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-4);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 240px;
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C14</div>
+    <h1>C14 — Skill tooltip (rich)</h1>
+    <p class="subtitle">
+      Floating panel anchored to a skill pip / slot on hover (400ms delay).
+      Shows ordered ability list with target/area, effects with modifier-adjusted numbers (<code>10 → 15</code>), and tags.
+      <b>Recommended numeric format:</b> <code>base → final</code>.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Single ability · ready</h3>
+      <p class="caption">Simple skill: one ability, one effect, no modifiers. Cooldown=0 → "ready" (green).</p>
+      <div class="tt-stage">
+        <div class="tt">
+          <header>
+            <span class="name">Slash</span>
+            <span class="cd ready">READY · cd 1</span>
+          </header>
+          <div class="ability">
+            <div class="head">
+              <span class="step">1.</span>
+              <span class="target-area">target: entity · area: single</span>
+            </div>
+            <div class="effect-line damage">
+              <span class="dot"></span>
+              <span>damage</span>
+              <span class="num">10</span>
+            </div>
+          </div>
+          <footer>
+            <span class="tag">melee</span>
+            <span class="tag">physical</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Modifier-adjusted · base→final</h3>
+      <p class="caption">Sharpened modifier adds +5 dmg. Format: <code>10 → 15</code>. Delta in blue.</p>
+      <div class="tt-stage">
+        <div class="tt">
+          <header>
+            <span class="name">Bloody Edge</span>
+            <span class="cd ready">READY · cd 2</span>
+          </header>
+          <div class="ability">
+            <div class="head">
+              <span class="step">1.</span>
+              <span class="target-area">target: entity · area: single · range 3</span>
+            </div>
+            <div class="effect-line damage">
+              <span class="dot"></span>
+              <span>damage</span>
+              <span class="num">10 <span class="arrow">→</span> 15<span class="delta">+5</span></span>
+            </div>
+            <div class="effect-line debuff">
+              <span class="dot"></span>
+              <span>bleed · 2t</span>
+              <span class="num">3/turn</span>
+            </div>
+          </div>
+          <footer>
+            <span class="tag">melee</span>
+            <span class="tag">physical</span>
+            <span class="tag">+ sharpened</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Multi-ability composition</h3>
+      <p class="caption">Skill = ordered abilities sharing one cooldown. Each ability shown separately, numbered.</p>
+      <div class="tt-stage">
+        <div class="tt">
+          <header>
+            <span class="name">Push Wave</span>
+            <span class="cd">cd 3</span>
+          </header>
+          <div class="ability">
+            <div class="head">
+              <span class="step">1.</span>
+              <span class="target-area">target: direction · area: cone(3)</span>
+            </div>
+            <div class="effect-line damage">
+              <span class="dot"></span>
+              <span>damage</span>
+              <span class="num">8</span>
+            </div>
+            <div class="effect-line move">
+              <span class="dot"></span>
+              <span>push · 2 hex</span>
+              <span class="num">→</span>
+            </div>
+          </div>
+          <div class="ability">
+            <div class="head">
+              <span class="step">2.</span>
+              <span class="target-area">target: self · area: self</span>
+            </div>
+            <div class="effect-line buff">
+              <span class="dot"></span>
+              <span>shielded · 2t</span>
+              <span class="num">+15 hp</span>
+            </div>
+          </div>
+          <footer>
+            <span class="tag">aoe</span>
+            <span class="tag">force</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Cooling · 2 turns</h3>
+      <p class="caption">Header shows turns remaining; ability list still readable.</p>
+      <div class="tt-stage">
+        <div class="tt" style="opacity:0.85;">
+          <header>
+            <span class="name">Heal Pulse</span>
+            <span class="cd" style="color:var(--sem-debuff);">COOLING · 2 turns</span>
+          </header>
+          <div class="ability">
+            <div class="head">
+              <span class="step">1.</span>
+              <span class="target-area">target: hex · area: circle(2)</span>
+            </div>
+            <div class="effect-line heal">
+              <span class="dot"></span>
+              <span>heal</span>
+              <span class="num">8</span>
+            </div>
+            <div class="effect-line buff">
+              <span class="dot"></span>
+              <span>regen · 3t</span>
+              <span class="num">2/turn</span>
+            </div>
+          </div>
+          <footer>
+            <span class="tag">heal</span>
+            <span class="tag">aoe</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Stacked modifiers</h3>
+      <p class="caption">When multiple modifiers stack, math line at bottom: <code>final = (base+adds) × muls</code>.</p>
+      <div class="tt-stage">
+        <div class="tt">
+          <header>
+            <span class="name">Bloody Edge</span>
+            <span class="cd ready">READY · cd 2</span>
+          </header>
+          <div class="ability">
+            <div class="head">
+              <span class="step">1.</span>
+              <span class="target-area">target: entity · single</span>
+            </div>
+            <div class="effect-line damage">
+              <span class="dot"></span>
+              <span>damage</span>
+              <span class="num">10 <span class="arrow">→</span> 22<span class="delta">×1.5 after +5</span></span>
+            </div>
+          </div>
+          <footer>
+            <span class="tag">+ sharpened</span>
+            <span class="tag">+ rage</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Empty slot tooltip</h3>
+      <p class="caption">Hover empty pip → minimal tooltip with hint text.</p>
+      <div class="tt-stage">
+        <div class="tt">
+          <header>
+            <span class="name" style="color:var(--ui-text-faint);">— empty slot —</span>
+            <span class="cd">R</span>
+          </header>
+          <div class="ability">
+            <div style="font-size:12px;color:var(--ui-text-dim);font-style:italic;">
+              No skill bound. Absorb an aspect or pick a skill from a meta screen to bind.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C14 Skill tooltip</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Show full skill definition on hover: ordered abilities, target/area, effects with base→final math, tags. The "depth on demand" layer (§10).</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Floating, anchored to the hovered slot/pip with 12px offset. Width 320 fixed; height grows with content. Auto-flips above/below to stay on screen.</dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>skill: Skill {
+  id, name, cooldown_max, cooldown_remaining,
+  abilities: Array[Ability],
+  tags: Array[String]
+}
+modifier_breakdown: Array[{ effect_id, base, final, formula }]</pre>
+        </dd>
+        <dt>Numeric format (recommended)</dt>
+        <dd><code>base → final</code> with delta annotation. For multiplied stacks: <code>final ×mul after +add</code> in delta slot. Avoids arithmetic noise.</dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Empty slot:</b> minimal hint variant.<br/>
+          • <b>Cooling:</b> header turns orange + "COOLING · Nt", ability list still rendered.<br/>
+          • <b>Long ability list (&gt;3):</b> tooltip grows — no scroll. Player only sees this on demand.<br/>
+          • <b>Off-screen anchor:</b> flip vertical / horizontal; never clip out of viewport.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">SkillTooltip</span> : PanelContainer        <span class="c"># Control._make_custom_tooltip() returns this</span>
+  <span class="n">VBoxContainer</span>
+    <span class="n">HeaderRow</span>: HBox  (Label name, Label cd)
+    <span class="n">AbilityBlock</span> ×N : VBoxContainer
+      <span class="n">HBox</span>: Label step + Label target_area
+      <span class="n">EffectLine</span> ×N : HBox (ColorRect dot, Label, Label num)
+    <span class="n">FooterTags</span>: HFlowContainer
+      <span class="n">Label</span> tag chip ×N</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>
