@@ -43,6 +43,15 @@ func has_object(id: StringName) -> bool:
 	return _objects.has(id)
 
 
+## 020 — enumeration API for the map editor's object palette. Returns all
+## loaded object ids in registry order. Additive, read-only.
+func get_all_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for id: Variant in _objects:
+		result.append(id)
+	return result
+
+
 # ── Internal ─────────────────────────────────────────────────────────────────
 
 func _load_file(path: String) -> void:

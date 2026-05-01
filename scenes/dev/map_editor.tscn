@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=13 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -9,6 +9,9 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/delete_highlight.gd" id="7_dh"]
 [ext_resource type="PackedScene" path="res://scenes/ui/toast_layer.tscn" id="8_toast"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_modal.tscn" id="9_modal"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/floor_palette_panel.gd" id="10_fp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/object_palette_panel.gd" id="11_op"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/level_meta_panel.gd" id="12_mp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -41,6 +44,44 @@ script = ExtResource("6_hh")
 script = ExtResource("7_dh")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="LevelMetaPanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("12_mp")
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 16.0
+offset_right = -16.0
+grow_horizontal = 0
+
+[node name="FloorPalettePanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("10_fp")
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -200.0
+offset_right = 260.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ObjectPalettePanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("11_op")
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = 80.0
+offset_right = -16.0
+offset_bottom = 220.0
+grow_horizontal = 0
+grow_vertical = 2
 
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 

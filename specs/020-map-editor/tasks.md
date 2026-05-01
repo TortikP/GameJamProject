@@ -34,20 +34,20 @@
 
 ## Phase 3 — Palette UI (~3-4 ч)
 
-- [ ] **T020** [P1] `floor_palette_panel.gd` + scene — TileSet dropdown, кнопки тайлов из выбранного TileSet (рендерим превьюшки из атласа), Erase кнопка (depends T009)
-- [ ] **T020a** [P1] Replace-all: RMB по кнопке тайла → PopupMenu со списком уже использованных tile_kind (исключая сам этот) → ConfirmModal с кол-вом → batch update `_level.floor_cells` + `tile_map_layer.set_cell` + toast + mark_dirty (depends T020, T014)
-- [ ] **T021** [P1] `object_palette_panel.gd` — TabBar (Spawners / Obstacles / Interactive), filter row (3 type checkboxes + Has-effect), категоризация из plan.md (depends 018 TileObjectRegistry)
-- [ ] **T022** [P1] Spawners tab content — `_build_spawner_list()` из `data/enemies/*.json` + player (depends T021)
-- [ ] **T023** [P1] Obstacles + Interactive tab content — `TileObjectRegistry.all()` через категоризатор + filter (depends T021)
-- [ ] **T024** [P1] Wire palette selections → controller mode (PLACING_FLOOR / PLACING_OBJECT / PLACING_SPAWNER / ERASING_FLOOR) (depends T015, T020, T021)
+- [x] **T020** [P1] `floor_palette_panel.gd` + scene — TileSet dropdown, кнопки тайлов из выбранного TileSet (рендерим превьюшки из атласа), Erase кнопка (depends T009)
+- [x] **T020a** [P1] Replace-all: RMB по кнопке тайла → PopupMenu со списком уже использованных tile_kind (исключая сам этот) → ConfirmModal с кол-вом → batch update `_level.floor_cells` + `tile_map_layer.set_cell` + toast + mark_dirty (depends T020, T014)
+- [x] **T021** [P1] `object_palette_panel.gd` — TabBar (Spawners / Obstacles / Interactive), filter row (3 type checkboxes + Has-effect), категоризация из plan.md (depends 018 TileObjectRegistry)
+- [x] **T022** [P1] Spawners tab content — `_build_spawner_list()` из `data/enemies/*.json` + player (depends T021)
+- [x] **T023** [P1] Obstacles + Interactive tab content — `TileObjectRegistry.all()` через категоризатор + filter (depends T021) — added `get_all_ids()` to TileObjectRegistry (additive, Sergey FYI)
+- [x] **T024** [P1] Wire palette selections → controller mode (PLACING_FLOOR / PLACING_OBJECT / PLACING_SPAWNER / ERASING_FLOOR) (depends T015, T020, T021)
 
 ## Phase 4 — Meta panel + Save/Load (~2 ч)
 
-- [ ] **T025** [P1] `level_meta_panel.gd` + scene — name input + 4 кнопки (Save / Load / Playtest / Exit) — стилизация через UiTheme (depends T009)
-- [ ] **T026** [P1] Save flow — sanitize + validate + ConfirmModal на overwrite + LevelSerializer.save + toast (depends T002, T025)
-- [ ] **T026a** [P1] Autosave: debounced Timer 1.5s, `_mark_dirty()` дёргается из всех placement-handler'ов + name-change + replace-all. На `_ready` редактора — recovery prompt если `__autosave__.json` свежий (≤24ч) (depends T002, T009)
-- [ ] **T027** [P1] Load flow (editor) — dirty check + confirm-save + FileDialog + LevelSerializer.load + apply to editor (depends T002, T025)
-- [ ] **T028** [P1] Playtest flow — validate + write `__playtest__.json` + ActiveLevel.queue + change_scene godmode (depends T026, T003)
+- [x] **T025** [P1] `level_meta_panel.gd` + scene — name input + 4 кнопки (Save / Load / Playtest / Exit) — стилизация через UiTheme (depends T009)
+- [x] **T026** [P1] Save flow — sanitize + validate + ConfirmModal на overwrite + LevelSerializer.save + toast (depends T002, T025)
+- [x] **T026a** [P1] Autosave: debounced Timer 1.5s, `_mark_dirty()` дёргается из всех placement-handler'ов + name-change + replace-all. На `_ready` редактора — recovery prompt если `__autosave__.json` свежий (≤24ч) (depends T002, T009)
+- [x] **T027** [P1] Load flow (editor) — dirty check + confirm-save + FileDialog + LevelSerializer.load + apply to editor (depends T002, T025)
+- [x] **T028** [P1] Playtest flow — validate + write `__playtest__.json` + ActiveLevel.queue + change_scene godmode (depends T026, T003)
 - [ ] **T029** [P1] Add `__playtest__.json` AND `__autosave__.json` to `.gitignore` (depends T028, T026a)
 
 ## Phase 5 — Game-side integration (~1-2 ч)
