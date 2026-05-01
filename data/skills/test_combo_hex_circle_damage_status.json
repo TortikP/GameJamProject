@@ -4,7 +4,10 @@
   "tooltip": "skill.test_combo_hex_circle_damage_status.tooltip",
   "desc": "skill.test_combo_hex_circle_damage_status.desc",
   "cooldown": 0,
-  "behaviour_tags": ["damage_aoe", "debuff"],
+  "behaviour_tags": [
+    "damage_aoe",
+    "debuff"
+  ],
   "mood": [],
   "level": 0,
   "abilities": [
@@ -12,11 +15,25 @@
       "id": "tchcds_blast",
       "sound": "",
       "animation": "",
-      "target": {"kind": "hex", "range": 4},
-      "area":   {"kind": "zone_circle", "radius": 2},
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
       "effects": [
-        {"kind": "damage", "id": "tchcds_dmg",  "type": "damage", "duration": 0, "damage": 8},
-        {"kind": "status", "id": "tchcds_burn", "type": "status", "duration": 2, "status": "burning"}
+        {
+          "kind": "damage",
+          "duration": 0,
+          "damage": 8
+        },
+        {
+          "kind": "status",
+          "duration": 2,
+          "status": "burning"
+        }
       ],
       "modifiers": []
     }

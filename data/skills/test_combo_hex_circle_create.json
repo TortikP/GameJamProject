@@ -4,7 +4,9 @@
   "tooltip": "skill.test_combo_hex_circle_create.tooltip",
   "desc": "skill.test_combo_hex_circle_create.desc",
   "cooldown": 0,
-  "behaviour_tags": ["summon"],
+  "behaviour_tags": [
+    "summon"
+  ],
   "mood": [],
   "level": 0,
   "abilities": [
@@ -12,10 +14,20 @@
       "id": "tchcc_summon",
       "sound": "",
       "animation": "",
-      "target": {"kind": "hex", "range": 3},
-      "area":   {"kind": "zone_circle", "radius": 1},
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
       "effects": [
-        {"kind": "create", "id": "tchcc_spawn", "type": "create", "duration": 0, "entity_id": "swarm"}
+        {
+          "kind": "create",
+          "duration": 0,
+          "entity_id": "swarm"
+        }
       ],
       "modifiers": []
     }

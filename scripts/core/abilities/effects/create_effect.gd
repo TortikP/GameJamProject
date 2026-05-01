@@ -12,7 +12,6 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 
 func _init() -> void:
-	type = &"create"
 	requires_alive_target = false   # hexes don't "die"
 
 

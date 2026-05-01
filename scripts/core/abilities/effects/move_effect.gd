@@ -16,11 +16,6 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var move_distance: int = 1
 
 
-func _init() -> void:
-	type = &"move"
-	requires_alive_target = true
-
-
 ## 021 scaling: only `duration` scales (per spec table).
 ## `move_distance` intentionally unscaled — knockback radius is a designed value,
 ## not a power axis.

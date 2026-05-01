@@ -9,11 +9,6 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var status: StringName = &""
 
 
-func _init() -> void:
-	type = &"status"
-	requires_alive_target = true
-
-
 func apply(_caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	var actor := target as Actor
 	if actor == null:

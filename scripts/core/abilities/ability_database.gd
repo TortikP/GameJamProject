@@ -12,8 +12,8 @@ extends Node
 ##     "target": {"kind": "hex"},
 ##     "area":   {"kind": "zone_circle", "radius": 2},
 ##     "effects": [
-##       {"kind": "damage", "id": "fb_dmg", "duration": 0, "damage": 15},
-##       {"kind": "status", "id": "fb_burn", "duration": 3, "status": "burning"}
+##       {"kind": "damage", "duration": 0, "damage": 15},
+##       {"kind": "status", "duration": 3, "status": "burning"}
 ##     ],
 ##     "modifiers": [
 ##       {"kind": "parameter", "id": "fb_extra", "target_param": "damage", "op": "add", "value": 5}

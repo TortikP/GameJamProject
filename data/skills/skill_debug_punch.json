@@ -1,16 +1,28 @@
 {
   "id": "skill_debug_punch",
   "cooldown": 0,
-  "behaviour_tags": ["damage"],
+  "behaviour_tags": [
+    "damage"
+  ],
   "abilities": [
-	{
-	  "id": "debug_punch",
-	  "target": {"kind": "actor", "range": -1},
-	  "area":   {"kind": "chain", "max_chain_length": 1},
-	  "effects": [
-		{"kind": "damage", "id": "dp_dmg", "type": "damage", "duration": 0, "damage": 5}
-	  ],
-	  "modifiers": []
-	}
+    {
+      "id": "debug_punch",
+      "target": {
+        "kind": "actor",
+        "range": -1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "kind": "damage",
+          "duration": 0,
+          "damage": 5
+        }
+      ],
+      "modifiers": []
+    }
   ]
 }

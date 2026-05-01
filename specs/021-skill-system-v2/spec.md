@@ -83,7 +83,8 @@
 | `move` | `move_type: StringName`, `move_distance: int` | без изменений |
 | `create` | `entity_id: StringName` | переименовано из `game_object_id` |
 
-Общие поля у всех (унаследованы из 007): `id`, `type`, `duration`, `requires_alive_target`.
+Общие поля у всех (унаследованы из 007): `duration`, `requires_alive_target`.
+**`id` и `type` на эффектах удалены** — `kind` (ключ в `EFFECT_KINDS` registry) — единственный дискриминатор поведения. Никто не читал `effect.id`/`effect.type` в рантайме, поля были мёртвым весом.
 
 ## Уровень навыка (level scaling)
 

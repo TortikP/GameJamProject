@@ -4,18 +4,34 @@
   "tooltip": "skill.test_level_scaling.tooltip",
   "desc": "skill.test_level_scaling.desc",
   "cooldown": 2,
-  "behaviour_tags": ["damage", "heal"],
-  "mood": ["toxic"],
+  "behaviour_tags": [
+    "damage",
+    "heal"
+  ],
+  "mood": [
+    "toxic"
+  ],
   "level": 2,
   "abilities": [
     {
       "id": "tls_dmg",
       "sound": "",
       "animation": "",
-      "target": {"kind": "actor", "range": -1},
-      "area":   {"kind": "chain", "max_chain_length": 1, "radius": 1},
+      "target": {
+        "kind": "actor",
+        "range": -1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1,
+        "radius": 1
+      },
       "effects": [
-        {"kind": "damage", "id": "tls_dmg_eff", "type": "damage", "duration": 0, "damage": 100}
+        {
+          "kind": "damage",
+          "duration": 0,
+          "damage": 100
+        }
       ],
       "modifiers": []
     },
@@ -23,10 +39,18 @@
       "id": "tls_heal",
       "sound": "",
       "animation": "",
-      "target": {"kind": "self"},
-      "area":   {"kind": "self"},
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
       "effects": [
-        {"kind": "heal", "id": "tls_heal_eff", "type": "heal", "duration": 0, "heal": 50}
+        {
+          "kind": "heal",
+          "duration": 0,
+          "heal": 50
+        }
       ],
       "modifiers": []
     }

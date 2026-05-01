@@ -1,15 +1,33 @@
 {
   "id": "skill_knockback_punch",
   "cooldown": 0,
-  "behaviour_tags": ["damage", "knockback"],
+  "behaviour_tags": [
+    "damage",
+    "knockback"
+  ],
   "abilities": [
     {
       "id": "knockback_punch",
-      "target": {"kind": "actor", "range": 1},
-      "area":   {"kind": "chain", "max_chain_length": 1},
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
       "effects": [
-        {"kind": "damage",  "id": "kbp_dmg",  "type": "damage", "duration": 0, "damage": 4},
-        {"kind": "move",    "id": "kbp_push", "type": "move",   "duration": 0, "move_type": "push", "move_distance": 2}
+        {
+          "kind": "damage",
+          "duration": 0,
+          "damage": 4
+        },
+        {
+          "kind": "move",
+          "duration": 0,
+          "move_type": "push",
+          "move_distance": 2
+        }
       ],
       "modifiers": []
     }

@@ -6,11 +6,6 @@ extends AbilityEffect
 @export var heal: int = 0
 
 
-func _init() -> void:
-	type = &"heal"
-	requires_alive_target = true
-
-
 func apply(_caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	var actor := target as Actor
 	if actor == null:

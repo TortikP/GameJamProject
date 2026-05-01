@@ -227,7 +227,7 @@ Order matters: `apply_level` ⇒ `_apply_param_modifiers`. Уровень — б
       "target": {"kind": "actor", "range": -1},
       "area":   {"kind": "chain", "max_chain_length": 1, "radius": 1},
       "effects": [
-        {"kind": "damage", "id": "tls_dmg_eff", "type": "damage", "duration": 0, "damage": 100}
+        {"kind": "damage", "duration": 0, "damage": 100}
       ],
       "modifiers": []
     },
@@ -238,7 +238,7 @@ Order matters: `apply_level` ⇒ `_apply_param_modifiers`. Уровень — б
       "target": {"kind": "self"},
       "area":   {"kind": "self"},
       "effects": [
-        {"kind": "heal", "id": "tls_heal_eff", "type": "heal", "duration": 0, "heal": 50}
+        {"kind": "heal", "duration": 0, "heal": 50}
       ],
       "modifiers": []
     }
