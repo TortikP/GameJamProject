@@ -93,10 +93,11 @@ func _try_rule(actor: Actor, rule: TacticRule, ctx: Dictionary) -> bool:
 		return false
 
 	# Sort: best_idx asc, then orig_idx asc (tiebreak).
-	matched.sort_custom(func(a, b):
+	var sorter := func(a: Dictionary, b: Dictionary) -> bool:
 		if a.tag_idx != b.tag_idx:
 			return a.tag_idx < b.tag_idx
-		return a.orig_idx < b.orig_idx)
+		return a.orig_idx < b.orig_idx
+	matched.sort_custom(sorter)
 
 	# Filter: ready + has valid target + target in range.
 	var candidates: Array = _build_target_candidates(actor, rule.target_selector, ctx)
