@@ -239,13 +239,13 @@ func _scenario_e_damage_object() -> void:
 	var barrel_coord := Vector2i(10, 0)
 	_grid.place_object(barrel_coord, &"wooden_barrel")
 
-	var destroyed_signal_fired := false
-	var destroyed_id: StringName = &""
+	# Array (reference type) — plain bool/StringName captured by value in lambdas.
+	var destroyed: Array = [false, &""]  # [fired: bool, id: StringName]
 	EventBus.tile_object_destroyed.connect(
 		func(coord: Vector2i, obj_id: StringName) -> void:
 			if coord == barrel_coord:
-				destroyed_signal_fired = true
-				destroyed_id = obj_id,
+				destroyed[0] = true
+				destroyed[1] = obj_id,
 		CONNECT_ONE_SHOT
 	)
 
@@ -254,8 +254,8 @@ func _scenario_e_damage_object() -> void:
 
 	_resolver.damage_object(barrel_coord, 1, &"")  # hp 1→0 → destroy
 	_check("E.damage_2: object cleared from grid", _grid.get_tile_object_id(barrel_coord) == &"")
-	_check("E.damage_2: tile_object_destroyed emitted", destroyed_signal_fired)
-	_check("E.damage_2: destroyed id = wooden_barrel", destroyed_id == &"wooden_barrel")
+	_check("E.damage_2: tile_object_destroyed emitted", destroyed[0])
+	_check("E.damage_2: destroyed id = wooden_barrel", destroyed[1] == &"wooden_barrel")
 	# wooden_barrel.on_destroy_effect_id = damage_zone → overlay placed
 	_check("E.on_destroy: overlay = damage_zone", _grid._overlays.get(barrel_coord, &"") == &"damage_zone")
 
