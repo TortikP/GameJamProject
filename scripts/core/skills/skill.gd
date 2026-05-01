@@ -21,6 +21,29 @@ func is_ready() -> bool:
 	return _cd_remaining <= 0
 
 
+## Pre-check for UI slot greying. Delegates to first ability.
+func can_apply(caster: Actor, ctx: Dictionary) -> bool:
+	if abilities.is_empty():
+		return false
+	return (abilities[0] as Ability).can_apply(caster, ctx)
+
+
+## Damage preview for hover UI. Sums predicted_damage_to across all abilities.
+func predicted_damage_to(caster: Actor, target: Actor, ctx: Dictionary) -> int:
+	var total: int = 0
+	for ab in abilities:
+		total += (ab as Ability).predicted_damage_to(caster, target, ctx)
+	return total
+
+
+## Returns all contained ability IDs. Used by MoveRangeOverlay for attack-range painting.
+func get_ability_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for ab in abilities:
+		ids.append((ab as Ability).id)
+	return ids
+
+
 func cast(caster: Actor, ctx: Dictionary) -> bool:
 	if not is_ready():
 		GameLogger.info("Skill", "%s on cooldown (%d remaining)" % [id, _cd_remaining])

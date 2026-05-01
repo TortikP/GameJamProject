@@ -152,24 +152,24 @@ func _place_player() -> void:
 func _seed_slots() -> void:
 	if _slot_bar_node == null:
 		return
-	var debug_punch: Ability = AbilityDatabase.get_ability(&"debug_punch")
-	if debug_punch != null:
-		_slot_bar_node.set_slot(0, debug_punch)
+	var debug: Skill = SkillDatabase.get_skill(&"skill_debug_punch")
+	if debug != null:
+		_slot_bar_node.set_slot(0, debug)
 	else:
-		GameLogger.warn("Godmode", "debug_punch not found in AbilityDatabase")
-	var melee_punch: Ability = AbilityDatabase.get_ability(&"melee_punch")
-	if melee_punch != null:
-		_slot_bar_node.set_slot(1, melee_punch)
-	var knockback_punch: Ability = AbilityDatabase.get_ability(&"knockback_punch")
-	if knockback_punch != null:
-		_slot_bar_node.set_slot(2, knockback_punch)
+		GameLogger.warn("Godmode", "skill_debug_punch not found in SkillDatabase")
+	var melee: Skill = SkillDatabase.get_skill(&"skill_melee_punch")
+	if melee != null:
+		_slot_bar_node.set_slot(1, melee)
+	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
+	if kb != null:
+		_slot_bar_node.set_slot(2, kb)
 	_slot_bar_node.set_active(0)
-	# Sync player abilities for inspector display
+	# Sync player ability IDs for inspector/overlay display
 	var ids: Array[StringName] = []
 	for i in 4:
-		var ab: Ability = _slot_bar_node.get_slot(i) as Ability
-		if ab != null:
-			ids.append(ab.id)
+		var sk: Skill = _slot_bar_node.get_slot(i) as Skill
+		if sk != null:
+			ids.append_array(sk.get_ability_ids())
 	player.set_abilities(ids)
 
 
@@ -229,9 +229,9 @@ func _refresh_overlay() -> void:
 		if _slot_bar_node != null:
 			var active: int = _slot_bar_node.get_active()
 			if active != -1:
-				var ab := _slot_bar_node.get_slot(active) as Ability
-				if ab != null:
-					ability_ids = [ab.id]
+				var sk := _slot_bar_node.get_slot(active) as Skill
+				if sk != null:
+					ability_ids = sk.get_ability_ids()
 	else:
 		ability_ids = _selected.get_abilities()
 	_overlay.show_for(_selected, registry, ability_ids)
@@ -267,19 +267,19 @@ func _update_castability() -> void:
 	}
 	# Slot castability tints
 	for i in 4:
-		var ability := _slot_bar_node.get_slot(i) as Ability
-		var castable: bool = ability != null and ability.can_apply(player, ctx)
+		var skill := _slot_bar_node.get_slot(i) as Skill
+		var castable: bool = skill != null and skill.can_apply(player, ctx)
 		_slot_bar_node.set_castable(i, castable)
 
 	# Damage preview on enemies — only the hovered one shows red strip,
 	# others get cleared. Active slot's ability is the source.
 	var active_idx: int = _slot_bar_node.get_active()
-	var active_ability := _slot_bar_node.get_slot(active_idx) as Ability
+	var active_skill := _slot_bar_node.get_slot(active_idx) as Skill
 	var hover_target: Actor = registry.get_actor(target_id) if target_id != &"" else null
 	var preview_for_hover: int = 0
-	if active_ability != null and hover_target != null and hover_target.team == &"enemy":
-		if active_ability.can_apply(player, ctx):
-			preview_for_hover = active_ability.predicted_damage_to(player, hover_target, ctx)
+	if active_skill != null and hover_target != null and hover_target.team == &"enemy":
+		if active_skill.can_apply(player, ctx):
+			preview_for_hover = active_skill.predicted_damage_to(player, hover_target, ctx)
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
@@ -387,8 +387,8 @@ func _request_cast_active() -> void:
 	var active_idx: int = _slot_bar_node.get_active()
 	# If a spell is selected and can cast → cast
 	if active_idx != -1:
-		var ability := _slot_bar_node.get_slot(active_idx) as Ability
-		if ability != null and ability.can_apply(player, ctx):
+		var skill := _slot_bar_node.get_slot(active_idx) as Skill
+		if skill != null and skill.can_apply(player, ctx):
 			_cast_slot(active_idx)
 			return
 	# No cast: inspect hovered actor or hex
@@ -403,8 +403,8 @@ func _request_cast_active() -> void:
 func _cast_slot(slot_index: int) -> void:
 	if _slot_bar_node == null:
 		return
-	var ability := _slot_bar_node.get_slot(slot_index) as Ability
-	if ability == null:
+	var skill := _slot_bar_node.get_slot(slot_index) as Skill
+	if skill == null:
 		GameLogger.info("Godmode", "slot %d empty" % slot_index)
 		return
 	if grid._moving or _world_processing:
@@ -420,7 +420,7 @@ func _cast_slot(slot_index: int) -> void:
 		"target_id": target_id,
 		"target_coord": coord,
 	}
-	var did_cast: bool = ability.cast(player, ctx)
+	var did_cast: bool = skill.cast(player, ctx)
 	if not did_cast:
 		return
 	await GameSpeed.wait("godmode", "ability_cast_delay")
@@ -747,12 +747,12 @@ func _enemy_attack_damage(enemy: Actor) -> int:
 
 # ── Ability picker (RMB on slot) ───────────────────────────────────────────
 
-## Builds a PopupMenu with all AbilityDatabase IDs. Called once in _ready().
+## Builds a PopupMenu with all SkillDatabase IDs. Called once in _ready().
 func _build_ability_picker() -> void:
 	_ability_picker = PopupMenu.new()
-	_ability_picker.name = "AbilityPicker"
+	_ability_picker.name = "SkillPicker"
 	add_child(_ability_picker)
-	var ids: Array = AbilityDatabase.all_ids()
+	var ids: Array = SkillDatabase.all_ids()
 	ids.sort()
 	for i in ids.size():
 		_ability_picker.add_item(str(ids[i]), i)
@@ -769,13 +769,13 @@ func _on_slot_right_clicked(slot_index: int) -> void:
 func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	if item_id < 0 or item_id >= ids.size():
 		return
-	var ability_id: StringName = StringName(ids[item_id])
-	var ability: Ability = AbilityDatabase.get_ability(ability_id)
-	if ability == null:
+	var skill_id: StringName = StringName(ids[item_id])
+	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	if skill == null:
 		return
 	if _slot_bar_node != null:
-		_slot_bar_node.set_slot(_picker_target_slot, ability)
-	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, ability_id])
+		_slot_bar_node.set_slot(_picker_target_slot, skill)
+	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
 
 
 # ── 007 skill dev smoke test (F6) ──────────────────────────────────────────
