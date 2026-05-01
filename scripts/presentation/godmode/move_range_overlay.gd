@@ -37,7 +37,7 @@ func show_zone_preview(hexes: Array[Vector2i]) -> void:
 func clear_zone_preview() -> void:
 	for p in _zone_polys:
 		if is_instance_valid(p):
-			p.queue_free()
+			p.free()   # immediate — queue_free() lags one frame, leaves ghost hexes
 	_zone_polys.clear()
 
 
@@ -101,14 +101,14 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 		_add_hex(coord, COLOR_ATTACK, COLOR_ATTACK_OUTLINE, 3)
 
 
-func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2, target_array: Array = []) -> void:
+func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2, target_array = null) -> void:
 	var poly: Node2D = Node2D.new()
 	poly.position = _grid.tile_map_layer.map_to_local(coord)
 	poly.z_index = z
 	poly.set_meta("fill", fill)
 	poly.set_meta("outline", outline)
 	_grid.add_child(poly)
-	if target_array.is_empty():
+	if target_array == null:
 		_polys.append(poly)
 	else:
 		target_array.append(poly)
