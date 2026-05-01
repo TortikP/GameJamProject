@@ -23,8 +23,8 @@ const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
 const PLAYER_ID: StringName = &"player"
-const GRID_W := 8
-const GRID_H := 5
+const GRID_W := 14
+const GRID_H := 9
 
 @export var grid: HexGrid
 @export var registry: ActorRegistry
