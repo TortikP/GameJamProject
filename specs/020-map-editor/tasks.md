@@ -53,6 +53,7 @@
 ## Phase 5 — Game-side integration (~1-2 ч)
 
 - [ ] **T030** [P1] `godmode_controller.gd` — patch `_ready()`: ActiveLevel.has_queued() → load path; иначе оригинальный paint+place (см. plan.md). Тщательно протестировать что non-queued path 1:1 как до патча (depends T005, T003)
+- [ ] **T030a** [P1] `scenes/dev/godmode_terrain.tres` — добавить custom data layer `"object_id"` типа String через Godot editor (TileSet inspector → Custom Data → +). Аналогично тому, что 018/T005a сделал для `hex_terrain.tres`. Устраняет спам «TileSet has no layer with name: object_id» в godmode. **Manual editor step, не код.**
 - [ ] **T031** [P1] `main_menu.gd` + `main_menu.tscn` — добавить `MapEditorButton` (text `"Map Editor [Ctrl+E]"`) и `LoadCustomLevelButton` + handlers (depends T028)
 - [ ] **T032** [P1] `project.godot` — input action `dev_open_editor` (Ctrl+E) (depends T031)
 - [ ] **T033** [P1] Hotkey listener в `main_menu.gd`, `map_editor_controller.gd`, `godmode_controller.gd`. В редакторе — no-op (уже здесь). В остальных — change_scene → map_editor (depends T032)
