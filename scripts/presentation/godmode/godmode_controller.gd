@@ -405,14 +405,14 @@ func _request_cast_active() -> void:
 		var skill := _slot_bar_node.get_slot(active_idx) as Skill
 		if skill != null and skill.can_apply(player, ctx):
 			_cast_slot(active_idx)
-			return
-	# No cast: inspect hovered actor or hex
+		# Skill slot active → never inspect/deselect on a failed cast.
+		return
+	# No active skill: inspect hovered actor or hex
 	var target_actor: Actor = registry.get_actor(target_id) if target_id != &"" else null
 	if target_actor != null:
 		_select(target_actor)
 	elif grid.is_walkable(coord):
 		_inspect_hex(coord)
-	# Off-grid or impassable with no actor → no-op
 
 
 func _cast_slot(slot_index: int) -> void:

@@ -14,6 +14,7 @@ func resolve(caster: Actor, ctx: Dictionary) -> Variant:
 	var coord: Variant = ctx.get("target_coord")
 	if coord == null or not coord is Vector2i:
 		return null
+	var coord_val := coord as Vector2i
 	if range >= 0:
 		var grid: HexGrid = ctx.get("grid")
 		if grid == null:
@@ -21,11 +22,13 @@ func resolve(caster: Actor, ctx: Dictionary) -> Variant:
 		var caster_coord: Vector2i = grid.get_coord(caster.actor_id)
 		if caster_coord == Vector2i(-1, -1):
 			return null
-		var path: Array[Vector2i] = grid.find_path(caster_coord, coord as Vector2i)
-		var steps: int = path.size() - 1 if path.size() > 0 else 999
-		if steps > range:
+		# BFS hop count — matches get_range_hexes() so orange overlay = actual cast range.
+		# find_path (A*) is intentionally NOT used here: A* with move_cost weights
+		# can route around expensive tiles (more hops), causing overlay/cast mismatch.
+		var reachable: Array[Vector2i] = grid.reachable_within(caster_coord, range, [])
+		if not coord_val in reachable:
 			return null
-	return coord
+	return coord_val
 
 
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
