@@ -47,7 +47,7 @@
 
 - В репе `data/dialogues/_speakers.json` с минимум 3 speaker'ами (`narrator`, `rival`, `merchant`).
 - Минимум 3 примера диалогов: `respawn_first.json` (простой), `respawn_choice.json` (с 2 choices), `boss_intro.json` (priority + conditions.min_run).
-- В `main.tscn` — временная кнопка «Test dialogue» которая зовёт `DialogueManager.request(&"respawn", {"run_count": 1})`. Удаляется в фиче `005-roguelike-loop`.
+- Test dialogues exercised через `scenes/dev/dialogue_preview.tscn` (см. ниже §Dev preview). Историческая «Test dialogue» кнопка в `main.tscn` снята — `main.tscn` была заменена на `main_menu.tscn` в 009/AC-I2 и кнопки теперь нет (см. F-032).
 
 ### Dev preview
 
@@ -55,10 +55,10 @@
 
 ### Acceptance verification
 
-1. Открыть Godot, запустить main → видна кнопка «Test dialogue». Клик → панель появляется, typewriter идёт, портрет-плейсхолдер виден, в логе `[INFO][DialogueManager] play respawn_first`.
+1. Открыть Godot, запустить `scenes/dev/dialogue_preview.tscn` → список диалогов. Выбрать `respawn_first` → Play → панель появляется, typewriter идёт, портрет-плейсхолдер виден, в логе `[INFO][DialogueManager] play respawn_first`.
 2. Клик мыши пока пишется → текст доливается мгновенно. Второй клик → панель закрывается, в логе `[INFO][DialogueManager] finished respawn_first`.
-3. Открыть `dialogue_preview.tscn` → список из 3 диалогов. Выбрать `respawn_choice` → Play → видны 2 кнопки. Клик → next-реплика играет.
-4. Запустить main, ничего не делать, прокликать кнопку 4 раза → реплика `respawn_first` сыграла **один раз** (она `once_per_session: true`), последующие request возвращают `&""` или другую реплику если есть.
+3. В `dialogue_preview.tscn` выбрать `respawn_choice` → Play → видны 2 кнопки. Клик → next-реплика играет.
+4. В `dialogue_preview.tscn` сыграть `respawn_first` 4 раза подряд → реплика играется **один раз** (она `once_per_session: true`), последующие request возвращают `&""` или другую реплику если есть.
 5. Открыть `dialogue_preview.tscn`, отыграть `respawn_choice` целиком (выбор + его follow-up) — пока играется, в логе нет других диалогов даже если `EventBus.run_started` или другой триггер фиктивно дёрнуть с consol'и (scene atomicity).
 6. В консоли при старте: `[INFO][DialogueDB] loaded N dialogues, M speakers`.
 
