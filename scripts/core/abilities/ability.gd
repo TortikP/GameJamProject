@@ -69,6 +69,20 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
 		return false
 
+	# Caster is excluded from zone AoE only when the ability is self-targeted
+	# (primary == caster, i.e. SelfTarget). Non-self targets (entity, hex) can
+	# catch the caster in their zone — intentional friendly-fire design space.
+	var exclude_caster: bool = (primary is Actor and (primary as Actor) == caster)
+	if exclude_caster:
+		var filtered: Array = []
+		for v in victims:
+			if v != caster:
+				filtered.append(v)
+		victims = filtered
+	if victims.is_empty():
+		GameLogger.info("Ability", "%s: no victims after caster exclusion" % id)
+		return false
+
 	var target_ids: Array = []
 
 	for victim in victims:

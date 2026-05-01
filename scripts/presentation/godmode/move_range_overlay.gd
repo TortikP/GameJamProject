@@ -14,13 +14,31 @@ const COLOR_OUTLINE_ALLY:  Color = Color(0.40, 0.70, 1.00, 0.55)
 const COLOR_OUTLINE_ENEMY: Color = Color(1.00, 0.40, 0.40, 0.55)
 const COLOR_ATTACK:         Color = Color(1.00, 0.60, 0.00, 0.28)
 const COLOR_ATTACK_OUTLINE: Color = Color(1.00, 0.72, 0.10, 0.72)
+const COLOR_ZONE:         Color = Color(0.75, 0.30, 1.00, 0.32)
+const COLOR_ZONE_OUTLINE: Color = Color(0.88, 0.50, 1.00, 0.80)
 
 var _grid: Node = null  # HexGrid
 var _polys: Array[Node2D] = []
+var _zone_polys: Array[Node2D] = []  # hover AoE preview — cleared every frame
 
 
 func setup(grid: Node) -> void:
 	_grid = grid
+
+
+## Dynamic zone AoE preview — call every frame from _update_castability.
+## Pass [] to erase the preview.
+func show_zone_preview(hexes: Array[Vector2i]) -> void:
+	clear_zone_preview()
+	for coord in hexes:
+		_add_hex(coord, COLOR_ZONE, COLOR_ZONE_OUTLINE, 4, _zone_polys)
+
+
+func clear_zone_preview() -> void:
+	for p in _zone_polys:
+		if is_instance_valid(p):
+			p.queue_free()
+	_zone_polys.clear()
 
 
 func clear() -> void:
@@ -28,6 +46,7 @@ func clear() -> void:
 		if is_instance_valid(p):
 			p.queue_free()
 	_polys.clear()
+	clear_zone_preview()
 
 
 ## Show reachable hexes for `actor`. `registry` is ActorRegistry — used to
@@ -82,15 +101,17 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 		_add_hex(coord, COLOR_ATTACK, COLOR_ATTACK_OUTLINE, 3)
 
 
-func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2) -> void:
+func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2, target_array: Array = []) -> void:
 	var poly: Node2D = Node2D.new()
 	poly.position = _grid.tile_map_layer.map_to_local(coord)
 	poly.z_index = z
-	# Store colors so _draw can access them via metadata
 	poly.set_meta("fill", fill)
 	poly.set_meta("outline", outline)
 	_grid.add_child(poly)
-	_polys.append(poly)
+	if target_array.is_empty():
+		_polys.append(poly)
+	else:
+		target_array.append(poly)
 	# Draw immediately via a draw-script attached inline.
 	# Simplest jam approach: use a child Polygon2D (no custom _draw needed).
 	var pts: PackedVector2Array = []

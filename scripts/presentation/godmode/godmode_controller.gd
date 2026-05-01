@@ -291,6 +291,21 @@ func _update_castability() -> void:
 			continue
 		hp_bar.set_preview_damage(preview_for_hover if a == hover_target else 0)
 
+	# Zone AoE preview — repaint every frame so it follows the cursor.
+	if _overlay != null and _overlay.has_method("show_zone_preview"):
+		var zone_hexes: Array[Vector2i] = []
+		if active_skill != null and coord != Vector2i(-1, -1):
+			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+			for ab_obj in active_skill.abilities:
+				var ab := ab_obj as Ability
+				if ab == null or ab.area == null:
+					continue
+				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, coord, grid)
+				for c in affected:
+					if not zone_hexes.has(c):
+						zone_hexes.append(c)
+		_overlay.show_zone_preview(zone_hexes)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).pressed:
