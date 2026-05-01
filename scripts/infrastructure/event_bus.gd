@@ -39,6 +39,15 @@ signal actor_moved(actor_id: StringName, from: Vector2i, to: Vector2i)
 signal tile_entered(actor_id: StringName, coord: Vector2i)
 signal tile_effect_triggered(actor_id: StringName, coord: Vector2i, effect_id: StringName)
 
+# Tile Objects (018-tile-objects)
+# Decoupling layer: hex_grid / pathfinder / future runtime resolver emit these,
+# presentation + modifier engine listen. 018 declares the contract; the runtime
+# resolver (019-tile-object-resolver) drives applies_on_*, aura ticks, linger.
+signal tile_object_damaged(coord: Vector2i, hp_remaining: int)
+signal tile_object_destroyed(coord: Vector2i, object_id: StringName)
+signal tile_object_effect_triggered(coord: Vector2i, target_actor_id: StringName, effect_id: StringName)
+signal tile_object_actor_exited(coord: Vector2i, actor_id: StringName, object_id: StringName)
+
 # Turn loop
 signal player_turn_ended(turn: int)
 signal world_turn_ended(turn: int)
