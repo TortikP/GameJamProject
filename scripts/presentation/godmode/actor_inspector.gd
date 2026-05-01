@@ -16,7 +16,7 @@ var _actor: Actor = null
 # UI nodes — resolved in _ready, all must exist in actor_inspector.tscn
 @onready var _label_id: Label        = $VBox/ActorSection/LabelId
 @onready var _label_team: Label      = $VBox/ActorSection/LabelTeam
-@onready var _label_curr_hp: Label   = $VBox/ActorSection/RowMaxHp/LabelCurrHp
+@onready var _spin_curr_hp: SpinBox  = $VBox/ActorSection/RowMaxHp/SpinCurrHp
 @onready var _spin_max_hp: SpinBox   = $VBox/ActorSection/RowMaxHp/SpinMaxHp
 @onready var _spin_damage: SpinBox   = $VBox/ActorSection/RowDamage/SpinDamage
 @onready var _spin_speed: SpinBox    = $VBox/ActorSection/RowSpeed/SpinSpeed
@@ -58,12 +58,15 @@ func _input(event: InputEvent) -> void:
 
 
 func _setup_spinbox_ranges() -> void:
+	_spin_curr_hp.min_value = 1;   _spin_curr_hp.max_value = 200; _spin_curr_hp.step = 1
 	_spin_max_hp.min_value  = 1;   _spin_max_hp.max_value  = 200; _spin_max_hp.step  = 1
 	_spin_damage.min_value  = 0;   _spin_damage.max_value  = 50;  _spin_damage.step  = 1
 	_spin_speed.min_value   = 0;   _spin_speed.max_value   = 6;   _spin_speed.step   = 1
+	_spin_curr_hp.rounded = true
 	_spin_max_hp.rounded  = true
 	_spin_damage.rounded  = true
 	_spin_speed.rounded   = true
+	_restrict_to_int(_spin_curr_hp)
 	_restrict_to_int(_spin_max_hp)
 	_restrict_to_int(_spin_damage)
 	_restrict_to_int(_spin_speed)
@@ -100,12 +103,15 @@ func bind(actor: Actor) -> void:
 
 	_label_id.text   = String(actor.actor_id)
 	_label_team.text = String(actor.team)
+	_spin_curr_hp.set_value_no_signal(actor.hp)
+	_spin_curr_hp.max_value = actor.max_hp
 	_spin_max_hp.set_value_no_signal(actor.max_hp)
 	_spin_damage.set_value_no_signal(actor.damage_bonus)
 	_spin_speed.set_value_no_signal(actor.speed)
 
 	actor.damaged.connect(_on_actor_damaged)
 	actor.died.connect(_on_actor_died, CONNECT_ONE_SHOT)
+	_spin_curr_hp.value_changed.connect(_on_curr_hp_changed)
 	_spin_max_hp.value_changed.connect(_on_max_hp_changed)
 	_spin_damage.value_changed.connect(_on_damage_changed)
 	_spin_speed.value_changed.connect(_on_speed_changed)
@@ -164,6 +170,8 @@ func _disconnect_actor() -> void:
 	if _actor.damaged.is_connected(_on_actor_damaged):
 		_actor.damaged.disconnect(_on_actor_damaged)
 	# died was CONNECT_ONE_SHOT — auto-disconnects after fire, no manual needed
+	if _spin_curr_hp.value_changed.is_connected(_on_curr_hp_changed):
+		_spin_curr_hp.value_changed.disconnect(_on_curr_hp_changed)
 	if _spin_max_hp.value_changed.is_connected(_on_max_hp_changed):
 		_spin_max_hp.value_changed.disconnect(_on_max_hp_changed)
 	if _spin_damage.value_changed.is_connected(_on_damage_changed):
@@ -175,7 +183,8 @@ func _disconnect_actor() -> void:
 func _refresh_hp_label() -> void:
 	if _actor == null:
 		return
-	_label_curr_hp.text = "%d /" % _actor.hp
+	_spin_curr_hp.max_value = _actor.max_hp
+	_spin_curr_hp.set_value_no_signal(_actor.hp)
 
 
 ## Rebuild the abilities row from actor.get_abilities().
@@ -225,6 +234,13 @@ func _build_tooltip(ability_id: StringName) -> String:
 
 
 # ── SpinBox handlers ──────────────────────────────────────────────────────────
+
+func _on_curr_hp_changed(value: float) -> void:
+	if _actor == null:
+		return
+	_actor.hp = clampi(int(value), 1, _actor.max_hp)
+	_actor.damaged.emit(_actor.actor_id, 0, _actor.hp)
+
 
 func _on_max_hp_changed(value: float) -> void:
 	if _actor == null:

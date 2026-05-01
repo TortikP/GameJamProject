@@ -12,6 +12,8 @@ const COLOR_ENEMY: Color = Color(1.00, 0.40, 0.40, 0.22)
 const COLOR_SELF: Color  = Color(0.30, 1.00, 0.45, 0.35)  # current hex of selected actor
 const COLOR_OUTLINE_ALLY:  Color = Color(0.40, 0.70, 1.00, 0.55)
 const COLOR_OUTLINE_ENEMY: Color = Color(1.00, 0.40, 0.40, 0.55)
+const COLOR_ATTACK:         Color = Color(1.00, 0.60, 0.00, 0.28)
+const COLOR_ATTACK_OUTLINE: Color = Color(1.00, 0.72, 0.10, 0.72)
 
 var _grid: Node = null  # HexGrid
 var _polys: Array[Node2D] = []
@@ -62,11 +64,26 @@ func show_for(actor: Actor, registry: Node) -> void:
 	for coord in reachable:
 		_add_hex(coord, fill_col, outline_col)
 
+	# ── Attack range ──────────────────────────────────────────────────────────
+	# Collect all coords reachable by any of this actor's abilities.
+	# Shown in orange, drawn ON TOP of move range (higher z).
+	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
+	for ability_id in actor.get_abilities():
+		var ability: Ability = AbilityDatabase.get_ability(ability_id)
+		if ability == null or ability.target == null:
+			continue
+		var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(actor_coord, _grid)
+		for c in range_hexes:
+			attack_coords[c] = true
 
-func _add_hex(coord: Vector2i, fill: Color, outline: Color) -> void:
+	for coord in attack_coords.keys():
+		_add_hex(coord, COLOR_ATTACK, COLOR_ATTACK_OUTLINE, 3)
+
+
+func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2) -> void:
 	var poly: Node2D = Node2D.new()
 	poly.position = _grid.tile_map_layer.map_to_local(coord)
-	poly.z_index = 2
+	poly.z_index = z
 	# Store colors so _draw can access them via metadata
 	poly.set_meta("fill", fill)
 	poly.set_meta("outline", outline)

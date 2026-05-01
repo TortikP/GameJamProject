@@ -47,11 +47,12 @@ layout_mode = 2
 text = "HP"
 theme_override_font_sizes/font_size = 12
 
-[node name="LabelCurrHp" type="Label" parent="VBox/ActorSection/RowMaxHp"]
+[node name="SpinCurrHp" type="SpinBox" parent="VBox/ActorSection/RowMaxHp"]
 layout_mode = 2
-text = "--- /"
+min_value = 1.0
+max_value = 100.0
+value = 50.0
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
 
 [node name="SpinMaxHp" type="SpinBox" parent="VBox/ActorSection/RowMaxHp"]
 layout_mode = 2

@@ -105,6 +105,10 @@ func _build_pathfinder() -> void:
 		_pathfinder.connect_neighbours(coord, neighbours)
 
 
+func get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
+	return _get_walkable_neighbours(coord)
+
+
 func _get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	var neighbour_dirs: Array = [
