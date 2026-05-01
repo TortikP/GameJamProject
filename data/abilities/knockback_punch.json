@@ -1,8 +1,0 @@
-{
-  "id": "knockback_punch",
-  "target": {"kind": "single_enemy_adjacent"},
-  "effect": {"kind": "damage", "amount": 4},
-  "modifiers": [
-    {"kind": "knockback", "distance": 2}
-  ]
-}

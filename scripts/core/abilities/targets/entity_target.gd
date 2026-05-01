@@ -1,0 +1,61 @@
+class_name EntityTarget
+extends AbilityTarget
+## EntityTarget — resolves one Actor from ctx["target_id"].
+##
+## @export range:
+##   -1  = unrestricted (any alive actor)
+##    0  = self only
+##    1+ = within N path-steps of caster (adjacency: range=1)
+##
+## Returns the Actor or null (never returns caster, never returns dead actors).
+
+@export var range: int = -1
+
+
+func resolve(caster: Actor, ctx: Dictionary) -> Variant:
+	var registry: ActorRegistry = ctx.get("registry")
+	if registry == null:
+		return null
+	var id: StringName = ctx.get("target_id", &"")
+	if id == &"":
+		return null
+	var actor: Actor = registry.get_actor(id)
+	if actor == null or not actor.is_alive():
+		return null
+	if actor == caster:
+		return null
+	if range >= 0:
+		var grid: HexGrid = ctx.get("grid")
+		if grid == null:
+			return null
+		var caster_coord: Vector2i = grid.get_coord(caster.actor_id)
+		var target_coord: Vector2i = grid.get_coord(id)
+		if caster_coord == Vector2i(-1, -1) or target_coord == Vector2i(-1, -1):
+			return null
+		var path: Array[Vector2i] = grid.find_path(caster_coord, target_coord)
+		# path includes start+end, so steps = path.size()-1; empty path = unreachable
+		var steps: int = path.size() - 1 if path.size() > 0 else 999
+		if steps > range:
+			return null
+	return actor
+
+
+func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
+	if range < 0:
+		return grid.get_all_walkable_coords()
+	if range == 0:
+		return [caster_coord]
+	# BFS up to range steps from caster (include occupied hexes for overlay)
+	var visited: Dictionary = {caster_coord: true}
+	var frontier: Array[Vector2i] = [caster_coord]
+	var result: Array[Vector2i] = []
+	for _step in range:
+		var next: Array[Vector2i] = []
+		for coord in frontier:
+			for nb in grid.get_walkable_neighbours(coord):
+				if not visited.has(nb):
+					visited[nb] = true
+					result.append(nb)
+					next.append(nb)
+		frontier = next
+	return result
