@@ -14,12 +14,13 @@ func _init() -> void:
 	requires_alive_target = false   # hexes don't "die"
 
 
-func apply(_caster: Actor, target: Variant, ctx: Dictionary) -> void:
-	# Must be a hex coord
-	if not target is Vector2i:
-		return   # AC-E5: entity/direction target → skip silently
+func apply(_caster: Actor, _target: Variant, ctx: Dictionary) -> void:
+	# Coord comes from ctx — victims are now always Actors, not hex coords.
+	var coord_var: Variant = ctx.get("target_coord")
+	if not coord_var is Vector2i:
+		return
+	var coord := coord_var as Vector2i
 
-	var coord := target as Vector2i
 	var grid: HexGrid = ctx.get("grid")
 	if grid == null:
 		return

@@ -21,20 +21,16 @@ func resolve(caster: Actor, primary_target: Variant, ctx: Dictionary) -> Array:
 	if center == Vector2i(-1, -1):
 		return []
 
-	var is_hex_mode: bool = primary_target is Vector2i
-	var registry: ActorRegistry = ctx.get("registry") if not is_hex_mode else null
+	var registry: ActorRegistry = ctx.get("registry")
 
-	# BFS to collect hexes layer by layer (nearest→farthest)
+	# BFS — collect hexes layer by layer (nearest→farthest)
 	var visited: Dictionary = {center: true}
 	var frontier: Array[Vector2i] = [center]
-	var ordered_hexes: Array[Vector2i] = [center]   # start at step 0
+	var ordered_hexes: Array[Vector2i] = [center]
 
 	for _step in radius:
 		var next: Array[Vector2i] = []
 		for coord in frontier:
-			# Use tile_map_layer surrounding cells to get all 6 neighbours,
-			# not just walkable — zone effects hit through walls visually.
-			# But for game logic, we only expand through walkable hexes.
 			for nb in grid.get_walkable_neighbours(coord):
 				if not visited.has(nb):
 					visited[nb] = true
@@ -44,23 +40,17 @@ func resolve(caster: Actor, primary_target: Variant, ctx: Dictionary) -> Array:
 		if frontier.is_empty():
 			break
 
-	if is_hex_mode:
-		# Return coords as Variant array
-		var result: Array = []
-		for c in ordered_hexes:
-			result.append(c)
-		return result
-	else:
-		# Return actors at those hexes, in BFS order
-		var result: Array = []
-		for coord in ordered_hexes:
-			var occ_id: StringName = grid.get_actor_at(coord)
-			if occ_id == &"":
-				continue
-			var actor: Actor = registry.get_actor(occ_id) if registry != null else null
-			if actor != null and actor.is_alive():
-				result.append(actor)
-		return result
+	# Always return actors standing on those hexes.
+	# Effects that need a coord (CreateEffect) read ctx.target_coord directly.
+	var result: Array = []
+	for coord in ordered_hexes:
+		var occ_id: StringName = grid.get_actor_at(coord)
+		if occ_id == &"":
+			continue
+		var actor: Actor = registry.get_actor(occ_id) if registry != null else null
+		if actor != null and actor.is_alive():
+			result.append(actor)
+	return result
 
 
 func get_affected_hexes(caster_coord: Vector2i, primary: Variant, grid: HexGrid) -> Array[Vector2i]:
