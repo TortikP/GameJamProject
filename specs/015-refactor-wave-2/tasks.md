@@ -9,12 +9,12 @@ Sequential кластерами (по concern из findings.md slicing). Оди�
 
 ## B — F-007 + F-008 (UiTheme misses)
 
-- [ ] B1. `scripts/presentation/ui_theme.gd` — добавить `const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)` после `WORLD_TEXT_OUTLINE_COLOR` block с комментарием-headline «Soft drop shadow».
-- [ ] B2. `scripts/presentation/intent_arrow.gd:14` — удалить `const COLOR_SHADOW`.
-- [ ] B3. `scripts/presentation/intent_arrow.gd:59,72` — все use-site'а `COLOR_SHADOW` → `UiTheme.SHADOW_SOFT_COLOR`.
-- [ ] B4. `scripts/presentation/arena_demo_controller.gd:91` — `Color(0.05, 0.80, 1.00)` → `UiTheme.SEM_MOVE`.
-- [ ] B5. Manual smoke: `arena_demo.tscn` (если запускается) — polygon серый, не cyan. IntentArrow визуально не изменился.
-- [ ] B6. Commit: `feat(015): F-007+F-008 — UiTheme.SHADOW_SOFT_COLOR + cyan→SEM_MOVE`.
+- [x] B1. `scripts/presentation/ui_theme.gd` — добавить `const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)` после `WORLD_TEXT_OUTLINE_COLOR` block с комментарием-headline «Soft drop shadow».
+- [x] B2. `scripts/presentation/intent_arrow.gd:14` — удалить `const COLOR_SHADOW`.
+- [x] B3. `scripts/presentation/intent_arrow.gd:59,72` — все use-site'а `COLOR_SHADOW` → `UiTheme.SHADOW_SOFT_COLOR`.
+- [x] B4. `scripts/presentation/arena_demo_controller.gd:91` — `Color(0.05, 0.80, 1.00)` → `UiTheme.SEM_MOVE`.
+- [x] B5. Manual smoke: `arena_demo.tscn` (если запускается) — polygon серый, не cyan. IntentArrow визуально не изменился. (deferred to Egor)
+- [x] B6. Commit: `feat(015): F-007+F-008 — UiTheme.SHADOW_SOFT_COLOR + cyan→SEM_MOVE`.
 
 ## C — F-009 + F-010 + F-011 + F-012 (GameSpeed [ui] keys)
 

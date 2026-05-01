@@ -92,6 +92,12 @@ const BAR_FONT_SIZE_OVERHEAD := 18
 const WORLD_TEXT_OUTLINE_SIZE  := 4
 const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 
+# ── Soft drop shadow ─────────────────────────────────────────
+# Lighter than the world-text outline (alpha 0.55 vs 0.95). For arrow shadows,
+# panel elevations, intent telegraphs — anywhere a shadow should sit behind
+# the foreground without competing with it.
+const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
+
 # ── Lookups ──────────────────────────────────────────────────
 
 ## Returns hp fill color by ratio (0..1).
