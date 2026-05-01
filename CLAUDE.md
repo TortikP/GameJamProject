@@ -22,6 +22,18 @@ These two override implementation convenience. PRs that violate them get a hard 
 
 What this forbids in practice: enemy-only damage paths, AI-only fields on Actor, hidden RNG rolls behind the scenes, attacks that resolve without a telegraph, "mysterious" status effects without UI representation. When in doubt, ask "would the player accept losing 30% HP to this without warning?" — if no, fix the visibility before merging.
 
+## Visibility doctrine
+
+Pillar 1 only works if information is **read at default zoom in 0.3 seconds**. A 9-pixel HP digit on a 1280-wide screen is invisible during play even if it's technically on screen. Rule of thumb: if you have to lean toward the monitor or pause to parse a number, it's too small.
+
+Concrete:
+
+- **All in-world numeric/textual UI** (HP digits, HP bar, damage telegraphs, floating combat numbers, status icons over actors) must use sizes from `UiTheme.BAR_*_OVERHEAD` and `UiTheme.FS_NUM_*`. **No hardcoded `FONT_SIZE = 9` constants in scripts.** If a new size is needed, add a named constant to `UiTheme` first.
+- **All in-world text wears a strong dark outline** via `UiTheme.apply_world_text_outline(label)` (Labels) or `draw_string_outline(...)` with `UiTheme.WORLD_TEXT_OUTLINE_*` constants (custom `_draw()`). Reason: combat text sits over hex grid + actor sprites + VFX simultaneously; without outline it disappears on busy frames.
+- **Default size > minimum size.** When choosing between "fits the layout" and "reads at a glance", choose readability. If layout breaks, the layout is wrong, not the font.
+- **Crit and incoming-damage numbers go even bigger** — `FS_NUM_HUGE` for crits, `BAR_FONT_SIZE_OVERHEAD` for telegraphs. These are the moments the player most needs to see clearly.
+- This rule applies retroactively — when you touch any presentation file, audit any hardcoded sizes inside and convert to UiTheme constants in the same PR.
+
 ## Hard rules
 
 ### Architecture

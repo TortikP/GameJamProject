@@ -26,6 +26,7 @@ DialogueManager="*res://scripts/presentation/dialogue_manager.gd"
 TurnManager="*res://scripts/core/turn/turn_manager.gd"
 AbilityDatabase="*res://scripts/core/abilities/ability_database.gd"
 SkillDatabase="*res://scripts/core/skills/skill_database.gd"
+CrtPostFx="*res://scenes/presentation/crt_post_fx.tscn"
 
 [display]
 
