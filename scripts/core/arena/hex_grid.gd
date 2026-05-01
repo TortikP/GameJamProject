@@ -29,6 +29,7 @@ var _overlay_effects: Dictionary = {} # Vector2i -> StringName   (coord -> effec
 
 var _pathfinder: HexPathfinder = HexPathfinder.new()
 var _effect_registry: TileEffectRegistry
+var _object_registry: TileObjectRegistry  # 018 — tile objects (rocks, lava, fountains, ...)
 
 var _grid_width: int = 0
 var _grid_height: int = 0
@@ -47,6 +48,9 @@ func initialize() -> void:
 
 	_effect_registry = TileEffectRegistry.new()
 	_effect_registry.load_from_dir("res://data/tile_effects/")
+	_object_registry = TileObjectRegistry.new()
+	_object_registry.load_from_dir("res://data/tile_objects/")
+	_pathfinder.set_object_registry(_object_registry)
 	_build_tile_map()
 	_build_pathfinder()
 	emit_signal("grid_built")
@@ -86,12 +90,18 @@ func _build_tile_map() -> void:
 		var move_cost: int = 1
 		var tile_kind: StringName = &""
 		var effect_id: StringName = &""
+		var object_id: StringName = &""
 		if td != null:
 			walkable = td.get_custom_data("walkable")
 			move_cost = td.get_custom_data("move_cost")
 			tile_kind = td.get_custom_data("tile_kind")
 			effect_id = td.get_custom_data("effect_id")
-		_tiles[coord] = HexTile.new(coord, walkable, move_cost, tile_kind, effect_id)
+			# 018 — object_id custom data layer is optional. Returns null if the
+			# layer hasn't been added to the TileSet yet. Treat as empty.
+			var obj_raw: Variant = td.get_custom_data("object_id")
+			if obj_raw != null and String(obj_raw) != "":
+				object_id = StringName(obj_raw)
+		_tiles[coord] = HexTile.new(coord, walkable, move_cost, tile_kind, effect_id, object_id)
 
 
 func _build_pathfinder() -> void:
@@ -99,10 +109,21 @@ func _build_pathfinder() -> void:
 	# Connect neighbours via TileMapLayer.get_neighbor_cell so Godot handles offset parity.
 	for coord: Vector2i in _tiles:
 		var tile: HexTile = _tiles[coord]
-		if not tile.walkable:
+		if not _is_tile_passable(tile):
 			continue
 		var neighbours: Array[Vector2i] = _get_walkable_neighbours(coord)
 		_pathfinder.connect_neighbours(coord, neighbours)
+
+
+## True when an actor can stand on / step through the tile.
+## Composes terrain walkability with TileObject.blocks_movement (018).
+## Single source of truth — every "can the actor go here" check routes through this.
+func _is_tile_passable(tile: HexTile) -> bool:
+	if not tile.walkable:
+		return false
+	if _object_registry == null:
+		return true
+	return not _object_registry.get_object(tile.object_id).blocks_movement
 
 
 func get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
@@ -113,7 +134,7 @@ func get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 func get_all_walkable_coords() -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	for coord in _tiles:
-		if (_tiles[coord] as HexTile).walkable:
+		if _is_tile_passable(_tiles[coord]):
 			result.append(coord)
 	return result
 
@@ -130,7 +151,7 @@ func _get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 	]
 	for dir in neighbour_dirs:
 		var nb: Vector2i = tile_map_layer.get_neighbor_cell(coord, dir)
-		if _tiles.has(nb) and _tiles[nb].walkable:
+		if _tiles.has(nb) and _is_tile_passable(_tiles[nb]):
 			result.append(nb)
 	return result
 
@@ -141,7 +162,7 @@ func place_actor(id: StringName, coord: Vector2i) -> bool:
 	if not _tiles.has(coord):
 		GameLogger.warn("HexGrid", "place_actor: coord %s not in grid" % str(coord))
 		return false
-	if not _tiles[coord].walkable:
+	if not _is_tile_passable(_tiles[coord]):
 		GameLogger.warn("HexGrid", "place_actor: coord %s not walkable" % str(coord))
 		return false
 	if _occupants.has(coord):
@@ -175,7 +196,7 @@ func move_actor(id: StringName, to: Vector2i) -> void:
 	var from: Vector2i = _actor_positions[id]
 	if from == to:
 		return
-	if not _tiles.has(to) or not _tiles[to].walkable:
+	if not _tiles.has(to) or not _is_tile_passable(_tiles[to]):
 		GameLogger.info("HexGrid", "unreachable: %s" % str(to))
 		return
 	if _occupants.has(to):
@@ -190,6 +211,8 @@ func move_actor(id: StringName, to: Vector2i) -> void:
 	_moving = true
 	var prev := from
 	for step_coord: Vector2i in path.slice(1):  # skip 'from'
+		# 018 — emit before clearing/moving so 'prev' is still the actor's tile.
+		_emit_actor_exited_if_object(prev, id)
 		_clear_position(id)
 		_actor_positions[id] = step_coord
 		_occupants[step_coord] = id
@@ -220,7 +243,7 @@ func step_actor(id: StringName, neighbor: int) -> bool:
 		return false
 	var coord: Vector2i = _actor_positions[id]
 	var nb: Vector2i = tile_map_layer.get_neighbor_cell(coord, neighbor)
-	if not _tiles.has(nb) or not _tiles[nb].walkable:
+	if not _tiles.has(nb) or not _is_tile_passable(_tiles[nb]):
 		GameLogger.info("HexGrid", "step blocked at %s" % str(nb))
 		return false
 	if _occupants.has(nb):
@@ -228,6 +251,8 @@ func step_actor(id: StringName, neighbor: int) -> bool:
 		return false
 
 	_moving = true
+	# 018 — emit before clearing/moving so 'coord' is still the actor's tile.
+	_emit_actor_exited_if_object(coord, id)
 	_clear_position(id)
 	_actor_positions[id] = nb
 	_occupants[nb] = id
@@ -253,8 +278,11 @@ func get_actor_at(coord: Vector2i) -> StringName:
 
 # ── Tile query API ───────────────────────────────────────────────────────────
 
+## True iff an actor can stand on this coord. Combines terrain `walkable` flag
+## with TileObject.blocks_movement (018). External API — callers expect "can the
+## actor go here", not raw terrain.
 func is_walkable(coord: Vector2i) -> bool:
-	return _tiles.has(coord) and _tiles[coord].walkable
+	return _tiles.has(coord) and _is_tile_passable(_tiles[coord])
 
 
 func get_move_cost(coord: Vector2i) -> int:
@@ -364,3 +392,15 @@ func _check_tile_effect(actor_id: StringName, coord: Vector2i) -> void:
 	var eid := get_effect_id(coord)
 	if eid != &"":
 		EventBus.tile_effect_triggered.emit(actor_id, coord, eid)
+
+
+## 018 — emit tile_object_actor_exited when an actor leaves a tile that has an
+## object on it. The runtime resolver (019, follow-up) listens to this and
+## applies linger_effect_id where present. Until then: graceful no-op.
+func _emit_actor_exited_if_object(coord: Vector2i, actor_id: StringName) -> void:
+	if not _tiles.has(coord):
+		return
+	var obj_id: StringName = _tiles[coord].object_id
+	if obj_id == &"":
+		return
+	EventBus.tile_object_actor_exited.emit(coord, actor_id, obj_id)

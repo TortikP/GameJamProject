@@ -8,6 +8,7 @@ var walkable: bool
 var move_cost: int          # 1 = normal, 2+ = difficult
 var tile_kind: StringName   # "grass", "wall", "swamp", "acid", "fountain", ...
 var static_effect_id: StringName  # "" = none, "damage_zone", "heal_fountain", ...
+var object_id: StringName   # "" = no tile object; otherwise look up in TileObjectRegistry (018)
 
 
 func _init(
@@ -15,10 +16,12 @@ func _init(
 		p_walkable: bool,
 		p_move_cost: int,
 		p_tile_kind: StringName,
-		p_effect_id: StringName
+		p_effect_id: StringName,
+		p_object_id: StringName = &""
 ) -> void:
 	coord = p_coord
 	walkable = p_walkable
 	move_cost = p_move_cost
 	tile_kind = p_tile_kind
 	static_effect_id = p_effect_id
+	object_id = p_object_id

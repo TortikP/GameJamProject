@@ -9,6 +9,14 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 var _astar: AStar2D = AStar2D.new()
 var _grid_width: int = 0
 var _grid_height: int = 0
+var _object_registry: TileObjectRegistry = null   # 018 — optional; null = legacy behaviour
+
+
+## Inject the tile-object registry so blocks_movement objects skip pathfinder
+## point creation. Must be called BEFORE build(). Safe to skip — when null,
+## passability falls back to tile.walkable only (pre-018 behaviour).
+func set_object_registry(reg: TileObjectRegistry) -> void:
+	_object_registry = reg
 
 
 func build(tiles: Dictionary, grid_width: int, grid_height: int) -> void:
@@ -19,7 +27,7 @@ func build(tiles: Dictionary, grid_width: int, grid_height: int) -> void:
 	# Add points
 	for coord: Vector2i in tiles:
 		var tile: HexTile = tiles[coord]
-		if tile.walkable:
+		if _is_passable(tile):
 			var idx := _coord_to_idx(coord)
 			_astar.add_point(idx, Vector2(coord.x, coord.y))
 			_astar.set_point_weight_scale(idx, float(tile.move_cost))
@@ -29,6 +37,14 @@ func build(tiles: Dictionary, grid_width: int, grid_height: int) -> void:
 	# Adjacency is determined by comparing flat distance (we store it in the point coords).
 	# Actual neighbour lookup is done externally — HexGrid calls connect_neighbours().
 	GameLogger.info("HexPathfinder", "Built AStar2D with %d walkable points" % _astar.get_point_count())
+
+
+func _is_passable(tile: HexTile) -> bool:
+	if not tile.walkable:
+		return false
+	if _object_registry == null:
+		return true
+	return not _object_registry.get_object(tile.object_id).blocks_movement
 
 
 func connect_neighbours(coord: Vector2i, neighbour_coords: Array[Vector2i]) -> void:
