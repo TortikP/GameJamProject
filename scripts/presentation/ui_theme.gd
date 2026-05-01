@@ -36,6 +36,16 @@ const TEXT_ON_ACCENT := Color("0c0e12")
 const FOCUS    := Color("f5d97a")
 const DISABLED := Color("3a414e")
 
+# Slot focus / hover modulation (009/T044+ slot_bar). Pre-baked from FOCUS so
+# slot_bar doesn't recompute Color(focus.r * 1.3, ...) per state change.
+# Active slot when castable: FOCUS yellow brightened ×1.3, blue knocked to ×0.5
+# (hue shift toward gold).
+const FOCUS_ACTIVE_CASTABLE := Color(FOCUS.r * 1.3, FOCUS.g * 1.3, FOCUS.b * 0.5, 1.0)
+# Active slot when not castable (out of range / cooldown): FOCUS desaturated.
+const FOCUS_ACTIVE_DISABLED := Color(FOCUS.r,       FOCUS.g,       FOCUS.b * 0.7, 1.0)
+# Hover brighten for filled-castable slots and similar interactive elements.
+const HOVER_BRIGHTEN        := Color(1.10, 1.10, 1.10)
+
 # ── Semantic (effect types) ──────────────────────────────────
 const SEM_DAMAGE  := Color("d94b4b")
 const SEM_HEAL    := Color("4cc987")
@@ -212,6 +222,30 @@ static func make_button_stylebox(state: String = "normal") -> StyleBoxFlat:
 			sb.border_width_right  = 2
 			sb.border_width_top    = 2
 			sb.border_width_bottom = 2
+	return sb
+
+
+## Builds a pill stylebox for status-icon strips and similar tag-colored chips.
+## family is one of the semantic tags accepted by `semantic_color` (damage/heal/...).
+## Each call returns a NEW StyleBoxFlat — do not share across pills.
+static func make_pill_stylebox(family: StringName) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	var col: Color = semantic_color(family)
+	# Pill has a low-alpha bg with the family color and a 1px border of same.
+	sb.bg_color = Color(col.r, col.g, col.b, 0.20)
+	sb.border_color = Color(col.r, col.g, col.b, 0.65)
+	sb.border_width_left = 1
+	sb.border_width_right = 1
+	sb.border_width_top = 1
+	sb.border_width_bottom = 1
+	sb.corner_radius_top_left = 3
+	sb.corner_radius_top_right = 3
+	sb.corner_radius_bottom_left = 3
+	sb.corner_radius_bottom_right = 3
+	sb.content_margin_left = SP_1
+	sb.content_margin_right = SP_1
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 2
 	return sb
 
 

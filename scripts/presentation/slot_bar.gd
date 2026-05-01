@@ -179,10 +179,8 @@ func _refresh_visual(index: int) -> void:
 		btn.scale = Vector2.ONE
 	elif index == _active:
 		# Active is always visually distinct, even when not castable.
-		# Focus tint via UiTheme.FOCUS modulation (yellowish brighten).
-		var focus := UiTheme.FOCUS
-		btn.modulate = Color(focus.r * 1.3, focus.g * 1.3, focus.b * 0.5, 1.0) \
-			if castable else Color(focus.r, focus.g, focus.b * 0.7, 1.0)
+		# Focus tint via UiTheme.FOCUS_ACTIVE_* (pre-baked from FOCUS — see ui_theme).
+		btn.modulate = UiTheme.FOCUS_ACTIVE_CASTABLE if castable else UiTheme.FOCUS_ACTIVE_DISABLED
 		btn.scale = Vector2(1.12, 1.12)
 		btn.pivot_offset = btn.size * 0.5
 	elif not castable:
@@ -193,5 +191,5 @@ func _refresh_visual(index: int) -> void:
 		btn.scale = Vector2.ONE
 	else:
 		# Castable — full bright; hover slightly more.
-		btn.modulate = Color(1.10, 1.10, 1.10) if hovered else Color.WHITE
+		btn.modulate = UiTheme.HOVER_BRIGHTEN if hovered else Color.WHITE
 		btn.scale = Vector2.ONE

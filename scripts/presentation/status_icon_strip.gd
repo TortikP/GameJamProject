@@ -68,7 +68,7 @@ func _make_pill(entry: Dictionary) -> Control:
 
 	var pill := PanelContainer.new()
 	pill.custom_minimum_size = Vector2(28, 24)
-	pill.add_theme_stylebox_override("panel", _make_pill_stylebox(family))
+	pill.add_theme_stylebox_override("panel", UiTheme.make_pill_stylebox(family))
 	add_child(pill)
 
 	var hbox := HBoxContainer.new()
@@ -91,27 +91,6 @@ func _make_pill(entry: Dictionary) -> Control:
 	pill.mouse_entered.connect(func(): status_pill_hovered.emit(id, pill.get_global_rect()))
 	pill.mouse_exited.connect(func(): status_pill_unhovered.emit())
 	return pill
-
-
-func _make_pill_stylebox(family: StringName) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	var col: Color = UiTheme.semantic_color(family)
-	# Pill has a low-alpha bg with the family color and a 1px border of same.
-	sb.bg_color = Color(col.r, col.g, col.b, 0.20)
-	sb.border_color = Color(col.r, col.g, col.b, 0.65)
-	sb.border_width_left = 1
-	sb.border_width_right = 1
-	sb.border_width_top = 1
-	sb.border_width_bottom = 1
-	sb.corner_radius_top_left = 3
-	sb.corner_radius_top_right = 3
-	sb.corner_radius_bottom_left = 3
-	sb.corner_radius_bottom_right = 3
-	sb.content_margin_left = UiTheme.SP_1
-	sb.content_margin_right = UiTheme.SP_1
-	sb.content_margin_top = 2
-	sb.content_margin_bottom = 2
-	return sb
 
 
 func _on_theme_reloaded() -> void:
