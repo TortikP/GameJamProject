@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C25 — Confirm modal — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* ============================================================
+     C25 generic confirm modal
+     - Centered ~440 wide
+     - Optional severity stripe (left edge): neutral / destructive
+     - Two or three buttons; primary action color = severity
+     - Variant: "typed confirm" requires retyping a token
+     ============================================================ */
+
+  .scrim {
+    background:
+      linear-gradient(0deg, var(--ui-overlay), var(--ui-overlay)),
+      repeating-linear-gradient(45deg,
+        rgba(255,255,255,0.012) 0 2px,
+        transparent 2px 6px);
+    border: 1px dashed var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-6);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 320px;
+  }
+
+  .modal {
+    width: 440px;
+    max-width: 100%;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+    display: grid;
+    grid-template-columns: 4px 1fr;
+    overflow: hidden;
+  }
+  .modal .stripe { background: var(--ui-border-strong); }
+  .modal.severity-destructive .stripe { background: var(--sem-damage); }
+  .modal.severity-warn .stripe { background: var(--sem-debuff); }
+  .modal.severity-info .stripe { background: var(--team-player); }
+
+  .modal .body {
+    padding: var(--sp-4) var(--sp-5);
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+
+  .modal .title-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--sp-3);
+  }
+  .modal h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--ui-text);
+  }
+  .modal .tag {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .modal p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ui-text-dim);
+    line-height: 1.5;
+  }
+  .modal p strong { color: var(--ui-text); font-weight: 600; }
+  .modal .lossy {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--sem-damage);
+    background: rgba(217,75,75,0.08);
+    border: 1px solid rgba(217,75,75,0.4);
+    border-left: 2px solid var(--sem-damage);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: 2px;
+  }
+
+  /* typed-confirm field */
+  .typed {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-top: var(--sp-1);
+  }
+  .typed label {
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+  .typed label code {
+    font-family: ui-monospace, monospace;
+    color: var(--sem-damage);
+    background: rgba(217,75,75,0.08);
+    padding: 0 4px;
+    border-radius: 2px;
+  }
+  .typed .input {
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 2px;
+    padding: 6px 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ui-text);
+    height: 28px;
+    display: flex; align-items: center;
+  }
+  .typed .input.ok {
+    border-color: var(--sem-heal);
+  }
+  .typed .input .caret {
+    width: 1px; height: 14px;
+    background: var(--ui-text);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* footer */
+  .modal .footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-5);
+    border-top: 1px solid var(--ui-border);
+    background: var(--ui-bg-screen);
+  }
+  .modal .footer .left {
+    margin-right: auto;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .btn {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border-strong);
+    color: var(--ui-text);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 72px;
+  }
+  .btn:hover { background: var(--ui-bg-elevated); }
+  .btn.primary {
+    background: var(--ui-focus);
+    border-color: var(--ui-focus);
+    color: var(--ui-bg-screen);
+    font-weight: 600;
+  }
+  .btn.danger {
+    background: var(--sem-damage);
+    border-color: var(--sem-damage);
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn.danger[disabled] {
+    background: rgba(217,75,75,0.25);
+    border-color: rgba(217,75,75,0.35);
+    color: rgba(255,255,255,0.45);
+    cursor: not-allowed;
+  }
+  .btn .kb {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    opacity: 0.6;
+    margin-left: 6px;
+  }
+
+  /* keyhint footer dock — universal across kit */
+  .modal .footer .kbd {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    border: 1px solid var(--ui-border);
+    border-radius: 2px;
+    padding: 1px 5px;
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C25</div>
+    <h1>C25 — Generic confirm modal</h1>
+    <p class="subtitle">
+      Single reusable confirm. Three severities (info / warn / destructive), three button shapes
+      (cancel-confirm, cancel-confirm-tertiary, typed-confirm). Re-used by C24 Settings (unsaved changes),
+      run abandon, modifier reroll, save-slot overwrite, &amp; dev sandbox wipes.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+  <div class="state-grid wide">
+
+    <!-- 1. neutral / unsaved changes -->
+    <div class="state-card">
+      <h3>Neutral · unsaved changes <span class="pill">from C24</span></h3>
+      <p class="caption">Settings is being closed with unsaved diffs. Three buttons: cancel · discard · save&amp;close. Default focus on the safe (Save) action.</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-info">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Discard changes?</h4>
+                  <span class="tag">unsaved · 2</span>
+                </div>
+                <p>You have <strong>2 unsaved changes</strong> in Settings. Closing now will lose them.</p>
+              </div>
+              <div class="footer">
+                <span class="left">Esc · cancel</span>
+                <button class="btn">Cancel</button>
+                <button class="btn">Discard</button>
+                <button class="btn primary">Save &amp; close <span class="kb">↵</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. destructive / abandon run -->
+    <div class="state-card">
+      <h3>Destructive · abandon run</h3>
+      <p class="caption">Red severity stripe + red primary. Lossy box restates what is irrecoverable. Default focus parks on Cancel — never on the destructive action.</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-destructive">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Abandon run?</h4>
+                  <span class="tag">wave 4 · 17:23</span>
+                </div>
+                <p>Returning to the main menu will end the current run.</p>
+                <div class="lossy">
+                  Modifier picks, this wave's progress, and unspent rerolls will be lost.
+                </div>
+              </div>
+              <div class="footer">
+                <span class="left">Esc · cancel</span>
+                <button class="btn">Cancel <span class="kb">esc</span></button>
+                <button class="btn danger">Abandon run</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. destructive · typed confirm -->
+    <div class="state-card">
+      <h3>Destructive · typed confirm</h3>
+      <p class="caption">For nuclear actions (wipe save, reset all settings to defaults). Confirm button stays disabled until the user retypes the token, then unlocks &amp; gains keyboard focus. Used by C24 Defaults during a run + dev sandbox wipes.</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-destructive">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Wipe all save data?</h4>
+                  <span class="tag">profile · default</span>
+                </div>
+                <p>This permanently deletes every run, modifier history, and unlocked keybind preset on the active profile.</p>
+                <div class="lossy">
+                  This cannot be undone. The action is irreversible — there is no auto-backup.
+                </div>
+                <div class="typed">
+                  <label>Type <code>WIPE</code> to confirm:</label>
+                  <div class="input"><span style="color:var(--ui-text-dim);">WIP</span><span class="caret"></span></div>
+                </div>
+              </div>
+              <div class="footer">
+                <span class="left">3 / 4 chars</span>
+                <button class="btn">Cancel <span class="kb">esc</span></button>
+                <button class="btn danger" disabled>Wipe data</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. typed confirm · matched -->
+    <div class="state-card">
+      <h3>Typed confirm · matched</h3>
+      <p class="caption">Same modal one keystroke later. Input border greens, button enables, focus auto-moves to the danger button so ↵ confirms. Cancel still gets Esc.</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-destructive">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Wipe all save data?</h4>
+                  <span class="tag">profile · default</span>
+                </div>
+                <p>This permanently deletes every run, modifier history, and unlocked keybind preset on the active profile.</p>
+                <div class="lossy">
+                  This cannot be undone. The action is irreversible — there is no auto-backup.
+                </div>
+                <div class="typed">
+                  <label>Type <code>WIPE</code> to confirm:</label>
+                  <div class="input ok"><span>WIPE</span><span class="caret"></span></div>
+                </div>
+              </div>
+              <div class="footer">
+                <span class="left">match · ready</span>
+                <button class="btn">Cancel <span class="kb">esc</span></button>
+                <button class="btn danger">Wipe data <span class="kb">↵</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. warn · overwrite -->
+    <div class="state-card">
+      <h3>Warn · overwrite save slot</h3>
+      <p class="caption">Orange severity for non-destructive but lossy actions. Slot metadata renders inline so the user knows what they're about to nuke without leaving the modal.</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-warn">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Overwrite slot 2?</h4>
+                  <span class="tag">slot · 2</span>
+                </div>
+                <p>Slot 2 currently holds:</p>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:4px var(--sp-3);font-family:ui-monospace,monospace;font-size:11px;color:var(--ui-text-dim);">
+                  <span style="color:var(--ui-text-faint);">RUN</span><span>Wave 6 · 42:11</span>
+                  <span style="color:var(--ui-text-faint);">MODS</span><span>thornmail · siphon · echo</span>
+                  <span style="color:var(--ui-text-faint);">SAVED</span><span>2026-04-28 14:02</span>
+                </div>
+              </div>
+              <div class="footer">
+                <span class="left">Esc · cancel</span>
+                <button class="btn">Cancel</button>
+                <button class="btn primary">Overwrite <span class="kb">↵</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. info · short -->
+    <div class="state-card">
+      <h3>Info · short prompt</h3>
+      <p class="caption">Minimum form: title + 1-line body + cancel/confirm. Used by quick prompts like "Reroll this modifier? (1 reroll left)".</p>
+      <div class="stage">
+        <div class="scrim">
+          <div class="modal severity-info">
+            <div class="stripe"></div>
+            <div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>Reroll this modifier?</h4>
+                  <span class="tag">rerolls · 1</span>
+                </div>
+                <p>Replaces the current 3 picks with 3 new ones. <strong>1 reroll left</strong> for this wave.</p>
+              </div>
+              <div class="footer">
+                <span class="left">↵ · confirm</span>
+                <button class="btn">Cancel</button>
+                <button class="btn primary">Reroll <span class="kb">↵</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C25 Generic confirm</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Single Confirm dialog node, opened with a payload. <em>Never</em> hand-roll per-feature confirms — every "are you sure" goes through here so wording, focus rules, and audio cue stay consistent.</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Fixed-width 440 px, height auto. Centered on the screen above a 55% black scrim. Sits above C22/C23/C24 layers (z = modal). Only one C25 instance allowed at a time — second open requests are queued and shown after the first resolves.</dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>ConfirmRequest {
+  severity     : Enum { INFO, WARN, DESTRUCTIVE }
+  title        : String
+  body         : String       # 1–3 sentences
+  details      : String?      # optional lossy / metadata block
+  buttons      : [Button]     # 2 or 3, ordered cancel→confirm
+  default_btn  : ButtonId     # focus on open; never DESTRUCTIVE
+  typed_token  : String?      # if set, confirm disabled until input matches
+  tag          : String?      # right-aligned context chip ("unsaved · 2")
+}</pre>
+        </dd>
+
+        <dt>Outputs</dt>
+        <dd><code>signal resolved(button_id : String)</code> — fires once, then modal closes. <code>resolved("cancel")</code> on Esc / scrim click / any non-positive close.</dd>
+
+        <dt>Severity → color</dt>
+        <dd>
+          <pre>INFO        stripe = --ui-border-strong  primary = --ui-focus     (yellow)
+WARN        stripe = --sem-debuff         primary = --ui-focus     (yellow)
+DESTRUCTIVE stripe = --sem-damage         primary = .btn.danger    (red)</pre>
+          The stripe is the only chrome difference — body layout never changes between severities so muscle memory survives.
+        </dd>
+
+        <dt>Focus &amp; keyboard</dt>
+        <dd>
+          • <code>default_btn</code> gets focus on open. For DESTRUCTIVE that's always Cancel.<br/>
+          • <kbd>Esc</kbd> resolves cancel.<br/>
+          • <kbd>↵</kbd> activates the focused button.<br/>
+          • <kbd>Tab</kbd> cycles within the modal only (focus trap).<br/>
+          • If <code>typed_token</code> is set, focus opens on the input. The Confirm button stays disabled until input <code>== typed_token</code> (case-sensitive). On match, focus moves to Confirm so ↵ fires immediately.
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Re-entry while open:</b> incoming ConfirmRequest is queued, not stacked. Avoids the "wipe save → are you sure → are you sure" footgun.<br/>
+          • <b>Keybind chip mid-capture:</b> opening C25 cancels any pending C24 keybind capture (otherwise Esc would be eaten by the capture).<br/>
+          • <b>Backdrop click:</b> resolves cancel for INFO/WARN, but is ignored for DESTRUCTIVE — user must hit Cancel or Esc explicitly.<br/>
+          • <b>Audio:</b> open plays <code>sfx_modal_open</code>; DESTRUCTIVE additionally plays <code>sfx_warn_pulse</code> once.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">ConfirmModal</span> : CanvasLayer  <span class="c"># singleton autoload</span>
+  <span class="n">ColorRect</span> scrim   <span class="c"># mouse_filter = STOP for INFO/WARN</span>
+  <span class="n">PanelContainer</span> modal centered
+    <span class="n">HBoxContainer</span>
+      <span class="n">ColorRect</span> stripe (4px)
+      <span class="n">VBoxContainer</span> body
+        <span class="n">HBoxContainer</span> title-row (Label, Label tag)
+        <span class="n">RichTextLabel</span> body
+        <span class="n">PanelContainer</span> details            <span class="c"># optional</span>
+        <span class="n">VBoxContainer</span> typed                <span class="c"># optional</span>
+          <span class="n">Label</span>, <span class="n">LineEdit</span>
+      <span class="n">PanelContainer</span> footer
+        <span class="n">HBoxContainer</span> (Label left-meta, Button×2-3)</pre>
+        </dd>
+
+        <dt>Translation</dt>
+        <dd>All copy goes through <code>tr()</code>. The 4-char <code>WIPE</code> token is locale-aware — <code>tr("CONFIRM_WIPE_TOKEN")</code> — and the spec line uses <code>tr("CONFIRM_TYPE_TO_CONFIRM", {token})</code>. Don't bake "WIPE" into Godot script.</dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

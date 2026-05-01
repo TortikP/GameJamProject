@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C1 — Top HUD bar — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C1: Top HUD bar -------------------------------------- */
+  .top-hud {
+    height: 56px;
+    background: var(--ui-bg-panel);
+    border-bottom: 1px solid var(--ui-border);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 var(--sp-5);
+    gap: var(--sp-5);
+    color: var(--ui-text);
+    font-family: system-ui, sans-serif;
+  }
+  .top-hud .left   { display: flex; gap: var(--sp-5); align-items: center; }
+  .top-hud .center { display: flex; gap: var(--sp-3); align-items: center; }
+  .top-hud .right  { display: flex; gap: var(--sp-3); align-items: center; justify-content: flex-end; }
+
+  .stat-block { display: flex; flex-direction: column; line-height: 1; }
+  .stat-block .lbl {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-block .val {
+    font-family: ui-monospace, monospace;
+    font-size: 18px;
+    color: var(--ui-text);
+    margin-top: 2px;
+  }
+  .stat-block .val.alert { color: var(--sem-debuff); }
+
+  .wave-pill {
+    padding: var(--sp-1) var(--sp-3);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    background: var(--ui-bg-panel-2);
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    display: flex;
+    gap: var(--sp-2);
+    align-items: baseline;
+  }
+  .wave-pill .num { font-size: 18px; color: var(--ui-text); }
+  .wave-pill .of  { color: var(--ui-text-faint); }
+
+  .turn-block {
+    display: flex;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-1) var(--sp-3);
+    border: 1px solid var(--ui-focus);
+    border-radius: 4px;
+    background: rgba(245, 217, 122, 0.08);
+  }
+  .turn-block .who {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-focus);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .turn-block .who.world { color: var(--sem-damage); }
+  .turn-block.world { border-color: var(--sem-damage); background: rgba(217, 75, 75, 0.08); }
+  .turn-block .num {
+    font-family: ui-monospace, monospace;
+    font-size: 18px;
+  }
+
+  .hud-btn {
+    height: 32px;
+    padding: 0 var(--sp-3);
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    color: var(--ui-text);
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 120ms, border-color 120ms;
+  }
+  .hud-btn:hover { background: var(--ui-bg-elevated); border-color: var(--ui-border-strong); }
+  .hud-btn.active { border-color: var(--ui-focus); color: var(--ui-focus); }
+
+  .full-hud-stage {
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C1</div>
+    <h1>C1 — Top HUD bar</h1>
+    <p class="subtitle">
+      Always-visible 56px strip at top of arena. Turn counter, wave indicator, run timer, pause.
+      Whose-turn-is-it is the most-glanced number on screen → highest contrast.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Player turn <span class="pill">cast_mode=idle</span></h3>
+      <p class="caption">Default. Yellow turn-block = player's turn. Wave 2 of 5. Run timer 04:13.</p>
+      <div class="full-hud-stage">
+        <div class="top-hud">
+          <div class="left">
+            <div class="turn-block">
+              <span class="who">YOUR TURN</span>
+              <span class="num">12</span>
+            </div>
+            <div class="stat-block">
+              <span class="lbl">Run timer</span>
+              <span class="val">04:13</span>
+            </div>
+          </div>
+          <div class="center">
+            <div class="wave-pill"><span class="num">2</span><span class="of">/ 5</span></div>
+          </div>
+          <div class="right">
+            <button class="hud-btn">Help (?)</button>
+            <button class="hud-btn">Pause (Esc)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>World turn <span class="pill">enemies resolving</span></h3>
+      <p class="caption">Red border = world is ticking. Player input is locked at the controller; visually we make it unmistakable.</p>
+      <div class="full-hud-stage">
+        <div class="top-hud">
+          <div class="left">
+            <div class="turn-block world">
+              <span class="who world">WORLD TURN</span>
+              <span class="num">12</span>
+            </div>
+            <div class="stat-block">
+              <span class="lbl">Run timer</span>
+              <span class="val">04:14</span>
+            </div>
+          </div>
+          <div class="center">
+            <div class="wave-pill"><span class="num">2</span><span class="of">/ 5</span></div>
+          </div>
+          <div class="right">
+            <button class="hud-btn" disabled style="opacity:0.5;cursor:not-allowed;">Help (?)</button>
+            <button class="hud-btn">Pause (Esc)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Final wave <span class="pill">wave 5/5</span></h3>
+      <p class="caption">Last wave of arena. Wave pill same widget; final-wave is data, not a special component.</p>
+      <div class="full-hud-stage">
+        <div class="top-hud">
+          <div class="left">
+            <div class="turn-block">
+              <span class="who">YOUR TURN</span>
+              <span class="num">38</span>
+            </div>
+            <div class="stat-block">
+              <span class="lbl">Run timer</span>
+              <span class="val">12:48</span>
+            </div>
+          </div>
+          <div class="center">
+            <div class="wave-pill"><span class="num">5</span><span class="of">/ 5 · FINAL</span></div>
+          </div>
+          <div class="right">
+            <button class="hud-btn">Help (?)</button>
+            <button class="hud-btn">Pause (Esc)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Run-timer alert <span class="pill">long stalemate</span></h3>
+      <p class="caption">Optional jam-scope flag: timer turns orange after threshold. Pillar 1 — surface the meta-stat.</p>
+      <div class="full-hud-stage">
+        <div class="top-hud">
+          <div class="left">
+            <div class="turn-block">
+              <span class="who">YOUR TURN</span>
+              <span class="num">87</span>
+            </div>
+            <div class="stat-block">
+              <span class="lbl">Run timer</span>
+              <span class="val alert">28:09</span>
+            </div>
+          </div>
+          <div class="center">
+            <div class="wave-pill"><span class="num">3</span><span class="of">/ 5</span></div>
+          </div>
+          <div class="right">
+            <button class="hud-btn">Help (?)</button>
+            <button class="hud-btn">Pause (Esc)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C1 Top HUD bar</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Persistent at-a-glance run state: whose turn, wave progress, run timer, pause access.</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Top-edge full-width, 56px high. Anchors top + left + right. Padding 24px sides.</dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>turn_index:   int
+turn_who:     enum { player, world }
+wave_current: int
+wave_total:   int
+run_seconds:  int
+is_final_wave: bool</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd>
+          <pre>signal pause_pressed()
+signal help_pressed()</pre>
+        </dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>World turn:</b> swap turn-block to red variant; gray out Help button.<br/>
+          • <b>Run timer overflow:</b> render as <code>HH:MM:SS</code> past 1h.<br/>
+          • <b>Wave 0 (transitioning):</b> show <code>—</code> in num slot until next arena spawn.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">TopHud</span> : PanelContainer                <span class="c"># anchors top, custom_minimum_size = (-1, 56)</span>
+  <span class="n">HBoxContainer</span>                          <span class="c"># separation = 24</span>
+    <span class="n">HBoxContainer</span> left  (size_flags = EXPAND_FILL)
+      <span class="n">TurnBlock</span> : PanelContainer        <span class="c"># StyleBoxFlat border = focus | sem-damage</span>
+        <span class="n">Label</span> who, <span class="n">Label</span> num
+      <span class="n">StatBlock</span> : VBoxContainer
+        <span class="n">Label</span> lbl, <span class="n">Label</span> val
+    <span class="n">WavePill</span> : PanelContainer (center)
+    <span class="n">HBoxContainer</span> right (size_flags = EXPAND_FILL, halign=END)
+      <span class="n">Button</span> help, <span class="n">Button</span> pause</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

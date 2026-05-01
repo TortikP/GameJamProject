@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C20 — Wave / portal transition — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C20: Wave / portal transition --------------------- */
+  .portal-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .portal-stage .arena-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, #1c2230 0%, #0c0f15 60%);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ui-text-faint);
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+  }
+
+  .veil {
+    position: absolute; inset: 0;
+    background: rgba(8, 10, 14, var(--a, 0.85));
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: var(--sp-5);
+    pointer-events: none;
+  }
+  .veil .pulse {
+    width: 220px; height: 220px;
+    border: 1px solid var(--sem-control);
+    border-radius: 50%;
+    position: relative;
+  }
+  .veil .pulse::before, .veil .pulse::after {
+    content: "";
+    position: absolute; inset: -16px;
+    border: 1px solid var(--sem-control);
+    border-radius: 50%;
+    opacity: 0.4;
+  }
+  .veil .pulse::after {
+    inset: -32px;
+    opacity: 0.18;
+  }
+  .veil .ring-label {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--sem-control);
+  }
+  .veil .wave-card {
+    text-align: center;
+    color: var(--ui-text);
+  }
+  .veil .wave-card .eyebrow {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ui-text-faint);
+  }
+  .veil .wave-card .num {
+    font-family: ui-monospace, monospace;
+    font-size: 64px;
+    font-weight: 600;
+    line-height: 1;
+    margin: var(--sp-2) 0;
+    color: var(--ui-text);
+  }
+  .veil .wave-card .num .of {
+    font-size: 28px;
+    color: var(--ui-text-dim);
+  }
+  .veil .wave-card .label {
+    font-size: 14px;
+    color: var(--ui-text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .veil .threat-row {
+    display: flex; gap: var(--sp-2);
+    align-items: center;
+  }
+  .threat-pip {
+    width: 32px; height: 32px;
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+  }
+  .threat-pip.boss {
+    border-color: var(--sem-damage);
+    color: var(--sem-damage);
+    width: 40px; height: 40px;
+  }
+
+  .veil .ribbon {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  /* "exit" intro lines (drift from edges) — represented as slabs here */
+  .veil.intro .slab-top, .veil.intro .slab-bot {
+    position: absolute; left: 0; right: 0;
+    height: 60px;
+    background: var(--ui-bg-screen);
+    border-color: var(--ui-border);
+  }
+  .veil.intro .slab-top { top: 0; border-bottom: 1px solid var(--ui-border); }
+  .veil.intro .slab-bot { bottom: 0; border-top: 1px solid var(--ui-border); }
+
+  /* boss variant — red tint */
+  .veil.boss .pulse,
+  .veil.boss .pulse::before,
+  .veil.boss .pulse::after { border-color: var(--sem-damage); }
+  .veil.boss .ring-label { color: var(--sem-damage); }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C20</div>
+    <h1>C20 — Wave / portal transition</h1>
+    <p class="subtitle">
+      Full-screen overlay drawn between waves. Three beats:
+      <b>(1) intro</b> — slabs close in, world dims, portal-pulse appears (~0.6 s);
+      <b>(2) hold</b> — wave card + threat preview (~1.2 s, skippable);
+      <b>(3) outro</b> — pulse expands and the next wave's enemies are spawned, slabs retract.
+      Composes with C19 (modifier pick happens during hold if the wave grants one).
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">Beats</h2>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Intro · slabs closing <span class="pill">t = 0 → 0.6s</span></h3>
+      <p class="caption">Top + bottom slabs sweep in. Background dims to 60%. No content yet.</p>
+      <div class="stage" style="min-height:380px;padding:0;">
+        <div class="portal-stage">
+          <div class="arena-bg">[ARENA]</div>
+          <div class="veil intro" style="--a: 0.6;">
+            <div class="slab-top"></div>
+            <div class="slab-bot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Hold · wave card <span class="pill">t = 0.6 → 1.8s</span></h3>
+      <p class="caption">Wave number, label, threat preview. Skippable with Space.</p>
+      <div class="stage" style="min-height:380px;padding:0;">
+        <div class="portal-stage">
+          <div class="arena-bg">[ARENA]</div>
+          <div class="veil">
+            <div class="ring-label">portal · stable</div>
+            <div class="wave-card">
+              <div class="eyebrow">wave</div>
+              <div class="num">05<span class="of"> / 10</span></div>
+              <div class="label">The Cellar Below</div>
+            </div>
+            <div class="threat-row">
+              <div class="threat-pip">×3</div>
+              <div class="threat-pip">×2</div>
+              <div class="threat-pip">×1</div>
+            </div>
+            <div class="ribbon">space — skip</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Hold · boss wave <span class="pill">tinted red</span></h3>
+      <p class="caption">Boss-flagged waves use damage red on rings + threat pip. Same timing.</p>
+      <div class="stage" style="min-height:380px;padding:0;">
+        <div class="portal-stage">
+          <div class="arena-bg">[ARENA]</div>
+          <div class="veil boss">
+            <div class="ring-label">portal · unstable</div>
+            <div class="wave-card">
+              <div class="eyebrow">wave</div>
+              <div class="num">10<span class="of"> / 10</span></div>
+              <div class="label">The Hollow King</div>
+            </div>
+            <div class="threat-row">
+              <div class="threat-pip boss">BOSS</div>
+              <div class="threat-pip">×4</div>
+            </div>
+            <div class="ribbon">space — skip</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Outro · pulse expands <span class="pill">t = 1.8 → 2.4s</span></h3>
+      <p class="caption">Ring scales to 240%, alpha fades. Slabs retract. Enemies spawn at t≈2.0 so first frame of gameplay shows them already on board.</p>
+      <div class="stage" style="min-height:380px;padding:0;">
+        <div class="portal-stage">
+          <div class="arena-bg">[ARENA · enemies spawning]</div>
+          <div class="veil" style="--a: 0.25;">
+            <div class="pulse" style="transform: scale(2.4); opacity: 0.4;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C20 Wave / portal transition</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Cover the spawn frame so wave changes feel narrative, not technical. Hides loading, presents threat preview, and provides a hook for C19 (modifier pick during hold).</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Full viewport. CanvasLayer above arena, below modals (C19 overlays it).</dd>
+        <dt>Timeline</dt>
+        <dd>
+          <pre>0.0  → 0.6   intro    slabs close, dim, ring fades in
+0.6  → 1.8   hold     wave card + threat preview (skippable)
+1.8  → 2.0   spawn    enemies instanced behind veil
+2.0  → 2.4   outro    ring expands, slabs retract, dim clears</pre>
+        </dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>wave_index: int   # 1-based
+wave_max:   int
+wave_label: String
+threats:    Array[{ icon, count }]
+boss:       bool
+grants_modifier_pick: bool   # if true, hand off to C19 during hold</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd><code>signal intro_done</code>, <code>signal hold_done</code>, <code>signal outro_done</code> — TurnLoop awaits these in order.</dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Skip during hold:</b> jumps straight to spawn → outro. Intro is never skippable (need 0.6s for spawn-prep cover).<br/>
+          • <b>Modifier pick wave:</b> after spawn step, pause-the-world via C19; outro triggers on C19's <code>picked</code> / <code>skipped</code>.<br/>
+          • <b>Boss flag:</b> swap ring tint to <code>--sem-damage</code>; threat-pip "BOSS" replaces count.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">PortalTransition</span> : CanvasLayer        <span class="c"># layer 90</span>
+  <span class="n">ColorRect</span> dimmer                        <span class="c"># animated alpha</span>
+  <span class="n">ColorRect</span> slab_top, slab_bot           <span class="c"># tween off-screen → 60px in</span>
+  <span class="n">CenterContainer</span>
+    <span class="n">VBoxContainer</span>
+      <span class="n">Label</span> ring_label
+      <span class="n">Control</span> ring                       <span class="c"># custom-drawn pulse rings (3 concentric)</span>
+      <span class="n">VBoxContainer</span> wave_card
+      <span class="n">HBoxContainer</span> threat_row
+      <span class="n">Label</span> skip_hint</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,282 @@
+/* =============================================================
+   UI Kit tokens — §5 palette, §4 spacing/type scale
+   These map 1:1 to Godot Color() constants in ui_theme.gd.
+   ============================================================= */
+
+:root {
+  /* surfaces */
+  --ui-bg-screen:    #0c0e12;
+  --ui-bg-panel:     #161a22;
+  --ui-bg-panel-2:   #1f2530;
+  --ui-bg-elevated:  #2a313e;
+  --ui-overlay:      rgba(0,0,0,0.55);
+
+  /* borders */
+  --ui-border:       #2c3340;
+  --ui-border-strong:#465062;
+
+  /* text */
+  --ui-text:         #e8ecf3;
+  --ui-text-dim:     #9aa3b2;
+  --ui-text-faint:   #5e6776;
+  --ui-text-on-accent:#0c0e12;
+
+  /* state */
+  --ui-focus:        #f5d97a;
+  --ui-disabled:     #3a414e;
+
+  /* semantic */
+  --sem-damage:      #d94b4b;
+  --sem-heal:        #4cc987;
+  --sem-control:     #9b6bd1;
+  --sem-buff:        #5aa9e6;
+  --sem-debuff:      #e09b3a;
+  --sem-move:        #cfd3da;
+  --sem-create:      #b6936a;
+
+  /* team */
+  --team-player:     #5fb6f5;
+  --team-enemy:      #d94b4b;
+  --team-neutral:    #9aa3b2;
+
+  /* HP */
+  --hp-fill:         #62c970;
+  --hp-low:          #e09b3a;
+  --hp-crit:         #d94b4b;
+  --hp-preview:      #d94b4b;
+  --hp-bg:           #1a1d24;
+
+  /* spacing scale (§4) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+}
+
+/* -------- Page chrome (kit pages, NOT part of the components) -- */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ui-bg-screen);
+  color: var(--ui-text);
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+a { color: var(--team-player); }
+a:focus { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+.kit-page {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-5);
+}
+
+.kit-header {
+  border-bottom: 1px solid var(--ui-border);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+.kit-header .crumb {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--ui-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-2);
+}
+.kit-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 var(--sp-2) 0;
+}
+.kit-header .subtitle {
+  color: var(--ui-text-dim);
+  margin: 0;
+  max-width: 76ch;
+}
+
+/* -------- State demo grid (shared across component pages) ----- */
+
+.state-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--sp-5);
+  margin: var(--sp-5) 0;
+}
+.state-grid.wide {
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+
+.state-card {
+  background: var(--ui-bg-panel);
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.state-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.state-card h3 .pill {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ui-text-dim);
+  background: var(--ui-bg-panel-2);
+  border: 1px solid var(--ui-border);
+  padding: 2px var(--sp-2);
+  border-radius: 4px;
+}
+.state-card .caption {
+  font-size: 11px;
+  color: var(--ui-text-dim);
+  margin: 0;
+}
+.state-card .stage {
+  background: var(--ui-bg-screen);
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  padding: var(--sp-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+
+/* -------- Section + spec block ------------------------------- */
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: var(--sp-6) 0 var(--sp-3) 0;
+  border-top: 1px solid var(--ui-border);
+  padding-top: var(--sp-5);
+}
+
+details.spec {
+  background: var(--ui-bg-panel);
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  margin-top: var(--sp-4);
+}
+details.spec > summary {
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+details.spec > summary::-webkit-details-marker { display: none; }
+details.spec > summary::before {
+  content: "▶";
+  font-size: 10px;
+  color: var(--ui-text-dim);
+  transition: transform 120ms;
+}
+details.spec[open] > summary::before { transform: rotate(90deg); }
+details.spec .body {
+  padding: 0 var(--sp-4) var(--sp-4) var(--sp-4);
+  border-top: 1px solid var(--ui-border);
+}
+details.spec dl {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--sp-2) var(--sp-4);
+  margin: var(--sp-3) 0 0 0;
+}
+details.spec dt {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--ui-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 2px;
+}
+details.spec dd { margin: 0; }
+details.spec pre {
+  background: var(--ui-bg-screen);
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  padding: var(--sp-3);
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ui-text);
+  overflow-x: auto;
+  margin: var(--sp-2) 0 0 0;
+}
+
+/* -------- 1920 context strip --------------------------------- */
+/* Tiny scaled diagram showing where the component lives on the screen. */
+
+.context-strip {
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  background: var(--ui-bg-screen);
+  padding: var(--sp-3);
+  margin: var(--sp-4) 0;
+}
+.context-strip .label {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--ui-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--sp-2);
+}
+.context-strip .frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--ui-bg-panel);
+  border: 1px solid var(--ui-border);
+  position: relative;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--ui-text-faint);
+}
+.context-strip .frame .zone {
+  position: absolute;
+  border: 1px dashed var(--ui-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ui-bg-panel-2);
+}
+.context-strip .frame .zone.target {
+  border: 1px solid var(--ui-focus);
+  background: rgba(245, 217, 122, 0.1);
+  color: var(--ui-focus);
+}
+
+/* -------- Common Godot tree formatting ----------------------- */
+.tree {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  white-space: pre;
+  color: var(--ui-text);
+}
+.tree .n { color: var(--team-player); }
+.tree .c { color: var(--ui-text-faint); }
+
+/* -------- Focus outline (§7 trap) ---------------------------- */
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}

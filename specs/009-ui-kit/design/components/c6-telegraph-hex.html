@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C6 — Telegraph hex — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C6: Telegraph hex ------------------------------------
+     World-space overlay on hexes that will be affected next tick.
+     Color = primary effect type. Number = aggregated damage (or glyph
+     for non-damage effects). Recommended aggregation: single sum
+     number visible always; per-source breakdown on hover (handled by
+     a tooltip — not part of this widget).
+     ---------------------------------------------------------------- */
+
+  /* hex shape — flat-top, 80px wide */
+  .hex {
+    --hex-w: 80px;
+    --hex-h: calc(var(--hex-w) * 0.8660); /* sqrt(3)/2 for flat-top */
+    --tg-color: var(--sem-damage);
+    width: var(--hex-w);
+    height: var(--hex-h);
+    position: relative;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    background: rgba(217, 75, 75, 0.18);
+    /* NOTE: clip-path is forbidden by §6. Used here ONLY for the
+       2D mockup — the Godot equivalent is a TileMap tile texture or
+       Polygon2D. Spec calls this out. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--tg-color);
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+  }
+  .hex::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    background: var(--tg-color);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hex .num {
+    font-size: 22px;
+    line-height: 1;
+    text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+  }
+  .hex .glyph {
+    font-size: 20px;
+    text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+  }
+  .hex .src {
+    font-size: 9px;
+    color: var(--ui-text);
+    margin-top: 2px;
+    background: rgba(0,0,0,0.6);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+
+  /* effect-type variants — only color changes */
+  .hex.damage  { --tg-color: var(--sem-damage);  background: rgba(217, 75, 75, 0.22); }
+  .hex.heal    { --tg-color: var(--sem-heal);    background: rgba(76, 201, 135, 0.22); }
+  .hex.control { --tg-color: var(--sem-control); background: rgba(155, 107, 209, 0.22); }
+  .hex.buff    { --tg-color: var(--sem-buff);    background: rgba(90, 169, 230, 0.22); }
+  .hex.debuff  { --tg-color: var(--sem-debuff);  background: rgba(224, 155, 58, 0.22); }
+  .hex.move    { --tg-color: var(--sem-move);    background: rgba(207, 211, 218, 0.18); }
+  .hex.create  { --tg-color: var(--sem-create);  background: rgba(182, 147, 106, 0.22); }
+
+  /* aggregated (multi-source) — slightly stronger fill */
+  .hex.aggregated { background: rgba(217, 75, 75, 0.32); }
+
+  /* hex outline using a wrapper div — clip-path on inner */
+  .hex-frame {
+    width: 80px;
+    height: 70px;
+    position: relative;
+  }
+  .hex-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    background: var(--tg-color, var(--sem-damage));
+    opacity: 0;
+  }
+
+  /* arena stub - small grid of grey hexes for background context */
+  .hex-grid {
+    position: relative;
+    width: 360px;
+    height: 220px;
+    background:
+      radial-gradient(ellipse at center, rgba(255,255,255,0.02), transparent 70%),
+      var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .hex-grid .neutral-hex {
+    position: absolute;
+    width: 80px;
+    height: 70px;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    background: var(--ui-bg-panel-2);
+  }
+  .hex-grid .pos {
+    position: absolute;
+  }
+  /* center hex absolute placement */
+  .center { left: 140px; top: 64px; }
+
+  /* enemy stub on a hex */
+  .enemy-stub {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: var(--team-enemy);
+    border: 1px solid #000;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ui-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C6</div>
+    <h1>C6 — Telegraph hex</h1>
+    <p class="subtitle">
+      World-space overlay marking hexes that will be affected next tick. Color = primary effect type.
+      Number = aggregated damage; non-damage effects show a glyph. <b>Recommended aggregation:</b>
+      single sum number; per-source breakdown via hover tooltip (separate widget).
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States by effect type</h2>
+
+  <div class="state-grid">
+
+    <div class="state-card">
+      <h3>Damage <span class="pill">enemy intent · 12 dmg</span></h3>
+      <p class="caption">Primary effect = damage. Number = predicted total damage.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex damage">
+          <span class="num">12</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Heal <span class="pill">ally cast · +8 hp</span></h3>
+      <p class="caption">Heal-zone or single-target heal preview.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex heal">
+          <span class="num">+8</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Control <span class="pill">stun 2t</span></h3>
+      <p class="caption">Stun / root / silence. Glyph + duration.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex control">
+          <span class="glyph">✕</span>
+          <span class="src">stun 2t</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Buff <span class="pill">shield 3t</span></h3>
+      <p class="caption">Positive status zone. Glyph indicates type, "src" line names it.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex buff">
+          <span class="glyph">▲</span>
+          <span class="src">shield 3t</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Debuff <span class="pill">burn 2t</span></h3>
+      <p class="caption">Negative status. Color = orange (--sem-debuff).</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex debuff">
+          <span class="glyph">▼</span>
+          <span class="src">burn 2t</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Move (push/pull) <span class="pill">push 2</span></h3>
+      <p class="caption">Forced movement. Color = near-white (--sem-move). Arrow indicates direction.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex move">
+          <span class="glyph">→→</span>
+          <span class="src">push 2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Create (spawn) <span class="pill">spawn manekin</span></h3>
+      <p class="caption">Object will be spawned on this hex.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex create">
+          <span class="glyph">◆</span>
+          <span class="src">spawn</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Aggregated · 2 sources <span class="pill">12 + 7 = 19</span></h3>
+      <p class="caption">Two enemies both target this hex. Recommended (a): single summed number, brighter fill. Detail breakdown on hover.</p>
+      <div class="stage" style="min-height:200px;">
+        <div class="hex damage aggregated">
+          <span class="num">19</span>
+          <span class="src">2 sources</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Aggregated + lethal <span class="pill">on enemy</span></h3>
+      <p class="caption">Sits over an enemy. Number is on top of the enemy sprite + HP bar (which simultaneously shows preview strip per C4).</p>
+      <div class="stage" style="min-height:220px;">
+        <div style="position:relative;">
+          <div class="hex damage aggregated" style="position:relative;">
+            <span class="num">15</span>
+          </div>
+          <div class="enemy-stub" style="left:24px;top:30px;">E</div>
+          <!-- mini HP bar -->
+          <div style="position:absolute;left:24px;top:14px;width:32px;height:4px;background:var(--hp-bg);outline:1px solid #000;box-shadow:0 0 0 1px var(--team-enemy);">
+            <div style="width:25%;height:100%;background:var(--hp-low);position:relative;">
+              <div style="position:absolute;right:0;top:0;bottom:0;width:60%;background:var(--hp-preview);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">In context — telegraphs over an arena</h2>
+  <div class="state-grid wide">
+    <div class="state-card">
+      <h3>Multi-target enemy intent</h3>
+      <p class="caption">Cone-area enemy attack covers 3 hexes; player previews their cast over 1 hex (heal). Visible side-by-side.</p>
+      <div class="stage" style="min-height:240px;">
+        <div class="hex-grid">
+          <!-- flat-top grid: w=80,h=70; h-step=60,v-step=70,odd-col offset=35 -->
+          <!-- col 0 (even) -->
+          <div class="neutral-hex pos" style="left:20px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:20px;top:90px;"></div>
+          <!-- col 1 (odd) -->
+          <div class="neutral-hex pos" style="left:80px;top:55px;"></div>
+          <div class="neutral-hex pos" style="left:80px;top:125px;"></div>
+          <!-- col 2 (even) -->
+          <div class="neutral-hex pos" style="left:140px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:140px;top:90px;"></div>
+          <!-- col 3 (odd) -->
+          <div class="neutral-hex pos" style="left:200px;top:55px;"></div>
+          <div class="neutral-hex pos" style="left:200px;top:125px;"></div>
+          <!-- col 4 (even) -->
+          <div class="neutral-hex pos" style="left:260px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:260px;top:90px;"></div>
+
+          <!-- enemy cone attacks: 3 contiguous damage hexes -->
+          <div class="hex damage pos" style="left:140px;top:20px;"><span class="num">12</span></div>
+          <div class="hex damage pos" style="left:200px;top:55px;"><span class="num">12</span></div>
+          <div class="hex damage pos" style="left:260px;top:20px;"><span class="num">12</span></div>
+
+          <!-- player heal cast preview, off to the side -->
+          <div class="hex heal pos" style="left:20px;top:90px;"><span class="num">+8</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>No telegraphs</h3>
+      <p class="caption">Empty / idle state. No hexes are being telegraphed. (Layer renders nothing — empty for parity with rest of kit.)</p>
+      <div class="stage" style="min-height:240px;">
+        <div class="hex-grid">
+          <div class="neutral-hex pos" style="left:20px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:20px;top:90px;"></div>
+          <div class="neutral-hex pos" style="left:80px;top:55px;"></div>
+          <div class="neutral-hex pos" style="left:80px;top:125px;"></div>
+          <div class="neutral-hex pos" style="left:140px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:140px;top:90px;"></div>
+          <div class="neutral-hex pos" style="left:200px;top:55px;"></div>
+          <div class="neutral-hex pos" style="left:200px;top:125px;"></div>
+          <div class="neutral-hex pos" style="left:260px;top:20px;"></div>
+          <div class="neutral-hex pos" style="left:260px;top:90px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C6 Telegraph hex</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Pillar 1 incarnate: every imminent effect is visible on the hex it will land on, with its number, before it resolves. Same widget telegraphs enemy intents and player cast previews (Pillar 2).</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>World-space, parented to a hex via TileMap or Node2D at the hex's pixel center. Footprint = 1 hex (jam target ~80×92 at default zoom). Z-order: above terrain, below actors.</dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>hex_coord:  Vector2i
+sources:    Array[{ source_actor_id: int,
+                    skill_id: String,
+                    primary_effect: enum,
+                    amount: int,        # damage/heal numeric
+                    duration: int,      # for status effects
+                    label: String }]
+visible:    bool</pre>
+        </dd>
+
+        <dt>Display rules</dt>
+        <dd>
+          <pre>primary_color = sem-{sources[0].primary_effect}
+if all sources have type=damage:
+  show single number = sum(amount)
+  if len(sources) &gt; 1: append "N sources" sub-label
+elif effect is heal: show "+N"
+else: show effect glyph + label like "stun 2t"</pre>
+          Glyph table: damage = numeric, heal = "+N", control = "✕", buff = "▲",
+          debuff = "▼", move = "→→" or "←←", create = "◆".
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Mixed effect types on one hex</b> (e.g. push + damage): show the damage number; secondary indicators are pip-icons in corner. Out of jam scope to design — flag for follow-up.<br/>
+          • <b>Hex moves to fog-of-war:</b> hide telegraph.<br/>
+          • <b>Source actor dies before resolution:</b> remove that source; if list empties, hide telegraph.<br/>
+          • <b>Aggregation hover:</b> when player hovers a multi-source hex, generic tooltip C15 shows breakdown (12 from Cultist, 7 from Hound).
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">TelegraphHex</span> : Node2D                  <span class="c"># positioned via hex_to_pixel()</span>
+  <span class="n">Polygon2D</span> bg                          <span class="c"># 6-vertex hex, color = primary w/ alpha 0.22</span>
+  <span class="n">Line2D</span> outline (optional)              <span class="c"># 1px hex outline, primary color</span>
+  <span class="n">Label</span> num                              <span class="c"># 22pt mono bold, font_outline_size=2</span>
+                                            <span class="c"># anchor center; theme_override_color = primary</span>
+  <span class="n">Label</span> src (optional)                    <span class="c"># 9pt mono, anchored below num</span></pre>
+          NO clip-path, NO gradients — Polygon2D handles the hex shape cheaply.
+          Z-index: <code>z_index = 1</code> (terrain=0, actors=10).
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>
