@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://floating_number_layer_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/floating_number_layer.gd" id="1_fnl"]
+
+[node name="FloatingNumberLayer" type="Node2D"]
+script = ExtResource("1_fnl")
+z_index = 8

@@ -107,6 +107,12 @@ func _ready() -> void:
 		_overlay = grid.get_node_or_null("MoveRangeOverlay")
 	if _overlay != null and _overlay.has_method("setup"):
 		_overlay.setup(grid)
+	# CastRangeOverlay (009-T033) — present in godmode.tscn as sibling under HexGrid.
+	# Wire its grid ref now; show_range/hide_range calls follow once cast_mode is
+	# explicit (007 ownership). For Phase 2 it stays inert.
+	var _cast_overlay: Node = grid.get_node_or_null("CastRangeOverlay")
+	if _cast_overlay != null and _cast_overlay.has_method("setup"):
+		_cast_overlay.setup(grid)
 	if _inspector != null and _inspector.has_signal("speed_changed"):
 		_inspector.speed_changed.connect(_on_inspector_speed_changed)
 
@@ -123,6 +129,11 @@ func _ready() -> void:
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
+	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
+	# so godmode keeps booting if the HUD layout drops the panel.
+	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	if psp != null and psp.has_method("bind_player"):
+		psp.bind_player(player)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────

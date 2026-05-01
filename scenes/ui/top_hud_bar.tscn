@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3 uid="uid://top_hud_bar_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/top_hud_bar.gd" id="1_tophud"]
+
+[node name="TopHudBar" type="PanelContainer"]
+script = ExtResource("1_tophud")
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 0.0
+offset_bottom = 44.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TurnLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "Turn: 0"
+size_flags_horizontal = 3
+
+[node name="WaveLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "Wave 1/?"
+size_flags_horizontal = 3
+
+[node name="TimerLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "0:00"
+size_flags_horizontal = 3
+
+[node name="PauseButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "II"
+focus_mode = 0
+custom_minimum_size = Vector2(36, 28)

@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://player_status_panel_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/player_status_panel.gd" id="1_psp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/status_icon_strip.tscn" id="2_strip"]
+
+[node name="PlayerStatusPanel" type="PanelContainer"]
+script = ExtResource("1_psp")
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -120.0
+offset_right = 264.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "—"
+
+[node name="HpRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HpLabel" type="Label" parent="VBox/HpRow"]
+layout_mode = 2
+text = "HP"
+
+[node name="HpValue" type="Label" parent="VBox/HpRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0/0"
+
+[node name="StatusIconStrip" parent="VBox" instance=ExtResource("2_strip")]

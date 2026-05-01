@@ -1,14 +1,18 @@
-[gd_scene load_steps=10 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=14 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
 [ext_resource type="Script" path="res://scripts/core/actors/actor_registry.gd" id="3_registry"]
-[ext_resource type="Script" path="res://scripts/presentation/turn_counter.gd" id="4_turncount"]
+[ext_resource type="PackedScene" path="res://scenes/ui/top_hud_bar.tscn" id="4_tophud"]
 [ext_resource type="Script" path="res://scripts/presentation/slot_bar.gd" id="5_slotbar"]
 [ext_resource type="Script" path="res://scripts/presentation/hex_cursor.gd" id="6_hexcursor"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_camera.gd" id="7_camera"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/move_range_overlay.gd" id="8_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/dev/actor_inspector.tscn" id="9_inspector"]
+[ext_resource type="PackedScene" path="res://scenes/ui/player_status_panel.tscn" id="10_psp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/cast_range_overlay.tscn" id="11_cro"]
+[ext_resource type="PackedScene" path="res://scenes/ui/floating_number_layer.tscn" id="12_fnl"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tooltip_panel.tscn" id="13_tt"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -30,6 +34,10 @@ grid = NodePath("..")
 script = ExtResource("8_overlay")
 z_index = 2
 
+[node name="CastRangeOverlay" parent="HexGrid" instance=ExtResource("11_cro")]
+
+[node name="FloatingNumberLayer" parent="HexGrid" instance=ExtResource("12_fnl")]
+
 [node name="ActorRegistry" type="Node" parent="."]
 script = ExtResource("3_registry")
 
@@ -43,14 +51,7 @@ overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="TurnLabel" type="Label" parent="HUD"]
-script = ExtResource("4_turncount")
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 220.0
-offset_bottom = 48.0
-text = "Turn: 1"
-theme_override_font_sizes/font_size = 22
+[node name="TopHudBar" parent="HUD" instance=ExtResource("4_tophud")]
 
 [node name="HelpLabel" type="Label" parent="HUD"]
 offset_left = 16.0
@@ -77,3 +78,7 @@ grow_vertical = 0
 alignment = 1
 
 [node name="ActorInspector" parent="HUD" instance=ExtResource("9_inspector")]
+
+[node name="PlayerStatusPanel" parent="HUD" instance=ExtResource("10_psp")]
+
+[node name="TooltipPanel" parent="HUD" instance=ExtResource("13_tt")]

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://status_icon_strip_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/status_icon_strip.gd" id="1_strip"]
+
+[node name="StatusIconStrip" type="HBoxContainer"]
+script = ExtResource("1_strip")
+theme_override_constants/separation = 4
+custom_minimum_size = Vector2(0, 28)
