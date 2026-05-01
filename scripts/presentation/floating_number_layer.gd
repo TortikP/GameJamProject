@@ -38,7 +38,7 @@ func spawn(world_pos: Vector2, amount: int, kind: StringName) -> void:
 # they simply don't fire (signal absent).
 
 func _on_damage_dealt(target_id: StringName, amount: int) -> void:
-	var pos := _resolve_actor_pos(target_id)
+	var pos: Variant = _resolve_actor_pos(target_id)
 	if pos == null:
 		return
 	_throttle(target_id)
@@ -46,7 +46,7 @@ func _on_damage_dealt(target_id: StringName, amount: int) -> void:
 
 
 func _on_heal_done(target_id: StringName, amount: int) -> void:
-	var pos := _resolve_actor_pos(target_id)
+	var pos: Variant = _resolve_actor_pos(target_id)
 	if pos == null:
 		return
 	_throttle(target_id)
