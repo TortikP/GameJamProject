@@ -1,6 +1,7 @@
 {
   "id": "skill_manekin_attack",
   "cooldown": 0,
+  "tags": ["damage"],
   "abilities": [
     {
       "id": "manekin_attack",

@@ -1,6 +1,7 @@
 {
   "id": "skill_melee_punch",
   "cooldown": 0,
+  "tags": ["damage"],
   "abilities": [
     {
       "id": "melee_punch",

@@ -1,6 +1,7 @@
 {
   "id": "skill_debug_punch",
   "cooldown": 0,
+  "tags": ["damage"],
   "abilities": [
 	{
 	  "id": "debug_punch",

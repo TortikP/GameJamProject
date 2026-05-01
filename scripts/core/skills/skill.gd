@@ -13,6 +13,7 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var id: StringName = &""
 @export var cooldown: int = 0
 @export var abilities: Array[Ability] = []
+@export var tags: Array[StringName] = []
 
 var _cd_remaining: int = 0
 
