@@ -54,9 +54,9 @@ Sequential кластерами (по concern из findings.md slicing). Оди�
 
 ## F — F-015 (single ctx.duplicate() in _try_rule)
 
-- [ ] F1. `scripts/core/ai/enemy_ai_planner.gd:_try_rule` — поднять `var sel_ctx: Dictionary = ctx.duplicate()` перед циклом `for entry in matched:`.
-- [ ] F2. Внутри цикла оставить только `sel_ctx["candidate_skill"] = s`, удалить дубликат-вызов.
-- [ ] F3. Commit: `perf(015): F-015 — single sel_ctx.duplicate() outside _try_rule loop`.
+- [x] F1. `scripts/core/ai/enemy_ai_planner.gd:_try_rule` — поднять `var sel_ctx: Dictionary = ctx.duplicate()` перед циклом `for entry in matched:`.
+- [x] F2. Внутри цикла оставить только `sel_ctx["candidate_skill"] = s`, удалить дубликат-вызов.
+- [x] F3. Commit: `perf(015): F-015 — single sel_ctx.duplicate() outside _try_rule loop`.
 
 ## G — Closeout
 
