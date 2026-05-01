@@ -86,11 +86,16 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 		_add_hex(coord, fill_col, outline_col)
 
 	# ── Attack range ──────────────────────────────────────────────────────────
-	# Collect all coords reachable by any of this actor's abilities.
-	# Shown in orange, drawn ON TOP of move range (higher z).
-	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
-	for ability_id in ability_ids:
-		var ability: Ability = AbilityDatabase.get_ability(ability_id)
+	# ability_items can be Ability objects (player slot path) or StringName IDs
+	# (legacy enemy path via actor.get_abilities()). Objects are preferred —
+	# ID lookup via AbilityDatabase is unsafe when multiple skills share an ability ID.
+	var attack_coords: Dictionary = {}
+	for item in ability_ids:
+		var ability: Ability
+		if item is Ability:
+			ability = item as Ability
+		else:
+			ability = AbilityDatabase.get_ability(StringName(str(item)))
 		if ability == null or ability.target == null:
 			continue
 		var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(actor_coord, _grid)

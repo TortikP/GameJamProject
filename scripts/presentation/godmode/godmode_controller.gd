@@ -224,17 +224,20 @@ func _refresh_overlay() -> void:
 		return
 	# For player: show only the active spell's range (or nothing if no spell selected).
 	# For enemies: show their attack ability range.
-	var ability_ids: Array = []
+	var ability_items: Array = []
 	if _selected == player:
 		if _slot_bar_node != null:
 			var active: int = _slot_bar_node.get_active()
 			if active != -1:
 				var sk := _slot_bar_node.get_slot(active) as Skill
 				if sk != null:
-					ability_ids = sk.get_ability_ids()
+					# Pass Ability objects directly — avoids AbilityDatabase ID collision
+					# when multiple skills share an ability ID (e.g. "vs_dmg").
+					for ab in sk.abilities:
+						ability_items.append(ab)
 	else:
-		ability_ids = _selected.get_abilities()
-	_overlay.show_for(_selected, registry, ability_ids)
+		ability_items = _selected.get_abilities()  # StringName IDs, enemy path
+	_overlay.show_for(_selected, registry, ability_items)
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:

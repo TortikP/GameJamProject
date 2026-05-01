@@ -2,14 +2,26 @@
   "id": "test_target_area_strike",
   "cooldown": 0,
   "abilities": [
-	{
-	  "id": "vs_dmg",
-	  "target": {"kind": "hex", "range": 6},
-	  "area":   {"kind": "zone_circle", "radius": 3},
-	  "effects": [
-		{"kind": "damage", "id": "vs_dmg_eff", "type": "damage", "duration": 0, "damage": 10}
-	  ],
-	  "modifiers": []
-	}
+    {
+      "id": "ttas_dmg",
+      "target": {
+        "kind": "hex",
+        "range": 6
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 3
+      },
+      "effects": [
+        {
+          "kind": "damage",
+          "id": "ttas_dmg_eff",
+          "type": "damage",
+          "duration": 0,
+          "damage": 10
+        }
+      ],
+      "modifiers": []
+    }
   ]
 }
