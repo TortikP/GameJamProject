@@ -1,0 +1,96 @@
+# 018-tile-objects — tasks
+
+**Spec:** [`spec.md`](./spec.md) · **Plan:** [`plan.md`](./plan.md)
+
+Легенда: `[P1]` критический путь · `[P2]` контент · `[P3]` doc/coord
+`[P]` = parallel-safe (можно делать независимо после удовлетворения dependency)
+
+> 🛑 **Implement gate:** Не запускать ни одной T-задачи пока Sergey не ответит на OQ-1, OQ-2, OQ-3 в `spec.md`. Если ответ совпадает с default A/A/A — запускать как есть. Иначе — обновить `spec.md` и `plan.md` сначала, потом implement.
+
+---
+
+## Группа A — research / схема (must precede code)
+
+- [ ] **T001** [P1] Research: открыть `scripts/` и определить точно — (а) есть ли EventBus и где, (б) как именно создаётся `HexPathfinder` и куда инжектить registry, (в) есть ли уже custom data layer "object_id" в TileSet или его надо добавить руками. Пометить ответы в `plan.md` Risk/Mitigation секции (заменить «TBD» на факты). depends: ничего.
+
+## Группа B — код core
+
+- [ ] **T002** [P1] `scripts/core/arena/tile_object.gd` — NEW. Pure data class по плану §"TileObject API". Без логики, без сигналов. depends: T001.
+- [ ] **T003** [P1] `scripts/core/arena/tile_object_registry.gd` — NEW. Копировать структуру `tile_effect_registry.gd`, добавить `_validate_and_normalize` per AC-O2 правилам. depends: T002.
+
+## Группа C — интеграция с arena (трогает файлы Egor — coord required)
+
+- [ ] **T004** [P1] `scripts/core/arena/hex_tile.gd` — добавить `var object_id: StringName` и параметр в `_init` с default `&""`. Никаких других правок. depends: T002.
+- [ ] **T005** [P1] `scripts/core/arena/hex_grid.gd` — в `_build_tile_map` читать custom data layer `"object_id"`, передавать в `HexTile._init`. Создать инстанс `TileObjectRegistry`, вызвать `load_from_dir("res://data/tile_objects/")`. depends: T003, T004.
+  - **T005a** [P1] [P] Проверить (T001) что в TileSet есть custom data layer `"object_id"` типа String. Если нет — добавить руками в Godot editor (TileSet inspector → Custom Data → +). Это не код-задача. Делает Sergey локально перед F5.
+- [ ] **T006** [P1] `scripts/core/arena/hex_pathfinder.gd` — добавить query в registry в проверке проходимости. Точное место — по результату T001. depends: T003, T005.
+
+## Группа D — EventBus (опционально, по результату T001)
+
+- [ ] **T007** [P1] EventBus файл (путь по T001) — добавить 3 сигнала per AC-O7. Если EventBus отсутствует — открыть как **отдельную мини-фичу** перед 018 (тогда T007 → блокер; иначе ловушка по архитектуре). depends: T001.
+
+## Группа E — content (parallel после T003)
+
+- [ ] **T008** [P2] [P] `data/tile_objects/_schema.md` — schema doc для Стасяна. Описывает все поля, их типы, дефолты, ограничения по level. depends: T003.
+- [ ] **T009** [P2] [P] `data/tile_objects/mountain.json` — ELEVATION, no behavior, no destructible. depends: T003.
+- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone trigger=on_enter (assuming OQ-2=A). depends: T003.
+- [ ] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain trigger=aura radius=1 (assuming OQ-1=A). depends: T003.
+- [ ] **T012** [P2] [P] `data/tile_objects/wooden_barrel.json` — SMALL non-walkable, breakable hp=2, tags=[wood, flammable], on_destroy_effect_id=damage_zone. depends: T003.
+- [ ] **T013** [P2] [P] `data/tile_objects/wooden_table.json` — SMALL non-walkable, breakable hp=2, tags=[wood, furniture, flammable], no behavior. depends: T003.
+- [ ] **T014** [P2] [P] `data/tile_objects/boulder.json` — LARGE, breakable hp=10, armor_tags=[physical], no behavior. depends: T003.
+
+## Группа F — dev smoke
+
+- [ ] **T015** [P1] `scenes/dev/tile_objects_smoke.tscn` — NEW dev-сцена. На арене расставлены все 6 объектов через TileMap. Включает PlayerActor + 1 Manekin для smoke-атак. depends: T005, T009-T014, T005a.
+- [ ] **T016** [P1] *manual: Sergey* — F5 на `tile_objects_smoke.tscn`, прогнать AC-O8 чек-лист (см. plan §Тестирование). Записать в `tasks.md` под T016 — pass/fail и что отвалилось. depends: T015.
+
+## Группа G — doc / coord
+
+- [ ] **T017** [P3] [P] Обновить root `CLAUDE.md` ownership table: добавить строку «Tile objects (data + registry) — Sergey» в подходящее место. Или, если ownership уже разбит по модулям — упомянуть в `Spell-craft, modifier engine | Sergey` строке расширение скоупа. depends: T002 концептуально.
+- [ ] **T018** [P3] [P] `HANDOFF.md` — упомянуть 018 в «текущие специ» / соответствующей секции (точное место — по результату чтения HANDOFF при implement). depends: T002.
+
+## Группа H — push + PR
+
+- [ ] **T019** [P1] Commit messages:
+  - `feat(018): TileObject data class + registry`
+  - `feat(018): HexTile.object_id + HexGrid wiring + Pathfinder integration`
+  - `feat(018): EventBus signals for tile object events`
+  - `content(018): 6 sample tile objects + schema doc`
+  - `docs(018): CLAUDE.md/HANDOFF.md update`
+  - `dev(018): tile_objects_smoke scene`
+  
+  6 коммитов, в порядке зависимости. Не один большой — фича крупная, ревью Egor'у легче по частям.
+  
+  Push `sergey/spec-018-tile-objects` → origin. depends: T016.
+
+- [ ] **T020** [P1] *manual: Sergey* — открыть PR `sergey/spec-018-tile-objects → staging` в браузере по URL из push output (Claude не может через api.github.com). В описании:
+  - Линк на `specs/018-tile-objects/spec.md`.
+  - **Tag Egor** primary reviewer (трогаются `hex_tile.gd`, `hex_grid.gd`, `hex_pathfinder.gd`).
+  - Tag Стасян для review schema doc и sample JSON-ов.
+  - Перечислить ответы на OQ-1/2/3 (зафиксированные при старте implement).
+  
+  depends: T019.
+
+## Группа I — post-merge
+
+- [ ] **T021** [P3] *manual: Sergey* — после merge в staging: пинг Стасяну «018 в staging, можешь добавлять tile objects через JSON, схема в `data/tile_objects/_schema.md`». depends: T020 + merge.
+- [ ] **T022** [P3] *manual: Sergey* — план follow-up фичи `019-tile-object-resolver` (или включить в spell-resolver если уже есть): runtime-триггеры эффектов (on_enter/on_turn_end/aura/on_attacked) + подписка на damage events. **Не в 018.** depends: T020 + merge.
+
+---
+
+## Заметки для Клода если возьмёт implement
+
+- **Перед стартом:** перечитать `spec.md` на предмет зафиксированных ответов на OQ-1/2/3. Если default A/A/A — идём как написано. Если что-то другое — сначала обновить `plan.md` секции [DEPENDS-OQ-X], потом T-задачи.
+- **T001 — обязательно первой.** Без него весь plan имеет TBD. Не пропускать.
+- **T002-T003** — atomic пара, в одном коммите. Это `feat(018): TileObject data class + registry`.
+- **T004-T006** — отдельный коммит, потому что трогает Egor'овы файлы и diff там имеет значение для ревью.
+- **Sample JSON-ы (T009-T014)** — копируй формат `data/tile_effects/heal_fountain.json` как стартовую точку, добавляй новые поля по schema.
+- **HexTile `_init`** — НЕ менять порядок существующих параметров. Новый параметр `p_object_id` строго последним с default `&""`. Иначе сломается всё что вызывает `HexTile.new(...)`.
+- **TileObjectRegistry** — точная копия паттерна `tile_effect_registry.gd`. Не пытайся «улучшить» (нагрянет CLAUDE.md §Architecture pillars: «Don't propose abstractions for the future»).
+- **T015 (smoke scene)** — Godot из container не запустить (нет GUI). Сцену создаём в Claude (текстовый .tscn рисуем по примеру в `scenes/dev/`), F5 делает Sergey локально.
+- **T020 PR URL** — `git push -u origin sergey/spec-018-tile-objects` вернёт PR-creation URL в stderr. Захватить и отдать Sergey verbatim.
+- **api.github.com заблокирован** — никаких попыток открыть PR через `gh`/curl. Только git push, остальное — Sergey в браузере.
+
+## История правок
+
+- 2026-05-01 — draft v1, заблокирован OQ-ответами.
