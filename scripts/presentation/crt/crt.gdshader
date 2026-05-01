@@ -66,8 +66,19 @@ uniform float hum_bands = 2.0;
 const float TWO_PI = 6.28318530718;
 
 // Curve UV around the screen center to fake a CRT bulge.
+//
+// Pre-shrinks the input by `1 + curvature * 0.5` BEFORE applying the
+// quadratic expansion, so that even at the corners (where r² = 0.5 and the
+// expansion is at maximum) the output stays inside [0, 1]. Without the
+// pre-shrink, corners overshoot to ~1.02 and the texture sampler hits
+// clamp-to-edge there → leftmost/rightmost column gets replicated as a
+// visible rim stripe. This kills the artifact at the source instead of
+// trying to mask it out further down the pipeline.
+//
+// Trade-off: visible image is shrunk by ~2% on each axis. Imperceptible
+// against the curved bezel; cheaper than a SubViewport rebuild.
 vec2 barrel(vec2 uv) {
-	vec2 c = uv - 0.5;
+	vec2 c = (uv - 0.5) / (1.0 + curvature * 0.5);
 	float r2 = dot(c, c);
 	c *= 1.0 + r2 * curvature;
 	return c + 0.5;
