@@ -17,10 +17,10 @@
 
 ## Группа C — commit + push
 
-- [ ] **T004** [P1] Commit 1: `feat(019): HexGrid get/set_tile_object_id + get_all_tile_object_ids`
-- [ ] **T005** [P1] Commit 2: `feat(019): TileObjectResolver — runtime trigger engine`
-- [ ] **T006** [P1] Commit 3: `docs(019): spec/plan/tasks`
-- [ ] **T007** [P1] `git push -u origin andrey/spec-019-tile-object-resolver` → взять PR URL из stderr, дать Andrey.
+- [x] **T004** [P1] Commit 1: `feat(019): HexGrid get/set_tile_object_id + get_all_tile_object_ids`
+- [x] **T005** [P1] Commit 2: `feat(019): TileObjectResolver — runtime trigger engine`
+- [x] **T006** [P1] Commit 3: `docs(019): spec/plan/tasks`
+- [x] **T007** [P1] `git push -u origin andrey/spec-019-tile-object-resolver` → взять PR URL из stderr, дать Andrey.
 
 ## Группа D — post-merge (manual)
 
