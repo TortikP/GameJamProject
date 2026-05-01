@@ -19,3 +19,9 @@ func resolve(caster: Actor, ctx: Dictionary) -> Array:
 	if path.size() != 2:
 		return []
 	return base
+
+
+## All walkable neighbours — the spatial range of an adjacent attack.
+## Includes occupied hexes so the overlay shows "you can hit here if an enemy stands here."
+func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
+	return grid.get_walkable_neighbours(caster_coord)

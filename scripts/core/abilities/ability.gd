@@ -31,9 +31,11 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 ## Best-effort damage forecast for hover-preview UI. Currently just reads
 ## DamageEffect.amount; returns 0 for non-damage effects. Modifiers can
 ## later expose a multiplier hook if needed (jam scope: skip).
-func predicted_damage_to(_caster: Actor, _target: Actor, _ctx: Dictionary) -> int:
+func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary) -> int:
 	if effect is DamageEffect:
-		return (effect as DamageEffect).amount
+		# KEEP IN SYNC with DamageEffect.apply
+		var bonus: int = 0 if caster == null else caster.damage_bonus
+		return maxi(0, (effect as DamageEffect).amount + bonus)
 	return 0
 
 

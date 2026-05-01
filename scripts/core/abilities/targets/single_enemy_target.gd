@@ -21,3 +21,8 @@ func resolve(caster: Actor, ctx: Dictionary) -> Array:
 	if not actor.is_alive():
 		return []
 	return [actor]
+
+
+## Infinite range — highlight every walkable hex on the grid.
+func get_range_hexes(_caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
+	return grid.get_all_walkable_coords()

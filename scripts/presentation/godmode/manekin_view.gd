@@ -22,3 +22,7 @@ func _ready() -> void:
 	if max_hp <= 0:
 		max_hp = 20
 	super._ready()
+	# Declare abilities so ActorInspector can display them.
+	if attack_ability_id != &"":
+		var ids: Array[StringName] = [attack_ability_id]
+		set_abilities(ids)

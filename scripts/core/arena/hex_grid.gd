@@ -105,6 +105,19 @@ func _build_pathfinder() -> void:
 		_pathfinder.connect_neighbours(coord, neighbours)
 
 
+func get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
+	return _get_walkable_neighbours(coord)
+
+
+## Returns every walkable coord in the grid. Used by infinite-range abilities.
+func get_all_walkable_coords() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for coord in _tiles:
+		if (_tiles[coord] as HexTile).walkable:
+			result.append(coord)
+	return result
+
+
 func _get_walkable_neighbours(coord: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	var neighbour_dirs: Array = [
@@ -293,6 +306,33 @@ func find_path_around(from: Vector2i, to: Vector2i, blocked: Array) -> Array[Vec
 
 func size() -> Vector2i:
 	return Vector2i(_grid_width, _grid_height)
+
+
+## BFS: returns all coords reachable from `from` in at most `max_steps` walkable steps,
+## excluding `from` itself. `occupied` is an optional Array[Vector2i] of coords to treat
+## as blocked (other actors' positions). Pass [] to ignore occupancy.
+func reachable_within(from: Vector2i, max_steps: int, occupied: Array) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if max_steps <= 0:
+		return result
+	var visited: Dictionary = { from: true }
+	var frontier: Array[Vector2i] = [from]
+	for _step in max_steps:
+		var next: Array[Vector2i] = []
+		for coord in frontier:
+			for nb in _get_walkable_neighbours(coord):
+				if visited.has(nb):
+					continue
+				if occupied.has(nb):
+					visited[nb] = true  # mark visited so we don't path through, but don't add to result
+					continue
+				visited[nb] = true
+				result.append(nb)
+				next.append(nb)
+		frontier = next
+		if frontier.is_empty():
+			break
+	return result
 
 
 # ── Overlay effects API ──────────────────────────────────────────────────────
