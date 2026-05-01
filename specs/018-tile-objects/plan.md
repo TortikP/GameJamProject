@@ -13,7 +13,7 @@
 | `scripts/core/arena/hex_tile.gd` | +1 поле `object_id: StringName`, +1 параметр в `_init` | +3 |
 | `scripts/core/arena/hex_grid.gd` | в `_build_tile_map` читать custom data layer "object_id" | +5 |
 | `scripts/core/arena/hex_pathfinder.gd` | injected dep `TileObjectRegistry`, в проверке проходимости — query объект | +10 |
-| `scripts/core/event_bus.gd` *(точное имя/путь TBD — проверить)* | +4 сигнала per AC-O7 | +6 |
+| `scripts/infrastructure/event_bus.gd` | +4 сигнала per AC-O7 | +6 |
 | `data/tile_objects/_schema.md` | NEW schema doc для Стасяна | ~80 строк |
 | `data/tile_objects/mountain.json` | NEW sample | ~10 |
 | `data/tile_objects/lava_pool.json` | NEW sample | ~15 |
@@ -117,13 +117,15 @@ func _validate_and_normalize(data: Dictionary) -> Dictionary:
     return data
 
 
-func get(id: StringName) -> TileObject:
+func get_object(id: StringName) -> TileObject:
     return _objects.get(id, _EMPTY)
 
 
-func has(id: StringName) -> bool:
+func has_object(id: StringName) -> bool:
     return _objects.has(id)
 ```
+
+> Naming: `get`/`has` shadow `Object.get(property)` / `Object.has_method()` — same family of trap as `log()` in CLAUDE.md §Known traps. Using `get_object`/`has_object`, mirroring `get_effect`/`has_effect` in `TileEffectRegistry`.
 
 Snippet парсинга `tags` копируется из 011-skill-tags (`SkillDatabase._build_skill`) — тот же graceful-degradation паттерн при кривом массиве.
 
@@ -206,24 +208,49 @@ var obj_id: StringName = StringName(obj_id_raw) if obj_id_raw != null else &""
 
 ## HexPathfinder diff
 
-Текущая проверка проходимости (надо посмотреть — не читал детально, в tasks T005 первая под-задача — research). Добавить query в registry:
+После T001 — фактическая структура: `HexPathfinder.build(tiles, w, h)` итерирует `_tiles` и `add_point` только если `tile.walkable`. `set_point_walkable(coord, bool)` уже есть.
+
+Минимальный путь — вынести логику комбинации в HexGrid (он владеет registry) перед `_build_pathfinder`: пройтись по `_tiles`, если `obj.blocks_movement` → выставить `tile.walkable = false`-эффективно через альтернативный подход. Но `tile.walkable` — read-only-после-инициализации (см. `hex_tile.gd` хедер), мутировать его нельзя.
+
+**Решение:** добавить в `HexPathfinder` метод `build(tiles, w, h, blocked_predicate: Callable = ...)` или просто инжектить `_object_registry` в pathfinder и менять `if tile.walkable` на `if tile.walkable and not _object_registry.get(tile.object_id).blocks_movement`. Идём вторым — короче и не меняет публичный API `build()`.
 
 ```gdscript
-# pseudocode
-func _is_passable(tile: HexTile) -> bool:
-    if not tile.walkable:
-        return false
+# scripts/core/arena/hex_pathfinder.gd
+var _object_registry: TileObjectRegistry  # set externally before build()
+
+func set_object_registry(reg: TileObjectRegistry) -> void:
+    _object_registry = reg
+
+func build(tiles: Dictionary, grid_width: int, grid_height: int) -> void:
+    ...
+    for coord: Vector2i in tiles:
+        var tile: HexTile = tiles[coord]
+        if tile.walkable and _is_passable_object(tile):
+            ...
+
+func _is_passable_object(tile: HexTile) -> bool:
+    if _object_registry == null:
+        return true
     var obj := _object_registry.get(tile.object_id)
-    if obj.blocks_movement:
-        return false
-    return true
+    return not obj.blocks_movement
 ```
 
-Registry инжектится в pathfinder при создании (в HexGrid._ready или где сейчас pathfinder создаётся — research в T005).
+В `HexGrid.initialize()` после создания `_object_registry` вызвать `_pathfinder.set_object_registry(_object_registry)` перед `_build_pathfinder()`. Тоже надо учитывать в `_get_walkable_neighbours` — иначе соседи объектных тайлов всё равно подключатся через `connect_neighbours`. Поэтому добавляем helper в HexGrid:
+
+```gdscript
+func _is_tile_passable(tile: HexTile) -> bool:
+    if not tile.walkable:
+        return false
+    if _object_registry == null:
+        return true
+    return not _object_registry.get(tile.object_id).blocks_movement
+```
+
+И в `_get_walkable_neighbours` / `is_walkable` / `get_all_walkable_coords` / `place_actor` / `move_actor` / `step_actor` заменить проверки `tile.walkable` → `_is_tile_passable(tile)`. Это ~6 локальных правок в `hex_grid.gd`. Все additive (логика расширяется, контракты не меняются).
 
 ## EventBus signals
 
-Расположение точное — TBD на T001 (есть либо `scripts/core/event_bus.gd` либо `scripts/infrastructure/event_bus.gd`, надо посмотреть). Добавляются:
+Файл: `scripts/infrastructure/event_bus.gd` (autoload). Стиль секций — past-tense snake_case, новый раздел `# Tile Objects (018)` после существующего `# Arena`. Добавляются:
 
 ```gdscript
 signal tile_object_damaged(coord: Vector2i, hp_remaining: int)
@@ -275,7 +302,7 @@ signal tile_object_actor_exited(coord: Vector2i, actor_id: StringName, object_id
 |---|---|---|
 | Egor не одобряет diff в `hex_tile.gd`/`hex_grid.gd`/`hex_pathfinder.gd` | средняя | diff минимальный и additive. Сообщить в момент открытия PR со ссылкой на спеку. |
 | Custom data layer "object_id" в TileSet ещё не существует | высокая | T005a — добавить руками через Godot editor (TileSet inspector). До этого все `object_id = &""`. |
-| EventBus не существует в проекте | низкая (упомянут в CLAUDE.md) | T001 выяснит точный путь. Если нет — ad-hoc сигналы на узле. |
+| EventBus не существует в проекте | разрешено T001 | `scripts/infrastructure/event_bus.gd` существует, autoload, snake_case past-tense сигналы. Добавляем 4 новых в раздел `# Tile Objects (018)`. |
 | Linger no-op до появления resolver'а | высокая (known) | Graceful — `tile_object_actor_exited` эмитится, подписчиков нет. Resolver — follow-up 019. |
 | On_enter + turn_end двойное попадание | ожидаемо | Не баг. Баланс — Стасян правит `amount` в `damage_zone.json`. |
 

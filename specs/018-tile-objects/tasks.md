@@ -13,12 +13,13 @@
 
 ## Группа A — research / схема (must precede code)
 
-- [ ] **T001** [P1] Research: открыть `scripts/` и определить точно — (а) есть ли EventBus и где, (б) как именно создаётся `HexPathfinder` и куда инжектить registry, (в) есть ли уже custom data layer "object_id" в TileSet или его надо добавить руками. Пометить ответы в `plan.md` Risk/Mitigation секции (заменить «TBD» на факты). depends: ничего.
+- [x] **T001** [P1] Research: открыть `scripts/` и определить точно — (а) есть ли EventBus и где, (б) как именно создаётся `HexPathfinder` и куда инжектить registry, (в) есть ли уже custom data layer "object_id" в TileSet или его надо добавить руками. Пометить ответы в `plan.md` Risk/Mitigation секции (заменить «TBD» на факты). depends: ничего.
+  - **Ответы:** (а) `scripts/infrastructure/event_bus.gd`, autoload, snake_case past-tense. (б) `HexPathfinder` создаётся в `HexGrid` как `_pathfinder := HexPathfinder.new()` (поле). `build()` вызывается из `HexGrid._build_pathfinder()` после `_effect_registry.load_from_dir`. Registry инжектится через новый метод `set_object_registry(reg)` ДО `build()`. Также добавляется helper `HexGrid._is_tile_passable(tile)` и заменяет проверки `tile.walkable` в 5 местах (`_get_walkable_neighbours`, `is_walkable`, `get_all_walkable_coords`, `place_actor`, `move_actor` / `step_actor`-проверки `to`). (в) Custom data layer `"object_id"` типа String в TileSet **отсутствует** — добавить руками в editor (T005a). До этого все `object_id = &""`, registry-ноль, всё работает как сейчас.
 
 ## Группа B — код core
 
-- [ ] **T002** [P1] `scripts/core/arena/tile_object.gd` — NEW. Pure data class по плану §"TileObject API". Без логики, без сигналов. depends: T001.
-- [ ] **T003** [P1] `scripts/core/arena/tile_object_registry.gd` — NEW. Копировать структуру `tile_effect_registry.gd`, добавить `_validate_and_normalize` per AC-O2 правилам. depends: T002.
+- [x] **T002** [P1] `scripts/core/arena/tile_object.gd` — NEW. Pure data class по плану §"TileObject API". Без логики, без сигналов. depends: T001.
+- [x] **T003** [P1] `scripts/core/arena/tile_object_registry.gd` — NEW. Копировать структуру `tile_effect_registry.gd`, добавить `_validate_and_normalize` per AC-O2 правилам. depends: T002.
 
 ## Группа C — интеграция с arena (трогает файлы Egor — coord required)
 
