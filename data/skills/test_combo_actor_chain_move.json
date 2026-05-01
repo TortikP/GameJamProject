@@ -1,0 +1,24 @@
+{
+  "id": "test_combo_actor_chain_move",
+  "name": "skill.test_combo_actor_chain_move.name",
+  "tooltip": "skill.test_combo_actor_chain_move.tooltip",
+  "desc": "skill.test_combo_actor_chain_move.desc",
+  "cooldown": 0,
+  "behaviour_tags": ["damage", "knockback"],
+  "mood": [],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "tcacm_shove",
+      "sound": "",
+      "animation": "",
+      "target": {"kind": "actor", "range": 1},
+      "area":   {"kind": "chain", "max_chain_length": 1, "radius": 1},
+      "effects": [
+        {"kind": "damage", "id": "tcacm_dmg",  "type": "damage", "duration": 0, "damage": 4},
+        {"kind": "move",   "id": "tcacm_push", "type": "move",   "duration": 0, "move_type": "push", "move_distance": 2}
+      ],
+      "modifiers": []
+    }
+  ]
+}

@@ -3,10 +3,12 @@ extends AbilityEffect
 ## Spawns a game object at a hex coordinate.
 ## target MUST be a Vector2i; if it's an Actor/other, effect is silently skipped (AC-E5).
 ## Spawning delegates to a future ObjectSpawner autoload; logs stub for now.
+##
+## 021: field renamed game_object_id → entity_id (matches "actor" target rename).
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-@export var game_object_id: StringName = &""
+@export var entity_id: StringName = &""
 
 
 func _init() -> void:
@@ -27,8 +29,8 @@ func apply(_caster: Actor, _target: Variant, ctx: Dictionary) -> void:
 
 	# Occupied check (AC-E5)
 	if grid.get_actor_at(coord) != &"":
-		GameLogger.info("CreateEffect", "hex %s occupied — skip create '%s'" % [str(coord), game_object_id])
+		GameLogger.info("CreateEffect", "hex %s occupied — skip create '%s'" % [str(coord), entity_id])
 		return
 
-	# TODO: delegate to ObjectSpawner.spawn(game_object_id, coord) when available
-	GameLogger.info("CreateEffect", "STUB — would spawn '%s' at %s" % [game_object_id, str(coord)])
+	# TODO: delegate to ObjectSpawner.spawn(entity_id, coord) when available
+	GameLogger.info("CreateEffect", "STUB — would spawn '%s' at %s" % [entity_id, str(coord)])

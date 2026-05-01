@@ -1,11 +1,11 @@
 {
   "id": "skill_manekin_attack",
   "cooldown": 0,
-  "tags": ["damage"],
+  "behaviour_tags": ["damage"],
   "abilities": [
     {
       "id": "manekin_attack",
-      "target": {"kind": "entity", "range": 1},
+      "target": {"kind": "actor", "range": 1},
       "area":   {"kind": "chain", "max_chain_length": 1},
       "effects": [
         {"kind": "damage", "id": "ma_dmg", "type": "damage", "duration": 0, "damage": 4}

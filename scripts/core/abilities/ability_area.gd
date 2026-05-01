@@ -20,3 +20,10 @@ func resolve(_caster: Actor, _primary_target: Variant, _ctx: Dictionary) -> Arra
 ## Returns hex coords covered by this area. Used by range-overlay UI.
 func get_affected_hexes(_caster_coord: Vector2i, _primary: Variant, _grid: HexGrid) -> Array[Vector2i]:
 	return []
+
+
+## 021: skill-level scaling hook. Default no-op; subclasses with `radius`
+## or `max_chain_length` override per spec §"Уровень навыка".
+## Called on a duplicate before resolve(), so the base resource stays untouched.
+func apply_level(_level: int) -> void:
+	pass

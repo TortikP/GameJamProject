@@ -70,12 +70,29 @@ func _build_skill(data: Dictionary) -> Skill:
 	skill.id = StringName(sid)
 	skill.cooldown = int(data.get("cooldown", 0))
 
-	var tags_raw: Variant = data.get("tags", [])
-	if typeof(tags_raw) != TYPE_ARRAY:
-		GameLogger.warn("SkillDatabase", "%s: 'tags' must be array, got %s — using []" % [sid, type_string(typeof(tags_raw))])
-		tags_raw = []
-	for t in tags_raw:
-		skill.tags.append(StringName(t))
+	# 021: localization keys (raw strings; resolution out of scope).
+	skill.name = String(data.get("name", ""))
+	skill.tooltip = String(data.get("tooltip", ""))
+	skill.desc = String(data.get("desc", ""))
+
+	# 021: skill level. Default 0 → no scaling (identity).
+	skill.level = int(data.get("level", 0))
+
+	# 021: behaviour_tags (renamed from `tags`). AI strategy reads these.
+	var btags_raw: Variant = data.get("behaviour_tags", [])
+	if typeof(btags_raw) != TYPE_ARRAY:
+		GameLogger.warn("SkillDatabase", "%s: 'behaviour_tags' must be array, got %s — using []" % [sid, type_string(typeof(btags_raw))])
+		btags_raw = []
+	for t in btags_raw:
+		skill.behaviour_tags.append(StringName(t))
+
+	# 021: mood — narrative archetype tags. Reserved.
+	var mood_raw: Variant = data.get("mood", [])
+	if typeof(mood_raw) != TYPE_ARRAY:
+		GameLogger.warn("SkillDatabase", "%s: 'mood' must be array, got %s — using []" % [sid, type_string(typeof(mood_raw))])
+		mood_raw = []
+	for m in mood_raw:
+		skill.mood.append(StringName(m))
 
 	for ab_data in data.get("abilities", []):
 		var ab: Ability = AbilityDatabase.build_ability_from_dict(ab_data)

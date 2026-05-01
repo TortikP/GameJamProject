@@ -21,6 +21,15 @@ func _init() -> void:
 	requires_alive_target = true
 
 
+## 021 scaling: only `duration` scales (per spec table).
+## `move_distance` intentionally unscaled — knockback radius is a designed value,
+## not a power axis.
+func apply_level(level: int) -> void:
+	if level <= 0 or duration <= 1:
+		return
+	duration += level
+
+
 func apply(caster: Actor, target: Variant, ctx: Dictionary) -> void:
 	var actor := target as Actor
 	if actor == null:

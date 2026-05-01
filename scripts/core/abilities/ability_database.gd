@@ -1,10 +1,14 @@
 extends Node
 ## AbilityDatabase — loads data/abilities/*.json into Ability resources at startup.
 ##
-## 007-skill-system: new registries for target/area/effect/modifier kinds.
-## JSON format (new — see 007-skill-system/plan.md):
+## 021-skill-system-v2: target kind "entity" → "actor"; ability gets sound/animation
+## fields (stored, not dispatched yet).
+##
+## JSON format:
 ##   {
 ##     "id": "fireball",
+##     "sound": "snd_fire",         // 021 — optional
+##     "animation": "anim_blast",   // 021 — optional
 ##     "target": {"kind": "hex"},
 ##     "area":   {"kind": "zone_circle", "radius": 2},
 ##     "effects": [
@@ -21,7 +25,7 @@ const ABILITIES_DIR := "res://data/abilities/"
 
 const TARGET_KINDS: Dictionary = {
 	"self":      preload("res://scripts/core/abilities/targets/self_target.gd"),
-	"entity":    preload("res://scripts/core/abilities/targets/entity_target.gd"),
+	"actor":     preload("res://scripts/core/abilities/targets/actor_target.gd"),
 	"hex":       preload("res://scripts/core/abilities/targets/hex_target.gd"),
 	"direction": preload("res://scripts/core/abilities/targets/direction_target.gd"),
 	"object":    preload("res://scripts/core/abilities/targets/object_target.gd"),
@@ -144,6 +148,9 @@ func build_ability_from_dict(data: Dictionary) -> Ability:
 
 	var ability: Ability = ABILITY_SCRIPT.new()
 	ability.id = StringName(id)
+	# 021: presentation hooks. Stored on resource, dispatch in future audio/anim systems.
+	ability.sound = StringName(data.get("sound", ""))
+	ability.animation = StringName(data.get("animation", ""))
 	ability.target = tgt
 	ability.area = area
 	ability.effects = effects

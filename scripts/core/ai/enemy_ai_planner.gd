@@ -79,10 +79,10 @@ func _try_rule(actor: Actor, rule: TacticRule, ctx: Dictionary) -> bool:
 	var matched: Array = []   # Array of {skill, best_tag_idx, original_idx}
 	for i in range(skills.size()):
 		var s: Skill = skills[i]
-		if s == null or s.tags.is_empty():
+		if s == null or s.behaviour_tags.is_empty():
 			continue
 		var best_idx: int = -1
-		for tag in s.tags:
+		for tag in s.behaviour_tags:
 			var tag_idx: int = rule.tag_priority.find(tag)
 			if tag_idx >= 0 and (best_idx == -1 or tag_idx < best_idx):
 				best_idx = tag_idx
@@ -177,7 +177,7 @@ func _target_in_skill_range(actor: Actor, skill: Skill, target: Variant, ctx: Di
 	# SelfTarget: always in range.
 	if ab.target is SelfTarget:
 		return true
-	# Range query — works for EntityTarget and HexTarget.
+	# Range query — works for ActorTarget and HexTarget.
 	var max_range: int = -1
 	if "range" in ab.target:
 		max_range = int(ab.target.range)

@@ -16,3 +16,11 @@ extends Resource
 
 func apply(_caster: Actor, _target: Variant, _ctx: Dictionary) -> void:
 	push_warning("AbilityEffect.apply() not overridden on %s" % id)
+
+
+## 021: skill-level scaling hook. Default no-op; subclasses with `damage`,
+## `heal`, or scaling `duration` override per spec §"Уровень навыка".
+## Called on a duplicate before apply(), so the base resource stays untouched.
+## level=0 is the safe identity (overrides should early-out).
+func apply_level(_level: int) -> void:
+	pass

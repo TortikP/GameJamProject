@@ -4,7 +4,7 @@
   "abilities": [
 	{
 	  "id": "cl_chain",
-	  "target": {"kind": "entity", "range": -1},
+	  "target": {"kind": "actor", "range": -1},
 	  "area":   {"kind": "chain", "max_chain_length": 3},
 	  "effects": [
 		{"kind": "damage", "id": "cl_dmg", "type": "damage", "duration": 0, "damage": 10},

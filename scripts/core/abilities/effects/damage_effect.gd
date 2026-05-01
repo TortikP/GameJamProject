@@ -15,3 +15,10 @@ func apply(caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	# KEEP IN SYNC with Ability.predicted_damage_to
 	var bonus: int = 0 if caster == null else caster.damage_bonus
 	actor.take_damage(maxi(0, damage + bonus))
+
+
+## 021 scaling: damage * (1 + 0.2 * level) → floor.
+func apply_level(level: int) -> void:
+	if level <= 0:
+		return
+	damage = int(floor(damage * (1.0 + 0.2 * level)))

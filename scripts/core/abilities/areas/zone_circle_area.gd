@@ -71,3 +71,11 @@ func _coord_of(primary: Variant, _caster: Variant, grid: HexGrid) -> Vector2i:
 	if primary is Vector2i:
 		return primary as Vector2i
 	return Vector2i(-1, -1)
+
+
+## 021 scaling: radius += level / 2 (integer div) if radius > 1.
+## Single-hex zones (radius=1, e.g. tile-targeted Create) stay pinpoint at any level.
+func apply_level(level: int) -> void:
+	if level <= 0 or radius <= 1:
+		return
+	radius += level / 2

@@ -1,11 +1,11 @@
 {
   "id": "skill_melee_punch",
   "cooldown": 0,
-  "tags": ["damage"],
+  "behaviour_tags": ["damage"],
   "abilities": [
     {
       "id": "melee_punch",
-      "target": {"kind": "entity", "range": 1},
+      "target": {"kind": "actor", "range": 1},
       "area":   {"kind": "chain", "max_chain_length": 1},
       "effects": [
         {"kind": "damage", "id": "mp_dmg", "type": "damage", "duration": 0, "damage": 8}
