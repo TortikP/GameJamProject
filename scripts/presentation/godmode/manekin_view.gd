@@ -1,29 +1,31 @@
 extends Actor
-## Manekin — passive HP bag + simple melee. AI lives in GodmodeController.
+## Manekin — passive HP bag + simple AI now driven by behavior_id.
 ##
 ## Visual is a child Sprite2D (red husk) attached in the scene file.
 ## On death, controller listens to `died` signal and removes from grid + scene.
+##
+## After 008: skill list, behavior_id, max_hp, team, speed are loaded from
+## data/enemies/<enemy_data_id>.json. The scene only carries enemy_data_id
+## so any new "manekin variant" is just another JSON file, no scene work.
 
-## Skill ID this manekin uses on attack (set in scene). Empty = no attack.
-@export var attack_skill_id: StringName = &""
+const _EnemyDataLoader := preload("res://scripts/core/actors/enemy_data_loader.gd")
 
-## Coord this manekin will attack on its next turn, if any.
-## (-1, -1) = no pending attack. Set by AI at end of turn, consumed at start.
-var attack_intent_coord: Vector2i = Vector2i(-1, -1)
-
-## Coord this manekin will MOVE to next turn (one step). (-1, -1) = stay put.
-## Resolved before attack on the AI's turn — meaning the attack is from
-## the move_intent position, not the current position.
-var move_intent_coord: Vector2i = Vector2i(-1, -1)
+@export var enemy_data_id: StringName = &"manekin"
 
 
 func _ready() -> void:
 	team = &"enemy"
+	_EnemyDataLoader.apply_to_actor(self, enemy_data_id)
+	# Defaults if data missing: keep manekin alive with 20 HP so a misconfigured
+	# scene doesn't silently spawn dead.
 	if max_hp <= 0:
 		max_hp = 20
 	super._ready()
-	# Declare ability IDs so ActorInspector / MoveRangeOverlay can display range.
-	if attack_skill_id != &"":
-		var sk: Skill = SkillDatabase.get_skill(attack_skill_id)
-		if sk != null:
-			set_abilities(sk.get_ability_ids())
+	# Declare ability IDs from loaded skills so ActorInspector / MoveRangeOverlay
+	# can paint range overlays.
+	var ability_ids: Array[StringName] = []
+	for s in get_skills():
+		if s == null:
+			continue
+		ability_ids.append_array((s as Skill).get_ability_ids())
+	set_abilities(ability_ids)

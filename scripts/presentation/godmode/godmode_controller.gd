@@ -530,9 +530,10 @@ func _replan_all_and_refresh() -> void:
 	for actor in registry.all():
 		if actor is Actor and (actor as Actor).team == &"enemy":
 			enemies.append(actor)
+	var ctx: Dictionary = _world_ctx()
 	for actor in enemies:
 		if actor is Actor and (actor as Actor).is_alive():
-			_plan_intents(actor as Actor, enemies)
+			EnemyAIPlanner.plan(actor as Actor, ctx)
 	_refresh_telegraphs()
 
 
@@ -616,8 +617,8 @@ func _run_enemy_turn() -> void:
 			enemies.append(actor)
 	_clear_all_telegraphs()
 
-	# Phase 1: RESOLVE — execute everyone's planned move, then planned attack.
-	# Movement first so attacks happen from the post-move position.
+	# Phase 1: RESOLVE — execute everyone's planned move, then planned cast.
+	# Movement first so casts happen from the post-move position.
 	for actor in enemies:
 		if not (actor is Actor):
 			continue
@@ -627,18 +628,18 @@ func _run_enemy_turn() -> void:
 		await _resolve_move_intent(enemy)
 		if not enemy.is_alive():
 			continue
-		await _resolve_attack_intent(enemy)
+		await _resolve_cast_intent(enemy)
 
-	# Phase 2: PLAN — pick next move (route around other actors) and next
-	# attack (if would be adjacent after move). Sets data only; visuals
-	# rebuilt at the end of this loop.
+	# Phase 2: PLAN — pick next move and next cast (writes cast_intent /
+	# move_intent_coord on each enemy). Visuals rebuilt at the end of this loop.
+	var ctx: Dictionary = _world_ctx()
 	for actor in enemies:
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
 			continue
-		_plan_intents(enemy, enemies)
+		EnemyAIPlanner.plan(enemy, ctx)
 
 	_refresh_telegraphs()
 
@@ -646,11 +647,8 @@ func _run_enemy_turn() -> void:
 # ── Resolve helpers ──────────────────────────────────────────────────────────
 
 func _resolve_move_intent(enemy: Actor) -> void:
-	var intent_var: Variant = enemy.get("move_intent_coord")
-	if not (intent_var is Vector2i):
-		return
-	var intent: Vector2i = intent_var
-	enemy.set("move_intent_coord", Vector2i(-1, -1))
+	var intent: Vector2i = enemy.move_intent_coord
+	enemy.move_intent_coord = Vector2i(-1, -1)
 	if intent == Vector2i(-1, -1):
 		return
 	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
@@ -665,72 +663,84 @@ func _resolve_move_intent(enemy: Actor) -> void:
 	await grid.move_actor(enemy.actor_id, intent)
 
 
-func _resolve_attack_intent(enemy: Actor) -> void:
-	var intent_var: Variant = enemy.get("attack_intent_coord")
-	if not (intent_var is Vector2i):
+## Resolves a previously-planned cast on `enemy`. Reads enemy.cast_intent (set
+## by EnemyAIPlanner during Phase 2 of the previous turn). Generic over Skill —
+## works for any target type / area / effect chain. AC-X5 re-validates target
+## state at resolve time (target alive, in range, skill still ready).
+func _resolve_cast_intent(enemy: Actor) -> void:
+	var intent_v: Variant = enemy.cast_intent
+	enemy.cast_intent = null
+	if intent_v == null:
 		return
-	var intent: Vector2i = intent_var
-	enemy.set("attack_intent_coord", Vector2i(-1, -1))
-	if intent == Vector2i(-1, -1):
+	var intent: CastIntent = intent_v as CastIntent
+	if intent == null or not intent.is_valid():
 		return
-	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
-	if player_coord != intent:
-		GameLogger.info("AI", "%s: attack missed (player moved)" % enemy.actor_id)
+	var skill: Skill = SkillDatabase.get_skill(intent.skill_id)
+	if skill == null or not skill.is_ready():
 		return
-	var skill_id_var: Variant = enemy.get("attack_skill_id")
-	if not (skill_id_var is StringName) or skill_id_var == &"":
-		return
-	var skill: Skill = SkillDatabase.get_skill(skill_id_var)
-	if skill == null:
-		return
+
+	# Re-validate target — entity may have died/moved between plan and resolve.
+	var target_id: StringName = intent.target_id
+	var target_coord: Vector2i = intent.target_coord
+	if target_id != &"":
+		var target_actor: Actor = registry.get_actor(target_id)
+		if target_actor == null or not target_actor.is_alive():
+			GameLogger.info("AI", "%s: cast cancelled (target gone)" % enemy.actor_id)
+			return
+		var live_coord: Vector2i = grid.get_coord(target_id)
+		if live_coord == Vector2i(-1, -1):
+			GameLogger.info("AI", "%s: cast cancelled (target off-grid)" % enemy.actor_id)
+			return
+		# Target moved? Old planned coord is stale — use current.
+		target_coord = live_coord
+
 	var ctx: Dictionary = {
 		"registry": registry, "grid": grid,
-		"target_id": PLAYER_ID, "target_coord": player_coord,
+		"target_id": target_id, "target_coord": target_coord,
 	}
-	# can_apply re-validates adjacency at the moment of cast.
+	# can_apply re-validates range / castability at the moment of cast.
 	skill.cast(enemy, ctx)
 	await GameSpeed.wait("godmode", "ability_cast_delay")
 
 
+# ── World context for AI planner ─────────────────────────────────────────────
+
+func _world_ctx() -> Dictionary:
+	return {
+		"registry": registry,
+		"grid": grid,
+		"all_actors": registry.all(),
+		"turn": TurnManager.current(),
+	}
+
+
+# ── Telegraph tag mapping (AC-I4) ────────────────────────────────────────────
+
+## Maps a Skill's primary tag to TelegraphHex.semantic_tag (which UiTheme then
+## resolves via semantic_color). Aggregation in _refresh_telegraphs already
+## handles per-coord summing — this is one-shot per cast.
+func _telegraph_tag_for_skill(skill: Skill) -> StringName:
+	if skill == null or skill.tags.is_empty():
+		return &""  # → SEM_DAMAGE default (legacy / unknown)
+	match skill.tags[0]:
+		&"damage", &"damage_aoe", &"knockback":
+			return &"damage"
+		&"heal":
+			return &"heal"
+		&"control":
+			return &"control"
+		&"debuff":
+			return &"debuff"
+		&"buff":
+			return &"buff"
+		&"summon":
+			return &"create"
+		&"mobility":
+			return &"move"
+	return &""
+
+
 # ── Plan helpers ─────────────────────────────────────────────────────────────
-
-func _plan_intents(enemy: Actor, all_enemies: Array) -> void:
-	var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
-	var player_coord: Vector2i = grid.get_coord(PLAYER_ID)
-	if enemy_coord == Vector2i(-1, -1) or player_coord == Vector2i(-1, -1):
-		return
-
-	# Build set of coords blocked by OTHER enemies (player tile is the goal,
-	# never blocked).
-	var blocked: Array = []
-	for other in all_enemies:
-		if not (other is Actor):
-			continue
-		var o: Actor = other
-		if o == enemy or not o.is_alive():
-			continue
-		var c: Vector2i = grid.get_coord(o.actor_id)
-		if c != Vector2i(-1, -1):
-			blocked.append(c)
-
-	var path: Array = grid.find_path_around(enemy_coord, player_coord, blocked)
-
-	# Default: do nothing (used when no path or already adjacent without
-	# a usable attack ability).
-	enemy.set("move_intent_coord", Vector2i(-1, -1))
-	enemy.set("attack_intent_coord", Vector2i(-1, -1))
-
-	if path.size() == 2:
-		var skill_id_var: Variant = enemy.get("attack_skill_id")
-		if skill_id_var is StringName and skill_id_var != &"":
-			if SkillDatabase.has_skill(skill_id_var):
-				enemy.set("attack_intent_coord", player_coord)
-	elif path.size() > 2:
-		# Not yet adjacent → step one hex closer this turn, no attack.
-		# Attack will happen on the NEXT plan after we arrive in adjacency.
-		enemy.set("move_intent_coord", path[1])
-	# else (path empty): no path through actors — stand still.
-
 
 # ── Telegraph visuals ────────────────────────────────────────────────────────
 
@@ -745,22 +755,50 @@ func _refresh_telegraphs() -> void:
 			arr.queue_free()
 	_intent_arrows.clear()
 
-	# Aggregate damage per coord across all enemies' intents.
-	var damage_per_coord: Dictionary = {}
+	# Aggregate per-coord telegraph state across all enemies' intents.
+	# Each hex tracks (tag, damage). Damage only sums when both intents are damage-class.
+	var by_coord: Dictionary = {}   # Vector2i -> {tag: StringName, damage: int}
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if enemy.team != &"enemy" or not enemy.is_alive():
 			continue
-		# Attack telegraph aggregation
-		var atk_var: Variant = enemy.get("attack_intent_coord")
-		if atk_var is Vector2i and atk_var != Vector2i(-1, -1):
-			var dmg: int = _enemy_attack_damage(enemy)
-			damage_per_coord[atk_var] = damage_per_coord.get(atk_var, 0) + dmg
-		# Movement arrow — one per enemy with a planned move
-		var mv_var: Variant = enemy.get("move_intent_coord")
-		if mv_var is Vector2i and mv_var != Vector2i(-1, -1):
+
+		# Cast telegraph: hex + color from primary tag, damage number for damage-class only.
+		var intent: Variant = enemy.cast_intent
+		if intent == null:
+			pass
+		else:
+			var ci: CastIntent = intent as CastIntent
+			if ci != null and ci.is_valid():
+				var coord: Vector2i = ci.target_coord
+				if ci.target_id != &"":
+					var live: Vector2i = grid.get_coord(ci.target_id)
+					if live != Vector2i(-1, -1):
+						coord = live
+				if coord != Vector2i(-1, -1):
+					var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
+					var tag: StringName = _telegraph_tag_for_skill(skill)
+					var dmg: int = 0
+					if tag == &"damage" or tag == &"":
+						# Predict only for damage-class. tag=="" → legacy fallback (treat as damage).
+						var target_actor: Actor = null
+						if ci.target_id != &"":
+							target_actor = registry.get_actor(ci.target_id)
+						if target_actor != null and skill != null:
+							dmg = skill.predicted_damage_to(enemy, target_actor, {})
+					if by_coord.has(coord):
+						var prev: Dictionary = by_coord[coord]
+						# Sum damage only when both are damage-class with same tag; else keep first.
+						if prev.tag == tag and (tag == &"damage" or tag == &""):
+							prev.damage += dmg
+					else:
+						by_coord[coord] = {"tag": tag, "damage": dmg}
+
+		# Movement arrow — one per enemy with a planned move.
+		var mv: Vector2i = enemy.move_intent_coord
+		if mv != Vector2i(-1, -1):
 			var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
 			if enemy_coord != Vector2i(-1, -1):
 				var arrow: Node2D = INTENT_ARROW_SCRIPT.new()
@@ -768,15 +806,17 @@ func _refresh_telegraphs() -> void:
 				arrow.z_index = 4  # above telegraph hex, below actors
 				grid.add_child(arrow)
 				arrow.set("origin", grid.tile_map_layer.map_to_local(enemy_coord))
-				arrow.set("target", grid.tile_map_layer.map_to_local(mv_var))
+				arrow.set("target", grid.tile_map_layer.map_to_local(mv))
 				_intent_arrows[enemy.actor_id] = arrow
 
-	# Render one telegraph hex per unique threatened coord.
-	for coord in damage_per_coord.keys():
+	# Render one telegraph hex per threatened coord.
+	for coord in by_coord.keys():
 		var hex: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		hex.position = grid.tile_map_layer.map_to_local(coord)
 		hex.z_index = 3
-		hex.set("damage", damage_per_coord[coord])
+		var entry: Dictionary = by_coord[coord]
+		hex.set("semantic_tag", entry.tag)
+		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
 
@@ -792,14 +832,22 @@ func _clear_all_telegraphs() -> void:
 	_intent_arrows.clear()
 
 
-## Best-effort damage forecast for one enemy's pending attack. Reads its
-## attack_ability and asks the ability what damage would land.
+## Best-effort damage forecast for an enemy's pending cast against the player.
+## Kept as a thin shim for any external caller (ActorInspector, etc.) that wants
+## a quick "what will hit me next turn" number — telegraph rendering itself
+## inlines the same lookup in _refresh_telegraphs.
 func _enemy_attack_damage(enemy: Actor) -> int:
-	var skill_id_var: Variant = enemy.get("attack_skill_id")
-	if not (skill_id_var is StringName) or skill_id_var == &"":
+	var intent_v: Variant = enemy.cast_intent
+	if intent_v == null:
 		return 0
-	var skill: Skill = SkillDatabase.get_skill(skill_id_var)
+	var ci: CastIntent = intent_v as CastIntent
+	if ci == null or not ci.is_valid():
+		return 0
+	var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
 	if skill == null:
+		return 0
+	var tag: StringName = _telegraph_tag_for_skill(skill)
+	if tag != &"damage" and tag != &"":
 		return 0
 	return skill.predicted_damage_to(enemy, player, {})
 

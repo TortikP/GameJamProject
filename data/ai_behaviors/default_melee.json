@@ -1,0 +1,13 @@
+{
+  "id": "default_melee",
+  "rules": [
+    {
+      "condition": {"kind": "enemy_in_range", "distance": 1},
+      "target_selector": {"kind": "nearest_enemy"},
+      "tag_priority": ["damage"],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {"kind": "approach_nearest_enemy"},
+  "fallback_skill_id": "skill_manekin_attack"
+}
