@@ -37,6 +37,14 @@
 | **D10** | Godot 4.6 traps | `CLAUDE.md` §Godot 4.6 traps | Каждая ловушка из таблицы — grep по codebase: `func log(`, `class_name Logger`, `var x := load(`, `var x := <variant_func>`, bash-heredoc артефакты в `.gd`, `Array[CustomClass]` со cross-Variant assignments, `_ready` order risks (вызовы чужих nodes из `_ready` без `is_node_ready` guard). |
 | **D11** | Spec ↔ implementation drift | per-spec AC | Для каждого 001-011: сравнить AC из `spec.md` с состоянием staging. Найти AC которые помечены `[x]` но не работают / поменяли поведение. |
 | **D12** | Dead code / orphan scenes | n/a | Файлы под `scripts/` и `scenes/` без референсов из остального проекта (поиск `preload(...)`, `instantiate()`, `class_name` usage, scene root references). Кандидаты на удаление в 013+. |
+| **D13** | Leak / resource hygiene (static-pass) | Godot 4.6 lifecycle docs | Static pattern-matching по типичным утечкам Godot. Не заменяет реальный профайлер (см. AC-A9), но ловит большинство проблем до того как они станут заметны. Подпункты: |
+| | | | **D13.a Signal lifecycle** — каждый `EventBus.X.connect(...)` / `signal.connect(...)` в эфемерных нодах (битвенные actors, VFX, toasts, floating numbers) — есть ли парный `disconnect` либо `CONNECT_ONE_SHOT`, либо self-удаление через `tree_exiting`. Особое внимание `connect(callable.bind(self))` где self живёт меньше эмиттера. |
+| | | | **D13.b Node lifecycle** — каждый `add_child(...)` / `instantiate()` динамической ноды — есть ли ясный путь до `queue_free()`. VFX, projectiles, telegraph hexes, floating combat numbers, toasts. |
+| | | | **D13.c Hot-path allocations** — `_process` / `_physics_process` / `_draw` / per-cast код: `load("res://...")` (должен быть `preload` на module-level), `Resource.duplicate(true)`, `get_nodes_in_group(...)` без кэша, `find_child(...)` каждый кадр, new `Array`/`Dictionary`/string concat в горячем цикле. |
+| | | | **D13.d Tween / Timer hygiene** — `create_tween()` на ноде которая может умереть до конца твина, `Timer` без `one_shot = true` где it should, `get_tree().create_timer().timeout` connect'ы с captured self. |
+| | | | **D13.e Material / shader sharing** — `material.duplicate()` на каждый instance вместо shared `ShaderMaterial`. Проверить overlay/HP-bar/telegraph рендереры. |
+| | | | **D13.f Unbounded growth** — массивы/словари которые только растут (combat log без cap, EventBus history если введён, particle pools, undo-стеки). |
+| | | | **D13.g RID leaks** — `RenderingServer.<X>_create()` / `PhysicsServer.<X>_create()` без парного `free_rid()`. Скорее всего у нас 0, но проверить. |
 
 ## Acceptance criteria
 
@@ -80,12 +88,19 @@
   presentation/health_bar.gd:42 — hardcoded FONT_SIZE = 9, должен быть UiTheme.BAR_FONT_SIZE_OVERHEAD
   ```
   Если file:line невозможен (концептуальное нарушение pillar'а) — указать минимум 2-3 file paths где симптом виден.
+- **AC-A9** (manual, не покрывается Клодом): **Профайлер-проход в Godot 4.6 — Egor.** ~30 минут перед finalization 012. Открыть Debugger при реальном геймплее (минимум: 2-3 волны манекенов + portal-transition + battle loop с кастами всех 4 godmode скиллов), снять метрики и приложить как `specs/012-ultrareview/profiler-snapshot.md`:
+  - **Monitors tab** — графики `Object/Resource/Node/Orphan Node` count во времени. Растёт между волнами линейно? leak. Стабилизируется? OK.
+  - **Memory tab** — top resources by size. Подозрительные дубли (один и тот же Material/Texture несколько раз) → finding в P1/P2.
+  - **Profiler tab** — frame budget. Что-то > 16ms на 60fps target? finding в P2 (или P1 если это всё время, не пик).
+  - **Visual Profiler** — render bottlenecks если фреймы тяжёлые.
+  Snapshot — это просто текстовый файл со скринами или цифрами «orphan count: start 12, после 3 волн 12, OK» / «Object count: 1840 → 2950 за 2 минуты, leak подозрение в X». Не нужен бенчмарк-grade отчёт, нужен sanity-check.
+- **AC-A10**: D13 (static leak-pass) — **complementary,** не replacement профайлера. AC-A9 авторитетен по числам, D13 — по паттернам. Если static-pass говорит «leak risk в health_bar`, а профайлер показывает стабильный orphan count — finding остаётся как P3 «потенциальная утечка не проявилась, исправить если будет время». Если профайлер показывает leak а static-pass пуст — значит источник не в типичном паттерне, finding P1 «leak источник неизвестен, нужно investigate в 013».
 
 ## Out of scope
 
 - **Любые правки кода или JSON** — это 013, 014, ... См. AC-A6.
 - **008-impl review** — Сергей ещё не писал, нечего ревьюить. Спеку 008 (как документ) тоже не ревьюим — это работа Сергея/Егора в его PR.
-- **Performance profiling** — отдельный concern, не в этом PR. Если что-то страшно лагает — finding в P1, но без бенчмарков, просто факт.
+- **Performance benchmarking** — отдельный concern. У нас есть AC-A9 (sanity-snapshot профайлера от Egor) и D13 (static leak-pass), этого достаточно для джем-тайминга. Полноценные бенчмарки с frame-time distribution, repro-сцены, цифры в xls — out of scope.
 - **Visual polish / art critique** — Катя; обсуждение тонов/палитр — в чате, не в findings.
 - **Spec sentence-level редактура** — мы аудитим код против спек, не сами спеки. Опечатки в spec-доках — отдельная нудная работа после джема.
 - **CLAUDE.md правила сами по себе** — если правило кажется кривым, это discussion в чате/PR-комментах, не findings. Findings — только нарушения существующих правил.
@@ -105,8 +120,8 @@
 
 ## Координация
 
-- **Andrey:** owner аудита. Делает проход D1-D12, открывает PR, тэгит каждого owner'a в комментарии PR с фильтром findings по их модулю (или просит Клода это сгенерировать).
-- **Egor:** primary reviewer по D1, D2 (архитектура), D9 (symmetry), D10 (traps). Его findings — самые критичные, идут в 013. Если он считает finding не-issue, обсуждаем перед мержем 012.
+- **Andrey:** owner аудита. Делает static-проход D1-D13, открывает PR, тэгит каждого owner'a в комментарии PR с фильтром findings по их модулю (или просит Клода это сгенерировать).
+- **Egor:** primary reviewer по D1, D2 (архитектура), D9 (symmetry), D10 (traps), D13 (leak patterns — самый знающий Godot internals). **Дополнительно — AC-A9: ручной профайлер-проход в Godot,** ~30 мин, со снятием snapshot перед мержем 012. Его findings — самые критичные, идут в 013.
 - **Sergey:** не ревьюер 012 (его кода ещё нет в staging). Будет ревьюером 013+ в части AI/skill, когда 008-impl созреет.
 - **Alexey:** ревьюер по D5/D11 в части data/dialogue если DialogueManager engine-side findings всплывут.
 - **Nikita:** не ревьюер кода. Возможно фигурирует в findings по dialogue content (грамматика, тон) — отдельной секцией, low priority.
@@ -115,13 +130,14 @@
 ## Процесс работы (шаги для self / Клода если возьмёт implement)
 
 1. **Снимок staging:** `git pull staging` после мержа 008-update. Зафиксировать SHA — `findings.md` валиден против этого среза.
-2. **Систематический проход:** D1 → D12 в порядке, каждый домен — отдельная секция в `findings.md`. Не прыгать между доменами.
+2. **Систематический static-проход:** D1 → D13 в порядке, каждый домен — отдельная секция в `findings.md`. Не прыгать между доменами.
 3. **Findings — на лету:** не накапливать в голове, фиксировать сразу. ID — `F-001`, `F-002`, ..., no skipping numbers.
-4. **Per-owner / per-spec rollup** в конце.
-5. **Refactor backlog (AC-A5)** — последняя секция `findings.md`.
-6. Коммит, push, тэгнуть owners в PR-комментариях.
-7. Каждый owner read-only ревьюит свою часть. Approve или коррекции через PR-комменты.
-8. После approval — 012 в staging, 013 стартует от него.
+4. **Профайлер-snapshot (AC-A9, Egor manual):** параллельно с пп.2-3 либо после. Файл `profiler-snapshot.md` рядом с findings. Если расходится со static-pass — кросс-ссылки в findings (см. AC-A10).
+5. **Per-owner / per-spec rollup** в конце.
+6. **Refactor backlog (AC-A5)** — последняя секция `findings.md`.
+7. Коммит, push, тэгнуть owners в PR-комментариях.
+8. Каждый owner read-only ревьюит свою часть. Approve или коррекции через PR-комменты.
+9. После approval — 012 в staging, 013 стартует от него.
 
 ## Что после 012
 
