@@ -13,7 +13,7 @@
     },
     {
       "id": "vs_heal",
-      "target": {"kind": "entity", "range": -1},
+      "target": {"kind": "self"},
       "area":   {"kind": "self"},
       "effects": [
         {"kind": "heal", "id": "vs_heal_eff", "type": "heal", "duration": 0, "heal": 50}

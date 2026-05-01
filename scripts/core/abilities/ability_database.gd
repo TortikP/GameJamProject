@@ -20,6 +20,7 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const ABILITIES_DIR := "res://data/abilities/"
 
 const TARGET_KINDS: Dictionary = {
+	"self":      preload("res://scripts/core/abilities/targets/self_target.gd"),
 	"entity":    preload("res://scripts/core/abilities/targets/entity_target.gd"),
 	"hex":       preload("res://scripts/core/abilities/targets/hex_target.gd"),
 	"direction": preload("res://scripts/core/abilities/targets/direction_target.gd"),
