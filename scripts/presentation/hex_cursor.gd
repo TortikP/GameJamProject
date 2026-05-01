@@ -12,7 +12,12 @@ extends Node2D
 ##
 ## Controllers set `mode` based on cast_mode + target validity. Default is IDLE.
 
-const HEX_RADIUS := 33.0  # must match godmode_terrain.tres outer radius (BG_R=33)
+## Hex outer radius — must match the live terrain. Godmode arena and the
+## hex_grid_demo use 60. The original 33 came from the atlas's BG_R, which
+## is the texture-tile size, not the gameplay-hex size — the cursor was
+## visibly half-size against the rendered hex. All other overlays
+## (MoveRangeOverlay, TelegraphHex, CastRangeOverlay) already use 60.
+const HEX_RADIUS := 60.0
 
 enum Mode { IDLE, ACTION_VALID, ACTION_INVALID, INSPECT }
 
