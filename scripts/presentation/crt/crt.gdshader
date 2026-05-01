@@ -79,31 +79,41 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec2 cuv = barrel(uv);
 
-	// Outside the curved frame → solid black bezel with soft edge.
+	// Early-exit for bezel — saves all texture work outside the curved frame.
+	// Cheap branch (fully-coalesced for warps in the bezel zone), big win on
+	// rounded corners where ~5–10% of fragments live.
 	float bz = bezel_mask(cuv);
+	if (bz >= 1.0) {
+		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
 	float screen_mask = 1.0 - bz;
 
-	// Center-aware chromatic aberration: shift R and B by ±chroma_strength px,
-	// scaled by squared distance from center so the edges fringe more than the middle.
+	// Center-aware chromatic aberration. Edges fringe more than the middle.
+	// Two samples instead of three: G channel is the average of the two
+	// shifted reads — visually indistinguishable from a separate centre sample,
+	// −1 texture read per fragment. Multiplied by `screen_mask` so the offset
+	// fades to zero right at the bezel — kills clamp-to-edge "streaks" on the
+	// outermost ring of the screen.
 	vec2 from_center = cuv - 0.5;
 	vec2 chroma_dir = from_center * length(from_center) * 2.0;
-	vec2 chroma_offset = chroma_dir * chroma_strength * SCREEN_PIXEL_SIZE;
+	vec2 chroma_offset = chroma_dir * chroma_strength * SCREEN_PIXEL_SIZE * screen_mask;
 
-	float r = texture(screen_tex, cuv + chroma_offset).r;
-	float g = texture(screen_tex, cuv).g;
-	float b = texture(screen_tex, cuv - chroma_offset).b;
-	vec3 col = vec3(r, g, b);
+	vec3 sa = texture(screen_tex, cuv + chroma_offset).rgb;
+	vec3 sb = texture(screen_tex, cuv - chroma_offset).rgb;
+	vec3 col = vec3(sa.r, (sa.g + sb.g) * 0.5, sb.b);
 
-	// Cheap bloom: 4 neighbour samples a few pixels away, average them, then
-	// add only the bright part. 4-tap is "good enough" on jam-pace pixel art.
-	vec2 px = SCREEN_PIXEL_SIZE * 3.0;
-	vec3 nb = texture(screen_tex, cuv + vec2( 0.0,  px.y)).rgb;
-	vec3 sb = texture(screen_tex, cuv + vec2( 0.0, -px.y)).rgb;
-	vec3 eb = texture(screen_tex, cuv + vec2( px.x, 0.0)).rgb;
-	vec3 wb = texture(screen_tex, cuv + vec2(-px.x, 0.0)).rgb;
-	vec3 blur = (nb + sb + eb + wb) * 0.25;
-	vec3 bright = max(blur - vec3(bloom_threshold), vec3(0.0));
-	col += bright * bloom_strength;
+	// Bloom: two diagonal samples (down from four cardinal). Gated by strength
+	// so setting `bloom_strength = 0` in the inspector skips the work entirely
+	// instead of multiplying it out at the end.
+	if (bloom_strength > 0.0) {
+		vec2 px = SCREEN_PIXEL_SIZE * 2.0;
+		vec3 d1 = texture(screen_tex, cuv + vec2( px.x,  px.y)).rgb;
+		vec3 d2 = texture(screen_tex, cuv + vec2(-px.x, -px.y)).rgb;
+		vec3 blur = (d1 + d2) * 0.5;
+		vec3 bright = max(blur - vec3(bloom_threshold), vec3(0.0));
+		col += bright * bloom_strength;
+	}
 
 	// Scanlines locked to PHYSICAL pixel rows — no moiré with viewport size.
 	// `cos(2π * y / pitch)`: one full bright→dim cycle every `pitch` rows.
