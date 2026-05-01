@@ -1,0 +1,9 @@
+{
+  "id": "burning",
+  "kind": "damage",
+  "amount": 2,
+  "duration": 2,
+  "applies_to": ["player", "enemy"],
+  "vfx": "",
+  "sfx": ""
+}

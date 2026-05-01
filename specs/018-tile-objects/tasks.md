@@ -34,14 +34,14 @@
 
 ## Группа E — content (parallel после T003)
 
-- [ ] **T008** [P2] [P] `data/tile_objects/_schema.md` — schema doc для Стасяна. Описывает все поля, их типы, дефолты, ограничения по level. depends: T003.
-- [ ] **T009** [P2] [P] `data/tile_objects/mountain.json` — ELEVATION, no behavior, no destructible. depends: T003.
-- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone, `applies_on_enter=true`, `applies_on_turn_end=true`, `aura_radius=0`, `applies_on_attacked=false`, `linger_effect_id="burning"`, tags=[liquid, hazard]. depends: T003.
-- [ ] **T010b** [P2] [P] `data/tile_effects/burning.json` — NEW tile_effect: `kind: "damage", amount: 2, duration: 2, applies_to: ["player", "enemy"]`. Расширение TileEffectRegistry для парсинга `duration` int (default 0 — backward-compat). depends: T003.
-- [ ] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain, `aura_radius=1`, остальные триггеры false, `linger_*` пустые, not breakable. depends: T003.
-- [ ] **T012** [P2] [P] `data/tile_objects/wooden_barrel.json` — SMALL non-walkable, breakable hp=2, tags=[wood, flammable], on_destroy_effect_id=damage_zone. depends: T003.
-- [ ] **T013** [P2] [P] `data/tile_objects/wooden_table.json` — SMALL non-walkable, breakable hp=2, tags=[wood, furniture, flammable], no behavior. depends: T003.
-- [ ] **T014** [P2] [P] `data/tile_objects/boulder.json` — LARGE, breakable hp=10, armor_tags=[physical], no behavior. depends: T003.
+- [x] **T008** [P2] [P] `data/tile_objects/_schema.md` — schema doc для Стасяна. Описывает все поля, их типы, дефолты, ограничения по level. depends: T003.
+- [x] **T009** [P2] [P] `data/tile_objects/mountain.json` — ELEVATION, no behavior, no destructible. depends: T003.
+- [x] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone, `applies_on_enter=true`, `applies_on_turn_end=true`, `aura_radius=0`, `applies_on_attacked=false`, `linger_effect_id="burning"`, tags=[liquid, hazard]. depends: T003.
+- [x] **T010b** [P2] [P] `data/tile_effects/burning.json` — NEW tile_effect: `kind: "damage", amount: 2, duration: 2, applies_to: ["player", "enemy"]`. Расширение TileEffectRegistry для парсинга `duration` int (default 0 — backward-compat). depends: T003.
+- [x] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain, `aura_radius=1`, остальные триггеры false, `linger_*` пустые, not breakable. depends: T003.
+- [x] **T012** [P2] [P] `data/tile_objects/wooden_barrel.json` — SMALL non-walkable, breakable hp=2, tags=[wood, flammable], on_destroy_effect_id=damage_zone. depends: T003.
+- [x] **T013** [P2] [P] `data/tile_objects/wooden_table.json` — SMALL non-walkable, breakable hp=2, tags=[wood, furniture, flammable], no behavior. depends: T003.
+- [x] **T014** [P2] [P] `data/tile_objects/boulder.json` — LARGE, breakable hp=10, armor_tags=[physical], no behavior. depends: T003.
 
 ## Группа F — dev smoke
 
