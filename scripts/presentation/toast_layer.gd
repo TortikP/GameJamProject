@@ -9,7 +9,8 @@ extends CanvasLayer
 
 const MAX_VISIBLE: int = 3
 const DEDUP_WINDOW_MS: int = 500
-const DEFAULT_DURATION_SEC: float = 2.5
+# Default toast duration lives in config/game_speed.cfg [ui]:
+#   toast_default_duration_sec (default 2.5). F5-hot-reload via GameSpeed.
 
 const ToastItemScene: PackedScene = preload("res://scenes/ui/toast_item.tscn")
 
@@ -35,9 +36,10 @@ func _on_request(text: String, duration_sec: float, level: StringName) -> void:
 			return
 	_last_text_time_ms[text] = now
 
+	var default_dur: float = float(GameSpeed.get_value("ui", "toast_default_duration_sec", 2.5))
 	var entry := {
 		"text": text,
-		"duration": duration_sec if duration_sec > 0.0 else DEFAULT_DURATION_SEC,
+		"duration": duration_sec if duration_sec > 0.0 else default_dur,
 		"level": level if level != &"" else &"info",
 	}
 	if _visible.size() < MAX_VISIBLE:

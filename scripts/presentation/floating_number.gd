@@ -8,8 +8,10 @@ extends Label
 ## kind ∈ &"damage" / &"heal" / &"miss" / &"buff" / &"debuff" / &"crit"
 
 const RISE_PIXELS: float = 24.0
-const DURATION_MS: int = 700
-const CRIT_DURATION_MS: int = 1100
+# Durations (ms) live in config/game_speed.cfg [ui]:
+#   floating_number_duration_ms       — non-crit (default 700)
+#   floating_number_crit_duration_ms  — CRIT (default 1100)
+# F5-hot-reload via GameSpeed picks them up live.
 const FADE_IN_PORTION: float = 0.20  # 0→1 alpha over first 20%
 const HOLD_PORTION: float = 0.45     # held at full alpha
 # remainder fades out
@@ -65,7 +67,10 @@ func _ready() -> void:
 	# Slight horizontal jitter for stacked-numbers case (per design C11).
 	position.x += randf_range(-10.0, 10.0)
 
-	var dur_ms: int = CRIT_DURATION_MS if text.begins_with("CRIT") else DURATION_MS
+	var is_crit: bool = text.begins_with("CRIT")
+	var dur_key: String = "floating_number_crit_duration_ms" if is_crit else "floating_number_duration_ms"
+	var dur_default: int = 1100 if is_crit else 700
+	var dur_ms: int = int(GameSpeed.get_value("ui", dur_key, dur_default))
 	var dur_s: float = dur_ms / 1000.0
 
 	# Rise + fade via Tween. Modulate.a animated through tween_method for the
