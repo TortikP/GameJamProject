@@ -32,6 +32,7 @@ const GRID_H := 9
 @export var slot_bar: NodePath  # path to HBoxContainer with slot_bar.gd
 @export var inspector_path: NodePath
 @export var overlay_path: NodePath
+@export var player_status_panel_path: NodePath  # 016/F-034 — was hardcoded "../HUD/PlayerStatusPanel"
 
 var _slot_bar_node: Node
 var _inspector: Node      # ActorInspector
@@ -136,7 +137,7 @@ func _ready() -> void:
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
 	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
 	# so godmode keeps booting if the HUD layout drops the panel.
-	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	var psp: Node = _get_player_status_panel()
 	if psp != null and psp.has_method("bind_player"):
 		psp.bind_player(player)
 
@@ -488,11 +489,22 @@ func _cast_slot(slot_index: int) -> void:
 	TurnManager.advance()
 
 
+## 016/F-034 — resolves PlayerStatusPanel via @export NodePath, with fallback
+## to the historical hardcoded "../HUD/PlayerStatusPanel" so godmode still boots
+## in test scene-tree variations where the @export wasn't set.
+func _get_player_status_panel() -> Node:
+	if player_status_panel_path != NodePath(""):
+		var psp := get_node_or_null(player_status_panel_path)
+		if psp != null:
+			return psp
+	return get_node_or_null("../HUD/PlayerStatusPanel")
+
+
 func _on_slot_activated(_index: int) -> void:
 	_refresh_overlay()
 	# 009-T044+: push active spell into PlayerStatusPanel description block.
 	# -1 = deselect → pass null which collapses the spell section.
-	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	var psp: Node = _get_player_status_panel()
 	if psp != null and psp.has_method("set_active_spell"):
 		var ability = null
 		if _index != -1 and _slot_bar_node != null:

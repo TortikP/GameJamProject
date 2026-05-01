@@ -31,7 +31,7 @@ Carve-out из `008/AC-S5` (enemy AI, Сергей): отдельным мале
   - `skill_knockback_punch.json` → `"tags": ["damage", "knockback"]`
 - **AC-T4**: `test_*.json` (4 файла: `test_area_strike`, `test_chain_lightning`, `test_target_area_strike`, `test_vamp_strike`) — поля `tags` НЕ добавляется. Пустой default → AI их не выберет, что и нужно по 008/AC-G11. Если в будущем понадобится, добавим отдельным change — не в этом PR.
 - **AC-T5**: 007/plan.md schema example (`### data/skills/*.json`) — добавлено поле `tags` в пример (doc-fix), чтобы новый contributor не пропустил.
-- **AC-T6**: Smoke: запуск проекта, `SkillDatabase` логирует прежнее количество skills (`loaded N skills`, N = сколько было до PR), `[Skill] manekin_attack cast by ...` работает на манекенах как до PR, F1/F2/F3/F4 в godmode (debug skills) кастуются.
+- **AC-T6**: Smoke: запуск проекта, `SkillDatabase` логирует прежнее количество skills (`loaded N skills`, N = сколько было до PR), `[Skill] manekin_attack cast by ...` работает на манекенах как до PR, Q/W/E/R (или 1/2/3/4) в godmode (debug skills) кастуются.
 
 ## Out of scope
 

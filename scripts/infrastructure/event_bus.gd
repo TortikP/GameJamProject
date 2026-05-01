@@ -62,8 +62,7 @@ signal ui_toast_requested(text: String, duration_sec: float, level: StringName) 
 signal ui_modal_opened(id: StringName)
 signal ui_modal_closed(id: StringName)
 
-# Game flow (used by main menu, run summary, pause)
+# Game flow (used by main menu, pause)
 signal main_menu_entered
 signal run_started_requested
-signal run_summary_shown(summary: Dictionary)
 signal pause_toggled(paused: bool)

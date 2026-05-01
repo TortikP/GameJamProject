@@ -3,7 +3,7 @@ extends Node
 ## Registered after DialogueDB in project.godot.
 
 const GameLogger   = preload("res://scripts/infrastructure/game_logger.gd")
-const PANEL_SCENE  := "res://scenes/ui/dialogue_panel.tscn"
+const PANEL_SCENE  := preload("res://scenes/ui/dialogue_panel.tscn")
 const CANVAS_LAYER := 20   # modal overlay above gameplay UI
 
 var _queue:             Array      = []   # Array[StringName] — resolved ids
@@ -101,7 +101,7 @@ func _get_panel() -> Node:
 		canvas.name = "DialogueLayer"
 		get_tree().root.add_child(canvas)
 
-		_panel = load(PANEL_SCENE).instantiate()
+		_panel = PANEL_SCENE.instantiate()
 		canvas.add_child(_panel)
 		_panel.hide()
 

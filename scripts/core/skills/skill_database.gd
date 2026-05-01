@@ -78,7 +78,7 @@ func _build_skill(data: Dictionary) -> Skill:
 		skill.tags.append(StringName(t))
 
 	for ab_data in data.get("abilities", []):
-		var ab: Ability = AbilityDatabase._build_ability_from_dict(ab_data)
+		var ab: Ability = AbilityDatabase.build_ability_from_dict(ab_data)
 		if ab != null:
 			skill.abilities.append(ab)
 			AbilityDatabase.register_ability(ab)  # visible to overlay / inspector

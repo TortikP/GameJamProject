@@ -105,13 +105,13 @@ func _load_file(file_path: String) -> void:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		GameLogger.warn("AbilityDatabase", "bad JSON: %s" % file_path)
 		return
-	var ability := _build_ability_from_dict(parsed)
+	var ability := build_ability_from_dict(parsed)
 	if ability != null:
 		_by_id[ability.id] = ability
 
 
 ## Public — also used by SkillDatabase to parse abilities embedded in skill JSON.
-func _build_ability_from_dict(data: Dictionary) -> Ability:
+func build_ability_from_dict(data: Dictionary) -> Ability:
 	var id: String = data.get("id", "")
 	if id == "":
 		GameLogger.warn("AbilityDatabase", "ability missing 'id'")
