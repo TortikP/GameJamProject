@@ -37,12 +37,12 @@ Sequential кластерами (по concern из findings.md slicing). Оди�
 
 ## D — F-013 (godmode_camera follow_target injection)
 
-- [ ] D1. `scripts/presentation/godmode/godmode_camera.gd` — добавить `var _follow_target: Node2D = null` и метод `set_follow_target(target: Node2D) -> void`.
-- [ ] D2. `scripts/presentation/godmode/godmode_camera.gd` — переименовать `_center_on_player` → `_center_on_target`. Логика: использовать `_follow_target`, fallback `find_child("Player", ...)`.
-- [ ] D3. `scripts/presentation/godmode/godmode_camera.gd:_ready` — `_center_on_target.call_deferred()`.
-- [ ] D4. `scripts/presentation/godmode/godmode_controller.gd:_place_player` — после `player.position = ...` (line 158): инжект `camera.set_follow_target(player)` через `get_node_or_null("../GodmodeCamera")` + `has_method` check.
-- [ ] D5. Manual smoke: F5 godmode → камера на player. F1 спавн manekin'а — камера не двигается.
-- [ ] D6. Commit: `feat(015): F-013 — godmode_camera follow_target injection`.
+- [x] D1. `scripts/presentation/godmode/godmode_camera.gd` — добавить `var _follow_target: Node2D = null` и метод `set_follow_target(target: Node2D) -> void`.
+- [x] D2. `scripts/presentation/godmode/godmode_camera.gd` — переименовать `_center_on_player` → `_center_on_target`. Логика: использовать `_follow_target`, fallback `find_child("Player", ...)`.
+- [x] D3. `scripts/presentation/godmode/godmode_camera.gd:_ready` — `_center_on_target.call_deferred()`.
+- [x] D4. `scripts/presentation/godmode/godmode_controller.gd:_place_player` — после `player.position = ...` (line 158): инжект `camera.set_follow_target(player)` через `get_node_or_null("../GodmodeCamera")` + `has_method` check.
+- [x] D5. Manual smoke: F5 godmode → камера на player. F1 спавн manekin'а — камера не двигается. (deferred to Egor)
+- [x] D6. Commit: `feat(015): F-013 — godmode_camera follow_target injection`.
 
 ## E — F-014 (skill_cast aggregates target_ids)
 

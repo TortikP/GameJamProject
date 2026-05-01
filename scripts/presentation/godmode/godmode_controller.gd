@@ -157,6 +157,12 @@ func _place_player() -> void:
 	player.team = &"player"
 	player.position = grid.tile_map_layer.map_to_local(start)
 	registry.register(player)
+	# 015 / F-013: hand the camera a direct ref to Player so it doesn't
+	# walk the scene tree by name. has_method check keeps controller usable
+	# in test scenes that omit the camera node.
+	var camera: Node = get_node_or_null("../GodmodeCamera")
+	if camera != null and camera.has_method("set_follow_target"):
+		camera.set_follow_target(player)
 	GameLogger.info("Godmode", "Player at %s" % str(start))
 
 

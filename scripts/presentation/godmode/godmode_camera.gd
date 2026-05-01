@@ -20,16 +20,32 @@ var _zoom_tween: Tween
 var _panning: bool = false
 var _pan_last: Vector2 = Vector2.ZERO
 
+# 015 / F-013: explicit injection from godmode_controller after Player spawn.
+# Falls back to find_child("Player", ...) if no controller is present (e.g.
+# camera scene loaded standalone for debugging).
+var _follow_target: Node2D = null
+
 
 func _ready() -> void:
 	_zoom_target = zoom
-	_center_on_player.call_deferred()
+	_center_on_target.call_deferred()
 
 
-func _center_on_player() -> void:
-	var player := get_tree().root.find_child("Player", true, false) as Node2D
-	if player != null:
-		global_position = player.global_position
+## Called by godmode_controller after Player is placed. Decouples this camera
+## from a fragile cross-tree node-name lookup.
+func set_follow_target(target: Node2D) -> void:
+	_follow_target = target
+	if is_inside_tree():
+		_center_on_target()
+
+
+func _center_on_target() -> void:
+	var target: Node2D = _follow_target
+	if target == null:
+		# Standalone-scene fallback. Kept so camera scene works without controller.
+		target = get_tree().root.find_child("Player", true, false) as Node2D
+	if target != null:
+		global_position = target.global_position
 
 
 func _unhandled_input(event: InputEvent) -> void:
