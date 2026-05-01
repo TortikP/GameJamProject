@@ -226,21 +226,21 @@ func _bind_hex_at(coord: Vector2i) -> void:
 
 
 func _refresh_overlay() -> void:
-	if _overlay == null or _selected == null:
+	# Decoupled from _selected: the move-range and cast-range overlays are
+	# always for the PLAYER. Selecting an enemy/hex (LMB on actor, click on
+	# tile) should not hide the player's tactical info (Pillar 1 visibility).
+	# Inspector binding still follows _selected — that's the "what am I
+	# looking at" panel, separate concern from "what can I do this turn".
+	if _overlay == null or player == null:
 		return
-	# For player: show only the active spell's range (or nothing if no spell selected).
-	# For enemies: show their attack ability range.
 	var ability_ids: Array = []
-	if _selected == player:
-		if _slot_bar_node != null:
-			var active: int = _slot_bar_node.get_active()
-			if active != -1:
-				var ab := _slot_bar_node.get_slot(active) as Ability
-				if ab != null:
-					ability_ids = [ab.id]
-	else:
-		ability_ids = _selected.get_abilities()
-	_overlay.show_for(_selected, registry, ability_ids)
+	if _slot_bar_node != null:
+		var active: int = _slot_bar_node.get_active()
+		if active != -1:
+			var ab := _slot_bar_node.get_slot(active) as Ability
+			if ab != null:
+				ability_ids = [ab.id]
+	_overlay.show_for(player, registry, ability_ids)
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:
