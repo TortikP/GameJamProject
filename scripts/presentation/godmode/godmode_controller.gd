@@ -205,13 +205,15 @@ func _deselect_to_player() -> void:
 
 
 func _inspect_hex(coord: Vector2i) -> void:
-	# No actor at coord: unbind actor section, show hex section only
+	# Click on empty hex → inspector shows hex info, actor section hides.
+	# Selection state and player's move/cast overlay are NOT touched
+	# (009-ui-kit decoupling: overlay tracks player, not _selected).
+	# Note: we deliberately don't change _selected — leaving it on the
+	# player so subsequent overlay refreshes have a sensible source if
+	# anything ever re-introduces selection-driven logic.
 	if _inspector != null and _inspector.has_method("unbind"):
 		_inspector.unbind()
-	_selected = null
 	_bind_hex_at(coord)
-	if _overlay != null:
-		_overlay.clear()
 
 
 func _bind_hex_at(coord: Vector2i) -> void:
