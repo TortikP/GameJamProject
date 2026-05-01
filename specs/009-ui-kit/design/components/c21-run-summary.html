@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C21 — Run summary / death — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C21: Run summary / death --------------------------- */
+  .summary {
+    width: 100%;
+    max-width: 960px;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+  }
+  .summary .head {
+    display: flex; flex-direction: column; gap: var(--sp-2);
+    border-bottom: 1px solid var(--ui-border);
+    padding-bottom: var(--sp-4);
+  }
+  .summary .head .verdict {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--c, var(--ui-text-faint));
+  }
+  .summary.death    .head .verdict { --c: var(--sem-damage); }
+  .summary.victory  .head .verdict { --c: var(--sem-buff); }
+  .summary .head h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ui-text);
+    margin: 0;
+  }
+  .summary .head .killer {
+    font-size: 14px;
+    color: var(--ui-text-dim);
+    font-style: italic;
+  }
+  .summary .head .killer b { color: var(--ui-text); font-style: normal; }
+
+  .summary .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+  .stat-cell {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-cell .k {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ui-text-faint);
+  }
+  .stat-cell .v {
+    font-family: ui-monospace, monospace;
+    font-size: 22px;
+    color: var(--ui-text);
+  }
+  .stat-cell .v .unit {
+    font-size: 12px;
+    color: var(--ui-text-dim);
+    margin-left: 4px;
+  }
+
+  .summary .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  .col-card {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-4);
+  }
+  .col-card h3 {
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ui-text-faint);
+    margin: 0 0 var(--sp-3);
+  }
+  .row-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .row-list .row {
+    display: grid;
+    grid-template-columns: 16px 1fr auto;
+    gap: var(--sp-2);
+    align-items: baseline;
+    padding: var(--sp-1) 0;
+    border-bottom: 1px solid var(--ui-border);
+    font-size: 13px;
+  }
+  .row-list .row:last-child { border-bottom: none; }
+  .row-list .row .dot {
+    width: 8px; height: 8px;
+    background: var(--c, var(--ui-text-dim));
+    margin-top: 4px;
+  }
+  .row-list .row.common    { --c: var(--ui-text-dim); }
+  .row-list .row.uncommon  { --c: var(--sem-buff); }
+  .row-list .row.rare      { --c: var(--ui-focus); }
+  .row-list .row.legendary { --c: var(--sem-control); }
+  .row-list .row .meta {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+
+  .summary .voices {
+    display: flex; gap: var(--sp-2); flex-wrap: wrap;
+  }
+  .voice-chip {
+    border: 1px solid var(--c, var(--ui-border));
+    border-left-width: 3px;
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--ui-text);
+    background: var(--ui-bg-panel);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .voice-chip .race {
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c, var(--ui-text-faint));
+  }
+  .voice-chip.mortal     { --c: var(--sem-control); }
+  .voice-chip.beast      { --c: var(--sem-debuff); }
+  .voice-chip.celestial  { --c: var(--sem-buff); }
+
+  .summary .footer {
+    display: flex; justify-content: space-between;
+    align-items: center; gap: var(--sp-3);
+    border-top: 1px solid var(--ui-border);
+    padding-top: var(--sp-4);
+  }
+  .btn {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border-strong);
+    color: var(--ui-text);
+    padding: var(--sp-2) var(--sp-4);
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--ui-bg-elevated); }
+  .btn.primary {
+    background: var(--ui-focus);
+    border-color: var(--ui-focus);
+    color: var(--ui-bg-screen);
+    font-weight: 600;
+  }
+
+  .summary .seed {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-faint);
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C21</div>
+    <h1>C21 — Run summary / death</h1>
+    <p class="subtitle">
+      End-of-run modal. Header verdict (death / victory) → at-a-glance stats grid → 2-column columns
+      (modifiers carried, voices absorbed) → footer actions. Reuses C19's rarity-dot vocabulary.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Death · standard <span class="pill">wave 6</span></h3>
+      <p class="caption">Player died mid-run. Killer line names the entity + race. Stats reflect that run only; modifiers/voices carry forward on next attempt.</p>
+      <div class="stage" style="min-height:600px;align-items:flex-start;">
+        <div class="summary death">
+          <div class="head">
+            <div class="verdict">you died</div>
+            <h2>The Cellar Below — wave 6 of 10</h2>
+            <div class="killer">struck down by <b>Withered Cultist</b> · race: mortal</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-cell"><span class="k">turns lasted</span><span class="v">87</span></div>
+            <div class="stat-cell"><span class="k">damage dealt</span><span class="v">412</span></div>
+            <div class="stat-cell"><span class="k">damage taken</span><span class="v">236</span></div>
+            <div class="stat-cell"><span class="k">enemies felled</span><span class="v">19</span></div>
+          </div>
+
+          <div class="columns">
+            <div class="col-card">
+              <h3>Modifiers carried</h3>
+              <div class="row-list">
+                <div class="row uncommon">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Rage</b> — ×1.5 dmg below 50% HP</span>
+                  <span class="meta">wave 2</span>
+                </div>
+                <div class="row common">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Sharpened</b> — +5 physical dmg</span>
+                  <span class="meta">wave 4</span>
+                </div>
+                <div class="row rare">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Wraithstep</b> — phase, 1/turn</span>
+                  <span class="meta">wave 5</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-card">
+              <h3>Voices absorbed · 4</h3>
+              <div class="voices">
+                <div class="voice-chip mortal">
+                  <span class="race">mortal</span>
+                  <span>Withered Cultist</span>
+                </div>
+                <div class="voice-chip beast">
+                  <span class="race">beast</span>
+                  <span>Hound</span>
+                </div>
+                <div class="voice-chip mortal">
+                  <span class="race">mortal</span>
+                  <span>Mire-Acolyte</span>
+                </div>
+                <div class="voice-chip celestial">
+                  <span class="race">celestial</span>
+                  <span>Pale Singer</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <span class="seed">seed · 8F2C·E04A · build 0.3.1</span>
+            <div style="display:flex;gap:var(--sp-2);">
+              <button class="btn">Title screen</button>
+              <button class="btn primary">Begin again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Victory <span class="pill">wave 10</span></h3>
+      <p class="caption">Same chrome, green verdict. Killer line replaced with closing hook.</p>
+      <div class="stage" style="min-height:600px;align-items:flex-start;">
+        <div class="summary victory">
+          <div class="head">
+            <div class="verdict">you walked through</div>
+            <h2>The Hollow King — felled · wave 10 of 10</h2>
+            <div class="killer">the portal closes behind you. it remembered.</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-cell"><span class="k">turns lasted</span><span class="v">214</span></div>
+            <div class="stat-cell"><span class="k">damage dealt</span><span class="v">1,184</span></div>
+            <div class="stat-cell"><span class="k">damage taken</span><span class="v">412</span></div>
+            <div class="stat-cell"><span class="k">enemies felled</span><span class="v">42</span></div>
+          </div>
+
+          <div class="columns">
+            <div class="col-card">
+              <h3>Modifiers carried</h3>
+              <div class="row-list">
+                <div class="row legendary">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Hollow Crown</b> — +2 dmg per voice; voices ×2</span>
+                  <span class="meta">wave 8</span>
+                </div>
+                <div class="row rare">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Wraithstep</b> — phase, 1/turn</span>
+                  <span class="meta">wave 5</span>
+                </div>
+                <div class="row uncommon">
+                  <span class="dot"></span>
+                  <span><b style="color:var(--ui-text);">Rage</b> — ×1.5 dmg below 50% HP</span>
+                  <span class="meta">wave 2</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-card">
+              <h3>Voices absorbed · 8</h3>
+              <div class="voices">
+                <div class="voice-chip mortal"><span class="race">mortal</span><span>Cultist</span></div>
+                <div class="voice-chip mortal"><span class="race">mortal</span><span>Acolyte</span></div>
+                <div class="voice-chip beast"><span class="race">beast</span><span>Hound</span></div>
+                <div class="voice-chip beast"><span class="race">beast</span><span>Mire-thing</span></div>
+                <div class="voice-chip celestial"><span class="race">celestial</span><span>Pale Singer</span></div>
+                <div class="voice-chip celestial"><span class="race">celestial</span><span>Bell-Choir</span></div>
+                <div class="voice-chip mortal"><span class="race">mortal</span><span>Knight</span></div>
+                <div class="voice-chip celestial"><span class="race">celestial</span><span>Hollow King</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <span class="seed">seed · 8F2C·E04A · build 0.3.1</span>
+            <div style="display:flex;gap:var(--sp-2);">
+              <button class="btn">Title screen</button>
+              <button class="btn primary">New run</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C21 Run summary / death</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Close out a run. Tells the player <i>what just happened</i> (verdict + killer), <i>how it went</i> (stats), and <i>what they keep</i> (modifiers, voices). The bridge between this run and the next.</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Centered modal, max-width 960. Pause-the-world (modal protocol). Renders on top of everything except the title screen.</dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>verdict:        Enum { DEATH, VICTORY }
+wave_index, wave_max
+wave_label
+killer:         { name, race }     # null on victory
+stats:          { turns, dmg_dealt, dmg_taken, kills }
+modifiers:      Array[Modifier]    # ordered by acquisition
+voices:         Array[Voice]
+seed:           String</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd><code>signal restart</code>, <code>signal title_screen</code></dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Voices &gt; 8:</b> chips wrap; allow vertical scroll within the card; never paginate (run length is part of the read).<br/>
+          • <b>0 modifiers / 0 voices:</b> show empty-state line ("You walked alone." / "No voices yet.") instead of an empty card.<br/>
+          • <b>Self-kill / environmental death:</b> killer line uses <code>"the cellar took you"</code>-style copy; no race tag.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">RunSummary</span> : CanvasLayer              <span class="c"># layer 110</span>
+  <span class="n">ColorRect</span> dimmer (alpha 0.85)
+  <span class="n">CenterContainer</span>
+    <span class="n">PanelContainer</span>
+      <span class="n">VBoxContainer</span>
+        <span class="n">HeaderBlock</span> (verdict, h2, killer)
+        <span class="n">GridContainer</span> stats (4×1)
+        <span class="n">HBoxContainer</span> columns
+          <span class="n">ModifierColumn</span>: VBox of rows
+          <span class="n">VoiceColumn</span>:    HFlow of chips
+        <span class="n">FooterRow</span>: HBox</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

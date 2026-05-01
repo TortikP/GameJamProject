@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C28 — Help / keybind overlay — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* ============================================================
+     C28 help / keybind overlay
+     - Hold ? (or F1) to show; release to hide
+     - Full-viewport scrim + sectioned cheatsheet
+     - Live: reads C24 keybind map, NOT static strings
+     - Two layouts: compact summary, full reference
+     ============================================================ */
+
+  .vp {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .vp .label {
+    position: absolute; top: 8px; left: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    z-index: 5;
+  }
+  .vp .hud-shadow {
+    position: absolute;
+    border: 1px dashed var(--ui-border);
+    background: var(--ui-bg-panel);
+    opacity: 0.5;
+    color: var(--ui-text-faint);
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vp .hud-shadow.top    { top: 0; left: 0; right: 0; height: 32px; border-width: 0 0 1px 0; }
+  .vp .hud-shadow.skill  { left: 50%; transform: translateX(-50%); bottom: 6px; width: 320px; height: 48px; }
+  .vp .hud-shadow.player { left: 8px; bottom: 8px; width: 220px; height: 80px; }
+
+  /* scrim */
+  .scrim {
+    position: absolute; inset: 0;
+    background: rgba(8,10,14,0.78);
+    backdrop-filter: blur(1px);
+    z-index: 10;
+  }
+
+  /* Compact corner card */
+  .compact {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 360px;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    padding: var(--sp-3) var(--sp-4) var(--sp-4);
+    z-index: 11;
+  }
+  .compact h4 {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ui-text-faint);
+    margin: 0 0 var(--sp-2) 0;
+    border-bottom: 1px solid var(--ui-border);
+    padding-bottom: 4px;
+  }
+  .compact .grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px var(--sp-3);
+    font-size: 12px;
+  }
+  .compact .grid .k {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text);
+    border: 1px solid var(--ui-border-strong);
+    padding: 1px 6px;
+    border-radius: 2px;
+    text-align: center;
+    min-width: 28px;
+    background: var(--ui-bg-panel-2);
+    align-self: start;
+    margin-top: 2px;
+  }
+  .compact .grid .a {
+    color: var(--ui-text);
+    font-size: 12px;
+  }
+  .compact .grid .a .desc {
+    display: block;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    margin-top: 1px;
+  }
+  .compact .hint {
+    margin-top: var(--sp-3);
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Full reference sheet */
+  .sheet {
+    position: absolute;
+    inset: var(--sp-4);
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    z-index: 11;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+  }
+  .sheet .head {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+    background: var(--ui-bg-screen);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .sheet .head h4 {
+    font-size: 13px;
+    margin: 0;
+    color: var(--ui-text);
+  }
+  .sheet .head .ctx {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ui-text-faint);
+  }
+  .sheet .body {
+    padding: var(--sp-3) var(--sp-4);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3) var(--sp-4);
+    overflow-y: auto;
+  }
+  .sheet .col h5 {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ui-text-faint);
+    margin: 0 0 var(--sp-2) 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--ui-border);
+  }
+  .sheet .col + h5 { margin-top: var(--sp-3); }
+  .sheet .grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px var(--sp-2);
+    font-size: 11px;
+    margin-bottom: var(--sp-3);
+  }
+  .sheet .grid .k {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text);
+    border: 1px solid var(--ui-border-strong);
+    padding: 1px 5px;
+    border-radius: 2px;
+    text-align: center;
+    min-width: 20px;
+    background: var(--ui-bg-panel-2);
+    align-self: start;
+    margin-top: 1px;
+  }
+  .sheet .grid .k.alt { color: var(--ui-text-dim); border-color: var(--ui-border); background: transparent; }
+  .sheet .grid .k.unbound {
+    color: var(--ui-text-faint);
+    border-style: dashed;
+    background: transparent;
+  }
+  .sheet .grid .a { font-size: 11px; line-height: 1.45; color: var(--ui-text); }
+  .sheet .grid .a .desc { display: block; font-size: 10px; color: var(--ui-text-faint); margin-top: 1px; }
+
+  .sheet .foot {
+    padding: var(--sp-2) var(--sp-4);
+    border-top: 1px solid var(--ui-border);
+    background: var(--ui-bg-screen);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .sheet .foot .right {
+    display: flex; gap: var(--sp-3);
+  }
+  .sheet .foot button {
+    background: transparent;
+    border: 1px solid var(--ui-border-strong);
+    color: var(--ui-text-dim);
+    font-family: inherit; font-size: inherit;
+    padding: 2px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* gamepad mode swap */
+  .pad-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 999px;
+    padding: 0 5px 0 4px;
+    background: var(--ui-bg-panel-2);
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text);
+    min-width: 28px;
+    justify-content: center;
+  }
+  .pad-key .glyph {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    color: var(--ui-bg-screen);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 12px;
+    text-align: center;
+  }
+  .pad-key .a { background: #4cc987; }
+  .pad-key .b { background: #d94b4b; }
+  .pad-key .x { background: #5fb6f5; }
+  .pad-key .y { background: #f5d97a; }
+  .pad-key.lb, .pad-key.rb { font-size: 9px; padding: 0 6px; }
+
+  /* "press to hide" indicator (compact only) */
+  .hold-pulse {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ui-focus);
+    animation: pulse 1s ease-in-out infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+</style>
+</head>
+<body>
+<div class="kit-page">
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C28</div>
+    <h1>C28 — Help / keybind overlay</h1>
+    <p class="subtitle">
+      Hold-to-show cheatsheet. Always reflects the live keybind map from C24 — never a static
+      string. Two layouts: compact (essentials, in-combat reference) and full sheet (all bindings,
+      grouped by context). Gamepad swaps the same rows to button glyphs.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <!-- 1. compact in-combat -->
+    <div class="state-card">
+      <h3>Compact · hold <span class="pill">?</span></h3>
+      <p class="caption">Mid-combat reference. Shows only the essentials so the player can keep the arena in mind. Releasing the hold key dismisses; tapping toggles the full sheet.</p>
+      <div class="stage" style="padding:0;min-height:340px;">
+        <div class="vp">
+          <span class="label">overlay · compact</span>
+          <div class="hud-shadow top">C1 top hud</div>
+          <div class="hud-shadow skill">C2 skill bar</div>
+          <div class="hud-shadow player">C3 player status</div>
+          <div class="scrim"></div>
+          <div class="compact">
+            <h4>Quick reference</h4>
+            <div class="grid">
+              <span class="k">1-5</span>      <span class="a">Skills <span class="desc">cast or queue if invalid target</span></span>
+              <span class="k">↵</span>        <span class="a">End turn</span>
+              <span class="k">Tab</span>      <span class="a">Combat log <span class="desc">hold for inspect</span></span>
+              <span class="k">M</span>        <span class="a">Modifier picker <span class="desc">when available</span></span>
+              <span class="k">Esc</span>      <span class="a">Pause / cancel</span>
+            </div>
+            <div class="hint"><span class="hold-pulse"></span>release · ? to dismiss · tap for full</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. full sheet -->
+    <div class="state-card">
+      <h3>Full sheet · grouped by context</h3>
+      <p class="caption">All bindings. Three columns by context: Combat / Camera / Meta. Unbound actions render as dashed chips so the user can spot gaps before opening C24 to fix them.</p>
+      <div class="stage" style="padding:0;min-height:540px;">
+        <div class="vp" style="aspect-ratio: 16 / 11;">
+          <span class="label">overlay · full</span>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="head">
+              <h4>Keybinds</h4>
+              <span class="ctx">profile · default · KB+M</span>
+            </div>
+            <div class="body">
+              <div class="col">
+                <h5>Combat</h5>
+                <div class="grid">
+                  <span class="k">1</span> <span class="a">Skill 1 — Cleave</span>
+                  <span class="k">2</span> <span class="a">Skill 2 — Smite</span>
+                  <span class="k">3</span> <span class="a">Skill 3 — Bulwark</span>
+                  <span class="k">4</span> <span class="a">Skill 4 — Phial <span class="desc">heal · 2 charges</span></span>
+                  <span class="k">5</span> <span class="a">Skill 5 — Echo</span>
+                  <span class="k">↵</span> <span class="a">End turn</span>
+                  <span class="k">Esc</span> <span class="a">Cancel <span class="desc">or back out of targeting</span></span>
+                  <span class="k">Tab</span> <span class="a">Combat log <span class="desc">hold to inspect hex</span></span>
+                  <span class="k unbound">—</span> <span class="a">Skip turn <span class="desc">unbound</span></span>
+                </div>
+
+                <h5>Inspect &amp; targeting</h5>
+                <div class="grid">
+                  <span class="k">LMB</span> <span class="a">Select hex / commit cast</span>
+                  <span class="k">RMB</span> <span class="a">Cancel · close inspector</span>
+                  <span class="k">Tab</span> <span class="a alt" style="color:var(--ui-text-dim);">Hold · cursor mode</span>
+                </div>
+              </div>
+
+              <div class="col">
+                <h5>Camera</h5>
+                <div class="grid">
+                  <span class="k">WASD</span> <span class="a">Pan</span>
+                  <span class="k alt">edge</span> <span class="a">Edge-pan <span class="desc">toggle in C24</span></span>
+                  <span class="k">Q</span> <span class="a">Rotate ↺</span>
+                  <span class="k">E</span> <span class="a">Rotate ↻</span>
+                  <span class="k">Z</span> <span class="a">Zoom in</span>
+                  <span class="k">X</span> <span class="a">Zoom out</span>
+                  <span class="k">F</span> <span class="a">Center on actor</span>
+                  <span class="k">Home</span> <span class="a">Reset view</span>
+                </div>
+
+                <h5>Selection</h5>
+                <div class="grid">
+                  <span class="k">`</span> <span class="a">Cycle next enemy</span>
+                  <span class="k">Shift</span> <span class="a">+ click — multi-inspect</span>
+                </div>
+              </div>
+
+              <div class="col">
+                <h5>Meta</h5>
+                <div class="grid">
+                  <span class="k">M</span> <span class="a">Modifier picker</span>
+                  <span class="k">L</span> <span class="a">Combat log <span class="desc">expanded panel</span></span>
+                  <span class="k">P</span> <span class="a">Pause</span>
+                  <span class="k">F1</span> <span class="a">This help <span class="desc">tap toggles, hold shows</span></span>
+                  <span class="k">F5</span> <span class="a">Quick screenshot</span>
+                  <span class="k unbound">—</span> <span class="a">Quick save <span class="desc">unbound</span></span>
+                  <span class="k unbound">—</span> <span class="a">Mute audio <span class="desc">unbound</span></span>
+                </div>
+
+                <h5>Dialogue (C16/C17)</h5>
+                <div class="grid">
+                  <span class="k">Space</span> <span class="a">Advance</span>
+                  <span class="k">1-4</span> <span class="a">Pick choice</span>
+                  <span class="k">Esc</span> <span class="a">Skip <span class="desc">where allowed</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="foot">
+              <span>live · reads C24 keybind map · 38 actions / 2 unbound</span>
+              <div class="right">
+                <button>Edit in Settings</button>
+                <button>Reset to defaults</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Gamepad swap -->
+    <div class="state-card">
+      <h3>Gamepad mode</h3>
+      <p class="caption">Same rows, button glyphs instead of keys. Triggered automatically when last input was a gamepad. Glyph palette pulled from <code>--sem-*</code> tokens so colorblind-aware (face buttons get text label).</p>
+      <div class="stage" style="padding:0;min-height:340px;">
+        <div class="vp">
+          <span class="label">overlay · gamepad</span>
+          <div class="hud-shadow top">C1 top hud</div>
+          <div class="hud-shadow skill">C2 skill bar</div>
+          <div class="scrim"></div>
+          <div class="compact">
+            <h4>Quick reference · gamepad</h4>
+            <div class="grid">
+              <span class="pad-key"><span class="glyph a">A</span></span>      <span class="a">Confirm / cast</span>
+              <span class="pad-key"><span class="glyph b">B</span></span>      <span class="a">Cancel · back</span>
+              <span class="pad-key"><span class="glyph x">X</span></span>      <span class="a">Skill cycle</span>
+              <span class="pad-key"><span class="glyph y">Y</span></span>      <span class="a">End turn</span>
+              <span class="pad-key lb">LB</span>                                <span class="a">Combat log</span>
+              <span class="pad-key rb">RB</span>                                <span class="a">Modifier picker</span>
+            </div>
+            <div class="hint"><span class="hold-pulse"></span>release · view to dismiss</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. context-sensitive (dialogue) -->
+    <div class="state-card">
+      <h3>Context-sensitive · dialogue</h3>
+      <p class="caption">During a C16 dialogue, the cheatsheet narrows to dialogue-relevant bindings only. Title shows the active context so the player understands the scope.</p>
+      <div class="stage" style="padding:0;min-height:340px;">
+        <div class="vp">
+          <span class="label">overlay · dialogue context</span>
+          <div class="scrim"></div>
+          <div class="compact">
+            <h4>Quick reference · dialogue</h4>
+            <div class="grid">
+              <span class="k">Space</span>  <span class="a">Advance line</span>
+              <span class="k">1-4</span>    <span class="a">Pick choice</span>
+              <span class="k">Tab</span>    <span class="a">History <span class="desc">re-read past lines</span></span>
+              <span class="k">Esc</span>    <span class="a">Skip dialogue <span class="desc">if allowed</span></span>
+            </div>
+            <div class="hint"><span class="hold-pulse"></span>combat bindings hidden in this context</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C28 Help / keybind</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>A live, contextual cheatsheet. The bindings rendered here are <em>read</em> from the same <code>InputMap</code> C24 writes to — so a rebind in Settings instantly updates the help overlay too. No second copy of the truth.</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>
+          <b>Compact</b>: 360 wide, centered, ~240 tall.<br/>
+          <b>Full sheet</b>: 16 px inset from the viewport, 3-column grid, scrollable inside.
+        </dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>InputMap                  // live, from project settings + C24 overrides
+context : Enum {COMBAT, DIALOGUE, MODIFIER_PICK, MENU, SETTINGS}
+input_kind : Enum {KB_M, GAMEPAD}   // last-used; auto-switches</pre>
+        </dd>
+
+        <dt>Show / hide rules</dt>
+        <dd>
+          • <b>Hold</b> (<code>?</code> or <code>F1</code>): show compact while held, hide on release. Min display 250 ms so a quick tap doesn't flash.<br/>
+          • <b>Tap</b> (same key): toggle full sheet on/off.<br/>
+          • Hidden during C25 confirm modal &amp; C20 portal transition.<br/>
+          • Auto-hides if any binding is captured (C24 keybind capture).
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Unbound action</b>: dashed chip with em-dash glyph. Clicking it (full sheet) opens C24 focused on that action's row.<br/>
+          • <b>Conflicting bind</b>: shows both keys side-by-side; the conflict-meta string from C24 footer reuses the same color.<br/>
+          • <b>Mid-rebind</b>: overlay can't open while C24 is in capture state — the capture would eat the help shortcut.<br/>
+          • <b>Long action labels</b>: the <code>.desc</code> sub-line wraps to 2 lines max, then truncates with "…".
+        </dd>
+
+        <dt>Glyphs</dt>
+        <dd>
+          KB+M: chip showing the literal key string (<code>"Esc"</code>, <code>"Space"</code>, <code>"`"</code>, mouse buttons as <code>"LMB"</code>/<code>"RMB"</code>/<code>"MMB"</code>).<br/>
+          Gamepad: face buttons as colored letter discs; shoulders/triggers as pill chips. Color is decorative — the letter is always present so colorblind users don't depend on hue.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">HelpOverlay</span> : CanvasLayer  <span class="c"># singleton</span>
+  <span class="n">ColorRect</span> scrim
+  <span class="n">PanelContainer</span> compact     <span class="c"># shown on hold</span>
+    <span class="n">VBoxContainer</span> (Label header, GridContainer rows, Label hint)
+  <span class="n">PanelContainer</span> full        <span class="c"># shown on tap</span>
+    <span class="n">VBoxContainer</span>
+      <span class="n">HBoxContainer</span> head
+      <span class="n">HBoxContainer</span> body (3 × VBox columns)
+      <span class="n">HBoxContainer</span> foot</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>
