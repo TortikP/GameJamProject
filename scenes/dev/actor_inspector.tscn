@@ -31,11 +31,6 @@ text = "team"
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
 
-[node name="LabelHp" type="Label" parent="VBox"]
-layout_mode = 2
-text = "HP: — / —"
-theme_override_font_sizes/font_size = 13
-
 [node name="Separator" type="HSeparator" parent="VBox"]
 layout_mode = 2
 
@@ -44,7 +39,12 @@ layout_mode = 2
 
 [node name="LabelMaxHp" type="Label" parent="VBox/RowMaxHp"]
 layout_mode = 2
-text = "max_hp"
+text = "HP"
+theme_override_font_sizes/font_size = 12
+
+[node name="LabelCurrHp" type="Label" parent="VBox/RowMaxHp"]
+layout_mode = 2
+text = "— /"
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 12
 

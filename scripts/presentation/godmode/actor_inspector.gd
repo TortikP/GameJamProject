@@ -16,7 +16,7 @@ var _actor: Actor = null
 # UI nodes — resolved in _ready, all must exist in actor_inspector.tscn
 @onready var _label_id: Label        = $VBox/LabelId
 @onready var _label_team: Label      = $VBox/LabelTeam
-@onready var _label_hp: Label        = $VBox/LabelHp
+@onready var _label_curr_hp: Label   = $VBox/RowMaxHp/LabelCurrHp
 @onready var _spin_max_hp: SpinBox   = $VBox/RowMaxHp/SpinMaxHp
 @onready var _spin_damage: SpinBox   = $VBox/RowDamage/SpinDamage
 @onready var _spin_speed: SpinBox    = $VBox/RowSpeed/SpinSpeed
@@ -35,6 +35,24 @@ func _setup_spinbox_ranges() -> void:
 	_spin_max_hp.rounded  = true
 	_spin_damage.rounded  = true
 	_spin_speed.rounded   = true
+	_restrict_to_int(_spin_max_hp)
+	_restrict_to_int(_spin_damage)
+	_restrict_to_int(_spin_speed)
+
+
+## Prevent non-numeric input in a SpinBox's internal LineEdit.
+func _restrict_to_int(spin: SpinBox) -> void:
+	var le := spin.get_line_edit()
+	le.text_changed.connect(func(new_text: String) -> void:
+		var filtered := ""
+		for c in new_text:
+			if c >= "0" and c <= "9":
+				filtered += c
+		if filtered != new_text:
+			var col := le.caret_column
+			le.text = filtered
+			le.caret_column = mini(col, filtered.length())
+	)
 
 
 func get_bound() -> Actor:
@@ -95,7 +113,7 @@ func _disconnect_actor() -> void:
 func _refresh_hp_label() -> void:
 	if _actor == null:
 		return
-	_label_hp.text = "HP: %d / %d" % [_actor.hp, _actor.max_hp]
+	_label_curr_hp.text = "%d /" % _actor.hp
 
 
 ## Rebuild the abilities row from actor.get_abilities().
@@ -151,6 +169,8 @@ func _on_max_hp_changed(value: float) -> void:
 		return
 	_actor.max_hp = int(value)
 	_actor.hp     = mini(_actor.hp, _actor.max_hp)
+	# Emit damaged (amount=0) so HealthBar on the actor sprite redraws immediately.
+	_actor.damaged.emit(_actor.actor_id, 0, _actor.hp)
 	_refresh_hp_label()
 
 
