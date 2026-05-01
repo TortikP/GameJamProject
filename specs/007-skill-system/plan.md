@@ -238,6 +238,7 @@ for each param p in {m.target_param for m in mods if m.applies_to(obj)}:
 {
   "id": "vamp_strike",
   "cooldown": 2,
+  "tags": ["damage"],
   "abilities": [
     {
       "id": "vamp_strike_dmg",

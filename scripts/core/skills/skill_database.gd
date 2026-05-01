@@ -70,6 +70,13 @@ func _build_skill(data: Dictionary) -> Skill:
 	skill.id = StringName(sid)
 	skill.cooldown = int(data.get("cooldown", 0))
 
+	var tags_raw: Variant = data.get("tags", [])
+	if typeof(tags_raw) != TYPE_ARRAY:
+		GameLogger.warn("SkillDatabase", "%s: 'tags' must be array, got %s — using []" % [sid, type_string(typeof(tags_raw))])
+		tags_raw = []
+	for t in tags_raw:
+		skill.tags.append(StringName(t))
+
 	for ab_data in data.get("abilities", []):
 		var ab: Ability = AbilityDatabase._build_ability_from_dict(ab_data)
 		if ab != null:

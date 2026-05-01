@@ -1,6 +1,7 @@
 {
   "id": "skill_knockback_punch",
   "cooldown": 0,
+  "tags": ["damage", "knockback"],
   "abilities": [
     {
       "id": "knockback_punch",
