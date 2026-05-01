@@ -42,6 +42,7 @@ var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
+var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
 
 
 func _ready() -> void:
@@ -90,6 +91,14 @@ func _ready() -> void:
 	grid.actor_step_started.connect(_on_step_started)
 	grid.initialize()
 	_place_player()
+
+	# 019 — wire tile object runtime resolver. Must be after grid.initialize()
+	# so registries are populated. add_child before setup so the node is in
+	# the tree when EventBus signals arrive.
+	_tile_object_resolver = TileObjectResolver.new()
+	_tile_object_resolver.name = "TileObjectResolver"
+	add_child(_tile_object_resolver)
+	_tile_object_resolver.setup(grid, grid.get_object_registry(), grid.get_effect_registry(), registry)
 
 	# 5. Seed slots — DEFERRED. Sibling order in scene tree means SlotBar._ready
 	#    fires AFTER GodmodeController._ready (HUD is a later sibling), so its
