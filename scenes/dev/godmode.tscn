@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=10 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/presentation/slot_bar.gd" id="5_slotbar"]
 [ext_resource type="Script" path="res://scripts/presentation/hex_cursor.gd" id="6_hexcursor"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_camera.gd" id="7_camera"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/move_range_overlay.gd" id="8_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/dev/actor_inspector.tscn" id="9_inspector"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -25,6 +27,10 @@ script = ExtResource("6_hexcursor")
 color = Color(1, 1, 1, 0.25)
 grid = NodePath("..")
 
+[node name="MoveRangeOverlay" type="Node2D" parent="HexGrid"]
+script = ExtResource("8_overlay")
+z_index = 2
+
 [node name="ActorRegistry" type="Node" parent="."]
 script = ExtResource("3_registry")
 
@@ -33,6 +39,8 @@ script = ExtResource("2_controller")
 grid = NodePath("../HexGrid")
 registry = NodePath("../ActorRegistry")
 slot_bar = NodePath("../HUD/SlotBar")
+inspector_path = NodePath("../HUD/ActorInspector")
+overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -68,3 +76,5 @@ offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
+
+[node name="ActorInspector" parent="HUD" instance=ExtResource("9_inspector")]

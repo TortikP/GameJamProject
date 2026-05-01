@@ -20,9 +20,22 @@ signal died(id: StringName)
 @export var actor_id: StringName = &""
 @export var max_hp: int = 100
 @export var team: StringName = &"neutral"   # &"player" / &"enemy" / &"neutral"
+@export var speed: int = 1                  # hex steps per turn (0 = immobile)
+@export var damage_bonus: int = 0           # flat bonus added to any DamageEffect cast by this actor
 
 var hp: int = 0
 var _dead: bool = false
+var _ability_ids: Array[StringName] = []
+
+
+## Returns ability ids available to this actor (set externally by controller or subclass).
+func get_abilities() -> Array[StringName]:
+	return _ability_ids
+
+
+## Called by controller/subclass to declare which abilities this actor has.
+func set_abilities(ids: Array[StringName]) -> void:
+	_ability_ids = ids
 
 
 func _ready() -> void:

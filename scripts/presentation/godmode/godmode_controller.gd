@@ -30,8 +30,13 @@ const GRID_H := 9
 @export var registry: ActorRegistry
 @export var player: Actor
 @export var slot_bar: NodePath  # path to HBoxContainer with slot_bar.gd
+@export var inspector_path: NodePath
+@export var overlay_path: NodePath
 
 var _slot_bar_node: Node
+var _inspector: Node      # ActorInspector
+var _overlay: Node        # MoveRangeOverlay
+var _selected: Actor      # currently inspected actor (default: player)
 var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 
@@ -91,13 +96,31 @@ func _ready() -> void:
 	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_activated"):
 		_slot_bar_node.slot_activated.connect(_on_slot_activated)
 
+	# Inspector + overlay — resolve
+	if not inspector_path.is_empty():
+		_inspector = get_node_or_null(inspector_path)
+	if _inspector == null:
+		_inspector = get_tree().root.find_child("ActorInspector", true, false)
+	if not overlay_path.is_empty():
+		_overlay = get_node_or_null(overlay_path)
+	if _overlay == null:
+		_overlay = grid.get_node_or_null("MoveRangeOverlay")
+	if _overlay != null and _overlay.has_method("setup"):
+		_overlay.setup(grid)
+	if _inspector != null and _inspector.has_signal("speed_changed"):
+		_inspector.speed_changed.connect(_on_inspector_speed_changed)
+
 	# Reset turn counter for this session
 	TurnManager.reset()
 	# Force HUD to show initial value — also deferred so TurnLabel has connected.
 	_emit_initial_turn.call_deferred()
 
+	# Default selection = player (deferred so player node is fully initialised)
+	_select_deferred.call_deferred()
+
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_on_world_turn_ended)
+	EventBus.actor_died.connect(_on_actor_died_for_selection)
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
 
@@ -136,10 +159,49 @@ func _seed_slots() -> void:
 	if knockback_punch != null:
 		_slot_bar_node.set_slot(2, knockback_punch)
 	_slot_bar_node.set_active(0)
+	# Sync player abilities for inspector display
+	var ids: Array[StringName] = []
+	for i in 4:
+		var ab: Ability = _slot_bar_node.get_slot(i) as Ability
+		if ab != null:
+			ids.append(ab.id)
+	player.set_abilities(ids)
 
 
 func _emit_initial_turn() -> void:
 	EventBus.world_turn_ended.emit(TurnManager.current())
+
+
+func _select_deferred() -> void:
+	_select(player)
+
+
+# ── Selection / Inspector / Overlay ──────────────────────────────────────────
+
+func _select(actor: Actor) -> void:
+	_selected = actor
+	if _inspector != null and _inspector.has_method("bind"):
+		_inspector.bind(actor)
+	_refresh_overlay()
+
+
+func _deselect_to_player() -> void:
+	_select(player)
+
+
+func _refresh_overlay() -> void:
+	if _overlay == null or _selected == null:
+		return
+	_overlay.show_for(_selected, registry)
+
+
+func _on_inspector_speed_changed(_actor: Actor) -> void:
+	_refresh_overlay()
+
+
+func _on_actor_died_for_selection(id: StringName) -> void:
+	if _selected != null and _selected.actor_id == id:
+		_deselect_to_player()
 
 
 # ── Input ────────────────────────────────────────────────────────────────────
@@ -189,6 +251,11 @@ func _update_castability() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and (event as InputEventKey).pressed:
+		if (event as InputEventKey).keycode == KEY_ESCAPE:
+			_deselect_to_player()
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("godmode_spawn_dummy"):
 		_spawn_manekin()
 		get_viewport().set_input_as_handled()
@@ -244,21 +311,44 @@ func _request_move() -> void:
 	if grid.get_actor_at(coord) != &"":
 		GameLogger.info("Godmode", "occupied: %s" % str(coord))
 		return
-	# Speed = 1: target must be an adjacent walkable hex. find_path returns
-	# [from, ..., to] inclusive — exactly 2 entries means single step.
+	if player.speed <= 0:
+		GameLogger.info("Godmode", "cannot move (speed=0)")
+		return
 	var path: Array = grid.find_path(from, coord)
-	if path.size() != 2:
-		GameLogger.info("Godmode", "too far (speed=1, distance=%d)" % maxi(path.size() - 1, 0))
+	var dist: int = path.size() - 1
+	if dist > player.speed:
+		GameLogger.info("Godmode", "too far (speed=%d, distance=%d)" % [player.speed, dist])
 		return
 	await grid.move_actor(PLAYER_ID, coord)
 	if grid.get_coord(PLAYER_ID) != from:
 		TurnManager.advance()
+		_refresh_overlay()
 
 
 func _request_cast_active() -> void:
 	if _slot_bar_node == null:
 		return
-	_cast_slot(_slot_bar_node.get_active())
+	var slot_index: int = _slot_bar_node.get_active()
+	var ability := _slot_bar_node.get_slot(slot_index) as Ability
+	var coord := grid.coord_under_mouse()
+	if coord == Vector2i(-1, -1):
+		return
+	var target_id: StringName = grid.get_actor_at(coord)
+	var ctx: Dictionary = {
+		"registry": registry,
+		"grid": grid,
+		"target_id": target_id,
+		"target_coord": coord,
+	}
+	# Priority: cast if possible, else select hovered actor, else deselect→player
+	if ability != null and ability.can_apply(player, ctx):
+		_cast_slot(slot_index)
+		return
+	var target_actor: Actor = registry.get_actor(target_id) if target_id != &"" else null
+	if target_actor != null:
+		_select(target_actor)
+	else:
+		_deselect_to_player()
 
 
 func _cast_slot(slot_index: int) -> void:
@@ -322,6 +412,7 @@ func _spawn_manekin() -> void:
 	# without having to end their turn first. Re-plans ALL enemies because
 	# adding a new one can block existing pathing.
 	_replan_all_and_refresh()
+	_refresh_overlay()
 
 
 func _replan_all_and_refresh() -> void:
@@ -350,6 +441,7 @@ func _clear_manekins() -> void:
 	# tester keep playing after death without restarting the scene.
 	if player != null:
 		player.heal_to_full()
+	_deselect_to_player()
 	GameLogger.info("Godmode", "cleared %d manekins, player reset" % to_remove.size())
 
 
@@ -404,6 +496,7 @@ func _on_world_turn_ended(_turn: int) -> void:
 	_world_processing = true
 	await _run_enemy_turn()
 	_world_processing = false
+	_refresh_overlay()
 
 
 func _run_enemy_turn() -> void:

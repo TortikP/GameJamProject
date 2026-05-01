@@ -9,6 +9,7 @@ script = ExtResource("1_actor")
 actor_id = &"player"
 max_hp = 50
 team = &"player"
+speed = 2
 
 [node name="Body" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")

@@ -1,0 +1,104 @@
+[gd_scene load_steps=2 format=3 uid="uid://actor_inspector_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/godmode/actor_inspector.gd" id="1_inspector"]
+
+[node name="ActorInspector" type="PanelContainer"]
+script = ExtResource("1_inspector")
+anchors_preset = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -240.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 16.0
+grow_horizontal = 0
+grow_vertical = 1
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabelId" type="Label" parent="VBox"]
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 16
+
+[node name="LabelTeam" type="Label" parent="VBox"]
+layout_mode = 2
+text = "team"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+
+[node name="LabelHp" type="Label" parent="VBox"]
+layout_mode = 2
+text = "HP: — / —"
+theme_override_font_sizes/font_size = 13
+
+[node name="Separator" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="RowMaxHp" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="LabelMaxHp" type="Label" parent="VBox/RowMaxHp"]
+layout_mode = 2
+text = "max_hp"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="SpinMaxHp" type="SpinBox" parent="VBox/RowMaxHp"]
+layout_mode = 2
+min_value = 1.0
+max_value = 200.0
+value = 100.0
+
+[node name="RowDamage" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="LabelDamage" type="Label" parent="VBox/RowDamage"]
+layout_mode = 2
+text = "dmg bonus"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="SpinDamage" type="SpinBox" parent="VBox/RowDamage"]
+layout_mode = 2
+min_value = 0.0
+max_value = 50.0
+value = 0.0
+
+[node name="RowSpeed" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="LabelSpeed" type="Label" parent="VBox/RowSpeed"]
+layout_mode = 2
+text = "speed"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="SpinSpeed" type="SpinBox" parent="VBox/RowSpeed"]
+layout_mode = 2
+min_value = 0.0
+max_value = 6.0
+value = 1.0
+
+[node name="Separator2" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="LabelAbilities" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Abilities"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+
+[node name="AbilitiesRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HintLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "ESC = back to player"
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
