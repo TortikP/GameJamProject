@@ -9,11 +9,6 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var status: StringName = &""
 
 
-func _init() -> void:
-	type = &"status"
-	requires_alive_target = true
-
-
 func apply(_caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	var actor := target as Actor
 	if actor == null:
@@ -25,3 +20,11 @@ func apply(_caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 		actor.add_status(status, duration)
 	else:
 		GameLogger.info("StatusEffect", "Actor.add_status not yet implemented; would apply '%s' for %d turns to %s" % [status, duration, actor.actor_id])
+
+
+## 021 scaling: duration += level if duration > 1. Short bursts (dur=1)
+## are intentionally fixed — flat utility statuses don't scale.
+func apply_level(level: int) -> void:
+	if level <= 0 or duration <= 1:
+		return
+	duration += level

@@ -7,13 +7,26 @@ extends Resource
 ##
 ## tick_cooldown(n) is called by TurnManager each turn. Cooldown ticks at
 ## "end of caster's turn" by convention — clarified once TurnManager integrates.
+##
+## 021 additions (021-skill-system-v2):
+##  - name / tooltip / desc — localization keys (raw strings; resolution out of scope).
+##  - behaviour_tags — renamed from `tags`. AI strategy uses these to pick a skill.
+##  - mood — narrative archetype tags. No consumer yet; reserved for character system.
+##  - level — power axis. Propagated into Ability.cast and predicted_damage_to.
+##    Components (target/area/effect) self-react via apply_level(level) on a duplicate
+##    before resolve/apply — base resource stays untouched.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 @export var id: StringName = &""
+@export var name: String = ""
+@export var tooltip: String = ""
+@export var desc: String = ""
 @export var cooldown: int = 0
+@export var behaviour_tags: Array[StringName] = []   # was: tags (renamed in 021)
+@export var mood: Array[StringName] = []
+@export var level: int = 0
 @export var abilities: Array[Ability] = []
-@export var tags: Array[StringName] = []
 
 var _cd_remaining: int = 0
 
@@ -29,11 +42,12 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 	return (abilities[0] as Ability).can_apply(caster, ctx)
 
 
-## Damage preview for hover UI. Sums predicted_damage_to across all abilities.
+## Damage preview for hover UI. Sums predicted_damage_to across all abilities,
+## passing this skill's level so previewed numbers match what the cast will deal.
 func predicted_damage_to(caster: Actor, target: Actor, ctx: Dictionary) -> int:
 	var total: int = 0
 	for ab in abilities:
-		total += (ab as Ability).predicted_damage_to(caster, target, ctx)
+		total += (ab as Ability).predicted_damage_to(caster, target, ctx, level)
 	return total
 
 
@@ -54,7 +68,9 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 	var all_target_ids: Array = []
 
 	for ab in abilities:
-		var resolved: bool = ab.cast(caster, ctx)
+		# 021: pass this skill's level into each ability so per-component
+		# apply_level(level) hooks fire on duplicates inside Ability.cast.
+		var resolved: bool = ab.cast(caster, ctx, level)
 		if resolved:
 			any_resolved = true
 			# 015 / F-014: aggregate per-ability target_ids into skill-level emit.

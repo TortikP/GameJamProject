@@ -2,24 +2,32 @@ class_name Ability
 extends Resource
 ## Ability — single cast unit. target × area × effect[] × modifier[].
 ##
-## Lifecycle (007-skill-system, THEME_PLAN §4):
-##   1. primary = target.resolve(caster, ctx)   → Variant
-##   2. eff_area = area.duplicate(); apply param-mods to area
-##   3. victims = eff_area.resolve(caster, primary, ctx)   → Array
-##   4. for victim in victims:
+## Lifecycle (021-skill-system-v2 §"Lifecycle: Ability.cast"):
+##   1. target_dup = target.duplicate(); target_dup.apply_level(level)
+##      primary = target_dup.resolve(caster, ctx)
+##   2. area_dup = area.duplicate(); area_dup.apply_level(level)
+##      _apply_param_modifiers(area_dup, modifiers)
+##      victims = area_dup.resolve(caster, primary, ctx)
+##   3. for victim in victims:
 ##        for base_eff in effects:
 ##          eff_dup = base_eff.duplicate()
-##          apply param-mods to eff_dup
+##          eff_dup.apply_level(level)
+##          _apply_param_modifiers(eff_dup, modifiers)
 ##          if requires_alive_target and victim is dead: continue
 ##          eff_dup.apply(caster, victim, ctx)
-##   5. EventBus.ability_cast.emit(...)
+##   4. EventBus.ability_cast.emit(...)
 ##
-## Modifier formula (AC-M5): final = (base + Σ adds) × Π muls
+## Order matters: apply_level (base progression) FIRST, then param-modifiers
+## (granular crafted affixes) ON TOP. Level is a property of the parent Skill.
+##
+## Modifier formula (007 AC-M5): final = (base + Σ adds) × Π muls
 ## Applied per-param, commutative, int → floor, float → as-is.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 @export var id: StringName = &""
+@export var sound: StringName = &""        # 021: AudioDB lookup id (no dispatch yet)
+@export var animation: StringName = &""    # 021: animation id (no dispatch yet)
 @export var target: AbilityTarget
 @export var area: AbilityArea
 @export var effects: Array[AbilityEffect] = []
@@ -41,15 +49,17 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 
 
 ## Damage preview for hover UI. Sums all DamageEffect.damage values + caster bonus,
-## after applying add/mul modifiers. Returns 0 for non-damage-only abilities.
-## KEEP IN SYNC with DamageEffect.apply.
-func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary) -> int:
+## after applying skill-level scaling AND add/mul modifiers (in that order).
+## Returns 0 for non-damage-only abilities.
+## KEEP IN SYNC with DamageEffect.apply + the cast lifecycle order.
+func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level: int = 0) -> int:
 	var total: int = 0
 	var bonus: int = 0 if caster == null else caster.damage_bonus
 	for base_eff in effects:
 		if not base_eff is DamageEffect:
 			continue
 		var eff_dup: AbilityEffect = base_eff.duplicate()
+		eff_dup.apply_level(level)
 		_apply_param_modifiers(eff_dup, modifiers)
 		total += maxi(0, (eff_dup as DamageEffect).damage + bonus)
 	return total
@@ -57,18 +67,25 @@ func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary) -> int
 
 ## Returns true if at least one victim was processed.
 ## False means "no valid targets" — callers should NOT advance the turn.
-func cast(caster: Actor, ctx: Dictionary) -> bool:
+##
+## `level` is the Skill.level passed in by Skill.cast. 0 = identity (no scaling).
+func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	if target == null or area == null or effects.is_empty():
 		GameLogger.error("Ability", "%s: target / area / effects misconfigured" % id)
 		return false
 
-	var primary: Variant = target.resolve(caster, ctx)
+	# Duplicate target so apply_level mutates a copy, not the shared resource.
+	var target_dup: AbilityTarget = target.duplicate()
+	target_dup.apply_level(level)
+
+	var primary: Variant = target_dup.resolve(caster, ctx)
 	if primary == null:
 		GameLogger.info("Ability", "%s: no primary target" % id)
 		return false
 
-	# Duplicate area and mutate with param-mods (shared resource protection)
+	# Duplicate area, scale by level, then layer modifiers.
 	var eff_area: AbilityArea = area.duplicate()
+	eff_area.apply_level(level)
 	_apply_param_modifiers(eff_area, modifiers)
 
 	var victims: Array = eff_area.resolve(caster, primary, ctx)
@@ -77,7 +94,7 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 		return false
 
 	# Caster is excluded from zone AoE only when the ability is self-targeted
-	# (primary == caster, i.e. SelfTarget). Non-self targets (entity, hex) can
+	# (primary == caster, i.e. SelfTarget). Non-self targets (actor, hex) can
 	# catch the caster in their zone — intentional friendly-fire design space.
 	var exclude_caster: bool = (primary is Actor and (primary as Actor) == caster)
 	if exclude_caster:
@@ -95,7 +112,8 @@ func cast(caster: Actor, ctx: Dictionary) -> bool:
 	for victim in victims:
 		for base_eff in effects:
 			var eff_dup: AbilityEffect = base_eff.duplicate()
-			_apply_param_modifiers(eff_dup, modifiers)
+			eff_dup.apply_level(level)              # 021: level FIRST
+			_apply_param_modifiers(eff_dup, modifiers)  # then modifiers ON TOP
 			if eff_dup.requires_alive_target and _is_dead(victim):
 				continue
 			eff_dup.apply(caster, victim, ctx)

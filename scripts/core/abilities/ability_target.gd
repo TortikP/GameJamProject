@@ -32,7 +32,14 @@ func get_range_hexes(_caster_coord: Vector2i, _grid: HexGrid) -> Array[Vector2i]
 ## Coord that the area's hover-preview should anchor on (i.e. what `primary`
 ## the presentation passes into `AbilityArea.get_affected_hexes`). Default:
 ## the hex under the cursor — preview follows the mouse, matching how
-## EntityTarget / HexTarget actually resolve at cast time. SelfTarget overrides
+## ActorTarget / HexTarget actually resolve at cast time. SelfTarget overrides
 ## this to caster_coord so self-cast AoE previews stay glued to the caster.
 func preview_anchor_coord(_caster_coord: Vector2i, hover_coord: Vector2i) -> Vector2i:
 	return hover_coord
+
+
+## 021: skill-level scaling hook. Default no-op; subclasses with a `range`
+## field override per the formula in 021-skill-system-v2/spec.md §"Уровень навыка".
+## Called on a duplicate before resolve(), so the base resource stays untouched.
+func apply_level(_level: int) -> void:
+	pass

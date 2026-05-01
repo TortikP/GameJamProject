@@ -1,7 +1,7 @@
 # 007-skill-system — spec
 
 **Owner:** Egor (claim-on-PR; «spell-craft / modifier engine» в CLAUDE.md рекомендован Sergey — coordinate перед merge)
-**Status:** Ready for /plan — clarify-цикл завершён
+**Status:** Superseded by [`021-skill-system-v2`](../021-skill-system-v2/spec.md) — schema расширения (loc keys, mood, level scaling, sound/animation), `entity` target → `actor`, `tags` → `behaviour_tags`. Контракт lifecycle (Skill → Ability[] → target × area × effect[]) сохраняется. Содержимое 007 — исторический baseline.
 
 ## Цель
 

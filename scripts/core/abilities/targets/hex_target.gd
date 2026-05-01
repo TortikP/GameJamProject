@@ -52,3 +52,10 @@ func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
 					next.append(nb)
 		frontier = next
 	return result
+
+
+## 021 scaling: range += level if range > 1.
+func apply_level(level: int) -> void:
+	if level <= 0 or range <= 1:
+		return
+	range += level

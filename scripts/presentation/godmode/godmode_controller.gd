@@ -810,9 +810,9 @@ func _world_ctx() -> Dictionary:
 ## resolves via semantic_color). Aggregation in _refresh_telegraphs already
 ## handles per-coord summing — this is one-shot per cast.
 func _telegraph_tag_for_skill(skill: Skill) -> StringName:
-	if skill == null or skill.tags.is_empty():
+	if skill == null or skill.behaviour_tags.is_empty():
 		return &""  # → SEM_DAMAGE default (legacy / unknown)
-	match skill.tags[0]:
+	match skill.behaviour_tags[0]:
 		&"damage", &"damage_aoe", &"knockback":
 			return &"damage"
 		&"heal":

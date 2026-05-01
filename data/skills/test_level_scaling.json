@@ -1,16 +1,30 @@
 {
-  "id": "test_vamp_strike",
+  "id": "test_level_scaling",
+  "name": "skill.test_level_scaling.name",
+  "tooltip": "skill.test_level_scaling.tooltip",
+  "desc": "skill.test_level_scaling.desc",
   "cooldown": 2,
+  "behaviour_tags": [
+    "damage",
+    "heal"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 2,
   "abilities": [
     {
-      "id": "vs_dmg",
+      "id": "tls_dmg",
+      "sound": "",
+      "animation": "",
       "target": {
         "kind": "actor",
         "range": -1
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1
+        "max_chain_length": 1,
+        "radius": 1
       },
       "effects": [
         {
@@ -22,7 +36,9 @@
       "modifiers": []
     },
     {
-      "id": "vs_heal",
+      "id": "tls_heal",
+      "sound": "",
+      "animation": "",
       "target": {
         "kind": "self"
       },

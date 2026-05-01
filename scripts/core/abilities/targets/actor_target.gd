@@ -1,6 +1,9 @@
-class_name EntityTarget
+class_name ActorTarget
 extends AbilityTarget
-## EntityTarget — resolves one Actor from ctx["target_id"].
+## ActorTarget — resolves one Actor from ctx["target_id"].
+##
+## 021: renamed from EntityTarget (file: entity_target.gd → actor_target.gd).
+## JSON kind: "actor" (was "entity").
 ##
 ## @export range:
 ##   -1  = unrestricted (any alive actor)
@@ -59,3 +62,12 @@ func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
 					next.append(nb)
 		frontier = next
 	return result
+
+
+## 021 scaling: range += level if range > 1.
+## Adjacency (range=1), self-only (range=0), and unrestricted (range=-1)
+## are designed values — not scaled.
+func apply_level(level: int) -> void:
+	if level <= 0 or range <= 1:
+		return
+	range += level

@@ -1,20 +1,28 @@
 {
-  "id": "skill_knockback_punch",
+  "id": "test_combo_actor_chain_move",
+  "name": "skill.test_combo_actor_chain_move.name",
+  "tooltip": "skill.test_combo_actor_chain_move.tooltip",
+  "desc": "skill.test_combo_actor_chain_move.desc",
   "cooldown": 0,
   "behaviour_tags": [
     "damage",
     "knockback"
   ],
+  "mood": [],
+  "level": 0,
   "abilities": [
     {
-      "id": "knockback_punch",
+      "id": "tcacm_shove",
+      "sound": "",
+      "animation": "",
       "target": {
         "kind": "actor",
         "range": 1
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1
+        "max_chain_length": 1,
+        "radius": 1
       },
       "effects": [
         {
