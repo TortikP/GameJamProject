@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C19 — Modifier pick — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C19: Modifier pick screen -------------------------- */
+  .pick-screen {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+  }
+  .pick-screen .head {
+    text-align: center;
+  }
+  .pick-screen .head .eyebrow {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ui-text-faint);
+  }
+  .pick-screen .head h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ui-text);
+    margin: var(--sp-2) 0 0;
+  }
+  .pick-screen .head .sub {
+    font-size: 13px;
+    color: var(--ui-text-dim);
+    margin-top: var(--sp-1);
+  }
+  .pick-screen .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-4);
+  }
+  .mod-card {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    cursor: pointer;
+    transition: border-color 80ms, transform 80ms;
+    position: relative;
+    min-height: 320px;
+  }
+  .mod-card:hover {
+    border-color: var(--ui-focus);
+    transform: translateY(-2px);
+  }
+  .mod-card.selected {
+    border-color: var(--ui-focus);
+    box-shadow: 0 0 0 2px var(--ui-focus-soft);
+  }
+  .mod-card .rarity {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c, var(--ui-text-faint));
+  }
+  .mod-card.common  { --c: var(--ui-text-dim); }
+  .mod-card.uncommon{ --c: var(--sem-buff); }
+  .mod-card.rare    { --c: var(--ui-focus); }
+  .mod-card.legendary{ --c: var(--sem-control); }
+  .mod-card .icon {
+    width: 64px; height: 64px;
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--c, var(--ui-border-strong));
+    align-self: flex-start;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--ui-text-faint);
+  }
+  .mod-card .name {
+    font-size: 16px; font-weight: 600;
+    color: var(--ui-text);
+  }
+  .mod-card .desc {
+    font-size: 13px; line-height: 1.5;
+    color: var(--ui-text-dim);
+    flex: 1;
+  }
+  .mod-card .desc b { color: var(--ui-text); font-weight: 600; }
+  .mod-card .effects {
+    display: flex; flex-direction: column; gap: 4px;
+    border-top: 1px solid var(--ui-border);
+    padding-top: var(--sp-2);
+  }
+  .mod-card .effect-line {
+    display: grid;
+    grid-template-columns: 8px 1fr auto;
+    gap: var(--sp-2);
+    align-items: baseline;
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+  }
+  .mod-card .effect-line .dot {
+    width: 6px; height: 6px;
+    background: var(--dc, var(--ui-text-dim));
+    margin-top: 4px;
+  }
+  .mod-card .effect-line.add  { --dc: var(--sem-buff); }
+  .mod-card .effect-line.mul  { --dc: var(--sem-buff); }
+  .mod-card .effect-line.cost { --dc: var(--sem-debuff); }
+  .mod-card .effect-line .v {
+    color: var(--dc, var(--ui-text));
+  }
+  .mod-card .effect-line.cost .v { color: var(--sem-debuff); }
+  .mod-card .conflict {
+    position: absolute;
+    top: var(--sp-3); right: var(--sp-3);
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sem-debuff);
+    border: 1px solid var(--sem-debuff);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .pick-screen .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--ui-border);
+    padding-top: var(--sp-4);
+  }
+  .pick-screen .footer-row .meta {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-faint);
+  }
+  .pick-screen .footer-row .actions {
+    display: flex; gap: var(--sp-2);
+  }
+  .btn {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border-strong);
+    color: var(--ui-text);
+    padding: var(--sp-2) var(--sp-4);
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--ui-bg-elevated); }
+  .btn.primary {
+    background: var(--ui-focus);
+    border-color: var(--ui-focus);
+    color: var(--ui-bg-screen);
+    font-weight: 600;
+  }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .reroll-pip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+  }
+  .reroll-pip::before {
+    content: "↻";
+    font-size: 14px;
+    color: var(--ui-focus);
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C19</div>
+    <h1>C19 — Modifier pick screen</h1>
+    <p class="subtitle">
+      Between-wave / portal-transition modal. 3 modifier cards drawn from the active pool.
+      Pause-the-world mode (per §3.3 / §11 modal protocol). 
+      Numeric effect lines mirror C14's format so players read the same shape twice.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States</h2>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Default — 3 picks <span class="pill">no selection</span></h3>
+      <p class="caption">Initial state on screen open. Confirm disabled until a card is picked.</p>
+      <div class="stage" style="min-height:560px;align-items:flex-start;">
+        <div class="pick-screen">
+          <div class="head">
+            <div class="eyebrow">PORTAL · WAVE 4 → 5</div>
+            <h2>Choose a modifier</h2>
+            <div class="sub">Carries to your next run if you survive.</div>
+          </div>
+          <div class="cards">
+            <div class="mod-card common">
+              <span class="rarity">common</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Sharpened</div>
+              <div class="desc">All physical strikes carry a keener edge. <b>+5 damage</b> on direct hits.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span>
+                  <span>damage (physical)</span>
+                  <span class="v">+5</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card uncommon">
+              <span class="rarity">uncommon</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Rage</div>
+              <div class="desc">Strike harder when below half health. <b>×1.5 damage</b> while HP &lt; 50%.</div>
+              <div class="effects">
+                <div class="effect-line mul">
+                  <span class="dot"></span>
+                  <span>damage (cond.)</span>
+                  <span class="v">×1.5</span>
+                </div>
+                <div class="effect-line cost">
+                  <span class="dot"></span>
+                  <span>condition</span>
+                  <span class="v">hp &lt; 50%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card rare">
+              <span class="rarity">rare</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Wraithstep</div>
+              <div class="desc">Pass through one occupied hex per move action. <b>Phase</b> tag added to movement.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span>
+                  <span>movement</span>
+                  <span class="v">phase</span>
+                </div>
+                <div class="effect-line cost">
+                  <span class="dot"></span>
+                  <span>cooldown</span>
+                  <span class="v">1/turn</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-row">
+            <div class="meta">3 picks shown · pool: physical-melee bias</div>
+            <div class="actions">
+              <button class="btn"><span class="reroll-pip">reroll · 1</span></button>
+              <button class="btn">Skip</button>
+              <button class="btn primary" disabled>Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Selected <span class="pill">card 2 picked</span></h3>
+      <p class="caption">Selection ring + soft shadow. Confirm enabled. Other cards stay readable.</p>
+      <div class="stage" style="min-height:560px;align-items:flex-start;">
+        <div class="pick-screen">
+          <div class="head">
+            <div class="eyebrow">PORTAL · WAVE 4 → 5</div>
+            <h2>Choose a modifier</h2>
+            <div class="sub">Carries to your next run if you survive.</div>
+          </div>
+          <div class="cards">
+            <div class="mod-card common">
+              <span class="rarity">common</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Sharpened</div>
+              <div class="desc">All physical strikes carry a keener edge. <b>+5 damage</b> on direct hits.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span><span>damage (physical)</span><span class="v">+5</span>
+                </div>
+              </div>
+            </div>
+            <div class="mod-card uncommon selected">
+              <span class="rarity">uncommon</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Rage</div>
+              <div class="desc">Strike harder when below half health. <b>×1.5 damage</b> while HP &lt; 50%.</div>
+              <div class="effects">
+                <div class="effect-line mul">
+                  <span class="dot"></span><span>damage (cond.)</span><span class="v">×1.5</span>
+                </div>
+                <div class="effect-line cost">
+                  <span class="dot"></span><span>condition</span><span class="v">hp &lt; 50%</span>
+                </div>
+              </div>
+            </div>
+            <div class="mod-card rare">
+              <span class="rarity">rare</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Wraithstep</div>
+              <div class="desc">Pass through one occupied hex per move action. <b>Phase</b> tag added to movement.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span><span>movement</span><span class="v">phase</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-row">
+            <div class="meta">selected: <b style="color:var(--ui-text);">Rage</b></div>
+            <div class="actions">
+              <button class="btn"><span class="reroll-pip">reroll · 1</span></button>
+              <button class="btn">Skip</button>
+              <button class="btn primary">Confirm Rage</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Conflict marker <span class="pill">replaces existing</span></h3>
+      <p class="caption">When a card would replace/conflict with an owned modifier, badge in top-right of card. Hover surfaces details via C14-style tooltip (not pictured).</p>
+      <div class="stage" style="min-height:560px;align-items:flex-start;">
+        <div class="pick-screen">
+          <div class="head">
+            <div class="eyebrow">PORTAL · WAVE 4 → 5</div>
+            <h2>Choose a modifier</h2>
+            <div class="sub">Carries to your next run if you survive.</div>
+          </div>
+          <div class="cards">
+            <div class="mod-card uncommon">
+              <span class="rarity">uncommon</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Whetstone</div>
+              <div class="desc">Sharper edge. <b>+8 damage</b> on direct hits.</div>
+              <span class="conflict">replaces sharpened</span>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span><span>damage (physical)</span><span class="v">+8</span>
+                </div>
+              </div>
+            </div>
+            <div class="mod-card rare">
+              <span class="rarity">rare</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Wraithstep</div>
+              <div class="desc">Pass through one occupied hex per move action.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span><span>movement</span><span class="v">phase</span>
+                </div>
+              </div>
+            </div>
+            <div class="mod-card legendary">
+              <span class="rarity">legendary</span>
+              <div class="icon">[ICN]</div>
+              <div class="name">Hollow Crown</div>
+              <div class="desc">Each absorbed voice grants <b>+2 damage_bonus</b>. Voices speak twice as often.</div>
+              <div class="effects">
+                <div class="effect-line add">
+                  <span class="dot"></span><span>damage_bonus / voice</span><span class="v">+2</span>
+                </div>
+                <div class="effect-line cost">
+                  <span class="dot"></span><span>voice frequency</span><span class="v">×2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-row">
+            <div class="meta">3 picks shown · pool: physical-melee bias</div>
+            <div class="actions">
+              <button class="btn"><span class="reroll-pip">reroll · 0</span></button>
+              <button class="btn">Skip</button>
+              <button class="btn primary" disabled>Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C19 Modifier pick</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Between-wave choice modal: pick 1 of 3 modifiers (or skip). Pauses the world (modal, dim overlay). Selection feeds into <code>RunState.modifiers</code> array; PlayerStats recomputes.</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Centered modal, max-width 1200px. Card grid is 3 columns at desktop; collapses to 1 column under 720px. Each card min-height 320.</dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>picks:        Array[Modifier] (length 3)
+rerolls_left: int
+owned_mods:   Array[Modifier]    # for conflict detection</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd><code>signal picked(modifier_id)</code>, <code>signal skipped</code>, <code>signal rerolled</code></dd>
+        <dt>Visual rules</dt>
+        <dd>
+          • Effect line dots: <span style="color:var(--sem-buff);">green</span> for adds/muls (gains), <span style="color:var(--sem-debuff);">red</span> for costs/conditions.<br/>
+          • Numeric format matches C14: prefix with <code>+</code>, <code>×</code>, or units.<br/>
+          • Rarity color is <i>only</i> on the rarity label and the card's icon border — keeps overall card chrome neutral.
+        </dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Reroll = 0:</b> button disabled but visible (so the affordance remains learnable).<br/>
+          • <b>Conflict:</b> red "replaces X" badge top-right; confirming shows a brief inline confirmation row before commit.<br/>
+          • <b>Skip:</b> always available; commits no modifier and may grant a small fallback (gold / heal — TBD by §3 economy).
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">ModifierPickScreen</span> : CanvasLayer       <span class="c"># layer 100, dims world</span>
+  <span class="n">ColorRect</span> dimmer (alpha 0.7)
+  <span class="n">PanelContainer</span> centered
+    <span class="n">VBoxContainer</span>
+      <span class="n">HeaderBlock</span>
+      <span class="n">HBoxContainer</span> cards
+        <span class="n">ModifierCard</span> ×3 : PanelContainer
+          <span class="n">VBoxContainer</span> (rarity, icon, name, desc, EffectsList)
+      <span class="n">FooterRow</span>: HBox
+        <span class="n">Label</span> meta
+        <span class="n">HBoxContainer</span> actions
+          <span class="n">Button</span> reroll · skip · confirm</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

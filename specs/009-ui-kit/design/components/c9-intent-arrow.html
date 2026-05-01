@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C9 — Intent arrow — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C9: Intent arrow ------------------------------------
+     Small arrow over an enemy showing planned move direction.
+     Already exists in code; mockup must match.
+     6 directions for hex grid (NE, E, SE, SW, W, NW).
+     ---------------------------------------------------------------- */
+
+  .arrow {
+    width: 24px;
+    height: 24px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--sem-damage);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    color: var(--sem-damage);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* team variants */
+  .arrow.player  { border-color: var(--team-player); color: var(--team-player); }
+  .arrow.neutral { border-color: var(--team-neutral); color: var(--team-neutral); }
+
+  /* idle / no move (action only, no movement) */
+  .arrow.idle {
+    border-color: var(--sem-debuff);
+    color: var(--sem-debuff);
+  }
+
+  /* attack-only (will attack from current hex) */
+  .arrow.attack {
+    border-color: var(--sem-damage);
+    color: var(--sem-damage);
+  }
+
+  /* duration label */
+  .arrow .dist {
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--ui-text);
+    background: rgba(0,0,0,0.7);
+    padding: 1px 3px;
+    line-height: 1;
+  }
+
+  /* arrow above an actor stub (positioning context) */
+  .actor-stub-c9 {
+    width: 56px;
+    height: 56px;
+    background: var(--team-enemy);
+    border: 1px solid #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: #000;
+    font-weight: 700;
+  }
+  .actor-stub-c9 .arrow {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .actor-stub-c9 .dist {
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* path preview (chain of arrows along the planned route) */
+  .path-grid {
+    position: relative;
+    width: 360px;
+    height: 220px;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+  }
+  .path-grid .neutral-hex {
+    position: absolute;
+    width: 80px;
+    height: 92px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: var(--ui-bg-panel-2);
+  }
+  .path-grid .step {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--sem-damage);
+    background: rgba(217, 75, 75, 0.2);
+    color: var(--sem-damage);
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C9</div>
+    <h1>C9 — Intent arrow</h1>
+    <p class="subtitle">
+      Small arrow above an enemy showing planned move direction next tick. Pillar 1 telegraph.
+      Spec must match the existing widget in code: 24×24, dark backdrop, semantic-red outline +
+      Unicode arrow glyph for the direction.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">Direction states (6 hex directions + neutral)</h2>
+
+  <div class="state-grid">
+    <div class="state-card">
+      <h3>NE <span class="pill">↗</span></h3>
+      <p class="caption">Move 1 hex up-and-right.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">↗</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+    <div class="state-card">
+      <h3>E <span class="pill">→</span></h3>
+      <p class="caption">Move 1 hex right.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">→</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+    <div class="state-card">
+      <h3>SE <span class="pill">↘</span></h3>
+      <p class="caption">Move 1 hex down-and-right.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">↘</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+    <div class="state-card">
+      <h3>SW <span class="pill">↙</span></h3>
+      <p class="caption">Move 1 hex down-and-left.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">↙</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+    <div class="state-card">
+      <h3>W <span class="pill">←</span></h3>
+      <p class="caption">Move 1 hex left.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">←</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+    <div class="state-card">
+      <h3>NW <span class="pill">↖</span></h3>
+      <p class="caption">Move 1 hex up-and-left.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">↖</div>
+          <span class="dist">1 hex</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Long move <span class="pill">→ 3 hex</span></h3>
+      <p class="caption">Distance shows in label below. Arrow glyph stays the same.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow">→</div>
+          <span class="dist">3 hex</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Attack-only <span class="pill">no move</span></h3>
+      <p class="caption">Enemy stays put and attacks. Crossed-circle glyph.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow attack">⊕</div>
+          <span class="dist">cast</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Idle <span class="pill">no action</span></h3>
+      <p class="caption">Enemy planned to wait/skip. Orange dash. Useful when AI scenario yields no rule match.</p>
+      <div class="stage" style="min-height:140px;">
+        <div class="actor-stub-c9">E
+          <div class="arrow idle">—</div>
+          <span class="dist">wait</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Multi-step path preview</h2>
+  <div class="state-grid">
+    <div class="state-card">
+      <h3>Path · 3 steps then attack</h3>
+      <p class="caption">For a 3-hex move + cast, an arrow sits over the enemy and small numbered pips trail along the path. Path renders only when the player has the enemy selected (Pillar 1: depth on demand).</p>
+      <div class="stage" style="min-height:240px;">
+        <div class="path-grid">
+          <div class="neutral-hex" style="left:60px;top:30px;"></div>
+          <div class="neutral-hex" style="left:140px;top:30px;"></div>
+          <div class="neutral-hex" style="left:220px;top:30px;"></div>
+          <div class="neutral-hex" style="left:100px;top:100px;"></div>
+          <div class="neutral-hex" style="left:180px;top:100px;"></div>
+
+          <!-- enemy at start -->
+          <div style="position:absolute;left:88px;top:54px;">
+            <div class="actor-stub-c9">E
+              <div class="arrow">→</div>
+              <span class="dist">3 hex</span>
+            </div>
+          </div>
+          <!-- path steps -->
+          <div class="step" style="left:170px;top:74px;">1</div>
+          <div class="step" style="left:240px;top:74px;">2</div>
+          <div class="step" style="left:200px;top:130px;">3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C9 Intent arrow</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Telegraph the enemy's next-tick action: where they will move, or that they will attack from where they stand. Pairs with C6 (which shows what they hit).</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>World-space, parented to enemy. Offset (0, -28) px from sprite top. 24×24 box. Distance label sits at (0, +14) below the arrow box.</dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>kind:        enum { move, attack, idle }
+direction:   enum { ne, e, se, sw, w, nw }   # only when kind == move
+distance:    int                              # only when kind == move
+team:        enum { player, enemy, neutral } # for color
+visible:     bool                             # hide for off-screen / fog</pre>
+        </dd>
+
+        <dt>Glyph table</dt>
+        <dd>
+          <pre>kind = move:
+  ne → ↗   e → →   se → ↘
+  sw → ↙   w → ←   nw → ↖
+kind = attack: ⊕
+kind = idle:   —</pre>
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Multi-step path:</b> arrow shows total distance + first-step direction. Path pips render only when this enemy is selected.<br/>
+          • <b>Path blocked between plan and resolution:</b> arrow stays; resolution may abort or re-route depending on AI rules. Mockup is the plan, not the actual outcome.<br/>
+          • <b>Enemy stunned:</b> show <code>kind=idle</code> with dur from stun status.<br/>
+          • <b>Action invisible to player:</b> arrow hidden if enemy is in fog-of-war.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">IntentArrow</span> : Control                  <span class="c"># custom_minimum_size = (24, 24)</span>
+  <span class="n">PanelContainer</span>                          <span class="c"># StyleBoxFlat: bg=#000@55%, border=team color</span>
+    <span class="n">Label</span> glyph                           <span class="c"># 14pt mono bold, color = team</span>
+  <span class="n">Label</span> distance                          <span class="c"># anchor bottom_center y=+14, 9pt mono</span>
+                                            <span class="c"># bg via theme override or PanelContainer</span></pre>
+          Direction is purely a glyph swap — no rotation transform needed (Unicode arrows cover all 6 directions). This matches the existing in-code widget and avoids rotation cost.
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

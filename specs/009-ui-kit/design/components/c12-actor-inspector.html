@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C12 — Actor inspector — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C12: Actor inspector ---------------------------------
+     Top-right, 320px wide, vertically growable.
+     Same panel for player and any actor (Pillar 2).
+     Two modes:
+       - play  : read-only labels
+       - god   : SpinBox-edit on stat fields
+     ---------------------------------------------------------------- */
+
+  .inspector {
+    width: 320px;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    color: var(--ui-text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* header */
+  .insp-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+    align-items: center;
+  }
+  .insp-header .name {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .insp-header .sub {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+    margin-top: 2px;
+  }
+  .team-badge {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px var(--sp-2);
+    border: 1px solid;
+    border-radius: 4px;
+  }
+  .team-badge.player  { color: var(--team-player);  border-color: var(--team-player); }
+  .team-badge.enemy   { color: var(--team-enemy);   border-color: var(--team-enemy); }
+  .team-badge.neutral { color: var(--team-neutral); border-color: var(--team-neutral); }
+
+  /* section */
+  .insp-section {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+  }
+  .insp-section:last-child { border-bottom: none; }
+  .insp-section h4 {
+    margin: 0 0 var(--sp-2) 0;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ui-text-faint);
+    font-weight: 400;
+  }
+
+  /* HP row */
+  .hp-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: var(--sp-2);
+  }
+  .hp-row .hp-num {
+    font-family: ui-monospace, monospace;
+    font-size: 24px;
+    line-height: 1;
+  }
+  .hp-row .hp-num .max { color: var(--ui-text-dim); font-size: 14px; }
+  .hp-row .hp-meta {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text-dim);
+    text-align: right;
+  }
+  .hp-bar {
+    height: 8px;
+    background: var(--hp-bg);
+    border: 1px solid #000;
+    margin-top: var(--sp-2);
+    position: relative;
+  }
+  .hp-bar > .fill { height: 100%; background: var(--hp-fill); }
+  .hp-bar > .fill.low  { background: var(--hp-low); }
+  .hp-bar > .fill.crit { background: var(--hp-crit); }
+  .hp-bar > .preview {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: var(--hp-preview);
+    opacity: 0.85;
+  }
+
+  /* stat row */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-1) 0;
+  }
+  .stat-row .lbl {
+    font-size: 13px;
+    color: var(--ui-text);
+  }
+  .stat-row .lbl .hint {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-faint);
+    display: block;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .stat-row .val {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--ui-text);
+  }
+  /* Godmode stat input */
+  .stat-input {
+    width: 64px;
+    height: 24px;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 4px;
+    color: var(--ui-text);
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    padding: 0 var(--sp-1) 0 var(--sp-2);
+    text-align: right;
+  }
+  .stat-input:focus {
+    outline: 2px solid var(--ui-focus);
+    outline-offset: 1px;
+  }
+
+  /* statuses */
+  .status-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+  }
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--sp-2);
+    border: 1px solid var(--ui-border);
+    background: var(--ui-bg-panel-2);
+    border-radius: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ui-text);
+  }
+  .status-chip .glyph {
+    width: 10px; height: 10px;
+    display: inline-block;
+    background: var(--c, var(--ui-text-dim));
+  }
+  .status-chip .dur { color: var(--ui-text-dim); }
+
+  /* skill pip row */
+  .skill-pips {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-2);
+  }
+  .pip {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 56px;
+    cursor: pointer;
+    position: relative;
+  }
+  .pip .key {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+  }
+  .pip .glyph { font-size: 16px; color: var(--ui-text); }
+  .pip .nm {
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.1;
+    color: var(--ui-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+  .pip.cooling .glyph { opacity: 0.3; }
+  .pip.cooling::after {
+    content: attr(data-cd);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 18px;
+    background: rgba(12,14,18,0.65);
+    border-radius: 4px;
+  }
+
+  /* intent line */
+  .intent {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-2);
+    background: rgba(217, 75, 75, 0.08);
+    border: 1px solid var(--sem-damage);
+    border-radius: 4px;
+  }
+  .intent .arrow {
+    font-family: ui-monospace, monospace;
+    color: var(--sem-damage);
+    font-size: 14px;
+  }
+  .intent .desc {
+    font-size: 12px;
+    color: var(--ui-text);
+  }
+  .intent .desc b { color: var(--sem-damage); font-family: ui-monospace, monospace; }
+  .intent .turn {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+  }
+
+  /* Hex variant */
+  .hex-coord {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--ui-text);
+  }
+  .terrain-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2);
+    padding: var(--sp-1) 0;
+    font-size: 13px;
+  }
+  .terrain-row .val { color: var(--ui-text-dim); font-family: ui-monospace, monospace; font-size: 12px; }
+  .occupant-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-2);
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .occupant-link:hover { border-color: var(--ui-border-strong); }
+  .occupant-link .arrow { color: var(--ui-text-dim); }
+
+  /* Empty state */
+  .empty-msg {
+    padding: var(--sp-5);
+    text-align: center;
+    color: var(--ui-text-faint);
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  /* mode toggle banner (page-only chrome, not part of component) */
+  .mode-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 2px var(--sp-2);
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ui-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .mode-banner.god { border-color: var(--ui-focus); color: var(--ui-focus); }
+
+  /* layout */
+  .insp-stage {
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-4);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .state-grid.wide .state-card { padding: var(--sp-4); }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C12</div>
+    <h1>C12 — Actor inspector panel</h1>
+    <p class="subtitle">
+      Top-right panel, 320px wide. Shows the data for whatever the player has selected:
+      player, an enemy, or a hex. <b>Same panel structure for player and enemies</b> (Pillar 2).
+      Two modes — <b>play</b> (read-only) and <b>god</b> (editable SpinBox stats). Hex variant covered as well (subsumes C13 visually).
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">States — selection drives content</h2>
+
+  <div class="state-grid wide">
+
+    <!-- 1. Player selected (default) -->
+    <div class="state-card">
+      <h3>selection = player <span class="pill">play mode</span></h3>
+      <p class="caption">Default. Inspector shows player stats. No intent section (player intent is the cast bar).</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name">Player</div>
+              <div class="sub">actor_id 0 · vampire</div>
+            </div>
+            <span class="team-badge player">PLAYER</span>
+          </div>
+          <div class="insp-section">
+            <h4>HP</h4>
+            <div class="hp-row">
+              <div class="hp-num">82<span class="max">/100</span></div>
+              <div class="hp-meta">82%</div>
+            </div>
+            <div class="hp-bar">
+              <div class="fill" style="width:82%;"></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Stats</h4>
+            <div class="stat-row"><div class="lbl">Speed<span class="hint">hexes per turn</span></div><div class="val">3</div></div>
+            <div class="stat-row"><div class="lbl">Damage bonus<span class="hint">flat add to all dmg</span></div><div class="val">+2</div></div>
+          </div>
+          <div class="insp-section">
+            <h4>Statuses</h4>
+            <div class="status-strip">
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-buff);"></span>shielded<span class="dur">2t</span></div>
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-debuff);"></span>burn<span class="dur">1t</span></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Skills</h4>
+            <div class="skill-pips">
+              <div class="pip"><span class="key">Q</span><span class="glyph">◆</span><span class="nm">Bloody Edge</span></div>
+              <div class="pip cooling" data-cd="2"><span class="key">W</span><span class="glyph">◆</span><span class="nm">Push Wave</span></div>
+              <div class="pip"><span class="key">E</span><span class="glyph">◆</span><span class="nm">Heal Pulse</span></div>
+              <div class="pip" style="opacity:0.5;"><span class="key">R</span><span class="glyph">—</span><span class="nm">empty</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Enemy selected (with intent) -->
+    <div class="state-card">
+      <h3>selection = actor(enemy) <span class="pill">play mode</span></h3>
+      <p class="caption">Click an enemy → inspector flips to its data. Adds <b>planned intent</b> section (Pillar 1: telegraph everything).</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name">Cultist</div>
+              <div class="sub">actor_id 7 · race: mortal</div>
+            </div>
+            <span class="team-badge enemy">ENEMY</span>
+          </div>
+          <div class="insp-section">
+            <h4>HP</h4>
+            <div class="hp-row">
+              <div class="hp-num" style="color:var(--hp-low);">25<span class="max">/100</span></div>
+              <div class="hp-meta">25%<br/><span style="color:var(--sem-damage);">-15 incoming</span></div>
+            </div>
+            <div class="hp-bar">
+              <div class="fill low" style="width:25%;"></div>
+              <div class="preview" style="right:75%;width:15%;"></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Stats</h4>
+            <div class="stat-row"><div class="lbl">Speed</div><div class="val">2</div></div>
+            <div class="stat-row"><div class="lbl">Damage bonus</div><div class="val">+0</div></div>
+          </div>
+          <div class="insp-section">
+            <h4>Statuses</h4>
+            <div class="status-strip">
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-debuff);"></span>burn<span class="dur">2t</span></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Skills</h4>
+            <div class="skill-pips">
+              <div class="pip"><span class="key">1</span><span class="glyph">◆</span><span class="nm">Slash</span></div>
+              <div class="pip cooling" data-cd="1"><span class="key">2</span><span class="glyph">◆</span><span class="nm">Curse</span></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Planned intent <span style="color:var(--sem-damage);font-family:ui-monospace,monospace;">▲</span></h4>
+            <div class="intent">
+              <span class="arrow">→</span>
+              <div class="desc">Move 2 hexes, then <b>Slash</b> player for <b>10 dmg</b></div>
+              <span class="turn">next tick</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Hex selected -->
+    <div class="state-card">
+      <h3>selection = hex(c) <span class="pill">play mode · subsumes C13</span></h3>
+      <p class="caption">Click an empty hex (or via tab-target) → inspector shows hex data. If occupied, an "occupant" row links to that actor's inspector.</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name">Hex</div>
+              <div class="sub hex-coord">(q=4, r=-2)</div>
+            </div>
+            <span class="team-badge neutral">TILE</span>
+          </div>
+          <div class="insp-section">
+            <h4>Terrain</h4>
+            <div class="terrain-row"><span>Kind</span><span class="val">grass</span></div>
+            <div class="terrain-row"><span>Walkable</span><span class="val">yes</span></div>
+            <div class="terrain-row"><span>Cover</span><span class="val">none</span></div>
+          </div>
+          <div class="insp-section">
+            <h4>Active tile effect</h4>
+            <div class="status-strip">
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-heal);"></span>heal-zone +8/turn<span class="dur">3t</span></div>
+            </div>
+          </div>
+          <div class="insp-section">
+            <h4>Occupant</h4>
+            <div class="occupant-link">
+              <span class="team-badge enemy">ENEMY</span>
+              <span>Cultist · 25/100</span>
+              <span class="arrow">→</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Godmode (editable) -->
+    <div class="state-card">
+      <h3>selection = actor(enemy) <span class="pill god">GOD MODE</span></h3>
+      <p class="caption">Same panel, <code>edit_mode=true</code> prop. Stat fields render as SpinBox. Yellow outline = focused field. <b>Note (§7 trap):</b> while a SpinBox has focus, Q/W/E/R go to the input; controller must release focus on game-key keypress.</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name">Cultist</div>
+              <div class="sub">actor_id 7 · <span class="mode-banner god">GODMODE</span></div>
+            </div>
+            <span class="team-badge enemy">ENEMY</span>
+          </div>
+          <div class="insp-section">
+            <h4>HP</h4>
+            <div class="stat-row"><div class="lbl">Current</div><input class="stat-input" value="25" /></div>
+            <div class="stat-row"><div class="lbl">Max</div><input class="stat-input" value="100" /></div>
+          </div>
+          <div class="insp-section">
+            <h4>Stats</h4>
+            <div class="stat-row"><div class="lbl">Speed</div><input class="stat-input" value="2" tabindex="0" style="outline:2px solid var(--ui-focus);outline-offset:1px;" /></div>
+            <div class="stat-row"><div class="lbl">Damage bonus</div><input class="stat-input" value="0" /></div>
+          </div>
+          <div class="insp-section">
+            <h4>Skills (drag to reorder, RMB to remove)</h4>
+            <div class="skill-pips">
+              <div class="pip"><span class="key">1</span><span class="glyph">◆</span><span class="nm">Slash</span></div>
+              <div class="pip"><span class="key">2</span><span class="glyph">◆</span><span class="nm">Curse</span></div>
+              <div class="pip" style="border-style:dashed;opacity:0.6;"><span class="key">+</span><span class="glyph">＋</span><span class="nm">add</span></div>
+              <div class="pip" style="border-style:dashed;opacity:0.6;"><span class="key">+</span><span class="glyph">＋</span><span class="nm">add</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Empty / no selection -->
+    <div class="state-card">
+      <h3>selection = none <span class="pill">edge case</span></h3>
+      <p class="caption">Off-grid click before defaulting back to player. Held for 1 frame in normal play; persistent only if controller is forcibly mid-state. Show empty placeholder.</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name" style="color:var(--ui-text-faint);">— nothing selected —</div>
+              <div class="sub">defaults to player next frame</div>
+            </div>
+          </div>
+          <div class="empty-msg">
+            click an actor or hex<br/>
+            <span style="color:var(--ui-text-dim);">(ESC also re-selects player)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Cast-mode override -->
+    <div class="state-card">
+      <h3>cast_mode = casting(0) <span class="pill">override</span></h3>
+      <p class="caption">Per §7: when casting, inspector pins the <b>skill</b> info instead of selection. Returns to selection when cast resolves or cancels.</p>
+      <div class="insp-stage">
+        <div class="inspector">
+          <div class="insp-header">
+            <div>
+              <div class="name">Bloody Edge</div>
+              <div class="sub">slot Q · cooldown 2t</div>
+            </div>
+            <span class="team-badge player" style="border-color:var(--ui-focus);color:var(--ui-focus);">CASTING</span>
+          </div>
+          <div class="insp-section">
+            <h4>Targeting</h4>
+            <div class="terrain-row"><span>Target</span><span class="val">entity</span></div>
+            <div class="terrain-row"><span>Range</span><span class="val">3 hex</span></div>
+            <div class="terrain-row"><span>Area</span><span class="val">single</span></div>
+          </div>
+          <div class="insp-section">
+            <h4>Effects</h4>
+            <div class="status-strip">
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-damage);"></span>damage 10 → 15</div>
+              <div class="status-chip"><span class="glyph" style="--c:var(--sem-debuff);"></span>bleed 2t</div>
+            </div>
+            <div class="terrain-row" style="margin-top:var(--sp-2);">
+              <span>Modifiers</span>
+              <span class="val">+5 dmg (Sharpened)</span>
+            </div>
+          </div>
+          <div class="insp-section" style="background:var(--ui-bg-panel-2);">
+            <h4>Hint</h4>
+            <div style="font-size:11px;color:var(--ui-text-dim);">LMB on hex to cast · RMB / ESC to cancel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">Anchor in the 1920×1080 layout</h2>
+  <div class="context-strip">
+    <div class="label">Where this lives — top-right, 320 wide, vertically growable</div>
+    <div class="frame">
+      <div class="zone" style="left:0;right:0;top:0;height:5.2%;">TOP HUD</div>
+      <div class="zone" style="left:0;right:16.7%;top:5.2%;bottom:11.1%;">ARENA</div>
+      <div class="zone target" style="right:0;top:5.2%;width:16.7%;bottom:25%;">INSPECTOR (C12)</div>
+      <div class="zone" style="right:0;bottom:11.1%;width:16.7%;height:13.9%;">COMBAT LOG</div>
+      <div class="zone" style="left:0;right:0;bottom:0;height:11.1%;">BOTTOM BAR</div>
+    </div>
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C12 Actor inspector panel</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Show the full data for whatever the player selected. Single component, two data-driven variants (actor / hex) and two interaction modes (play / god). Pillar 2: identical structure for player and enemies.</dd>
+
+        <dt>Anchor &amp; sizing</dt>
+        <dd>Top-right, anchored to top + right edges. Width <b>320px fixed</b>. Height grows with content; min height ~200, max height = viewport_h − top HUD − combat log. Internal sections scroll if overflow (one shared <code>ScrollContainer</code>).</dd>
+
+        <dt>Inputs</dt>
+        <dd>
+          <pre>selection: { kind: "player" | "actor" | "hex" | "none",
+             actor_id?: int,
+             hex_coord?: Vector2i }
+cast_mode: { state: "idle" | "casting", slot?: int }   # cast pin override
+edit_mode: bool   # true in Godmode scene
+data:      Actor | Hex | null  # resolved upstream from selection</pre>
+        </dd>
+
+        <dt>Outputs</dt>
+        <dd>
+          <pre>signal stat_changed(field: String, value: Variant)   # godmode only
+signal occupant_link_clicked(actor_id: int)         # hex variant
+signal skill_pip_hovered(skill_id: String, in: bool) # drives C14 tooltip</pre>
+        </dd>
+
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>selection.none:</b> show empty placeholder, defaults back to player next frame.<br/>
+          • <b>cast_mode.casting overrides selection</b> — show skill info; restore selection panel on cast resolve/cancel.<br/>
+          • <b>HP overflow / shield:</b> show as <code>120/100</code> in numeric, bar caps at 100%.<br/>
+          • <b>No skills bound:</b> render empty pip slots with dashed border.<br/>
+          • <b>Hex with multiple tile effects:</b> wrap chips, no truncation.<br/>
+          • <b>Focus trap (§7):</b> Godmode SpinBoxes capture Q/W/E/R; controller MUST release focus on game-key keypress (<code>get_viewport().gui_release_focus()</code> on input). Yellow outline indicates field has focus.
+        </dd>
+
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">ActorInspector</span> : PanelContainer       <span class="c"># anchors_preset=TOP_RIGHT</span>
+                                            <span class="c"># custom_minimum_size = (320, 200)</span>
+  <span class="n">VBoxContainer</span>                          <span class="c"># separation = 0; sections add own padding</span>
+    <span class="n">HeaderRow</span>: HBoxContainer            <span class="c"># name + team badge</span>
+      <span class="n">VBox</span> {Label name, Label sub}
+      <span class="n">Label</span> team_badge                    <span class="c"># StyleBoxFlat colored border</span>
+    <span class="n">SectionHP</span>: VBoxContainer
+      <span class="n">Label</span> "HP"                           <span class="c"># 10pt mono caps</span>
+      <span class="n">HBoxContainer</span>
+        <span class="n">Label</span> hp_value                     <span class="c"># 24pt mono</span>
+        <span class="n">Label</span> hp_meta                      <span class="c"># 11pt mono dim</span>
+      <span class="n">HpBar</span> (custom _draw, 8px tall)        <span class="c"># reuses C4 with size override</span>
+    <span class="n">SectionStats</span>: VBoxContainer
+      <span class="n">StatRow</span> ×N : HBoxContainer
+        <span class="n">Label</span> field
+        <span class="n">Label</span> value | <span class="n">SpinBox</span> editor   <span class="c"># swap based on edit_mode</span>
+    <span class="n">SectionStatuses</span>: HFlowContainer       <span class="c"># wraps chips</span>
+      <span class="n">StatusChip</span> ×N
+    <span class="n">SectionSkills</span>: GridContainer (cols=4)
+      <span class="n">SkillPip</span> ×4                          <span class="c"># Button, drives C14 tooltip on hover</span>
+    <span class="n">SectionIntent</span> (only if team==enemy)
+      <span class="n">PanelContainer</span> with sem-damage border
+        <span class="n">RichTextLabel</span> intent_desc           <span class="c"># bbcode_enabled</span></pre>
+          Mode toggle: <code>edit_mode</code> setter rebuilds StatRow children (Label↔SpinBox). Cast-mode override is a separate <code>SkillInspector</code> sibling that <code>visible</code>-toggles atop the actor view.
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

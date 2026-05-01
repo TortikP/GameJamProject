@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C10 + C11 — Hex cursor & FCT — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  .arena {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--ui-bg-screen);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .arena svg { width: 100%; height: 100%; display: block; }
+  .legend {
+    display:flex;gap:var(--sp-3);flex-wrap:wrap;
+    font-family:ui-monospace,monospace;font-size:11px;color:var(--ui-text-dim);
+    margin-top:var(--sp-2);
+  }
+  .fct-stage {
+    width:100%;
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(circle at 50% 60%, #1c2230 0%, #0c0f15 70%);
+    border:1px solid var(--ui-border);
+    border-radius:4px;
+    position:relative;
+    overflow:hidden;
+  }
+  .actor-mark {
+    position: absolute;
+    width: 56px; height: 56px;
+    border: 2px solid var(--ui-border-strong);
+    background: #1a2030;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace; font-size: 11px;
+    color: var(--ui-text-dim);
+    transform: translate(-50%, -50%);
+  }
+  .fct {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-family: ui-monospace, monospace;
+    font-weight: 600;
+    color: var(--c, var(--ui-text));
+    text-shadow: 0 1px 0 #000, 0 0 6px rgba(0,0,0,0.8);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .fct.dmg     { --c: var(--sem-damage); font-size: 22px; }
+  .fct.crit    { --c: var(--sem-damage); font-size: 30px; font-style: italic; }
+  .fct.heal    { --c: var(--sem-heal);   font-size: 22px; }
+  .fct.miss    { --c: var(--ui-text-dim); font-size: 16px; font-weight: 400; }
+  .fct.buff    { --c: var(--sem-buff);    font-size: 14px; font-weight: 500; }
+  .fct.debuff  { --c: var(--sem-debuff);  font-size: 14px; font-weight: 500; }
+  .fct.label-num::before {
+    content: attr(data-prefix);
+    margin-right: 4px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+  }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C10 + C11</div>
+    <h1>C10 Hex cursor · C11 Floating combat text</h1>
+    <p class="subtitle">
+      Two world-space primitives. <b>C10</b> is the persistent hover indicator (one hex outline
+      at the mouse). <b>C11</b> is the burst-text feedback that pops out of an actor when an
+      effect resolves — damage, heal, miss, status applied. Both are atomic enough to share a file.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">C10 Hex cursor — states</h2>
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Idle hover · neutral</h3>
+      <p class="caption">No action queued. Plain border in <code>--ui-text-dim</code>; thinner than any in-action ring so it disappears under C7/C8.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="arena">
+          <svg viewBox="0 0 600 340">
+            <defs><polygon id="hex10" points="0,17.32 10,0 30,0 40,17.32 30,34.64 10,34.64"/></defs>
+            <rect width="600" height="340" fill="#0d1218"/>
+            <g fill="none" stroke="#2a3140" stroke-width="1"><use href="#hex10" x="-20" y="-20.53"/><use href="#hex10" x="-20" y="14.12"/><use href="#hex10" x="-20" y="48.76"/><use href="#hex10" x="-20" y="83.4"/><use href="#hex10" x="-20" y="118.04"/><use href="#hex10" x="-20" y="152.68"/><use href="#hex10" x="-20" y="187.32"/><use href="#hex10" x="-20" y="221.96"/><use href="#hex10" x="-20" y="256.6"/><use href="#hex10" x="-20" y="291.24"/><use href="#hex10" x="-20" y="325.89"/><use href="#hex10" x="10" y="-3.2"/><use href="#hex10" x="10" y="31.44"/><use href="#hex10" x="10" y="66.08"/><use href="#hex10" x="10" y="100.72"/><use href="#hex10" x="10" y="135.36"/><use href="#hex10" x="10" y="170"/><use href="#hex10" x="10" y="204.64"/><use href="#hex10" x="10" y="239.28"/><use href="#hex10" x="10" y="273.92"/><use href="#hex10" x="10" y="308.56"/><use href="#hex10" x="40" y="-20.53"/><use href="#hex10" x="40" y="14.12"/><use href="#hex10" x="40" y="48.76"/><use href="#hex10" x="40" y="83.4"/><use href="#hex10" x="40" y="118.04"/><use href="#hex10" x="40" y="152.68"/><use href="#hex10" x="40" y="187.32"/><use href="#hex10" x="40" y="221.96"/><use href="#hex10" x="40" y="256.6"/><use href="#hex10" x="40" y="291.24"/><use href="#hex10" x="40" y="325.89"/><use href="#hex10" x="70" y="-3.2"/><use href="#hex10" x="70" y="31.44"/><use href="#hex10" x="70" y="66.08"/><use href="#hex10" x="70" y="100.72"/><use href="#hex10" x="70" y="135.36"/><use href="#hex10" x="70" y="170"/><use href="#hex10" x="70" y="204.64"/><use href="#hex10" x="70" y="239.28"/><use href="#hex10" x="70" y="273.92"/><use href="#hex10" x="70" y="308.56"/><use href="#hex10" x="100" y="-20.53"/><use href="#hex10" x="100" y="14.12"/><use href="#hex10" x="100" y="48.76"/><use href="#hex10" x="100" y="83.4"/><use href="#hex10" x="100" y="118.04"/><use href="#hex10" x="100" y="152.68"/><use href="#hex10" x="100" y="187.32"/><use href="#hex10" x="100" y="221.96"/><use href="#hex10" x="100" y="256.6"/><use href="#hex10" x="100" y="291.24"/><use href="#hex10" x="100" y="325.89"/><use href="#hex10" x="130" y="-3.2"/><use href="#hex10" x="130" y="31.44"/><use href="#hex10" x="130" y="66.08"/><use href="#hex10" x="130" y="100.72"/><use href="#hex10" x="130" y="135.36"/><use href="#hex10" x="130" y="170"/><use href="#hex10" x="130" y="204.64"/><use href="#hex10" x="130" y="239.28"/><use href="#hex10" x="130" y="273.92"/><use href="#hex10" x="130" y="308.56"/><use href="#hex10" x="160" y="-20.53"/><use href="#hex10" x="160" y="14.12"/><use href="#hex10" x="160" y="48.76"/><use href="#hex10" x="160" y="83.4"/><use href="#hex10" x="160" y="118.04"/><use href="#hex10" x="160" y="152.68"/><use href="#hex10" x="160" y="187.32"/><use href="#hex10" x="160" y="221.96"/><use href="#hex10" x="160" y="256.6"/><use href="#hex10" x="160" y="291.24"/><use href="#hex10" x="160" y="325.89"/><use href="#hex10" x="190" y="-3.2"/><use href="#hex10" x="190" y="31.44"/><use href="#hex10" x="190" y="66.08"/><use href="#hex10" x="190" y="100.72"/><use href="#hex10" x="190" y="135.36"/><use href="#hex10" x="190" y="170"/><use href="#hex10" x="190" y="204.64"/><use href="#hex10" x="190" y="239.28"/><use href="#hex10" x="190" y="273.92"/><use href="#hex10" x="190" y="308.56"/><use href="#hex10" x="220" y="-20.53"/><use href="#hex10" x="220" y="14.12"/><use href="#hex10" x="220" y="48.76"/><use href="#hex10" x="220" y="83.4"/><use href="#hex10" x="220" y="118.04"/><use href="#hex10" x="220" y="152.68"/><use href="#hex10" x="220" y="187.32"/><use href="#hex10" x="220" y="221.96"/><use href="#hex10" x="220" y="256.6"/><use href="#hex10" x="220" y="291.24"/><use href="#hex10" x="220" y="325.89"/><use href="#hex10" x="250" y="-3.2"/><use href="#hex10" x="250" y="31.44"/><use href="#hex10" x="250" y="66.08"/><use href="#hex10" x="250" y="100.72"/><use href="#hex10" x="250" y="135.36"/><use href="#hex10" x="250" y="170"/><use href="#hex10" x="250" y="204.64"/><use href="#hex10" x="250" y="239.28"/><use href="#hex10" x="250" y="273.92"/><use href="#hex10" x="250" y="308.56"/><use href="#hex10" x="280" y="-20.53"/><use href="#hex10" x="280" y="14.12"/><use href="#hex10" x="280" y="48.76"/><use href="#hex10" x="280" y="83.4"/><use href="#hex10" x="280" y="118.04"/><use href="#hex10" x="280" y="152.68"/><use href="#hex10" x="280" y="187.32"/><use href="#hex10" x="280" y="221.96"/><use href="#hex10" x="280" y="256.6"/><use href="#hex10" x="280" y="291.24"/><use href="#hex10" x="280" y="325.89"/><use href="#hex10" x="310" y="-3.2"/><use href="#hex10" x="310" y="31.44"/><use href="#hex10" x="310" y="66.08"/><use href="#hex10" x="310" y="100.72"/><use href="#hex10" x="310" y="135.36"/><use href="#hex10" x="310" y="170"/><use href="#hex10" x="310" y="204.64"/><use href="#hex10" x="310" y="239.28"/><use href="#hex10" x="310" y="273.92"/><use href="#hex10" x="310" y="308.56"/><use href="#hex10" x="340" y="-20.53"/><use href="#hex10" x="340" y="14.12"/><use href="#hex10" x="340" y="48.76"/><use href="#hex10" x="340" y="83.4"/><use href="#hex10" x="340" y="118.04"/><use href="#hex10" x="340" y="152.68"/><use href="#hex10" x="340" y="187.32"/><use href="#hex10" x="340" y="221.96"/><use href="#hex10" x="340" y="256.6"/><use href="#hex10" x="340" y="291.24"/><use href="#hex10" x="340" y="325.89"/><use href="#hex10" x="370" y="-3.2"/><use href="#hex10" x="370" y="31.44"/><use href="#hex10" x="370" y="66.08"/><use href="#hex10" x="370" y="100.72"/><use href="#hex10" x="370" y="135.36"/><use href="#hex10" x="370" y="170"/><use href="#hex10" x="370" y="204.64"/><use href="#hex10" x="370" y="239.28"/><use href="#hex10" x="370" y="273.92"/><use href="#hex10" x="370" y="308.56"/><use href="#hex10" x="400" y="-20.53"/><use href="#hex10" x="400" y="14.12"/><use href="#hex10" x="400" y="48.76"/><use href="#hex10" x="400" y="83.4"/><use href="#hex10" x="400" y="118.04"/><use href="#hex10" x="400" y="152.68"/><use href="#hex10" x="400" y="187.32"/><use href="#hex10" x="400" y="221.96"/><use href="#hex10" x="400" y="256.6"/><use href="#hex10" x="400" y="291.24"/><use href="#hex10" x="400" y="325.89"/><use href="#hex10" x="430" y="-3.2"/><use href="#hex10" x="430" y="31.44"/><use href="#hex10" x="430" y="66.08"/><use href="#hex10" x="430" y="100.72"/><use href="#hex10" x="430" y="135.36"/><use href="#hex10" x="430" y="170"/><use href="#hex10" x="430" y="204.64"/><use href="#hex10" x="430" y="239.28"/><use href="#hex10" x="430" y="273.92"/><use href="#hex10" x="430" y="308.56"/><use href="#hex10" x="460" y="-20.53"/><use href="#hex10" x="460" y="14.12"/><use href="#hex10" x="460" y="48.76"/><use href="#hex10" x="460" y="83.4"/><use href="#hex10" x="460" y="118.04"/><use href="#hex10" x="460" y="152.68"/><use href="#hex10" x="460" y="187.32"/><use href="#hex10" x="460" y="221.96"/><use href="#hex10" x="460" y="256.6"/><use href="#hex10" x="460" y="291.24"/><use href="#hex10" x="460" y="325.89"/><use href="#hex10" x="490" y="-3.2"/><use href="#hex10" x="490" y="31.44"/><use href="#hex10" x="490" y="66.08"/><use href="#hex10" x="490" y="100.72"/><use href="#hex10" x="490" y="135.36"/><use href="#hex10" x="490" y="170"/><use href="#hex10" x="490" y="204.64"/><use href="#hex10" x="490" y="239.28"/><use href="#hex10" x="490" y="273.92"/><use href="#hex10" x="490" y="308.56"/><use href="#hex10" x="520" y="-20.53"/><use href="#hex10" x="520" y="14.12"/><use href="#hex10" x="520" y="48.76"/><use href="#hex10" x="520" y="83.4"/><use href="#hex10" x="520" y="118.04"/><use href="#hex10" x="520" y="152.68"/><use href="#hex10" x="520" y="187.32"/><use href="#hex10" x="520" y="221.96"/><use href="#hex10" x="520" y="256.6"/><use href="#hex10" x="520" y="291.24"/><use href="#hex10" x="520" y="325.89"/><use href="#hex10" x="550" y="-3.2"/><use href="#hex10" x="550" y="31.44"/><use href="#hex10" x="550" y="66.08"/><use href="#hex10" x="550" y="100.72"/><use href="#hex10" x="550" y="135.36"/><use href="#hex10" x="550" y="170"/><use href="#hex10" x="550" y="204.64"/><use href="#hex10" x="550" y="239.28"/><use href="#hex10" x="550" y="273.92"/><use href="#hex10" x="550" y="308.56"/><use href="#hex10" x="580" y="-20.53"/><use href="#hex10" x="580" y="14.12"/><use href="#hex10" x="580" y="48.76"/><use href="#hex10" x="580" y="83.4"/><use href="#hex10" x="580" y="118.04"/><use href="#hex10" x="580" y="152.68"/><use href="#hex10" x="580" y="187.32"/><use href="#hex10" x="580" y="221.96"/><use href="#hex10" x="580" y="256.6"/><use href="#hex10" x="580" y="291.24"/><use href="#hex10" x="580" y="325.89"/></g>
+            <g stroke="#dde3ee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="283.2,175.5 280.0,170.0 283.2,164.5"/>
+              <polyline points="286.8,158.2 290.0,152.7 296.4,152.7"/>
+              <polyline points="303.6,152.7 310.0,152.7 313.2,158.2"/>
+              <polyline points="316.8,164.5 320.0,170.0 316.8,175.5"/>
+              <polyline points="313.2,181.8 310.0,187.3 303.6,187.3"/>
+              <polyline points="296.4,187.3 290.0,187.3 286.8,181.8"/>
+            </g>
+            <text x="300" y="173" text-anchor="middle" fill="#dde3ee" font-family="monospace" font-size="8" letter-spacing="0.5">INSPECT</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">C11 Floating combat text — states</h2>
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Damage · standard</h3>
+      <p class="caption">Single number, red, jumps up 24 px and fades 0 → 1 → 0 over 700 ms. Spawns at actor center +Y offset, slight horizontal jitter.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:60%;left:50%;">ENEMY</div>
+          <div class="fct dmg" style="top:42%;left:50%;">−15</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Critical / big hit</h3>
+      <p class="caption">≥ threshold → larger, italic, with "CRIT" tag. Same trajectory but slower (1100 ms) so the player notices.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:60%;left:50%;">ENEMY</div>
+          <div class="fct crit label-num" data-prefix="CRIT" style="top:38%;left:50%;">−42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Heal</h3>
+      <p class="caption">Green, plus-prefixed. Same motion. On player → also pulses C3 numeric briefly (handled in C3, not here).</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:60%;left:50%;">YOU</div>
+          <div class="fct heal" style="top:42%;left:50%;">+8</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Miss / immune</h3>
+      <p class="caption">Dim italic word. Used for whiff, dodge, immune-to-status. Smaller weight so it doesn't compete with damage numbers nearby.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:60%;left:50%;">ENEMY</div>
+          <div class="fct miss" style="top:42%;left:50%;">miss</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Status applied · buff / debuff</h3>
+      <p class="caption">Word + arrow indicator. Buff = green up-arrow, debuff = red down-arrow. Used for new statuses; ticks (DoT/HoT) reuse damage/heal styles.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:60%;left:30%;">ALLY</div>
+          <div class="fct buff" style="top:42%;left:30%;">↑ shielded</div>
+          <div class="actor-mark" style="top:60%;left:70%;">ENEMY</div>
+          <div class="fct debuff" style="top:42%;left:70%;">↓ bleed · 2t</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Stacked numbers</h3>
+      <p class="caption">When several effects land in one frame on one actor, stagger by 80 ms and offset X by ±10 px. No queue — just spawn.</p>
+      <div class="stage" style="min-height:260px;padding:0;">
+        <div class="fct-stage">
+          <div class="actor-mark" style="top:62%;left:50%;">ENEMY</div>
+          <div class="fct dmg"    style="top:46%;left:46%;">−12</div>
+          <div class="fct dmg"    style="top:38%;left:54%;">−6</div>
+          <div class="fct debuff" style="top:30%;left:50%;">↓ bleed</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C10 Hex cursor</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>The single source of truth for "where is the player pointing". Other previews (C7/C8) rely on it; never let the cursor disappear during normal play.</dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>hovered_hex: Hex
+mode:        Enum { IDLE, ACTION_VALID, ACTION_INVALID, INSPECT }</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd><code>signal hex_clicked(hex, button)</code></dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Off-grid:</b> hide cursor entirely; don't pin to nearest edge.<br/>
+          • <b>Modal open:</b> cursor is hidden by host (ModalLayer). C10 doesn't track it.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">HexCursor</span> : Node2D                  <span class="c"># child of arena, z = 7 (above C7/C8)</span>
+  <span class="n">CursorOutline</span> : Node2D            <span class="c"># _draw() one polygon, color/width via mode</span></pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+  <details class="spec" open>
+    <summary>Spec — C11 Floating combat text</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>Communicate what an effect did, where, in less than a second. Tightly paired with damage/heal events from BattleResolver.</dd>
+        <dt>Inputs (per spawn)</dt>
+        <dd>
+          <pre>actor:    Actor          # spawn anchor
+kind:     Enum { DAMAGE, CRIT, HEAL, MISS, BUFF, DEBUFF }
+text:     String          # "−15", "miss", "↓ bleed · 2t"
+delay_ms: int = 0         # for stacking</pre>
+        </dd>
+        <dt>Animation</dt>
+        <dd>
+          • Lifetime: 700 ms standard, 1100 ms for CRIT.<br/>
+          • Motion: ease-out vertical translate −24 px; alpha 0 → 1 by 80 ms, holds, fades 0 over last 250 ms.<br/>
+          • Stacking: subsequent FCT on the same actor offsets X by ±10 px alternating, delayed 80 ms each.
+        </dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • <b>Actor dies mid-flight:</b> FCT continues from the death spot; doesn't follow corpse fade.<br/>
+          • <b>Off-screen actor:</b> clamp spawn to arena viewport edge (don't pin to UI).<br/>
+          • <b>Reduce-motion accessibility:</b> skip rise+fade, render static text for 600 ms then dismiss.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">FCTLayer</span> : Node2D                    <span class="c"># shared spawner; pool of N labels</span>
+  <span class="n">FCTLabel</span> : Label                    <span class="c"># custom theme per kind, AnimationPlayer drives</span></pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>

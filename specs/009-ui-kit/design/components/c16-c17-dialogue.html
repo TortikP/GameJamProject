@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>C16 / C17 — Dialogue + Internal voice — UI Kit</title>
+<link rel="stylesheet" href="../tokens.css" />
+<style>
+  /* -------- C16: NPC dialogue panel ----------------------------- */
+  .dlg {
+    width: 100%;
+    max-width: 1200px;
+    height: 280px;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: 160px 1fr 200px;
+    gap: var(--sp-4);
+    padding: var(--sp-4);
+  }
+  .dlg .portrait {
+    width: 160px; height: 160px;
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace; font-size: 11px;
+    color: var(--ui-text-faint); text-align: center;
+  }
+  .dlg .body {
+    display: flex; flex-direction: column; gap: var(--sp-3);
+    min-width: 0;
+  }
+  .dlg .name {
+    font-size: 18px; font-weight: 600; color: var(--ui-text);
+  }
+  .dlg .text {
+    font-size: 14px; line-height: 1.5; color: var(--ui-text);
+    flex: 1; min-height: 0; overflow: hidden;
+  }
+  .dlg .text .typed { color: var(--ui-text); }
+  .dlg .text .pending { color: var(--ui-text-faint); }
+  .dlg .text .caret { color: var(--ui-focus); animation: none; }
+  .dlg .choices {
+    display: flex; gap: var(--sp-2); flex-wrap: wrap;
+  }
+  .dlg .choice {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: var(--sp-2) var(--sp-3);
+    color: var(--ui-text);
+    font-size: 13px;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    display: flex; gap: var(--sp-2); align-items: center;
+  }
+  .dlg .choice:hover { background: var(--ui-bg-elevated); border-color: var(--ui-border-strong); }
+  .dlg .choice .key {
+    font-family: ui-monospace, monospace; font-size: 11px;
+    color: var(--ui-text-dim);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 2px;
+    padding: 0 4px;
+  }
+  .dlg .aux {
+    background: var(--ui-bg-panel-2);
+    border: 1px solid var(--ui-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace; font-size: 11px;
+    color: var(--ui-text-faint); text-align: center;
+  }
+  .dlg .hint {
+    font-family: ui-monospace, monospace; font-size: 10px;
+    color: var(--ui-text-faint); text-align: right;
+  }
+
+  /* -------- C17: Internal voice panel — variant A (separate, top-anchored) -- */
+  .voice {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(22, 26, 34, 0.92);
+    border: 1px solid var(--c, var(--sem-control));
+    border-left: 4px solid var(--c, var(--sem-control));
+    border-radius: 4px;
+    padding: var(--sp-3) var(--sp-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .voice .who {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c, var(--sem-control));
+  }
+  .voice .text {
+    font-size: 14px; line-height: 1.5;
+    color: var(--ui-text);
+    font-style: italic;
+  }
+  .voice.cultist  { --c: var(--sem-control); }
+  .voice.beast    { --c: var(--sem-debuff); }
+  .voice.celestial { --c: var(--sem-buff); }
+
+  /* variant B: mode of C16 (no portrait, italic, tinted border) */
+  .dlg.voice-mode {
+    grid-template-columns: 1fr;
+    border-color: var(--sem-control);
+    border-left: 4px solid var(--sem-control);
+    height: auto;
+    min-height: 140px;
+  }
+  .dlg.voice-mode .text { font-style: italic; }
+</style>
+</head>
+<body>
+<div class="kit-page">
+
+  <header class="kit-header">
+    <div class="crumb"><a href="../index.html">UI KIT</a> // C16 + C17</div>
+    <h1>C16 NPC dialogue · C17 Internal voice</h1>
+    <p class="subtitle">
+      Bottom-anchored 280px dialogue panel with portrait / name / typewriter text / choices / aux slot.
+      C17 is the "voices in head" variant — <b>two options proposed</b>; recommendation below.
+    </p>
+  </header>
+
+  <h2 class="section-title" style="margin-top:0;border-top:none;padding-top:0;">C16 NPC dialogue states</h2>
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>Mid-typewriter <span class="pill">half revealed</span></h3>
+      <p class="caption">Click/Space skips to end. Caret pulse via CSS transition only — Godot uses RichTextLabel.visible_ratio (§12 trap).</p>
+      <div class="stage" style="min-height:300px;">
+        <div class="dlg">
+          <div class="portrait">[NPC<br/>160×160]</div>
+          <div class="body">
+            <div class="name">Withered Cultist</div>
+            <div class="text">
+              <span class="typed">"You step through the veil and the veil remembers</span><span class="caret">▌</span><span class="pending"> you. Every door you walk back through asks who you became while you were gone."</span>
+            </div>
+            <div class="hint">CLICK / SPACE — skip</div>
+          </div>
+          <div class="aux">[AUX<br/>optional<br/>image]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>Choices revealed <span class="pill">4 options</span></h3>
+      <p class="caption">After full reveal. 1-4 keyboard hotkeys. Hover highlights. No auto-advance while choices are present.</p>
+      <div class="stage" style="min-height:300px;">
+        <div class="dlg">
+          <div class="portrait">[NPC<br/>160×160]</div>
+          <div class="body">
+            <div class="name">Withered Cultist</div>
+            <div class="text">"What do you carry that was not always yours?"</div>
+            <div class="choices">
+              <div class="choice"><span class="key">1</span>"A name."</div>
+              <div class="choice"><span class="key">2</span>"Voices."</div>
+              <div class="choice"><span class="key">3</span>"Nothing I'll admit."</div>
+              <div class="choice"><span class="key">4</span>[walk away]</div>
+            </div>
+          </div>
+          <div class="aux">[AUX]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>No choices · auto-advance <span class="pill">3.0s</span></h3>
+      <p class="caption">When no choices, auto-advance after N seconds. Hint shows countdown.</p>
+      <div class="stage" style="min-height:300px;">
+        <div class="dlg">
+          <div class="portrait">[NPC]</div>
+          <div class="body">
+            <div class="name">Withered Cultist</div>
+            <div class="text">"Then go. The portal won't keep your shape much longer."</div>
+            <div class="hint">CLICK / SPACE — advance · auto in 1.4s</div>
+          </div>
+          <div class="aux">[AUX]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">C17 Internal voice — proposals</h2>
+  <p class="caption" style="color:var(--ui-text-dim);">
+    Two options. <b>Recommendation: option A (separate panel, top-anchored).</b> Reason:
+    voices have different narrative weight — second-person, no portrait, can interrupt mid-combat —
+    so a distinct widget keeps the player's "I am being addressed by something inside me" cue legible.
+  </p>
+
+  <div class="state-grid wide">
+
+    <div class="state-card">
+      <h3>A · Separate panel <span class="pill">RECOMMENDED</span></h3>
+      <p class="caption">Top-anchored, narrower (720). No portrait. Italic. Border tinted by absorbed entity's race.</p>
+      <div class="stage" style="min-height:200px;align-items:flex-start;padding-top:var(--sp-5);">
+        <div style="display:flex;flex-direction:column;gap:var(--sp-3);width:100%;align-items:center;">
+          <div class="voice cultist">
+            <span class="who">— cultist · race: mortal</span>
+            <span class="text">"You felt his ribs give. That was not nothing. That was a sound she would have flinched from."</span>
+          </div>
+          <div class="voice beast">
+            <span class="who">— hound · race: beast</span>
+            <span class="text">"More. More. The arena has corners, doesn't it?"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-card">
+      <h3>B · Mode of C16</h3>
+      <p class="caption">Same 280px panel, no portrait, italic text, tinted border. Heavier visual presence; competes with NPC dialogue for the same screen real estate.</p>
+      <div class="stage" style="min-height:300px;">
+        <div class="dlg voice-mode">
+          <div class="body">
+            <div class="name" style="color:var(--sem-control);">— cultist (in your head)</div>
+            <div class="text">"You felt his ribs give. That was not nothing."</div>
+            <div class="hint">CLICK / SPACE — dismiss</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="spec" open>
+    <summary>Spec — C16 / C17</summary>
+    <div class="body">
+      <dl>
+        <dt>Purpose</dt>
+        <dd>C16: in-world dialogue with NPCs (portrait + name + text + choices). C17: internal absorbed-voice line (no portrait, italic, race-tinted).</dd>
+        <dt>Anchor &amp; sizing</dt>
+        <dd>
+          <b>C16:</b> bottom strip, full width minus margins, 280px tall.<br/>
+          <b>C17 (recommended):</b> top-anchored, 720 max-width, height grows with text (~80–140 px).
+        </dd>
+        <dt>Inputs</dt>
+        <dd>
+          <pre>// C16
+speaker_name, portrait_tex, text, choices?, aux_tex?, auto_advance_sec
+// C17
+race, entity_name, text  # all italic, second-person convention</pre>
+        </dd>
+        <dt>Outputs</dt>
+        <dd><code>signal choice_picked(index)</code>, <code>signal advanced()</code>, <code>signal voice_dismissed()</code></dd>
+        <dt>Edge cases</dt>
+        <dd>
+          • Mid-typewriter click → reveal full text without advancing.<br/>
+          • Mid-combat C17 fire — does NOT pause game; world keeps ticking. Voices auto-dismiss after 4s if no input.<br/>
+          • §12 trap: typewriter via <code>RichTextLabel.visible_ratio</code>, never <code>visible_characters</code>.
+        </dd>
+        <dt>Godot mapping</dt>
+        <dd>
+          <pre class="tree"><span class="n">DialoguePanel</span> : PanelContainer       <span class="c"># own CanvasLayer above arena</span>
+  <span class="n">HBoxContainer</span>
+    <span class="n">TextureRect</span> portrait                 <span class="c"># 160×160</span>
+    <span class="n">VBoxContainer</span> body
+      <span class="n">Label</span> name
+      <span class="n">RichTextLabel</span> text                  <span class="c"># bbcode_enabled, visible_ratio drives reveal</span>
+      <span class="n">HBoxContainer</span> choices               <span class="c"># Button ×N</span>
+    <span class="n">TextureRect</span> aux (optional)
+
+<span class="n">VoicePanel</span> : PanelContainer            <span class="c"># top-anchored, separate scene</span>
+  <span class="n">VBoxContainer</span>
+    <span class="n">Label</span> who (race color)
+    <span class="n">RichTextLabel</span> text (italic via bbcode)</pre>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+</div>
+</body>
+</html>
