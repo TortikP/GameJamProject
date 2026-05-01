@@ -405,9 +405,7 @@ func _cast_slot(slot_index: int) -> void:
 
 
 func _on_slot_activated(_index: int) -> void:
-	# UI clicked a slot → no auto-cast. Player still needs to aim and press LMB or
-	# the slot key. This avoids accidental casts from clicking the icon.
-	pass
+	_refresh_overlay()
 
 
 # ── Spawning ─────────────────────────────────────────────────────────────────
