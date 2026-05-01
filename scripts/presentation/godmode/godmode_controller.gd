@@ -182,11 +182,36 @@ func _select(actor: Actor) -> void:
 	_selected = actor
 	if _inspector != null and _inspector.has_method("bind"):
 		_inspector.bind(actor)
+	# Also show hex layer for this actor's current position
+	if actor != null:
+		var coord: Vector2i = grid.get_coord(actor.actor_id)
+		_bind_hex_at(coord)
 	_refresh_overlay()
 
 
 func _deselect_to_player() -> void:
 	_select(player)
+
+
+func _inspect_hex(coord: Vector2i) -> void:
+	# No actor at coord: unbind actor section, show hex section only
+	if _inspector != null and _inspector.has_method("unbind"):
+		_inspector.unbind()
+	_selected = null
+	_bind_hex_at(coord)
+	if _overlay != null:
+		_overlay.clear()
+
+
+func _bind_hex_at(coord: Vector2i) -> void:
+	if _inspector == null or not _inspector.has_method("bind_hex"):
+		return
+	if coord == Vector2i(-1, -1):
+		_inspector.unbind_hex()
+		return
+	var tile_kind: StringName = grid.get_tile_kind(coord)
+	var effect_id: StringName = grid.get_effect_id(coord)
+	_inspector.bind_hex(coord, tile_kind, effect_id)
 
 
 func _refresh_overlay() -> void:
@@ -270,9 +295,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
-			# Key only SELECTS the slot. Cast is confirmed by LMB on target.
+			# activate() in SlotBar toggles: press active slot again = deselect (-1)
 			if _slot_bar_node != null:
-				_slot_bar_node.set_active(i)
+				_slot_bar_node.activate(i)
 			get_viewport().set_input_as_handled()
 			return
 	if event is InputEventMouseButton:
@@ -328,27 +353,28 @@ func _request_move() -> void:
 func _request_cast_active() -> void:
 	if _slot_bar_node == null:
 		return
-	var slot_index: int = _slot_bar_node.get_active()
-	var ability := _slot_bar_node.get_slot(slot_index) as Ability
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		return
 	var target_id: StringName = grid.get_actor_at(coord)
 	var ctx: Dictionary = {
-		"registry": registry,
-		"grid": grid,
-		"target_id": target_id,
-		"target_coord": coord,
+		"registry": registry, "grid": grid,
+		"target_id": target_id, "target_coord": coord,
 	}
-	# Priority: cast if possible, else select hovered actor, else deselect→player
-	if ability != null and ability.can_apply(player, ctx):
-		_cast_slot(slot_index)
-		return
+	var active_idx: int = _slot_bar_node.get_active()
+	# If a spell is selected and can cast → cast
+	if active_idx != -1:
+		var ability := _slot_bar_node.get_slot(active_idx) as Ability
+		if ability != null and ability.can_apply(player, ctx):
+			_cast_slot(active_idx)
+			return
+	# No cast: inspect hovered actor or hex
 	var target_actor: Actor = registry.get_actor(target_id) if target_id != &"" else null
 	if target_actor != null:
 		_select(target_actor)
-	else:
-		_deselect_to_player()
+	elif grid.is_walkable(coord):
+		_inspect_hex(coord)
+	# Off-grid or impassable with no actor → no-op
 
 
 func _cast_slot(slot_index: int) -> void:

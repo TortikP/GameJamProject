@@ -19,7 +19,7 @@ signal slot_activated(index: int)
 var _slots: Dictionary = {}
 var _castable: Dictionary = {}  # int → bool — set by controller each frame
 var _buttons: Array[Button] = []
-var _active: int = 0
+var _active: int = -1  # -1 = no spell selected
 
 
 func _ready() -> void:
@@ -64,19 +64,24 @@ func get_active() -> int:
 	return _active
 
 
+## Set active slot directly. Pass -1 to deselect all.
 func set_active(index: int) -> void:
-	if index < 0 or index >= SLOT_COUNT:
+	if index < -1 or index >= SLOT_COUNT:
 		return
 	_active = index
 	_refresh_all()
 
 
-## Activate a slot AND emit the signal so controller casts.
+## Activate a slot: if it's already active, deselect (-1). Emits slot_activated.
 func activate(index: int) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
-	set_active(index)
-	slot_activated.emit(index)
+	if _active == index:
+		set_active(-1)
+		slot_activated.emit(-1)
+	else:
+		set_active(index)
+		slot_activated.emit(index)
 
 
 func _on_button_pressed(index: int) -> void:
@@ -99,7 +104,6 @@ func _refresh_visual(index: int) -> void:
 		btn.scale = Vector2.ONE
 	elif index == _active:
 		# Active is always visually distinct, even when not castable.
-		# Saturated yellow + slight upscale separates it from siblings.
 		btn.modulate = Color(1.5, 1.5, 0.25) if castable else Color(1.1, 1.1, 0.5)
 		btn.scale = Vector2(1.12, 1.12)
 		btn.pivot_offset = btn.size * 0.5

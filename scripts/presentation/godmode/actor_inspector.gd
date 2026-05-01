@@ -14,18 +14,28 @@ signal speed_changed(actor: Actor)   # emitted when inspector changes actor.spee
 var _actor: Actor = null
 
 # UI nodes — resolved in _ready, all must exist in actor_inspector.tscn
-@onready var _label_id: Label        = $VBox/LabelId
-@onready var _label_team: Label      = $VBox/LabelTeam
-@onready var _label_curr_hp: Label   = $VBox/RowMaxHp/LabelCurrHp
-@onready var _spin_max_hp: SpinBox   = $VBox/RowMaxHp/SpinMaxHp
-@onready var _spin_damage: SpinBox   = $VBox/RowDamage/SpinDamage
-@onready var _spin_speed: SpinBox    = $VBox/RowSpeed/SpinSpeed
-@onready var _abilities_row: HBoxContainer = $VBox/AbilitiesRow
+@onready var _label_id: Label        = $VBox/ActorSection/LabelId
+@onready var _label_team: Label      = $VBox/ActorSection/LabelTeam
+@onready var _label_curr_hp: Label   = $VBox/ActorSection/RowMaxHp/LabelCurrHp
+@onready var _spin_max_hp: SpinBox   = $VBox/ActorSection/RowMaxHp/SpinMaxHp
+@onready var _spin_damage: SpinBox   = $VBox/ActorSection/RowDamage/SpinDamage
+@onready var _spin_speed: SpinBox    = $VBox/ActorSection/RowSpeed/SpinSpeed
+@onready var _abilities_row: HBoxContainer = $VBox/ActorSection/AbilitiesRow
+@onready var _actor_section: Control = $VBox/ActorSection
+@onready var _hex_section: Control   = $VBox/HexSection
+@onready var _label_hex_coord: Label = $VBox/HexSection/LabelHexCoord
+@onready var _label_hex_kind: Label  = $VBox/HexSection/LabelHexKind
+@onready var _label_hex_effect: Label = $VBox/HexSection/LabelHexEffect
 
 
 func _ready() -> void:
 	hide()
 	_setup_spinbox_ranges()
+	# Both sections start hidden; shown by bind_* calls
+	if _actor_section:
+		_actor_section.hide()
+	if _hex_section:
+		_hex_section.hide()
 
 
 ## Pass game-action keys through to the controller by releasing SpinBox focus.
@@ -83,19 +93,17 @@ func bind(actor: Actor) -> void:
 		_disconnect_actor()
 	_actor = actor
 	if actor == null:
-		hide()
+		if _actor_section:
+			_actor_section.hide()
+		_check_visibility()
 		return
 
-	# Populate static fields
 	_label_id.text   = String(actor.actor_id)
 	_label_team.text = String(actor.team)
-
-	# SpinBox values — use set_value_no_signal to avoid triggering value_changed
 	_spin_max_hp.set_value_no_signal(actor.max_hp)
 	_spin_damage.set_value_no_signal(actor.damage_bonus)
 	_spin_speed.set_value_no_signal(actor.speed)
 
-	# Connect signals
 	actor.damaged.connect(_on_actor_damaged)
 	actor.died.connect(_on_actor_died, CONNECT_ONE_SHOT)
 	_spin_max_hp.value_changed.connect(_on_max_hp_changed)
@@ -104,14 +112,49 @@ func bind(actor: Actor) -> void:
 
 	_refresh_hp_label()
 	_rebuild_abilities()
-	show()
+	if _actor_section:
+		_actor_section.show()
+	_check_visibility()
 
 
 func unbind() -> void:
 	if _actor != null:
 		_disconnect_actor()
 	_actor = null
-	hide()
+	if _actor_section:
+		_actor_section.hide()
+	_check_visibility()
+
+
+## Show hex info layer. tile_kind and effect_id come from HexGrid.
+func bind_hex(coord: Vector2i, tile_kind: StringName, effect_id: StringName) -> void:
+	if _hex_section == null:
+		return
+	_label_hex_coord.text = "(%d, %d)" % [coord.x, coord.y]
+	_label_hex_kind.text  = String(tile_kind) if tile_kind != &"" else "—"
+	if effect_id != &"":
+		_label_hex_effect.text = String(effect_id)
+		_label_hex_effect.show()
+	else:
+		_label_hex_effect.hide()
+	_hex_section.show()
+	_check_visibility()
+
+
+func unbind_hex() -> void:
+	if _hex_section:
+		_hex_section.hide()
+	_check_visibility()
+
+
+## Show panel if at least one section is visible, hide otherwise.
+func _check_visibility() -> void:
+	var actor_vis: bool = _actor_section != null and _actor_section.visible
+	var hex_vis:   bool = _hex_section   != null and _hex_section.visible
+	if actor_vis or hex_vis:
+		show()
+	else:
+		hide()
 
 
 func _disconnect_actor() -> void:
@@ -213,6 +256,6 @@ func _on_actor_damaged(_id: StringName, _amount: int, _hp_left: int) -> void:
 
 
 func _on_actor_died(_id: StringName) -> void:
-	# Controller listens to EventBus.actor_died and calls _deselect_to_player.
-	# We just hide here to avoid showing stale data if controller is slow.
-	hide()
+	if _actor_section:
+		_actor_section.hide()
+	_check_visibility()
