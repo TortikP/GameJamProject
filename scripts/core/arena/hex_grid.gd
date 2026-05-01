@@ -405,6 +405,17 @@ func set_tile_object_id(coord: Vector2i, id: StringName) -> void:
 		_tiles[coord].object_id = id
 
 
+## Exposes the TileObjectRegistry so controllers can pass it to TileObjectResolver
+## without accessing _object_registry directly. Returns null before initialize().
+func get_object_registry() -> TileObjectRegistry:
+	return _object_registry
+
+
+## Exposes the TileEffectRegistry for the same reason.
+func get_effect_registry() -> TileEffectRegistry:
+	return _effect_registry
+
+
 ## Returns {Vector2i: StringName} for every tile that has a non-empty object_id.
 ## Called once per turn by TileObjectResolver to find aura-emitting objects.
 ## Cost: O(tile count) — fine for jam-scale arenas.
