@@ -305,6 +305,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_wait_turn()
 		get_viewport().set_input_as_handled()
 		return
+	# 007-skill-system: F6 = cast test_vamp_strike on nearest enemy (dev smoke test)
+	if event is InputEventKey and (event as InputEventKey).pressed:
+		if (event as InputEventKey).keycode == KEY_F6:
+			_debug_cast_test_skill()
+			get_viewport().set_input_as_handled()
+			return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
 			# activate() in SlotBar toggles: press active slot again = deselect (-1)
@@ -732,3 +738,33 @@ func _enemy_attack_damage(enemy: Actor) -> int:
 	if ability == null:
 		return 0
 	return ability.predicted_damage_to(enemy, player, {})
+
+
+# ── 007 skill dev smoke test (F6) ──────────────────────────────────────────
+## Casts test_vamp_strike on first alive non-player actor. F6 hotkey.
+## Verifies: damage → heal caster; modifier stacking (see AC scenarios 1,3,6,8).
+func _debug_cast_test_skill() -> void:
+	var skill: Skill = SkillDatabase.get_skill(&"test_vamp_strike")
+	if skill == null:
+		GameLogger.warn("Godmode", "F6: test_vamp_strike not in SkillDatabase")
+		return
+	# Pick first alive non-player actor
+	var target_id: StringName = &""
+	for a in registry.all():
+		var actor := a as Actor
+		if actor == null or actor.actor_id == PLAYER_ID:
+			continue
+		if actor.is_alive():
+			target_id = actor.actor_id
+			break
+	if target_id == &"":
+		GameLogger.info("Godmode", "F6: no valid target for test skill")
+		return
+	var ctx: Dictionary = {
+		"registry": registry,
+		"grid": grid,
+		"target_id": target_id,
+		"target_coord": grid.get_coord(target_id),
+	}
+	var result: bool = skill.cast(player, ctx)
+	GameLogger.info("Godmode", "F6 test_vamp_strike cast=%s target=%s" % [str(result), target_id])

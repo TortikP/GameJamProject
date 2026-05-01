@@ -1,31 +1,50 @@
 extends Node
 ## AbilityDatabase — loads data/abilities/*.json into Ability resources at startup.
 ##
-## Kind registries map JSON `"kind": "..."` to a Resource subclass. Adding a new
-## target/effect/modifier kind = new GDScript file + one line in the registry.
-##
-## JSON format:
+## 007-skill-system: new registries for target/area/effect/modifier kinds.
+## JSON format (new — see 007-skill-system/plan.md):
 ##   {
-##     "id": "debug_punch",
-##     "target": {"kind": "single_enemy"},
-##     "effect": {"kind": "damage", "amount": 5},
-##     "modifiers": []
+##     "id": "fireball",
+##     "target": {"kind": "hex"},
+##     "area":   {"kind": "zone_circle", "radius": 2},
+##     "effects": [
+##       {"kind": "damage", "id": "fb_dmg", "duration": 0, "damage": 15},
+##       {"kind": "status", "id": "fb_burn", "duration": 3, "status": "burning"}
+##     ],
+##     "modifiers": [
+##       {"kind": "parameter", "id": "fb_extra", "target_param": "damage", "op": "add", "value": 5}
+##     ]
 ##   }
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const ABILITIES_DIR := "res://data/abilities/"
 
 const TARGET_KINDS: Dictionary = {
-	"single_enemy": preload("res://scripts/core/abilities/targets/single_enemy_target.gd"),
-	"single_enemy_adjacent": preload("res://scripts/core/abilities/targets/single_enemy_adjacent_target.gd"),
+	"entity":    preload("res://scripts/core/abilities/targets/entity_target.gd"),
+	"hex":       preload("res://scripts/core/abilities/targets/hex_target.gd"),
+	"direction": preload("res://scripts/core/abilities/targets/direction_target.gd"),
+	"object":    preload("res://scripts/core/abilities/targets/object_target.gd"),
+}
+
+const AREA_KINDS: Dictionary = {
+	"self":        preload("res://scripts/core/abilities/areas/self_area.gd"),
+	"chain":       preload("res://scripts/core/abilities/areas/chain_area.gd"),
+	"zone_circle": preload("res://scripts/core/abilities/areas/zone_circle_area.gd"),
+	"zone_line":   preload("res://scripts/core/abilities/areas/zone_line_area.gd"),
+	"zone_cone":   preload("res://scripts/core/abilities/areas/zone_cone_area.gd"),
+	"zone_arc":    preload("res://scripts/core/abilities/areas/zone_arc_area.gd"),
 }
 
 const EFFECT_KINDS: Dictionary = {
 	"damage": preload("res://scripts/core/abilities/effects/damage_effect.gd"),
+	"heal":   preload("res://scripts/core/abilities/effects/heal_effect.gd"),
+	"status": preload("res://scripts/core/abilities/effects/status_effect.gd"),
+	"move":   preload("res://scripts/core/abilities/effects/move_effect.gd"),
+	"create": preload("res://scripts/core/abilities/effects/create_effect.gd"),
 }
 
 const MODIFIER_KINDS: Dictionary = {
-	"knockback": preload("res://scripts/core/abilities/modifiers/knockback_modifier.gd"),
+	"parameter": preload("res://scripts/core/abilities/parameter_modifier.gd"),
 }
 
 const ABILITY_SCRIPT := preload("res://scripts/core/abilities/ability.gd")
@@ -50,7 +69,7 @@ func all_ids() -> Array:
 	return _by_id.keys()
 
 
-# ── Internals ────────────────────────────────────────────────────────────────
+# ── Internals ─────────────────────────────────────────────────────────────────
 
 func _load_dir(path: String) -> void:
 	var dir := DirAccess.open(path)
@@ -77,38 +96,49 @@ func _load_file(file_path: String) -> void:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		GameLogger.warn("AbilityDatabase", "bad JSON: %s" % file_path)
 		return
-	var ability := _build_ability(parsed)
+	var ability := _build_ability_from_dict(parsed)
 	if ability != null:
 		_by_id[ability.id] = ability
 
 
-func _build_ability(data: Dictionary) -> Ability:
+## Public — also used by SkillDatabase to parse abilities embedded in skill JSON.
+func _build_ability_from_dict(data: Dictionary) -> Ability:
 	var id: String = data.get("id", "")
 	if id == "":
 		GameLogger.warn("AbilityDatabase", "ability missing 'id'")
 		return null
 
-	var target := _make_target(data.get("target", {}))
-	if target == null:
+	var tgt := _make_target(data.get("target", {}))
+	if tgt == null:
 		GameLogger.warn("AbilityDatabase", "%s: bad target" % id)
 		return null
 
-	var effect := _make_effect(data.get("effect", {}))
-	if effect == null:
-		GameLogger.warn("AbilityDatabase", "%s: bad effect" % id)
+	var area := _make_area(data.get("area", {}))
+	if area == null:
+		GameLogger.warn("AbilityDatabase", "%s: bad area" % id)
 		return null
 
-	var modifiers: Array[AbilityModifier] = []
+	var effects: Array[AbilityEffect] = []
+	for eff_data in data.get("effects", []):
+		var e := _make_effect(eff_data)
+		if e != null:
+			effects.append(e)
+	if effects.is_empty():
+		GameLogger.warn("AbilityDatabase", "%s: no valid effects" % id)
+		return null
+
+	var mods: Array[ParameterModifier] = []
 	for mod_data in data.get("modifiers", []):
 		var m := _make_modifier(mod_data)
 		if m != null:
-			modifiers.append(m)
+			mods.append(m)
 
 	var ability: Ability = ABILITY_SCRIPT.new()
 	ability.id = StringName(id)
-	ability.target = target
-	ability.effect = effect
-	ability.modifiers = modifiers
+	ability.target = tgt
+	ability.area = area
+	ability.effects = effects
+	ability.modifiers = mods
 	return ability
 
 
@@ -116,36 +146,47 @@ func _make_target(data: Dictionary) -> AbilityTarget:
 	var kind: String = data.get("kind", "")
 	var script: Variant = TARGET_KINDS.get(kind)
 	if script == null:
-		GameLogger.warn("AbilityDatabase", "unknown target kind: %s" % kind)
+		GameLogger.warn("AbilityDatabase", "unknown target kind: '%s'" % kind)
 		return null
 	var inst: Object = script.new()
 	_apply_params(inst, data)
 	return inst as AbilityTarget
 
 
+func _make_area(data: Dictionary) -> AbilityArea:
+	var kind: String = data.get("kind", "")
+	var script: Variant = AREA_KINDS.get(kind)
+	if script == null:
+		GameLogger.warn("AbilityDatabase", "unknown area kind: '%s'" % kind)
+		return null
+	var inst: Object = script.new()
+	_apply_params(inst, data)
+	return inst as AbilityArea
+
+
 func _make_effect(data: Dictionary) -> AbilityEffect:
 	var kind: String = data.get("kind", "")
 	var script: Variant = EFFECT_KINDS.get(kind)
 	if script == null:
-		GameLogger.warn("AbilityDatabase", "unknown effect kind: %s" % kind)
+		GameLogger.warn("AbilityDatabase", "unknown effect kind: '%s'" % kind)
 		return null
 	var inst: Object = script.new()
 	_apply_params(inst, data)
 	return inst as AbilityEffect
 
 
-func _make_modifier(data: Dictionary) -> AbilityModifier:
+func _make_modifier(data: Dictionary) -> ParameterModifier:
 	var kind: String = data.get("kind", "")
 	var script: Variant = MODIFIER_KINDS.get(kind)
 	if script == null:
-		GameLogger.warn("AbilityDatabase", "unknown modifier kind: %s" % kind)
+		GameLogger.warn("AbilityDatabase", "unknown modifier kind: '%s'" % kind)
 		return null
 	var inst: Object = script.new()
 	_apply_params(inst, data)
-	return inst as AbilityModifier
+	return inst as ParameterModifier
 
 
-## Apply JSON keys (other than "kind") to instance @export properties via set().
+## Apply JSON keys (except "kind") to instance @export properties via set().
 func _apply_params(inst: Object, data: Dictionary) -> void:
 	for key in data.keys():
 		if key == "kind":

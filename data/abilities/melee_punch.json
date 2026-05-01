@@ -1,6 +1,9 @@
 {
   "id": "melee_punch",
-  "target": {"kind": "single_enemy_adjacent"},
-  "effect": {"kind": "damage", "amount": 8},
+  "target": {"kind": "entity", "range": 1},
+  "area":   {"kind": "chain", "max_chain_length": 1},
+  "effects": [
+    {"kind": "damage", "id": "mp_dmg", "type": "damage", "duration": 0, "damage": 8}
+  ],
   "modifiers": []
 }

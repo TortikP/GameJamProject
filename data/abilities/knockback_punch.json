@@ -1,8 +1,10 @@
 {
   "id": "knockback_punch",
-  "target": {"kind": "single_enemy_adjacent"},
-  "effect": {"kind": "damage", "amount": 4},
-  "modifiers": [
-    {"kind": "knockback", "distance": 2}
-  ]
+  "target": {"kind": "entity", "range": 1},
+  "area":   {"kind": "chain", "max_chain_length": 1},
+  "effects": [
+    {"kind": "damage",  "id": "kbp_dmg",  "type": "damage", "duration": 0, "damage": 4},
+    {"kind": "move",    "id": "kbp_push", "type": "move",   "duration": 0, "move_type": "push", "move_distance": 2}
+  ],
+  "modifiers": []
 }

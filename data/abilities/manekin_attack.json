@@ -1,6 +1,9 @@
 {
   "id": "manekin_attack",
-  "target": {"kind": "single_enemy_adjacent"},
-  "effect": {"kind": "damage", "amount": 4},
+  "target": {"kind": "entity", "range": 1},
+  "area":   {"kind": "chain", "max_chain_length": 1},
+  "effects": [
+    {"kind": "damage", "id": "ma_dmg", "type": "damage", "duration": 0, "damage": 4}
+  ],
   "modifiers": []
 }

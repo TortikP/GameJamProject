@@ -163,21 +163,32 @@ Godmode остаётся как dev-сцена и потенциальная eas
 
 «Тупые» композиции (одновременно отталкивает и притягивает) — допустимы. В контексте уже расставленного окружения (огонь / шипы / лёд) они становятся осмысленными комбо. Это и есть веселье — играть в эту неоднозначность.
 
-### Контракт
+### Контракт (007-skill-system)
 
-Снаружи всё — это `Ability.cast(caster, ctx)`. `ctx` — это куда указали (гекс / сущность / self). Компоненты внутри:
+Снаружи всё — `Skill.cast(caster, ctx)` или напрямую `Ability.cast(caster, ctx)`.
+`ctx` — куда указали (гекс / сущность / self). Компоненты внутри:
 
 ```
+Skill.cast(caster, ctx):
+  for ability in abilities:          # упорядоченно
+    Ability.cast(caster, ctx)        # цели резолвятся КАЖДЫЙ РАЗ заново
+
 Ability.cast(caster, ctx):
-  targets = Target.resolve(caster, ctx)
-  for mod in modifiers: mod.before_apply(caster, targets)
-  for t in targets:
-    Effect.apply(caster, t)
-    for mod in modifiers: mod.after_apply(caster, t)
-  for mod in modifiers: mod.after_cast(caster, targets)
+  primary = Target.resolve(caster, ctx)   # Variant: Actor | Vector2i | ...
+  victims = Area.resolve(caster, primary, ctx)   # Array, nearest→farthest
+  for victim in victims:
+    for effect in effects:           # дубликат, модификаторы уже применены
+      if effect.requires_alive_target and victim is dead: continue
+      Effect.apply(caster, victim, ctx)
+  emit ability_cast
+emit skill_cast
 ```
 
-Этот контракт должен быть написан **первым**. Без него все остальные компоненты в воздухе.
+**Модификаторы (ParameterModifier)** — параметр-мутаторы, не lifecycle-хуки.
+Формула: `final = (base + Σ adds) × Π muls`. Коммутативна.
+Поведенческие хуки (`freeze_on_hit`, `extra_cast`) — отдельная фича (spec-009 или позже).
+
+**Структура:** `Skill → Ability[] → (Target × Area × Effect[]) + Modifier[]`.
 
 ### Совместимость и комбинаторный взрыв
 
