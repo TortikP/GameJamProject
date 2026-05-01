@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://cast_range_overlay_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/cast_range_overlay.gd" id="1_cro"]
+
+[node name="CastRangeOverlay" type="Node2D"]
+script = ExtResource("1_cro")
+z_index = 4

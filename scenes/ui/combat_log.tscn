@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3 uid="uid://combat_log_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/combat_log.gd" id="1_cl"]
+
+[node name="CombatLog" type="PanelContainer"]
+script = ExtResource("1_cl")
+visible = false
+mouse_filter = 2
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_top = -260.0
+offset_right = -16.0
+offset_bottom = -120.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="."]
+
+[node name="Title" type="Label" parent="VBox"]
+text = "Combat Log"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+size_flags_vertical = 3
+
+[node name="Lines" type="VBoxContainer" parent="VBox/Scroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 2

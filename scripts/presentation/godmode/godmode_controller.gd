@@ -112,6 +112,12 @@ func _ready() -> void:
 		_overlay = grid.get_node_or_null("MoveRangeOverlay")
 	if _overlay != null and _overlay.has_method("setup"):
 		_overlay.setup(grid)
+	# CastRangeOverlay (009-T033) — present in godmode.tscn as sibling under HexGrid.
+	# Wire its grid ref now; show_range/hide_range calls follow once cast_mode is
+	# explicit (007 ownership). For Phase 2 it stays inert.
+	var _cast_overlay: Node = grid.get_node_or_null("CastRangeOverlay")
+	if _cast_overlay != null and _cast_overlay.has_method("setup"):
+		_cast_overlay.setup(grid)
 	if _inspector != null and _inspector.has_signal("speed_changed"):
 		_inspector.speed_changed.connect(_on_inspector_speed_changed)
 
@@ -128,6 +134,11 @@ func _ready() -> void:
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
+	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
+	# so godmode keeps booting if the HUD layout drops the panel.
+	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	if psp != null and psp.has_method("bind_player"):
+		psp.bind_player(player)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────
@@ -199,13 +210,15 @@ func _deselect_to_player() -> void:
 
 
 func _inspect_hex(coord: Vector2i) -> void:
-	# No actor at coord: unbind actor section, show hex section only
+	# Click on empty hex → inspector shows hex info, actor section hides.
+	# Selection state and player's move/cast overlay are NOT touched
+	# (009-ui-kit decoupling: overlay tracks player, not _selected).
+	# Note: we deliberately don't change _selected — leaving it on the
+	# player so subsequent overlay refreshes have a sensible source if
+	# anything ever re-introduces selection-driven logic.
 	if _inspector != null and _inspector.has_method("unbind"):
 		_inspector.unbind()
-	_selected = null
 	_bind_hex_at(coord)
-	if _overlay != null:
-		_overlay.clear()
 
 
 func _bind_hex_at(coord: Vector2i) -> void:
@@ -220,24 +233,25 @@ func _bind_hex_at(coord: Vector2i) -> void:
 
 
 func _refresh_overlay() -> void:
-	if _overlay == null or _selected == null:
+	# Decoupled from _selected: the move-range and cast-range overlays are
+	# always for the PLAYER. Selecting an enemy/hex (LMB on actor, click on
+	# tile) should not hide the player's tactical info (Pillar 1 visibility).
+	# Inspector binding still follows _selected — that's the "what am I
+	# looking at" panel, separate concern from "what can I do this turn".
+	if _overlay == null or player == null:
 		return
-	# For player: show only the active spell's range (or nothing if no spell selected).
-	# For enemies: show their attack ability range.
+	# Skills (post-007) wrap multiple abilities. Pass Ability objects directly
+	# rather than IDs — avoids AbilityDatabase collisions when multiple skills
+	# share an ability ID (e.g. "vs_dmg").
 	var ability_items: Array = []
-	if _selected == player:
-		if _slot_bar_node != null:
-			var active: int = _slot_bar_node.get_active()
-			if active != -1:
-				var sk := _slot_bar_node.get_slot(active) as Skill
-				if sk != null:
-					# Pass Ability objects directly — avoids AbilityDatabase ID collision
-					# when multiple skills share an ability ID (e.g. "vs_dmg").
-					for ab in sk.abilities:
-						ability_items.append(ab)
-	else:
-		ability_items = _selected.get_abilities()  # StringName IDs, enemy path
-	_overlay.show_for(_selected, registry, ability_items)
+	if _slot_bar_node != null:
+		var active: int = _slot_bar_node.get_active()
+		if active != -1:
+			var sk := _slot_bar_node.get_slot(active) as Skill
+			if sk != null:
+				for ab in sk.abilities:
+					ability_items.append(ab)
+	_overlay.show_for(player, registry, ability_items)
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:
@@ -313,6 +327,29 @@ func _update_castability() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).pressed:
 		if (event as InputEventKey).keycode == KEY_ESCAPE:
+			# 009-T051 priority chain:
+			#   1. active cast slot → cancel cast (deactivate slot)
+			#   2. selection != player → reset selection to player
+			#   3. otherwise → open pause menu
+			# Modal close (priority 2 in plan) is decentralized — each modal
+			# self-closes on ESC via its own _unhandled_input. They also call
+			# set_input_as_handled, so by the time this fires the modal stack
+			# is empty.
+			if _slot_bar_node != null and _slot_bar_node.get_active() != -1:
+				_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
+				get_viewport().set_input_as_handled()
+				return
+			if _selected != null and _selected != player:
+				_deselect_to_player()
+				get_viewport().set_input_as_handled()
+				return
+			# No selection to clear, no active cast — open pause menu if mounted.
+			var pause_menu: Node = get_node_or_null("../HUD/PauseMenu")
+			if pause_menu != null and pause_menu.has_method("open"):
+				pause_menu.open()
+				get_viewport().set_input_as_handled()
+				return
+			# Last-resort fallback: original behavior (no-op deselect).
 			_deselect_to_player()
 			get_viewport().set_input_as_handled()
 			return
@@ -447,6 +484,14 @@ func _cast_slot(slot_index: int) -> void:
 
 func _on_slot_activated(_index: int) -> void:
 	_refresh_overlay()
+	# 009-T044+: push active spell into PlayerStatusPanel description block.
+	# -1 = deselect → pass null which collapses the spell section.
+	var psp: Node = get_node_or_null("../HUD/PlayerStatusPanel")
+	if psp != null and psp.has_method("set_active_spell"):
+		var ability = null
+		if _index != -1 and _slot_bar_node != null:
+			ability = _slot_bar_node.get_slot(_index)
+		psp.set_active_spell(ability)
 
 
 # ── Spawning ─────────────────────────────────────────────────────────────────

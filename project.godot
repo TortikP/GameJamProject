@@ -12,13 +12,14 @@ config_version=5
 
 config/name="GameJamProject"
 config/description="72-hour game jam — turn-based magical arena with spell-crafting via modifiers."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 
 [autoload]
 
 EventBus="*res://scripts/infrastructure/event_bus.gd"
 GameSpeed="*res://scripts/infrastructure/game_speed.gd"
+UiTheme="*res://scripts/presentation/ui_theme.gd"
 AudioDirector="*res://scripts/infrastructure/audio_director.gd"
 DialogueDB="*res://scripts/core/dialogue/dialogue_database.gd"
 DialogueManager="*res://scripts/presentation/dialogue_manager.gd"

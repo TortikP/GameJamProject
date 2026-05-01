@@ -47,3 +47,15 @@ signal world_turn_ended(turn: int)
 signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: Array)
 signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
 signal actor_died(id: StringName)
+
+# UI infrastructure (009-ui-kit)
+signal ui_theme_reloaded
+signal ui_toast_requested(text: String, duration_sec: float, level: StringName)  # level ∈ info/success/warn/error
+signal ui_modal_opened(id: StringName)
+signal ui_modal_closed(id: StringName)
+
+# Game flow (used by main menu, run summary, pause)
+signal main_menu_entered
+signal run_started_requested
+signal run_summary_shown(summary: Dictionary)
+signal pause_toggled(paused: bool)

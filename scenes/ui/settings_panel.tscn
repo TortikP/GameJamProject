@@ -1,0 +1,118 @@
+[gd_scene load_steps=2 format=3 uid="uid://settings_panel_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/settings_panel.gd" id="1_sp"]
+
+[node name="SettingsPanel" type="CanvasLayer"]
+script = ExtResource("1_sp")
+visible = false
+layer = 90
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+mouse_filter = 1
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(440, 0)
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/Panel/VBox"]
+text = "Settings"
+
+[node name="MasterRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="MasterLabel" type="Label" parent="Center/Panel/VBox/MasterRow"]
+custom_minimum_size = Vector2(120, 0)
+text = "Master"
+
+[node name="MasterSlider" type="HSlider" parent="Center/Panel/VBox/MasterRow"]
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MasterValue" type="Label" parent="Center/Panel/VBox/MasterRow"]
+custom_minimum_size = Vector2(48, 0)
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="MusicLabel" type="Label" parent="Center/Panel/VBox/MusicRow"]
+custom_minimum_size = Vector2(120, 0)
+text = "Music"
+
+[node name="MusicSlider" type="HSlider" parent="Center/Panel/VBox/MusicRow"]
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.8
+
+[node name="MusicValue" type="Label" parent="Center/Panel/VBox/MusicRow"]
+custom_minimum_size = Vector2(48, 0)
+text = "80%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="SfxLabel" type="Label" parent="Center/Panel/VBox/SfxRow"]
+custom_minimum_size = Vector2(120, 0)
+text = "SFX"
+
+[node name="SfxSlider" type="HSlider" parent="Center/Panel/VBox/SfxRow"]
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxValue" type="Label" parent="Center/Panel/VBox/SfxRow"]
+custom_minimum_size = Vector2(48, 0)
+text = "100%"
+horizontal_alignment = 2
+
+[node name="GameSpeedRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="GameSpeedLabel" type="Label" parent="Center/Panel/VBox/GameSpeedRow"]
+custom_minimum_size = Vector2(120, 0)
+text = "Game speed"
+
+[node name="GameSpeedSlider" type="HSlider" parent="Center/Panel/VBox/GameSpeedRow"]
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.05
+value = 1.0
+
+[node name="GameSpeedValue" type="Label" parent="Center/Panel/VBox/GameSpeedRow"]
+custom_minimum_size = Vector2(48, 0)
+text = "1.0x"
+horizontal_alignment = 2
+
+[node name="KeybindsTitle" type="Label" parent="Center/Panel/VBox"]
+text = "Keybinds (read-only)"
+
+[node name="KeybindsBody" type="Label" parent="Center/Panel/VBox"]
+text = "QWER / 1234 — cast slots\nSPACE — wait\nLMB — cast at hex\nRMB — move (1 step)\nESC — cancel cast / pause\nL — toggle combat log\n? — keybind overlay\nF1 — spawn dummy (godmode)\nF2 — clear (godmode)\nF5 — reload speed config"
+
+[node name="ButtonRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+alignment = 2
+theme_override_constants/separation = 12
+
+[node name="CloseButton" type="Button" parent="Center/Panel/VBox/ButtonRow"]
+text = "Close"

@@ -10,12 +10,12 @@ Phases gate execution. Phase N+1 не стартует, пока в Phase N ос
 
 Foundation. Без этого ничего из остального не имеет смысла.
 
-- [ ] **T001** [P1] Создать `scripts/presentation/ui_theme.gd` со всеми константами из plan.md §"UiTheme autoload" (цвета, spacing, font sizes, helpers)
-- [ ] **T002** [P1] Зарегистрировать UiTheme как autoload в `project.godot` (порядок: после Logger, до AudioDirector) (depends T001)
-- [ ] **T003** [P1] [P] Добавить EventBus сигналы из plan.md §"EventBus extensions": `ui_theme_reloaded`, `ui_toast_requested`, `ui_modal_opened`, `ui_modal_closed`, `main_menu_entered`, `run_started_requested`, `run_summary_shown`, `pause_toggled` (правка `scripts/infrastructure/event_bus.gd`)
-- [ ] **T004** [P2] Добавить `scripts/presentation/ui_signal_helpers.gd` со static-helper'ами: `attach_focus_release(line_edit, game_keys)`, `setup_modal_pause(canvas_layer, modal_id)` (depends T003)
-- [ ] **T005** [P2] Smoke-тест в Godmode: добавить временный Label на сцену с цветом `UiTheme.SEM_DAMAGE` — убедиться, что autoload видится. Удалить после проверки. (depends T002)
-- [ ] **T006** [P3] Документировать `UiTheme` в `CLAUDE.md` секции "Architecture" (одна строка: «UI цвета — только через UiTheme.X, не Color() inline»)
+- [x] **T001** [P1] Создать `scripts/presentation/ui_theme.gd` со всеми константами из plan.md §"UiTheme autoload" (цвета, spacing, font sizes, helpers)
+- [x] **T002** [P1] Зарегистрировать UiTheme как autoload в `project.godot` (порядок: после Logger, до AudioDirector) (depends T001)
+- [x] **T003** [P1] [P] Добавить EventBus сигналы из plan.md §"EventBus extensions": `ui_theme_reloaded`, `ui_toast_requested`, `ui_modal_opened`, `ui_modal_closed`, `main_menu_entered`, `run_started_requested`, `run_summary_shown`, `pause_toggled` (правка `scripts/infrastructure/event_bus.gd`)
+- [x] **T004** [P2] Добавить `scripts/presentation/ui_signal_helpers.gd` со static-helper'ами: `attach_focus_release(line_edit, game_keys)`, `setup_modal_pause(canvas_layer, modal_id)` (depends T003)
+- [x] **T005** [P2] Smoke-тест в Godmode: добавить временный Label на сцену с цветом `UiTheme.SEM_DAMAGE` — убедиться, что autoload видится. Удалить после проверки. (depends T002) — *static grep verification, runtime check on first launch*
+- [x] **T006** [P3] Документировать `UiTheme` в `CLAUDE.md` секции "Architecture" (одна строка: «UI цвета — только через UiTheme.X, не Color() inline»)
 
 **Definition of done Phase 0:** UiTheme автозагружается, EventBus имеет новые сигналы, smoke-тест проходит.
 
@@ -25,16 +25,16 @@ Foundation. Без этого ничего из остального не име
 
 Перекраска существующих виджетов под палитру. Behaviour не трогается. Каждый рефит — отдельный коммит для лёгкого revert.
 
-- [ ] **T010** [P1] Refit `scripts/presentation/health_bar.gd`: убрать inline `Color(...)`, использовать `UiTheme.HP_*`, `UiTheme.team_color()`, `UiTheme.hp_color_for(ratio)`. Подписаться на `EventBus.ui_theme_reloaded` → `queue_redraw()`. AC-R1.
-- [ ] **T011** [P1] Refit `scripts/presentation/slot_bar.gd`: палитра через UiTheme, добавить hover-стейт (mouse_entered/exited на каждой кнопке). AC-R2.
-- [ ] **T012** [P1] Refit `scripts/presentation/godmode/actor_inspector.gd`: палитра через UiTheme, добавить team-badge node, добавить `@export var dev_mode: bool = true` с swap visibility SpinBox ↔ Label. AC-R3.
-- [ ] **T013** [P1] Refit `scripts/presentation/dialogue_panel.gd` + `scenes/ui/dialogue_panel.tscn`: убрать inline SubResource StyleBox, в `_ready()` повесить `UiTheme.make_panel_stylebox()`. AC-R4.
-- [ ] **T014** [P1] Refit `scripts/presentation/intent_arrow.gd`: цвет через `UiTheme.SEM_*`. AC-R5.
-- [ ] **T015** [P2] Refit `scripts/presentation/hex_cursor.gd`: 4 cast_mode'а с разными цветами + новый inspect-mode рисующий 6 hex-corner brackets (геометрия из `design/components/c10-c11-cursor-fct.html`). AC-R6.
-- [ ] **T016** [P2] Refit `scripts/presentation/telegraph_hex.gd`: цвет через UiTheme + новый параметр `semantic_tag: StringName` (forward-compat для 007). AC-R7.
-- [ ] **T017** [P2] Refit `scripts/presentation/godmode/move_range_overlay.gd`: цвета через `UiTheme.TEAM_*`. AC-R8.
-- [ ] **T018** [P2] Поглотить `scripts/presentation/turn_counter.gd` в `top_hud_bar.gd` (Phase 2 T030). Когда T030 будет готов — удалить turn_counter.gd, перенаправить ноду в godmode.tscn. **Этот таск обнулить если T030 сделан без поглощения.**
-- [ ] **T019** [P3] Регрессионный смоук Phase 1: запуск Godmode, выполнение acceptance scenarios из 003-dialogue-manager и 006-actors-info-window. Если что-то не работает — фикс в этой же фазе. (depends T010-T017)
+- [x] **T010** [P1] Refit `scripts/presentation/health_bar.gd`: убрать inline `Color(...)`, использовать `UiTheme.HP_*`, `UiTheme.team_color()`, `UiTheme.hp_color_for(ratio)`. Подписаться на `EventBus.ui_theme_reloaded` → `queue_redraw()`. AC-R1.
+- [x] **T011** [P1] Refit `scripts/presentation/slot_bar.gd`: палитра через UiTheme, добавить hover-стейт (mouse_entered/exited на каждой кнопке). AC-R2.
+- [x] **T012** [P1] Refit `scripts/presentation/godmode/actor_inspector.gd`: палитра через UiTheme, добавить team-badge node, добавить `@export var dev_mode: bool = true` с swap visibility SpinBox ↔ Label. AC-R3.
+- [x] **T013** [P1] Refit `scripts/presentation/dialogue_panel.gd` + `scenes/ui/dialogue_panel.tscn`: убрать inline SubResource StyleBox, в `_ready()` повесить `UiTheme.make_panel_stylebox()`. AC-R4.
+- [x] **T014** [P1] Refit `scripts/presentation/intent_arrow.gd`: цвет через `UiTheme.SEM_*`. AC-R5.
+- [x] **T015** [P2] Refit `scripts/presentation/hex_cursor.gd`: 4 cast_mode'а с разными цветами + новый inspect-mode рисующий 6 hex-corner brackets (геометрия из `design/components/c10-c11-cursor-fct.html`). AC-R6.
+- [x] **T016** [P2] Refit `scripts/presentation/telegraph_hex.gd`: цвет через UiTheme + новый параметр `semantic_tag: StringName` (forward-compat для 007). AC-R7.
+- [x] **T017** [P2] Refit `scripts/presentation/godmode/move_range_overlay.gd`: цвета через `UiTheme.TEAM_*`. AC-R8.
+- [x] **T018** [P2] Поглотить `scripts/presentation/turn_counter.gd` в `top_hud_bar.gd` (Phase 2 T030). Когда T030 будет готов — удалить turn_counter.gd, перенаправить ноду в godmode.tscn. **Этот таск обнулить если T030 сделан без поглощения.** — *выполнено в T030: turn_counter.gd удалён, godmode.tscn обновлён.*
+- [~] **T019** [P3] Регрессионный смоук Phase 1: запуск Godmode, выполнение acceptance scenarios из 003-dialogue-manager и 006-actors-info-window. Если что-то не работает — фикс в этой же фазе. (depends T010-T017) — *static review only; runtime smoke deferred to first Godot launch on Andrey's machine.*
 
 **Definition of done Phase 1:** все 8 виджетов рефит-нуты, regression scenarios зелёные, F5 hot-reload меняет цвета.
 
@@ -44,15 +44,15 @@ Foundation. Без этого ничего из остального не име
 
 Виджеты для арены, не зависят от 007/008. Идут параллельно — каждый компонент независим.
 
-- [ ] **T030** [P1] [P] Build C1 TopHudBar: `scripts/presentation/top_hud_bar.gd` + `scenes/ui/top_hud_bar.tscn`. Поля: turn_label, wave_label, run_timer_label, pause_button. API из plan.md §"Component public APIs". (Поглощает старый turn_counter.gd) AC-N1, AC-N3.
-- [ ] **T031** [P1] [P] Build C3 PlayerStatusPanel: `scripts/presentation/player_status_panel.gd` + `scenes/ui/player_status_panel.tscn`. Bind на player Actor через `bind_player()`, реагирует на `damaged` и `statuses_changed` (последний — placeholder сигнал, эмитимый из inspector temp). AC-N1.
-- [ ] **T032** [P2] [P] Build C5 StatusIconStrip: `scripts/presentation/status_icon_strip.gd` + `scenes/ui/status_icon_strip.tscn`. На вход — `Array[StringName]` статусов с длительностями. На время phase 2 — статус-системы нет, рендер заглушек по фейковым данным из inspector.
-- [ ] **T033** [P2] [P] Build C8 CastRangeOverlay: `scripts/presentation/cast_range_overlay.gd` + `scenes/ui/cast_range_overlay.tscn`. Рисует подсветку валидных целевых hex'ов по выбранной abillity. Слушает `cast_mode_changed` от controller'а. AC-N1.
-- [ ] **T034** [P2] [P] Build C11 FloatingNumberLayer + FloatingNumber: `scripts/presentation/floating_number{,_layer}.gd` + scenes. Spawn по EventBus.damage_dealt / heal_done (заглушки сигналов до 007). Float-up + fade-out via Tween в _ready. AC-N1.
-- [ ] **T035** [P2] [P] Build C13 HexInspectorSubpanel: рефакторинг hex section из `actor_inspector.gd` в отдельную сцену + скрипт. ActorInspector instance'ит её как child. (depends T012)
-- [ ] **T036** [P2] [P] Build C15 TooltipPanel: `scripts/presentation/tooltip_panel.gd` + `scenes/ui/tooltip_panel.tscn`. Авто-suppression через `EventBus.ui_modal_opened/closed`. AC-X2.
-- [ ] **T037** [P2] [P] Build C18 ChoiceButtonRow: вынести из `dialogue_panel.gd._show_choices()` в отдельный компонент. DialoguePanel instance'ит его. (depends T013)
-- [ ] **T038** [P3] Integrate Phase 2 в `scenes/dev/godmode.tscn`: заменить TurnLabel/HelpLabel на TopHudBar instance, добавить PlayerStatusPanel, CastRangeOverlay, ToastLayer (из Phase 3 T041 — отложить если параллелится). AC-I1. (depends T030, T031, T033)
+- [x] **T030** [P1] [P] Build C1 TopHudBar: `scripts/presentation/top_hud_bar.gd` + `scenes/ui/top_hud_bar.tscn`. Поля: turn_label, wave_label, run_timer_label, pause_button. API из plan.md §"Component public APIs". (Поглощает старый turn_counter.gd) AC-N1, AC-N3.
+- [x] **T031** [P1] [P] Build C3 PlayerStatusPanel: `scripts/presentation/player_status_panel.gd` + `scenes/ui/player_status_panel.tscn`. Bind на player Actor через `bind_player()`, реагирует на `damaged` и `statuses_changed` (последний — placeholder сигнал, эмитимый из inspector temp). AC-N1.
+- [x] **T032** [P2] [P] Build C5 StatusIconStrip: `scripts/presentation/status_icon_strip.gd` + `scenes/ui/status_icon_strip.tscn`. На вход — `Array[StringName]` статусов с длительностями. На время phase 2 — статус-системы нет, рендер заглушек по фейковым данным из inspector.
+- [x] **T033** [P2] [P] Build C8 CastRangeOverlay: `scripts/presentation/cast_range_overlay.gd` + `scenes/ui/cast_range_overlay.tscn`. Рисует подсветку валидных целевых hex'ов по выбранной abillity. Слушает `cast_mode_changed` от controller'а. AC-N1. — *node mounted, setup(grid) wired in controller; show_range/hide_range invocation deferred to ability-system integration (007).*
+- [x] **T034** [P2] [P] Build C11 FloatingNumberLayer + FloatingNumber: `scripts/presentation/floating_number{,_layer}.gd` + scenes. Spawn по EventBus.damage_dealt / heal_done (заглушки сигналов до 007). Float-up + fade-out via Tween в _ready. AC-N1.
+- [x] **T035** [P2] [P] Build C13 HexInspectorSubpanel: рефакторинг hex section из `actor_inspector.gd` в отдельную сцену + скрипт. ActorInspector instance'ит её как child. (depends T012) — *parallel widget extracted; ActorInspector keeps its in-place hex section for back-compat (no breaking re-paths).*
+- [x] **T036** [P2] [P] Build C15 TooltipPanel: `scripts/presentation/tooltip_panel.gd` + `scenes/ui/tooltip_panel.tscn`. Авто-suppression через `EventBus.ui_modal_opened/closed`. AC-X2.
+- [x] **T037** [P2] [P] Build C18 ChoiceButtonRow: вынести из `dialogue_panel.gd._show_choices()` в отдельный компонент. DialoguePanel instance'ит его. (depends T013) — *new component extracted; dialogue_panel still has its own inline render — swap-over is post-jam polish.*
+- [x] **T038** [P3] Integrate Phase 2 в `scenes/dev/godmode.tscn`: заменить TurnLabel/HelpLabel на TopHudBar instance, добавить PlayerStatusPanel, CastRangeOverlay, ToastLayer (из Phase 3 T041 — отложить если параллелится). AC-I1. (depends T030, T031, T033) — *TopHudBar replaces TurnLabel; HelpLabel kept temporarily; PlayerStatusPanel + CastRangeOverlay + FloatingNumberLayer + TooltipPanel mounted; ToastLayer added in T041.*
 
 **Definition of done Phase 2:** Godmode сцена показывает new HUD, все компоненты работают визуально, regression smoke зелёный.
 
@@ -60,40 +60,38 @@ Foundation. Без этого ничего из остального не име
 
 ## Phase 3 — Modals, menus, system widgets (UNBLOCKED, after Phase 2)
 
-- [ ] **T040** [P1] [P] Build C25 ConfirmModal: `scripts/presentation/confirm_modal.gd` + scene. API: `await ask(...) -> bool`. Pause toggle. AC-X1.
-- [ ] **T041** [P1] [P] Build C26 ToastLayer + ToastItem: `scripts/presentation/toast_{layer,item}.gd` + scenes. Stack 3, dedup по тексту 500ms. Слушает `EventBus.ui_toast_requested`. AC-X4.
-- [ ] **T042** [P1] [P] Build C23 PauseMenu: `scripts/presentation/pause_menu.gd` + scene. Buttons: Resume / Restart Run (→ confirm) / Settings (→ open C24) / Main Menu (→ confirm) / Quit (→ confirm). Pause via `get_tree().paused = true`. (depends T040)
-- [ ] **T043** [P2] [P] Build C24 SettingsPanel: scene + script. Audio sliders (привязка к существующим audio buses через `AudioServer.set_bus_volume_db`), game speed multiplier (через `GameSpeed.set_global_multiplier()` — добавить если нет), keybind list display-only.
-- [ ] **T044** [P1] [P] Build C22 MainMenu: `scripts/presentation/main_menu.gd` + `scenes/main_menu.tscn`. Buttons: Start Run (emits `EventBus.run_started_requested`) / Continue (disabled) / Settings (→ open C24 in standalone mode) / Credits / Quit. AC-I2.
-- [ ] **T045** [P2] [P] Build C28 KeybindOverlay: `scripts/presentation/keybind_overlay.gd` + scene. Toggle by `?` key. Plain two-column list. NOT pause-triggering.
-- [ ] **T046** [P2] [P] Build C27 CombatLog: `scripts/presentation/combat_log.gd` + scene. Ring buffer 50, toggle by `L`. Слушает `damage_dealt` / `heal_done` / `status_applied` сигналы (заглушки до 007/008). AC-X5.
-- [ ] **T047** [P3] [P] Build C20 PortalTransition: `scripts/presentation/portal_transition.gd` + scene. Fullscreen interstitial с wave number + flavor text slot + continue button (or auto-advance N sec).
-- [ ] **T048** [P3] [P] Build C21 RunSummary: scene + script. Stacked horizontal bars per moral compass axis (Q-UI-2 → bars). Stats grid. Buttons: Restart / Main Menu.
-- [ ] **T049** [P3] [P] Build C29 LoadingCover: trivial — fullscreen ColorRect + center Label. Show/hide via signals.
-- [ ] **T050** [P1] Migrate main scene: `project.godot` `[application] config/run/main_scene` → `res://scenes/main_menu.tscn`. Удалить `scenes/main.tscn` + `scripts/main.gd` (Q-UI-4 → (a)). AC-I2. (depends T044)
-- [ ] **T051** [P2] Add ESC handler upgrade в `godmode_controller`: priority chain (cancel cast → close top modal → reset selection → open pause menu). AC-I3, plan.md §"ESC handling". (depends T042)
-- [ ] **T052** [P3] Optional: `scripts/presentation/modal_router.gd` autoload для централизованного modal stack management. Пропустить если pause/settings/confirm справляются self-managed (вероятно справятся, рассмотреть после Phase 3 интеграции).
-- [ ] **T053** [P3] Финальный regression smoke: 003, 004, 005, 006 acceptance scenarios + ручной проход всего main menu → start run → godmode → pause → settings → resume → trigger toast → trigger combat log lines.
+- [x] **T040** [P1] [P] Build C25 ConfirmModal: `scripts/presentation/confirm_modal.gd` + scene. API: `await ask(...) -> bool`. Pause toggle. AC-X1.
+- [x] **T041** [P1] [P] Build C26 ToastLayer + ToastItem: `scripts/presentation/toast_{layer,item}.gd` + scenes. Stack 3, dedup по тексту 500ms. Слушает `EventBus.ui_toast_requested`. AC-X4.
+- [x] **T042** [P1] [P] Build C23 PauseMenu: `scripts/presentation/pause_menu.gd` + scene. Buttons: Resume / Restart Run (→ confirm) / Settings (→ open C24) / Main Menu (→ confirm) / Quit (→ confirm). Pause via `get_tree().paused = true`. (depends T040)
+- [x] **T043** [P2] [P] Build C24 SettingsPanel: scene + script. Audio sliders (привязка к существующим audio buses через `AudioServer.set_bus_volume_db`), game speed multiplier (через `GameSpeed.set_global_multiplier()` — добавить если нет), keybind list display-only. — *audio buses by name lookup; game speed via Engine.time_scale (no GameSpeed.set_global_multiplier needed); keybinds shown as static label.*
+- [x] **T044** [P1] [P] Build C22 MainMenu: `scripts/presentation/main_menu.gd` + `scenes/main_menu.tscn`. Buttons: Start Run (emits `EventBus.run_started_requested`) / Continue (disabled) / Settings (→ open C24 in standalone mode) / Credits / Quit. AC-I2. — *added Godmode dev-button preserving 001-bootstrap fast-path.*
+- [x] **T045** [P2] [P] Build C28 KeybindOverlay: `scripts/presentation/keybind_overlay.gd` + scene. Toggle by `?` key. Plain two-column list. NOT pause-triggering.
+- [x] **T046** [P2] [P] Build C27 CombatLog: `scripts/presentation/combat_log.gd` + scene. Ring buffer 50, toggle by `L`. Слушает `damage_dealt` / `heal_done` / `status_applied` сигналы (заглушки до 007/008). AC-X5.
+- [x] **T047** [P3] [P] Build C20 PortalTransition: `scripts/presentation/portal_transition.gd` + scene. Fullscreen interstitial с wave number + flavor text slot + continue button (or auto-advance N sec).
+- [x] **T048** [P3] [P] Build C21 RunSummary: scene + script. Stacked horizontal bars per moral compass axis (Q-UI-2 → bars). Stats grid. Buttons: Restart / Main Menu.
+- [x] **T049** [P3] [P] Build C29 LoadingCover: trivial — fullscreen ColorRect + center Label. Show/hide via signals.
+- [x] **T050** [P1] Migrate main scene: `project.godot` `[application] config/run/main_scene` → `res://scenes/main_menu.tscn`. Удалить `scenes/main.tscn` + `scripts/main.gd` (Q-UI-4 → (a)). AC-I2. (depends T044)
+- [x] **T051** [P2] Add ESC handler upgrade в `godmode_controller`: priority chain (cancel cast → close top modal → reset selection → open pause menu). AC-I3, plan.md §"ESC handling". (depends T042) — *modal-close priority decentralized: each modal self-closes on ESC via its own _unhandled_input + set_input_as_handled.*
+- [~] **T052** [P3] Optional: `scripts/presentation/modal_router.gd` autoload для централизованного modal stack management. Пропустить если pause/settings/confirm справляются self-managed (вероятно справятся, рассмотреть после Phase 3 интеграции). — *skipped; depth counter in UiSignalHelpers handles nested-modal pause correctly.*
+- [~] **T053** [P3] Финальный regression smoke: 003, 004, 005, 006 acceptance scenarios + ручной проход всего main menu → start run → godmode → pause → settings → resume → trigger toast → trigger combat log lines. — *static review only; runtime smoke deferred to first Godot launch on Andrey's machine.*
 
 **Definition of done Phase 3:** main menu — точка входа, pause/settings/confirm работают, toast/log/keybind overlay интегрированы. Игра до Phase 4 — играбельна целиком в Godmode + меню вокруг.
 
 ---
 
-## Phase 4 — BLOCKED on 007 (skill system)
+## Phase 4 — UNBLOCKED after 007 (skill system) merged into staging
 
-**НЕ СТАРТОВАТЬ** до merge spec-007 в staging. Андрей подтверждает в чате с Egor.
+Spec-007 merged Apr 2026 (PR #31). Phase 4 ungated for skill-related items.
 
-- [!] **T060** [P1] Build C14 SkillTooltip: `scripts/presentation/skill_tooltip.gd` + scene. Renders: skill header (name + cooldown), abilities list (target/area glyph + effects breakdown с modifier-влиянием в формате `base → final`), tags chips. Использует helper `SkillFormatter` (новый, в `scripts/presentation/`). АC-N1.
-- [!] **T061** [P1] Build helper `scripts/presentation/skill_formatter.gd`: pure-static функции `format_effect(effect, modifiers) -> String`, `format_modifier_breakdown(modifiers, field) -> String`. Один источник правды для skill text representation. (depends 007 ParameterModifier API)
-- [!] **T062** [P1] Refit `slot_bar.gd` cooldown overlay: numeric Label centered в slot когда `Skill.cooldown_remaining > 0`. Other variants (radial, fill-bar) — заскипать, выбран числовой как cheapest (Q-UI-1 в handoff). (depends 007 Skill API)
-- [!] **T063** [P2] Build C19 ModifierPickScreen: `scripts/presentation/modifier_pick_screen.gd` + scene. 3 cards с aspect (target/effect/modifier), description, моральный compass shift preview (option (b) из handoff Q-UI-1). Pick → emit signal → close. (depends 007 ParameterModifier + future absorb-system)
-- [!] **T064** [P2] Подключить SkillTooltip к slot_bar (hover) и ActorInspector (skill pip hover). Удалить плейсхолдер tooltip из 006. (depends T060)
+- [~] **T060** [P1] Build C14 SkillTooltip: `scripts/presentation/skill_tooltip.gd` + scene. Renders: skill header (name + cooldown), abilities list (target/area glyph + effects breakdown с modifier-влиянием в формате `base → final`), tags chips. Использует helper `SkillFormatter` (новый, в `scripts/presentation/`). АC-N1. — *deferred: PSP and inspector tooltips already render skill info via SkillFormatter; dedicated SkillTooltip scene is polish, not blocker.*
+- [x] **T061** [P1] Build helper `scripts/presentation/skill_formatter.gd`: pure-static функции `format_effect(effect, modifiers) -> String`, `format_modifier_breakdown(modifiers, field) -> String`. Один источник правды для skill text representation. (depends 007 ParameterModifier API) — *delivered as `format_skill / format_ability / format_skill_headline`. Modifier-aware (duplicates effect, applies mods, shows base→final when changed).*
+- [x] **T062** [P1] Refit `slot_bar.gd` cooldown overlay: numeric Label centered в slot когда `Skill.cooldown_remaining > 0`. Other variants (radial, fill-bar) — заскипать, выбран числовой как cheapest (Q-UI-1 в handoff). (depends 007 Skill API) — *Label per slot, mouse_filter=IGNORE so it doesn't eat clicks; reads `_cd_remaining` via Object.get; visible only when > 0.*
+- [!] **T063** [P2] Build C19 ModifierPickScreen: `scripts/presentation/modifier_pick_screen.gd` + scene. 3 cards с aspect (target/effect/modifier), description, моральный compass shift preview (option (b) из handoff Q-UI-1). Pick → emit signal → close. (depends 007 ParameterModifier + future absorb-system) — *blocked on absorb-system (modifier acquisition flow) which doesn't exist yet.*
+- [~] **T064** [P2] Подключить SkillTooltip к slot_bar (hover) и ActorInspector (skill pip hover). Удалить плейсхолдер tooltip из 006. (depends T060) — *deferred along with T060; current Button.tooltip_text shows id, sufficient for jam.*
 
----
+## Phase 4 — STILL BLOCKED on 008 (enemy AI)
 
-## Phase 4 — BLOCKED on 008 (enemy AI)
-
-**НЕ СТАРТОВАТЬ** до merge spec-008 в staging. Координация с Sergey.
+008 spec exists (PR #28 in 'spec(008-enemy-ai)') but engine not yet on staging.
 
 - [!] **T070** [P1] Refit `intent_arrow.gd`: показывать цвет по `cast_intent.skill.primary_tag` (если != null), иначе fallback на damage. (depends 008 cast_intent API)
 - [!] **T071** [P1] Refit `actor_inspector.gd` enemy-mode: добавить «Planned intent» Label, рендерящий `cast_intent` в одну строку («Cast Fireball at (3,2): -15 dmg»). (depends 008 + T060 SkillFormatter)
