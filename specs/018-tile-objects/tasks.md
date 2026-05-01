@@ -5,7 +5,9 @@
 Легенда: `[P1]` критический путь · `[P2]` контент · `[P3]` doc/coord
 `[P]` = parallel-safe (можно делать независимо после удовлетворения dependency)
 
-> 🛑 **Implement gate:** Не запускать ни одной T-задачи пока Sergey не ответит на OQ-1, OQ-2, OQ-3 в `spec.md`. Если ответ совпадает с default A/A/A — запускать как есть. Иначе — обновить `spec.md` и `plan.md` сначала, потом implement.
+> ✅ **OQ-1/2/3 разрешены** в spec.md (A / C+linger / A). Implement gate снят. `lava_pool.json` использует комбо-триггер (`applies_on_enter=true` + `applies_on_turn_end=true`) и `linger_status_id="burning"` / `linger_duration=2` (graceful degradation если `Actor.add_status` отсутствует — паттерн `status_effect.gd`).
+>
+> Старт implement — по отдельной команде Sergey.
 
 ---
 
@@ -33,8 +35,8 @@
 
 - [ ] **T008** [P2] [P] `data/tile_objects/_schema.md` — schema doc для Стасяна. Описывает все поля, их типы, дефолты, ограничения по level. depends: T003.
 - [ ] **T009** [P2] [P] `data/tile_objects/mountain.json` — ELEVATION, no behavior, no destructible. depends: T003.
-- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone trigger=on_enter (assuming OQ-2=A). depends: T003.
-- [ ] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain trigger=aura radius=1 (assuming OQ-1=A). depends: T003.
+- [ ] **T010** [P2] [P] `data/tile_objects/lava_pool.json` — SMALL walkable=true, behavior=damage_zone, `applies_on_enter=true`, `applies_on_turn_end=true`, `aura_radius=0`, `applies_on_attacked=false`, `linger_status_id="burning"`, `linger_duration=2`, tags=[liquid, hazard]. depends: T003.
+- [ ] **T011** [P2] [P] `data/tile_objects/heal_fountain.json` — LARGE, behavior=heal_fountain, `aura_radius=1`, остальные триггеры false, `linger_*` пустые, not breakable. depends: T003.
 - [ ] **T012** [P2] [P] `data/tile_objects/wooden_barrel.json` — SMALL non-walkable, breakable hp=2, tags=[wood, flammable], on_destroy_effect_id=damage_zone. depends: T003.
 - [ ] **T013** [P2] [P] `data/tile_objects/wooden_table.json` — SMALL non-walkable, breakable hp=2, tags=[wood, furniture, flammable], no behavior. depends: T003.
 - [ ] **T014** [P2] [P] `data/tile_objects/boulder.json` — LARGE, breakable hp=10, armor_tags=[physical], no behavior. depends: T003.
@@ -67,14 +69,19 @@
   - Линк на `specs/018-tile-objects/spec.md`.
   - **Tag Egor** primary reviewer (трогаются `hex_tile.gd`, `hex_grid.gd`, `hex_pathfinder.gd`).
   - Tag Стасян для review schema doc и sample JSON-ов.
-  - Перечислить ответы на OQ-1/2/3 (зафиксированные при старте implement).
+  - Указать решения OQ-1/2/3: A (aura) / C+linger / A — все зафиксированы в spec.md.
+  - Упомянуть зависимость от actor-status фичи (linger no-op до её появления — это by design, см. AC-O9).
   
   depends: T019.
 
 ## Группа I — post-merge
 
 - [ ] **T021** [P3] *manual: Sergey* — после merge в staging: пинг Стасяну «018 в staging, можешь добавлять tile objects через JSON, схема в `data/tile_objects/_schema.md`». depends: T020 + merge.
-- [ ] **T022** [P3] *manual: Sergey* — план follow-up фичи `019-tile-object-resolver` (или включить в spell-resolver если уже есть): runtime-триггеры эффектов (on_enter/on_turn_end/aura/on_attacked) + подписка на damage events. **Не в 018.** depends: T020 + merge.
+- [ ] **T022** [P3] *manual: Sergey* — план follow-up. После 018:
+  - **`019-tile-object-resolver`** (мой scope) — runtime-триггеры для tile-объектов: подписка на `tile_object_actor_exited` → `actor.add_status(...)`, отдельный turn-system tick для aura/turn_end. Без этого 018 — только данные, без поведения.
+  - **`020-actor-status`** (Alexey'ский scope, координация с ним) — реализация `Actor.add_status` + тиканье статусов + UI-индикаторы. Нужно для linger DoT в 018, для `StatusEffect` ability-эффекта (007) и для будущих control-эффектов из 008.
+  
+  Эти две фичи можно делать параллельно — 018 graceful degrades без обеих, и они независимы между собой. depends: T020 + merge.
 
 ---
 
@@ -94,3 +101,4 @@
 ## История правок
 
 - 2026-05-01 — draft v1, заблокирован OQ-ответами.
+- 2026-05-02 — v2: OQ-1/2/3 разрешены. Implement gate снят. T010/T011 контент-задачи обновлены под flag-based триггеры + linger. T022 follow-up расширен — две независимые фичи (`019-tile-object-resolver`, `020-actor-status`).

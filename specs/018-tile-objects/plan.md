@@ -2,7 +2,7 @@
 
 **Spec:** [`spec.md`](./spec.md)
 
-> ⚠ Plan written assuming OQ-1=A (aura R=1), OQ-2=A (on_enter only), OQ-3=A (one object per tile). Если Sergey ответит иначе — поменяются: trigger enum, `aura_radius` field semantics, и поле `HexTile.object_id` (на массив). Помечено [DEPENDS-OQ-X] во всех релевантных местах.
+> Plan v2 — учитывает разрешение OQ-1=A (aura, configurable radius), OQ-2=C+linger (combined on_enter+turn_end DoT + actor-side linger status), OQ-3=A (one object per tile). Маркеры [DEPENDS-OQ] убраны.
 
 ## Файлы
 
@@ -13,7 +13,7 @@
 | `scripts/core/arena/hex_tile.gd` | +1 поле `object_id: StringName`, +1 параметр в `_init` | +3 |
 | `scripts/core/arena/hex_grid.gd` | в `_build_tile_map` читать custom data layer "object_id" | +5 |
 | `scripts/core/arena/hex_pathfinder.gd` | injected dep `TileObjectRegistry`, в проверке проходимости — query объект | +10 |
-| `scripts/core/event_bus.gd` *(точное имя/путь TBD — проверить)* | +3 сигнала per AC-O7 | +5 |
+| `scripts/core/event_bus.gd` *(точное имя/путь TBD — проверить)* | +4 сигнала per AC-O7 | +6 |
 | `data/tile_objects/_schema.md` | NEW schema doc для Стасяна | ~80 строк |
 | `data/tile_objects/mountain.json` | NEW sample | ~10 |
 | `data/tile_objects/lava_pool.json` | NEW sample | ~15 |
@@ -47,10 +47,16 @@ var breakable: bool
 var hp: int
 var armor_tags: Array[StringName]
 
-# behavior
+# behavior — независимые булевые флаги триггеров (см. spec OQ-2 resolution)
 var behavior_effect_id: StringName
-var behavior_trigger: StringName       # "on_enter" | "on_turn_end" | "aura" | "on_attacked"
-var aura_radius: int
+var applies_on_enter: bool
+var applies_on_turn_end: bool
+var aura_radius: int            # 0 = no aura, >=1 = active aura
+var applies_on_attacked: bool
+
+# linger DoT (только для SMALL walkable)
+var linger_status_id: StringName   # &"" = выкл
+var linger_duration: int
 
 # synergy
 var tags: Array[StringName]
@@ -66,7 +72,8 @@ var sfx_destroy: String
 
 func _init(p_data: Dictionary) -> void:
     # все поля распаковываются из dict с дефолтами.
-    # registry уже валидирует level и forces blocks_movement/blocks_abilities_through.
+    # registry уже валидирует level и forces blocks_movement/blocks_abilities_through
+    # + force-zero запрещённых триггеров для уровня + force-empty linger для не-SMALL-walkable.
     ...
 ```
 
@@ -99,11 +106,15 @@ func _validate_and_normalize(data: Dictionary) -> Dictionary:
     # AC-O2 правила:
     # - id обязателен и строка → иначе skip + warn
     # - level ∈ {-1, 0, 1} → иначе skip + warn
-    # - level == ELEVATION (1) → behavior_effect_id = "" принудительно (warn если не пуст)
-    # - level == LARGE (-1) → blocks_movement=true, blocks_abilities_through=true (force)
-    # - level == ELEVATION (1) → blocks_movement=true, blocks_abilities_through=true (force)
-    # - level == LARGE и trigger ∈ {on_enter, on_turn_end} → форсим в "aura" + warn
-    # - level == SMALL и blocks_movement==true и trigger ∈ {on_enter, on_turn_end} → форсим "aura" + warn
+    # - level == LARGE (-1)     → blocks_movement=true, blocks_abilities_through=true (force, warn если в JSON было иначе)
+    # - level == ELEVATION (1)  → blocks_movement=true, blocks_abilities_through=true (force)
+    # - level == ELEVATION (1)  → behavior_effect_id = "" + applies_*=false + aura_radius=0 (force, warn если что-то было)
+    # - level == LARGE (-1)     → applies_on_enter=false, applies_on_turn_end=false (force, warn). aura_radius >=1 и applies_on_attacked допустимы.
+    # - level == SMALL (0) и blocks_movement==true → как LARGE: applies_on_enter=false, applies_on_turn_end=false (force, warn).
+    # - behavior_effect_id == "" но любой триггер включён → warn + force-zero все триггеры.
+    # - linger_status_id != "" но НЕ (level==SMALL и blocks_movement==false) → force-empty + warn.
+    # - linger_status_id != "" и linger_duration <= 0 → force-empty + warn ("0-duration linger meaningless").
+    # - applies_on_attacked=true но breakable=false → warn (не блокер, но дизайн-смелл — на нerазрушаемый объект некому атаковать).
     return data
 
 
@@ -129,8 +140,13 @@ Snippet парсинга `tags` копируется из 011-skill-tags (`Skill
   "breakable": false,
 
   "behavior_effect_id": "damage_zone",
-  "behavior_trigger": "on_enter",
+  "applies_on_enter": true,
+  "applies_on_turn_end": true,
   "aura_radius": 0,
+  "applies_on_attacked": false,
+
+  "linger_status_id": "burning",
+  "linger_duration": 2,
 
   "tags": ["liquid", "hazard"],
 
@@ -142,7 +158,9 @@ Snippet парсинга `tags` копируется из 011-skill-tags (`Skill
 }
 ```
 
-`heal_fountain.json` (LARGE, aura) — `level: -1`, `behavior_trigger: "aura"`, `aura_radius: 1`. `blocks_movement` и `blocks_abilities_through` в JSON не пишем (всё равно перезатрётся registry-ем) — но в `_schema.md` укажем что для LARGE/ELEVATION эти поля **read-only-derived**.
+`heal_fountain.json` (LARGE, aura): `level: -1`, `applies_on_enter: false`, `applies_on_turn_end: false`, `aura_radius: 1`, `applies_on_attacked: false`, `linger_*` пустые. `blocks_movement` и `blocks_abilities_through` в JSON не пишем (всё равно перезатрётся registry-ем) — но в `_schema.md` укажем что для LARGE/ELEVATION эти поля **read-only-derived**.
+
+`wooden_barrel.json` (SMALL non-walkable, breakable bomb): `applies_on_attacked: true` опционально (если хотим сразу `damage_zone` при попадании, ДО разрушения). На разрушение (hp=0) — `on_destroy_effect_id: "damage_zone"` оставляет огненную лужу.
 
 ## HexTile diff
 
@@ -213,24 +231,26 @@ Registry инжектится в pathfinder при создании (в HexGrid.
 signal tile_object_damaged(coord: Vector2i, hp_remaining: int)
 signal tile_object_destroyed(coord: Vector2i, object_id: StringName)
 signal tile_object_effect_triggered(coord: Vector2i, target_actor_id: StringName, effect_id: StringName)
+signal tile_object_actor_exited(coord: Vector2i, actor_id: StringName, object_id: StringName)
 ```
 
-В 018 эмиттеров пока нет — это done в follow-up фиче (resolver, который обрабатывает damage event'ы и триггерит эффекты). 018 только декларирует контракт.
+Последний сигнал — для linger DoT: при выходе actor'а с тайла, у которого есть `linger_status_id`, resolver слушает этот сигнал и вызывает `actor.add_status(linger_status_id, linger_duration)` (паттерн graceful-degradation как в `scripts/core/abilities/effects/status_effect.gd` — если `add_status` отсутствует, info-лог).
+
+В 018 подписчиков пока нет — это done в follow-up фиче (resolver). 018 только декларирует контракт + эмитит сигнал из hex_grid/pathfinder где actor покидает тайл.
 
 > Если EventBus в проекте не используется (вместо него — direct calls / Resource singletons) — этот пункт пересматривается в T001. Сейчас идём по предположению из CLAUDE.md §Architecture, который явно требует EventBus.
 
-## Триггеры — точная семантика [DEPENDS-OQ-1, OQ-2]
+## Триггеры — точная семантика
 
-Пока на default A/A:
+| Триггер-флаг | Когда срабатывает | Допустимо для | Эффект применяется к |
+|---|---|---|---|
+| `applies_on_enter` | actor шагнул на тайл | SMALL walkable | actor'у, шагнувшему |
+| `applies_on_turn_end` | actor закончил ход стоя на тайле | SMALL walkable | actor'у, стоящему |
+| `aura_radius >= 1` | в конце каждого хода (system tick) | LARGE, SMALL non-walkable, SMALL walkable (= тогда сам тайл включается в радиус) | всем actor'ам в радиусе R hexes |
+| `applies_on_attacked` | объект получает урон | любой breakable | actor'у-атакующему |
+| `linger_status_id != ""` | actor покинул тайл | SMALL walkable | actor'у, покинувшему — через `Actor.add_status` (no-op если метода нет) |
 
-| Trigger | Когда | Допустимо для |
-|---|---|---|
-| `on_enter` | actor шагнул на тайл | SMALL walkable |
-| `on_turn_end` | actor закончил ход на тайле | SMALL walkable |
-| `aura` | каждый turn-end системой, для всех актёров в `aura_radius` | LARGE, SMALL non-walkable |
-| `on_attacked` | при получении урона объектом | любой breakable |
-
-Сам runtime-триггер — НЕ в 018. 018 декларирует что и как, исполняет — resolver (отдельный модуль). 018 только парсит и хранит.
+Сам runtime-триггер — НЕ в 018. 018 декларирует что и как, исполняет — resolver (отдельный модуль / follow-up фича). 018 только парсит, хранит, эмитит сигналы.
 
 ## Migration / совместимость
 
@@ -241,12 +261,15 @@ signal tile_object_effect_triggered(coord: Vector2i, target_actor_id: StringName
 ## Тестирование
 
 - **Юнит-тестов нет** (как и в 011).
-- **Manual smoke** (AC-O8, делает Sergey совместно с Egor):
+- **Manual smoke** (AC-O8/AC-O9, делает Sergey совместно с Egor):
   1. Открыть `scenes/dev/tile_objects_smoke.tscn` в Godot 4.6.2, F5.
   2. Лог: `[INFO][TileObjectRegistry] Loaded 6 tile objects` без ERROR/WARN.
-  3. Pathfinder visualizer (если есть в dev-сцене) показывает что mountain/boulder/wooden_barrel/wooden_table недоступны для completion хода. lava_pool — доступен.
-  4. Шагнуть в lava_pool → лог `[DEBUG] tile_object_effect_triggered ... damage_zone`.
-  5. Атаковать wooden_barrel debug-skill'ом → лог `tile_object_damaged hp=N`. После 2 ударов → `tile_object_destroyed`, на тайле появляется static_effect `damage_zone`.
+  3. Pathfinder visualizer (если есть в dev-сцене) показывает что mountain/boulder/wooden_barrel/wooden_table/heal_fountain недоступны для completion хода. lava_pool — доступен.
+  4. Шагнуть в lava_pool → лог `tile_object_effect_triggered ... damage_zone` (это `applies_on_enter`).
+  5. Не выходить, закончить ход на лаве → второй лог `tile_object_effect_triggered ... damage_zone` (это `applies_on_turn_end`).
+  6. Выйти с lava_pool → лог `tile_object_actor_exited` + `[INFO][StatusEffect-pattern] would apply 'burning' for 2 turns` (graceful no-op т.к. `Actor.add_status` отсутствует — AC-O9).
+  7. Стоять рядом с heal_fountain (в радиусе 1) и закончить ход → лог `tile_object_effect_triggered ... heal_fountain` (aura). Стоя на расстоянии 2+ — лога нет.
+  8. Атаковать wooden_barrel debug-skill'ом → лог `tile_object_damaged hp=1`. Ещё раз → `tile_object_destroyed`, на тайле появляется static_effect `damage_zone`.
 
 Если Godot CLI/headless smoke возможен — TBD (не приоритет).
 
@@ -257,7 +280,8 @@ signal tile_object_effect_triggered(coord: Vector2i, target_actor_id: StringName
 | Egor не одобряет diff в `hex_tile.gd`/`hex_grid.gd`/`hex_pathfinder.gd` | средняя | diff минимальный и additive. Сообщить Egor'у в момент открытия PR, дать ссылку на спеку. Если refuse — выносим object-aware-checks в pathfinder без правок HexTile (object_id живёт в отдельной структуре). |
 | Custom data layer "object_id" в TileSet ещё не существует | высокая | T005a — добавить custom data layer в TileSet вручную через Godot editor (Стасян/Андрей). До этого вся загрузка — пустые object_id. |
 | EventBus не существует в проекте | низкая (упомянут в CLAUDE.md) | T001 — research-задача. Если нет — добавить отдельной микро-фичей перед 018, или использовать ad-hoc сигналы на узле. |
-| OQ-3 ответ = B (массив объектов) | низкая | Меняется тип `HexTile.object_id` → `HexTile.object_ids: Array[StringName]`, цикл в pathfinder. Не катастрофа, но diff растёт ~×2. |
+| `Actor.add_status` ещё не реализован — linger молча no-op | высокая (известно: метода нет) | Паттерн graceful-degradation скопирован из `status_effect.gd`. Логирует info, не падает. Реальная DoT-механика заработает при появлении actor-status фичи (отдельная спека, не Sergey'ский скоуп). До тех пор — данные декларированы, JSON-схема финальная. |
+| Двойное срабатывание `applies_on_enter` + `applies_on_turn_end` в один и тот же тайл-вход | низкая | Это не баг — лава бьёт при входе И в конце хода если actor не вышел. Стасян регулирует через amount в tile_effect (если 5+5 много — пишет 3 в damage_zone). |
 
 ## Godot 4.6 ссылки
 
