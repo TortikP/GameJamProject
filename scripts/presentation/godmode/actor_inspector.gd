@@ -28,6 +28,25 @@ func _ready() -> void:
 	_setup_spinbox_ranges()
 
 
+## Pass game-action keys through to the controller by releasing SpinBox focus.
+## Without this, a focused SpinBox LineEdit swallows QWER/Space/F-keys before
+## _unhandled_input in GodmodeController ever sees them.
+const _GAME_KEYS: Array = [
+	KEY_Q, KEY_W, KEY_E, KEY_R,
+	KEY_1, KEY_2, KEY_3, KEY_4,
+	KEY_SPACE, KEY_ESCAPE,
+	KEY_F1, KEY_F2, KEY_F5,
+]
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey) or not (event as InputEventKey).pressed:
+		return
+	if (event as InputEventKey).keycode in _GAME_KEYS:
+		for spin in [_spin_max_hp, _spin_damage, _spin_speed]:
+			if spin != null:
+				spin.get_line_edit().release_focus()
+		# Do NOT call accept_event — let the key fall through to _unhandled_input
+
+
 func _setup_spinbox_ranges() -> void:
 	_spin_max_hp.min_value  = 1;   _spin_max_hp.max_value  = 200; _spin_max_hp.step  = 1
 	_spin_damage.min_value  = 0;   _spin_damage.max_value  = 50;  _spin_damage.step  = 1
