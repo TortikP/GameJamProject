@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://loading_cover_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/loading_cover.gd" id="1_lc"]
+
+[node name="LoadingCover" type="CanvasLayer"]
+script = ExtResource("1_lc")
+visible = false
+layer = 200
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.047, 0.055, 0.071, 1)
+mouse_filter = 1
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Label" type="Label" parent="Center"]
+text = "Loading…"

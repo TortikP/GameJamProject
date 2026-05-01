@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://toast_item_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/toast_item.gd" id="1_ti"]
+
+[node name="ToastItem" type="PanelContainer"]
+script = ExtResource("1_ti")
+custom_minimum_size = Vector2(280, 0)
+mouse_filter = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 8
+
+[node name="LevelStripe" type="ColorRect" parent="HBox"]
+custom_minimum_size = Vector2(4, 0)
+size_flags_vertical = 3
+
+[node name="TextLabel" type="Label" parent="HBox"]
+size_flags_horizontal = 3
+text = ""
+autowrap_mode = 2

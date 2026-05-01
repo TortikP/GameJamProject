@@ -301,6 +301,29 @@ func _update_castability() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).pressed:
 		if (event as InputEventKey).keycode == KEY_ESCAPE:
+			# 009-T051 priority chain:
+			#   1. active cast slot → cancel cast (deactivate slot)
+			#   2. selection != player → reset selection to player
+			#   3. otherwise → open pause menu
+			# Modal close (priority 2 in plan) is decentralized — each modal
+			# self-closes on ESC via its own _unhandled_input. They also call
+			# set_input_as_handled, so by the time this fires the modal stack
+			# is empty.
+			if _slot_bar_node != null and _slot_bar_node.get_active() != -1:
+				_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
+				get_viewport().set_input_as_handled()
+				return
+			if _selected != null and _selected != player:
+				_deselect_to_player()
+				get_viewport().set_input_as_handled()
+				return
+			# No selection to clear, no active cast — open pause menu if mounted.
+			var pause_menu: Node = get_node_or_null("../HUD/PauseMenu")
+			if pause_menu != null and pause_menu.has_method("open"):
+				pause_menu.open()
+				get_viewport().set_input_as_handled()
+				return
+			# Last-resort fallback: original behavior (no-op deselect).
 			_deselect_to_player()
 			get_viewport().set_input_as_handled()
 			return

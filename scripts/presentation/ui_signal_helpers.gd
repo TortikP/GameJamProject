@@ -72,21 +72,33 @@ static func setup_modal_pause(canvas_layer: CanvasLayer, modal_id: StringName) -
 
 ## Helper for modals to call on open. Emits signal + sets pause.
 ## Pair with emit_modal_closed.
+##
+## Nested modal pause via depth counter: the first opener sets pause=true,
+## subsequent opens just increment. The last close (counter back to 0) flips
+## pause=false. This avoids the bug where an inner ConfirmModal's close would
+## unpause the world while the outer PauseMenu is still meant to be paused.
+static var _modal_depth: int = 0
+
+
 static func emit_modal_opened(modal_id: StringName, pause_world: bool = true) -> void:
 	EventBus.ui_modal_opened.emit(modal_id)
-	if pause_world:
+	if not pause_world:
+		return
+	_modal_depth += 1
+	if _modal_depth == 1:
 		var tree := Engine.get_main_loop() as SceneTree
 		if tree != null:
 			tree.paused = true
 
 
-## Helper for modals to call on close. Emits signal + clears pause IF no other
-## modal is still open (caller is responsible for tracking — or simply: the modal
-## owner clears pause unconditionally on close; nested modal closes will then
-## re-apply pause from their own open paths).
+## Helper for modals to call on close. Emits signal + clears pause IF this was
+## the last open modal (depth → 0).
 static func emit_modal_closed(modal_id: StringName, unpause_world: bool = true) -> void:
 	EventBus.ui_modal_closed.emit(modal_id)
-	if unpause_world:
+	if not unpause_world:
+		return
+	_modal_depth = maxi(0, _modal_depth - 1)
+	if _modal_depth == 0:
 		var tree := Engine.get_main_loop() as SceneTree
 		if tree != null:
 			tree.paused = false

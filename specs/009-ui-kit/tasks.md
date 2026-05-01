@@ -60,20 +60,20 @@ Foundation. Без этого ничего из остального не име
 
 ## Phase 3 — Modals, menus, system widgets (UNBLOCKED, after Phase 2)
 
-- [ ] **T040** [P1] [P] Build C25 ConfirmModal: `scripts/presentation/confirm_modal.gd` + scene. API: `await ask(...) -> bool`. Pause toggle. AC-X1.
-- [ ] **T041** [P1] [P] Build C26 ToastLayer + ToastItem: `scripts/presentation/toast_{layer,item}.gd` + scenes. Stack 3, dedup по тексту 500ms. Слушает `EventBus.ui_toast_requested`. AC-X4.
-- [ ] **T042** [P1] [P] Build C23 PauseMenu: `scripts/presentation/pause_menu.gd` + scene. Buttons: Resume / Restart Run (→ confirm) / Settings (→ open C24) / Main Menu (→ confirm) / Quit (→ confirm). Pause via `get_tree().paused = true`. (depends T040)
-- [ ] **T043** [P2] [P] Build C24 SettingsPanel: scene + script. Audio sliders (привязка к существующим audio buses через `AudioServer.set_bus_volume_db`), game speed multiplier (через `GameSpeed.set_global_multiplier()` — добавить если нет), keybind list display-only.
-- [ ] **T044** [P1] [P] Build C22 MainMenu: `scripts/presentation/main_menu.gd` + `scenes/main_menu.tscn`. Buttons: Start Run (emits `EventBus.run_started_requested`) / Continue (disabled) / Settings (→ open C24 in standalone mode) / Credits / Quit. AC-I2.
-- [ ] **T045** [P2] [P] Build C28 KeybindOverlay: `scripts/presentation/keybind_overlay.gd` + scene. Toggle by `?` key. Plain two-column list. NOT pause-triggering.
-- [ ] **T046** [P2] [P] Build C27 CombatLog: `scripts/presentation/combat_log.gd` + scene. Ring buffer 50, toggle by `L`. Слушает `damage_dealt` / `heal_done` / `status_applied` сигналы (заглушки до 007/008). AC-X5.
-- [ ] **T047** [P3] [P] Build C20 PortalTransition: `scripts/presentation/portal_transition.gd` + scene. Fullscreen interstitial с wave number + flavor text slot + continue button (or auto-advance N sec).
-- [ ] **T048** [P3] [P] Build C21 RunSummary: scene + script. Stacked horizontal bars per moral compass axis (Q-UI-2 → bars). Stats grid. Buttons: Restart / Main Menu.
-- [ ] **T049** [P3] [P] Build C29 LoadingCover: trivial — fullscreen ColorRect + center Label. Show/hide via signals.
-- [ ] **T050** [P1] Migrate main scene: `project.godot` `[application] config/run/main_scene` → `res://scenes/main_menu.tscn`. Удалить `scenes/main.tscn` + `scripts/main.gd` (Q-UI-4 → (a)). AC-I2. (depends T044)
-- [ ] **T051** [P2] Add ESC handler upgrade в `godmode_controller`: priority chain (cancel cast → close top modal → reset selection → open pause menu). AC-I3, plan.md §"ESC handling". (depends T042)
-- [ ] **T052** [P3] Optional: `scripts/presentation/modal_router.gd` autoload для централизованного modal stack management. Пропустить если pause/settings/confirm справляются self-managed (вероятно справятся, рассмотреть после Phase 3 интеграции).
-- [ ] **T053** [P3] Финальный regression smoke: 003, 004, 005, 006 acceptance scenarios + ручной проход всего main menu → start run → godmode → pause → settings → resume → trigger toast → trigger combat log lines.
+- [x] **T040** [P1] [P] Build C25 ConfirmModal: `scripts/presentation/confirm_modal.gd` + scene. API: `await ask(...) -> bool`. Pause toggle. AC-X1.
+- [x] **T041** [P1] [P] Build C26 ToastLayer + ToastItem: `scripts/presentation/toast_{layer,item}.gd` + scenes. Stack 3, dedup по тексту 500ms. Слушает `EventBus.ui_toast_requested`. AC-X4.
+- [x] **T042** [P1] [P] Build C23 PauseMenu: `scripts/presentation/pause_menu.gd` + scene. Buttons: Resume / Restart Run (→ confirm) / Settings (→ open C24) / Main Menu (→ confirm) / Quit (→ confirm). Pause via `get_tree().paused = true`. (depends T040)
+- [x] **T043** [P2] [P] Build C24 SettingsPanel: scene + script. Audio sliders (привязка к существующим audio buses через `AudioServer.set_bus_volume_db`), game speed multiplier (через `GameSpeed.set_global_multiplier()` — добавить если нет), keybind list display-only. — *audio buses by name lookup; game speed via Engine.time_scale (no GameSpeed.set_global_multiplier needed); keybinds shown as static label.*
+- [x] **T044** [P1] [P] Build C22 MainMenu: `scripts/presentation/main_menu.gd` + `scenes/main_menu.tscn`. Buttons: Start Run (emits `EventBus.run_started_requested`) / Continue (disabled) / Settings (→ open C24 in standalone mode) / Credits / Quit. AC-I2. — *added Godmode dev-button preserving 001-bootstrap fast-path.*
+- [x] **T045** [P2] [P] Build C28 KeybindOverlay: `scripts/presentation/keybind_overlay.gd` + scene. Toggle by `?` key. Plain two-column list. NOT pause-triggering.
+- [x] **T046** [P2] [P] Build C27 CombatLog: `scripts/presentation/combat_log.gd` + scene. Ring buffer 50, toggle by `L`. Слушает `damage_dealt` / `heal_done` / `status_applied` сигналы (заглушки до 007/008). AC-X5.
+- [x] **T047** [P3] [P] Build C20 PortalTransition: `scripts/presentation/portal_transition.gd` + scene. Fullscreen interstitial с wave number + flavor text slot + continue button (or auto-advance N sec).
+- [x] **T048** [P3] [P] Build C21 RunSummary: scene + script. Stacked horizontal bars per moral compass axis (Q-UI-2 → bars). Stats grid. Buttons: Restart / Main Menu.
+- [x] **T049** [P3] [P] Build C29 LoadingCover: trivial — fullscreen ColorRect + center Label. Show/hide via signals.
+- [x] **T050** [P1] Migrate main scene: `project.godot` `[application] config/run/main_scene` → `res://scenes/main_menu.tscn`. Удалить `scenes/main.tscn` + `scripts/main.gd` (Q-UI-4 → (a)). AC-I2. (depends T044)
+- [x] **T051** [P2] Add ESC handler upgrade в `godmode_controller`: priority chain (cancel cast → close top modal → reset selection → open pause menu). AC-I3, plan.md §"ESC handling". (depends T042) — *modal-close priority decentralized: each modal self-closes on ESC via its own _unhandled_input + set_input_as_handled.*
+- [~] **T052** [P3] Optional: `scripts/presentation/modal_router.gd` autoload для централизованного modal stack management. Пропустить если pause/settings/confirm справляются self-managed (вероятно справятся, рассмотреть после Phase 3 интеграции). — *skipped; depth counter in UiSignalHelpers handles nested-modal pause correctly.*
+- [~] **T053** [P3] Финальный regression smoke: 003, 004, 005, 006 acceptance scenarios + ручной проход всего main menu → start run → godmode → pause → settings → resume → trigger toast → trigger combat log lines. — *static review only; runtime smoke deferred to first Godot launch on Andrey's machine.*
 
 **Definition of done Phase 3:** main menu — точка входа, pause/settings/confirm работают, toast/log/keybind overlay интегрированы. Игра до Phase 4 — играбельна целиком в Godmode + меню вокруг.
 

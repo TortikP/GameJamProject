@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://toast_layer_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/toast_layer.gd" id="1_tl"]
+
+[node name="ToastLayer" type="CanvasLayer"]
+script = ExtResource("1_tl")
+layer = 50
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -300.0
+offset_top = 60.0
+offset_right = -16.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
+mouse_filter = 2

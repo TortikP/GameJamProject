@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=19 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
@@ -13,6 +13,11 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/cast_range_overlay.tscn" id="11_cro"]
 [ext_resource type="PackedScene" path="res://scenes/ui/floating_number_layer.tscn" id="12_fnl"]
 [ext_resource type="PackedScene" path="res://scenes/ui/tooltip_panel.tscn" id="13_tt"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pm"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="15_sp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/toast_layer.tscn" id="16_tl"]
+[ext_resource type="PackedScene" path="res://scenes/ui/keybind_overlay.tscn" id="17_kb"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_log.tscn" id="18_cl"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -82,3 +87,13 @@ alignment = 1
 [node name="PlayerStatusPanel" parent="HUD" instance=ExtResource("10_psp")]
 
 [node name="TooltipPanel" parent="HUD" instance=ExtResource("13_tt")]
+
+[node name="CombatLog" parent="HUD" instance=ExtResource("18_cl")]
+
+[node name="ToastLayer" parent="." instance=ExtResource("16_tl")]
+
+[node name="KeybindOverlay" parent="." instance=ExtResource("17_kb")]
+
+[node name="PauseMenu" parent="HUD" instance=ExtResource("14_pm")]
+
+[node name="SettingsPanel" parent="HUD" instance=ExtResource("15_sp")]
