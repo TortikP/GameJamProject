@@ -126,12 +126,14 @@ void fragment() {
 	// blacks read as "tube glow", not "void".
 	col += phosphor_glow * screen_mask;
 
-	// Aspect-correct vignette. SCREEN_PIXEL_SIZE.y/x = aspect ratio (e.g. 16/9).
-	// Without this, the radial gradient is squashed vertically on widescreen
-	// and corners look uneven.
-	vec2 vc = from_center;
-	vc.x *= SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
-	float vig = 1.0 - vignette_strength * smoothstep(0.45, 0.95, length(vc) * 1.6);
+	// Vignette in UV space — `length(from_center)` directly. On a 16:9 screen
+	// the equipotential is a UV-circle, which RENDERS as a horizontal ellipse
+	// matching the resolution aspect (640 px hor vs 360 px vert from center
+	// at length=0.5). This is the natural "TV bright spot" shape — fades
+	// faster vertically than horizontally on widescreen, exactly what we want.
+	// Earlier aspect-correction made it a physical-pixel circle (vertical
+	// oval), which felt squashed.
+	float vig = 1.0 - vignette_strength * smoothstep(0.25, 0.85, length(from_center));
 	col *= vig;
 
 	// Recover brightness lost to the multiplicative chain above.
