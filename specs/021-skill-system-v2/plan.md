@@ -1,4 +1,4 @@
-# 020-skill-system-v2 — plan
+# 021-skill-system-v2 — plan
 
 **Spec:** [`spec.md`](./spec.md) · **Status:** Ready for /implement
 

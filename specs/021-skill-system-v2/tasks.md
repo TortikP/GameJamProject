@@ -1,4 +1,4 @@
-# 020-skill-system-v2 — tasks
+# 021-skill-system-v2 — tasks
 
 **Spec:** [`spec.md`](./spec.md) · **Plan:** [`plan.md`](./plan.md)
 
@@ -47,7 +47,7 @@
 
 ## Группа D — ChainArea radius
 
-- [ ] **T050** [P1] `chain_area.gd` — `@export var radius: int = 1`. BFS-step: на каждом звене, вместо `get_walkable_neighbours(current)`, делать BFS до `radius` шагов и фильтровать Actor'ы. Visited-tracking сохраняется. При `radius=1` поведение идентично pre-020 (regression-safe).
+- [ ] **T050** [P1] `chain_area.gd` — `@export var radius: int = 1`. BFS-step: на каждом звене, вместо `get_walkable_neighbours(current)`, делать BFS до `radius` шагов и фильтровать Actor'ы. Visited-tracking сохраняется. При `radius=1` поведение идентично pre-021 (regression-safe).
 - [ ] **T051** [P2] `chain_area.get_affected_hexes` — если требуется обновление под radius для preview-overlay (проверить cast_range_overlay): пока не требуется (overlay рисует только primary hex).
 
 ---
@@ -101,7 +101,7 @@
 ## Группа J — Smoke / acceptance (выполняется Egor'ом, Claude не запускает Godot)
 
 - [ ] **T110** [P1] Открыть проект, godmode-сцена. `SkillDatabase` и `AbilityDatabase` логируют без warn'ов. Все 8 мигрированных + 6 новых JSON загрузились.
-- [ ] **T111** [P1] Каст 4 production-абилок (`debug_punch`, `melee_punch`, `manekin_attack`, `knockback_punch`) — поведение идентично pre-020. (AC-X2)
+- [ ] **T111** [P1] Каст 4 production-абилок (`debug_punch`, `melee_punch`, `manekin_attack`, `knockback_punch`) — поведение идентично pre-021. (AC-X2)
 - [ ] **T112** [P1] AI манекена выбирает skill_manekin_attack через `behaviour_tags ∋ "damage"`. (AC-X3)
 - [ ] **T113** [P1] Каст `test_level_scaling`: лог DamageEffect.apply показывает 140 урона, HealEffect.apply показывает 60 хила. (AC-X4)
 - [ ] **T114** [P2] Каст всех 5 test_combo_*: не падает, ожидаемое поведение в логе.
@@ -110,16 +110,16 @@
 
 ## Группа K — Документация (после остального)
 
-- [ ] **T120** [P2] `CLAUDE.md` — в таблице «Currently claimed» добавить `020-skill-system-v2 | Egor`. Если попадутся новые traps — append в табл.
-- [ ] **T121** [P3] `HANDOFF.md` §18 (текущее состояние) — кратко упомянуть 020 как next-up или in-progress.
-- [ ] **T122** [P3] `specs/007-skill-system/spec.md` — пометить «Status: superseded by 020-skill-system-v2» в шапке (история сохраняется, не удаляем).
+- [ ] **T120** [P2] `CLAUDE.md` — в таблице «Currently claimed» добавить `021-skill-system-v2 | Egor`. Если попадутся новые traps — append в табл.
+- [ ] **T121** [P3] `HANDOFF.md` §18 (текущее состояние) — кратко упомянуть 021 как next-up или in-progress.
+- [ ] **T122** [P3] `specs/007-skill-system/spec.md` — пометить «Status: superseded by 021-skill-system-v2» в шапке (история сохраняется, не удаляем).
 
 ---
 
 ## Acceptance gate всего PR
 
 - [ ] Godmode запускается, `SkillDatabase` лог: «loaded 14 skills» (8 мигр + 6 новых) без warn'ов.
-- [ ] T111 — 4 production-абилки работают идентично pre-020.
+- [ ] T111 — 4 production-абилки работают идентично pre-021.
 - [ ] T113 — level-2 даёт damage 140 / heal 60 (floor).
 - [ ] AI выбирает skill через `behaviour_tags`.
 - [ ] grep по проекту: нет упоминаний `Skill.tags`, `EntityTarget`, `game_object_id`, `"kind": "entity"`.

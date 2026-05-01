@@ -1,4 +1,4 @@
-# 020-skill-system-v2 — spec
+# 021-skill-system-v2 — spec
 
 **Owner:** Egor
 **Status:** Ready for /implement (clarify-цикл закрыт в чате)
@@ -69,7 +69,7 @@
 | `chain` | `max_chain_length: int`, `radius: int = 1` | BFS-цепь, каждый прыжок до `radius` гексов |
 | `zone_circle` | `radius: int` | круг от primary, BFS layered |
 
-`chain.radius` — новое явное поле. До 020 цепь хваталась только за прямых соседей (`get_walkable_neighbours`); теперь шаг между звеньями = до `radius` гексов BFS-расстояния.
+`chain.radius` — новое явное поле. До 021 цепь хваталась только за прямых соседей (`get_walkable_neighbours`); теперь шаг между звеньями = до `radius` гексов BFS-расстояния.
 
 `zone_cone` / `zone_arc` / `zone_line` остаются stub'ами как и в 007 — не входят в acceptance этой фичи, продолжают парситься без warn'ов.
 
@@ -136,7 +136,7 @@
 - **AC-S2**: `Ability` имеет поля `id`, `sound`, `animation`, `target`, `area`, `effects`, `modifiers`. `sound`/`animation` — `StringName`, default `&""`.
 - **AC-S3**: `class_name EntityTarget` переименован в `ActorTarget`, файл `entity_target.gd` → `actor_target.gd`. JSON kind `"entity"` → `"actor"`.
 - **AC-S4**: `CreateEffect.game_object_id` → `entity_id`. JSON-ключ — соответственно.
-- **AC-S5**: `ChainArea` имеет `@export var radius: int = 1`. При `radius=1` поведение идентично pre-020.
+- **AC-S5**: `ChainArea` имеет `@export var radius: int = 1`. При `radius=1` поведение идентично pre-021.
 
 ### Уровень
 - **AC-L1**: `AbilityTarget`, `AbilityArea`, `AbilityEffect` имеют метод `apply_level(level: int) -> void`, default no-op.
@@ -144,7 +144,7 @@
 - **AC-L3**: `Ability.cast(caster, ctx, level: int = 0)` — level пробрасывается. На duplicate'ах вызывается `apply_level(level)`. Базовый ресурс не мутируется.
 - **AC-L4**: `Skill.cast(caster, ctx)` читает `self.level` и пробрасывает в `Ability.cast(..., level)`.
 - **AC-L5**: `Ability.predicted_damage_to(caster, target, ctx, level)` учитывает level (UI hover preview корректен). Skill.predicted_damage_to передаёт свой level.
-- **AC-L6**: При `level = 0` итоговые числа идентичны pre-020 (нулевой регрессионный delta).
+- **AC-L6**: При `level = 0` итоговые числа идентичны pre-021 (нулевой регрессионный delta).
 
 ### Миграция / совместимость
 - **AC-M1**: Все 8 production+test JSON-ов в `data/skills/` мигрированы под новую схему. Старые ключи (`tags`, `entity`, `game_object_id`) отсутствуют.
@@ -153,7 +153,7 @@
 
 ### Smoke / acceptance scenarios
 - **AC-X1**: Запуск проекта → `SkillDatabase` загружает все skills без warn'ов; `AbilityDatabase` без warn'ов про unknown kinds.
-- **AC-X2**: Godmode-сцена: 4 production-абилки (`debug_punch`, `melee_punch`, `manekin_attack`, `knockback_punch`) работают как до 020.
+- **AC-X2**: Godmode-сцена: 4 production-абилки (`debug_punch`, `melee_punch`, `manekin_attack`, `knockback_punch`) работают как до 021.
 - **AC-X3**: AI-планировщик манекена выбирает `manekin_attack` через `behaviour_tags ∋ "damage"` (AI rule `default_melee.tag_priority = ["damage"]`).
 - **AC-X4**: `test_vamp_strike` с `level: 2` — урон `100 * 1.4 = 140` (floor), heal `50 * 1.2 = 60` (floor). Лог через `GameLogger.info("SkillTest", ...)`.
 - **AC-X5**: 5 новых test-combo JSON'ов (см. ниже) — каст из godmode debug-кнопки или через `SkillDatabase.get_skill(...).cast(...)` не падает.
@@ -181,12 +181,12 @@
 
 - Локализация: `name`/`tooltip`/`desc` хранятся как ключи, не резолвятся. Локализационный сервис — отдельная фича.
 - Mood-система: поле сохраняется, потребитель отсутствует. Будущая система характера.
-- AudioDB lookup для `Ability.sound` — отдельная фича. На 020 значение хранится, не диспатчится.
+- AudioDB lookup для `Ability.sound` — отдельная фича. На 021 значение хранится, не диспатчится.
 - Animation dispatch для `Ability.animation` — то же.
 - Object-сущность для `target.kind = object` — остаётся stub.
 - Level-up reward UI — engine читает `level`, источник проставления — отдельная фича.
 - Backward-compat layer для старых ключей (`tags`, `entity`, `game_object_id`) — НЕТ.
-- Триггерные / реактивные модификаторы — out of 007, тем более 020.
+- Триггерные / реактивные модификаторы — out of 007, тем более 021.
 - Скейлинг `move_distance` и `chain.radius` от level — намеренно не входят (не указаны в формулах).
 
 ## Зависимости
