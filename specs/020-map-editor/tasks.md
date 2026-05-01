@@ -16,20 +16,20 @@
 
 ## Phase 1 — Editor scene scaffolding (~2 ч)
 
-- [ ] **T008** [P1] `scenes/dev/map_editor.tscn` — root Node2D + Camera2D + HexGrid инстанс + HUD CanvasLayer заглушки (no UI yet) (depends 002)
-- [ ] **T009** [P1] `scripts/presentation/dev/map_editor_controller.gd` — _ready: resolve nodes, initial 25×25 grass paint, no input yet (depends T008)
-- [ ] **T010** [P1] `scripts/presentation/dev/objects_overlay.gd` — Node2D, метод `set_object(coord, object_id)` спавнит/заменяет Sprite2D ребёнка с texture из `TileObject.sprite_path` (depends T009)
-- [ ] **T011** [P1] `scripts/presentation/dev/spawners_overlay.gd` — то же для спавнеров (player Unicode-глиф, enemy с тинтом по hash) (depends T010)
-- [ ] **T012** [P1] `scripts/presentation/dev/hover_highlight.gd` — рисует контур текущего гекса под курсором (depends T009)
-- [ ] **T013** [P1] `scripts/presentation/dev/delete_highlight.gd` — рисует красный заполненный полигон отмеченного гекса (depends T009)
+- [x] **T008** [P1] `scenes/dev/map_editor.tscn` — root Node2D + Camera2D + HexGrid инстанс + HUD CanvasLayer заглушки (no UI yet) (depends 002)
+- [x] **T009** [P1] `scripts/presentation/dev/map_editor_controller.gd` — _ready: resolve nodes, initial 25×25 grass paint, no input yet (depends T008)
+- [x] **T010** [P1] `scripts/presentation/dev/objects_overlay.gd` — Node2D, метод `set_object(coord, object_id)` спавнит/заменяет Sprite2D ребёнка с texture из `TileObject.sprite_path` (depends T009)
+- [x] **T011** [P1] `scripts/presentation/dev/spawners_overlay.gd` — то же для спавнеров (player Unicode-глиф, enemy с тинтом по hash) (depends T010)
+- [x] **T012** [P1] `scripts/presentation/dev/hover_highlight.gd` — рисует контур текущего гекса под курсором (depends T009)
+- [x] **T013** [P1] `scripts/presentation/dev/delete_highlight.gd` — рисует красный заполненный полигон отмеченного гекса (depends T009)
 
 ## Phase 2 — Input + state machine (~3 ч)
 
-- [ ] **T014** [P1] State machine enum + переменные в map_editor_controller.gd (см. plan.md) (depends T009)
-- [ ] **T015** [P1] LMB place handler — таблица из plan.md. Floor / Object / Spawner placement пути (depends T014)
-- [ ] **T016** [P1] RMB pending-delete + повторное удаление + переключение на новый гекс. LMB сбрасывает pending (depends T014)
-- [ ] **T017** [P1] Collision popup — простой ConfirmModal с одной кнопкой OK при попытке поставить на занятый тайл (depends 009 ConfirmModal)
-- [ ] **T018** [P1] Player spawner singleton — при placement, если уже стоит, удалить старый (с 200ms fade-out опционально) (depends T015)
+- [x] **T014** [P1] State machine enum + переменные в map_editor_controller.gd (см. plan.md) (depends T009)
+- [x] **T015** [P1] LMB place handler — таблица из plan.md. Floor / Object / Spawner placement пути (depends T014)
+- [x] **T016** [P1] RMB pending-delete + повторное удаление + переключение на новый гекс. LMB сбрасывает pending (depends T014)
+- [x] **T017** [P1] Collision popup — простой ConfirmModal с одной кнопкой OK при попытке поставить на занятый тайл (depends 009 ConfirmModal)
+- [x] **T018** [P1] Player spawner singleton — при placement, если уже стоит, удалить старый (с 200ms fade-out опционально) (depends T015) — без fade-out для v1, удаление мгновенное (overlay просто перерисовывается)
 - [ ] **T019** [P3] Drag-and-drop существующих объектов — IDLE LMB-press → grab → ghost preview → release. **STRETCH, не делать в первом проходе** (depends T015)
 
 ## Phase 3 — Palette UI (~3-4 ч)
