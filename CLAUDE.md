@@ -83,6 +83,7 @@ Append yourself when you start a feature.
 | 001-bootstrap, infrastructure (autoloads, GameSpeed config) | Andrey |
 | 002-hex-grid (spec) | Egor |
 | 003-dialogue-manager | Andrey |
+| 007-skill-system (Skill, Ability, Area, Effect, ParameterModifier engines) | Egor |
 | 009-ui-kit (spec; Phase 4 blocked on 007 + 008) | Andrey |
 
 ## Git workflow

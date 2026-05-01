@@ -45,6 +45,7 @@ signal world_turn_ended(turn: int)
 
 # Combat (composed-ability era; spell_cast above is legacy)
 signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: Array)
+signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
 signal actor_died(id: StringName)
 
 # UI infrastructure (009-ui-kit)

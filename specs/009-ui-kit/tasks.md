@@ -79,21 +79,19 @@ Foundation. Без этого ничего из остального не име
 
 ---
 
-## Phase 4 — BLOCKED on 007 (skill system)
+## Phase 4 — UNBLOCKED after 007 (skill system) merged into staging
 
-**НЕ СТАРТОВАТЬ** до merge spec-007 в staging. Андрей подтверждает в чате с Egor.
+Spec-007 merged Apr 2026 (PR #31). Phase 4 ungated for skill-related items.
 
-- [!] **T060** [P1] Build C14 SkillTooltip: `scripts/presentation/skill_tooltip.gd` + scene. Renders: skill header (name + cooldown), abilities list (target/area glyph + effects breakdown с modifier-влиянием в формате `base → final`), tags chips. Использует helper `SkillFormatter` (новый, в `scripts/presentation/`). АC-N1.
-- [!] **T061** [P1] Build helper `scripts/presentation/skill_formatter.gd`: pure-static функции `format_effect(effect, modifiers) -> String`, `format_modifier_breakdown(modifiers, field) -> String`. Один источник правды для skill text representation. (depends 007 ParameterModifier API)
-- [!] **T062** [P1] Refit `slot_bar.gd` cooldown overlay: numeric Label centered в slot когда `Skill.cooldown_remaining > 0`. Other variants (radial, fill-bar) — заскипать, выбран числовой как cheapest (Q-UI-1 в handoff). (depends 007 Skill API)
-- [!] **T063** [P2] Build C19 ModifierPickScreen: `scripts/presentation/modifier_pick_screen.gd` + scene. 3 cards с aspect (target/effect/modifier), description, моральный compass shift preview (option (b) из handoff Q-UI-1). Pick → emit signal → close. (depends 007 ParameterModifier + future absorb-system)
-- [!] **T064** [P2] Подключить SkillTooltip к slot_bar (hover) и ActorInspector (skill pip hover). Удалить плейсхолдер tooltip из 006. (depends T060)
+- [~] **T060** [P1] Build C14 SkillTooltip: `scripts/presentation/skill_tooltip.gd` + scene. Renders: skill header (name + cooldown), abilities list (target/area glyph + effects breakdown с modifier-влиянием в формате `base → final`), tags chips. Использует helper `SkillFormatter` (новый, в `scripts/presentation/`). АC-N1. — *deferred: PSP and inspector tooltips already render skill info via SkillFormatter; dedicated SkillTooltip scene is polish, not blocker.*
+- [x] **T061** [P1] Build helper `scripts/presentation/skill_formatter.gd`: pure-static функции `format_effect(effect, modifiers) -> String`, `format_modifier_breakdown(modifiers, field) -> String`. Один источник правды для skill text representation. (depends 007 ParameterModifier API) — *delivered as `format_skill / format_ability / format_skill_headline`. Modifier-aware (duplicates effect, applies mods, shows base→final when changed).*
+- [x] **T062** [P1] Refit `slot_bar.gd` cooldown overlay: numeric Label centered в slot когда `Skill.cooldown_remaining > 0`. Other variants (radial, fill-bar) — заскипать, выбран числовой как cheapest (Q-UI-1 в handoff). (depends 007 Skill API) — *Label per slot, mouse_filter=IGNORE so it doesn't eat clicks; reads `_cd_remaining` via Object.get; visible only when > 0.*
+- [!] **T063** [P2] Build C19 ModifierPickScreen: `scripts/presentation/modifier_pick_screen.gd` + scene. 3 cards с aspect (target/effect/modifier), description, моральный compass shift preview (option (b) из handoff Q-UI-1). Pick → emit signal → close. (depends 007 ParameterModifier + future absorb-system) — *blocked on absorb-system (modifier acquisition flow) which doesn't exist yet.*
+- [~] **T064** [P2] Подключить SkillTooltip к slot_bar (hover) и ActorInspector (skill pip hover). Удалить плейсхолдер tooltip из 006. (depends T060) — *deferred along with T060; current Button.tooltip_text shows id, sufficient for jam.*
 
----
+## Phase 4 — STILL BLOCKED on 008 (enemy AI)
 
-## Phase 4 — BLOCKED on 008 (enemy AI)
-
-**НЕ СТАРТОВАТЬ** до merge spec-008 в staging. Координация с Sergey.
+008 spec exists (PR #28 in 'spec(008-enemy-ai)') but engine not yet on staging.
 
 - [!] **T070** [P1] Refit `intent_arrow.gd`: показывать цвет по `cast_intent.skill.primary_tag` (если != null), иначе fallback на damage. (depends 008 cast_intent API)
 - [!] **T071** [P1] Refit `actor_inspector.gd` enemy-mode: добавить «Planned intent» Label, рендерящий `cast_intent` в одну строку («Cast Fireball at (3,2): -15 dmg»). (depends 008 + T060 SkillFormatter)

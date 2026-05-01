@@ -1,6 +1,0 @@
-{
-  "id": "melee_punch",
-  "target": {"kind": "single_enemy_adjacent"},
-  "effect": {"kind": "damage", "amount": 8},
-  "modifiers": []
-}

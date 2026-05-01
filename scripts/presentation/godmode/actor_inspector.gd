@@ -346,11 +346,11 @@ func _build_tooltip(ability_id: StringName) -> String:
 		return String(ability_id)
 	var lines: Array[String] = []
 	lines.append(String(ability_id))
-	if ability.effect != null:
-		if ability.effect is DamageEffect:
-			lines.append("Damage: %d" % (ability.effect as DamageEffect).amount)
+	for eff in ability.effects:
+		if eff is DamageEffect:
+			lines.append("Damage: %d" % (eff as DamageEffect).damage)
 		else:
-			lines.append("Effect: %s" % ability.effect.get_class())
+			lines.append("Effect: %s" % eff.get_class())
 	if ability.target != null:
 		lines.append("Target: %s" % ability.target.get_class())
 	return "\n".join(lines)

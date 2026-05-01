@@ -27,23 +27,40 @@ func _ready() -> void:
 	EventBus.ui_theme_reloaded.connect(_on_theme_reloaded)
 
 
-func show_range(caster: Actor, ability_id: StringName) -> void:
+## Show valid target hexes for a skill or ability cast by caster. Accepts
+## either a Skill object (post-007 — iterates its abilities[]) or a single
+## ability_id StringName (legacy lookup via AbilityDatabase). Pass null to
+## clear via hide_range().
+func show_range(caster: Actor, skill_or_id) -> void:
 	hide_range()
-	if _grid == null or caster == null:
-		return
-	var ability: Ability = AbilityDatabase.get_ability(ability_id)
-	if ability == null or ability.target == null:
+	if _grid == null or caster == null or skill_or_id == null:
 		return
 	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
 	if caster_coord == Vector2i(-1, -1):
 		return
-	var hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, _grid)
-	# Color: tag-driven once 007 ships ability.primary_tag; for now SEM_DEBUFF
+	# Collect target hexes from one or many abilities.
+	var hexes: Dictionary = {}  # Vector2i → true (dedup across abilities)
+	if "abilities" in skill_or_id:
+		# Skill — iterate contained abilities.
+		for ab in skill_or_id.abilities:
+			if ab == null or ab.target == null:
+				continue
+			for c in ab.target.get_range_hexes(caster_coord, _grid):
+				hexes[c] = true
+	else:
+		# Treated as ability id (StringName / String).
+		var ability: Ability = AbilityDatabase.get_ability(StringName(str(skill_or_id)))
+		if ability == null or ability.target == null:
+			return
+		for c in ability.target.get_range_hexes(caster_coord, _grid):
+			hexes[c] = true
+
+	# Color: tag-driven once 007/008 ship ability.primary_tag; for now SEM_DEBUFF
 	# (visually distinct from move-range team color).
 	var base: Color = UiTheme.SEM_DEBUFF
 	var fill := Color(base.r, base.g, base.b, 0.32)
 	var outline := Color(base.r, base.g, base.b, 0.78)
-	for c in hexes:
+	for c in hexes.keys():
 		_add_hex(c, fill, outline)
 
 

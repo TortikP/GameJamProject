@@ -8,16 +8,37 @@ extends Node2D
 ##
 ## Palette: team colors via UiTheme.team_color, attack range via UiTheme.SEM_DEBUFF
 ## (orange — visually distinct from team blue/red, signals "this is reachable for
-## an attack, not movement"). All colors derived once on each show_for call.
+## an attack, not movement"). Zone preview uses UiTheme.SEM_CONTROL (purple — the
+## affected-area semantic). All colors derived once on each show_for call.
 
 const RADIUS: float = 60.0  # must match godmode_terrain.tres hex size
 
 var _grid: Node = null  # HexGrid
 var _polys: Array[Node2D] = []
+var _zone_polys: Array[Node2D] = []  # hover AoE preview — cleared every frame
 
 
 func setup(grid: Node) -> void:
 	_grid = grid
+
+
+## Dynamic zone AoE preview — call every frame from _update_castability.
+## Pass [] to erase the preview. Color: SEM_CONTROL (purple — "this is the
+## affected area").
+func show_zone_preview(hexes: Array[Vector2i]) -> void:
+	clear_zone_preview()
+	var base: Color = UiTheme.SEM_CONTROL
+	var fill: Color = Color(base.r, base.g, base.b, 0.32)
+	var outline: Color = Color(base.r, base.g, base.b, 0.80)
+	for coord in hexes:
+		_add_hex(coord, fill, outline, 4, _zone_polys)
+
+
+func clear_zone_preview() -> void:
+	for p in _zone_polys:
+		if is_instance_valid(p):
+			p.free()   # immediate — queue_free() lags one frame, leaves ghost hexes
+	_zone_polys.clear()
 
 
 func clear() -> void:
@@ -25,6 +46,7 @@ func clear() -> void:
 		if is_instance_valid(p):
 			p.queue_free()
 	_polys.clear()
+	clear_zone_preview()
 
 
 ## Show reachable hexes for `actor`. `registry` is ActorRegistry — used to
@@ -68,13 +90,21 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 	# ── Attack range ──────────────────────────────────────────────────────────
 	# Collect all coords reachable by any of this actor's abilities.
 	# Shown in debuff-orange, drawn ON TOP of move range (higher z).
+	# ability_ids items can be Ability objects (player slot path, post-007)
+	# or StringName IDs (legacy enemy path via actor.get_abilities()). Objects
+	# are preferred — ID lookup via AbilityDatabase is unsafe when multiple
+	# skills share an ability ID.
 	var attack_base: Color = UiTheme.SEM_DEBUFF
 	var attack_fill: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.28)
 	var attack_outline: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.72)
 
 	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
-	for ability_id in ability_ids:
-		var ability: Ability = AbilityDatabase.get_ability(ability_id)
+	for item in ability_ids:
+		var ability: Ability
+		if item is Ability:
+			ability = item as Ability
+		else:
+			ability = AbilityDatabase.get_ability(StringName(str(item)))
 		if ability == null or ability.target == null:
 			continue
 		var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(actor_coord, _grid)
@@ -85,15 +115,17 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 		_add_hex(coord, attack_fill, attack_outline, 3)
 
 
-func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2) -> void:
+func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2, target_array = null) -> void:
 	var poly: Node2D = Node2D.new()
 	poly.position = _grid.tile_map_layer.map_to_local(coord)
 	poly.z_index = z
-	# Store colors so _draw can access them via metadata
 	poly.set_meta("fill", fill)
 	poly.set_meta("outline", outline)
 	_grid.add_child(poly)
-	_polys.append(poly)
+	if target_array == null:
+		_polys.append(poly)
+	else:
+		target_array.append(poly)
 	# Draw immediately via a draw-script attached inline.
 	# Simplest jam approach: use a child Polygon2D (no custom _draw needed).
 	var pts: PackedVector2Array = []

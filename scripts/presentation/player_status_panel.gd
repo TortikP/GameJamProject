@@ -6,6 +6,8 @@ extends PanelContainer
 ## directly (and statuses_changed once 007 lands). On each event, refreshes
 ## the name+HP labels and the embedded StatusIconStrip.
 
+const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
+
 @onready var _name_label: Label = $VBox/NameLabel
 @onready var _hp_label: Label   = $VBox/HpRow/HpLabel
 @onready var _hp_value: Label   = $VBox/HpRow/HpValue
@@ -76,33 +78,42 @@ func push_statuses(entries: Array) -> void:
 		_strip.set_statuses(entries)
 
 
-## Show description of currently selected spell. Pass null to clear (e.g., on
-## slot deselect). Same defensive guard as bind_player — caller may invoke
-## from another node's _ready before our @onready resolves.
-func set_active_spell(ability) -> void:
+## Show description of currently selected skill. Pass null to clear (e.g.,
+## on slot deselect). Same defensive guard as bind_player — caller may
+## invoke from another node's _ready before our @onready resolves.
+##
+## Accepts Skill objects (post-007); legacy Ability objects also work
+## because format helper duck-types `.id` and either `.abilities[]` (Skill)
+## or falls back to per-ability formatting.
+func set_active_spell(skill_or_ability) -> void:
 	if not is_node_ready():
-		ready.connect(set_active_spell.bind(ability), CONNECT_ONE_SHOT)
+		ready.connect(set_active_spell.bind(skill_or_ability), CONNECT_ONE_SHOT)
 		return
-	if ability == null:
+	if skill_or_ability == null:
 		_spell_section.visible = false
 		return
-	_spell_name.text = String(ability.id)
-	_spell_desc.text = _format_ability_desc(ability)
+	# Skill has .abilities[]; bare Ability does not.
+	var has_abilities: bool = "abilities" in skill_or_ability
+	_spell_name.text = String(skill_or_ability.id)
+	if has_abilities:
+		# Skill path — full multi-ability dump via formatter.
+		var lines: Array[String] = []
+		for ab in skill_or_ability.abilities:
+			for l in SkillFormatter.format_ability(ab):
+				lines.append(l)
+		_spell_desc.text = "\n".join(lines)
+		# Cooldown indicator in the header line.
+		if skill_or_ability.cooldown > 0:
+			var cd_remaining: int = int(skill_or_ability.get("_cd_remaining"))
+			if cd_remaining > 0:
+				_spell_name.text += "  (CD %d/%d)" % [cd_remaining, skill_or_ability.cooldown]
+			else:
+				_spell_name.text += "  (CD %d)" % skill_or_ability.cooldown
+	else:
+		# Plain Ability path — mostly for legacy / direct ability passes.
+		var lines: Array[String] = SkillFormatter.format_ability(skill_or_ability)
+		_spell_desc.text = "\n".join(lines)
 	_spell_section.visible = true
-
-
-func _format_ability_desc(ability) -> String:
-	# Mirror tooltip format from actor_inspector — minimal info pre-007.
-	# 007 will replace with SkillFormatter helper handling modifier breakdown.
-	var lines: Array[String] = []
-	if ability.effect != null:
-		if ability.effect is DamageEffect:
-			lines.append("Damage: %d" % (ability.effect as DamageEffect).amount)
-		else:
-			lines.append("Effect: %s" % ability.effect.get_class())
-	if ability.target != null:
-		lines.append("Target: %s" % ability.target.get_class())
-	return "\n".join(lines)
 
 
 func _refresh_all() -> void:

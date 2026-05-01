@@ -1,6 +1,0 @@
-{
-  "id": "debug_punch",
-  "target": {"kind": "single_enemy"},
-  "effect": {"kind": "damage", "amount": 5},
-  "modifiers": []
-}

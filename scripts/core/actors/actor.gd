@@ -26,6 +26,7 @@ signal died(id: StringName)
 var hp: int = 0
 var _dead: bool = false
 var _ability_ids: Array[StringName] = []
+var _skills: Array = []   # Array[Skill] — plain Array to avoid typed-array Variant edge cases (CLAUDE.md trap)
 
 
 ## Returns ability ids available to this actor (set externally by controller or subclass).
@@ -36,6 +37,21 @@ func get_abilities() -> Array[StringName]:
 ## Called by controller/subclass to declare which abilities this actor has.
 func set_abilities(ids: Array[StringName]) -> void:
 	_ability_ids = ids
+
+
+## Returns Skill objects on this actor. Controllers call tick_skills() each turn.
+func get_skills() -> Array:
+	return _skills
+
+
+func set_skills(skills: Array) -> void:
+	_skills = skills
+
+
+## Reduce cooldown on all skills by 1. Call from controller on each turn advance.
+func tick_skills(by: int = 1) -> void:
+	for s in _skills:
+		s.tick_cooldown(by)
 
 
 func _ready() -> void:
@@ -54,6 +70,21 @@ func take_damage(amount: int) -> void:
 		_dead = true
 		died.emit(actor_id)
 		EventBus.actor_died.emit(actor_id)
+
+
+## Restore a fixed amount of HP. Clamps to max_hp. No-op on dead actors.
+func heal(amount: int) -> void:
+	if _dead or amount <= 0:
+		return
+	var old_hp: int = hp
+	hp = mini(max_hp, hp + amount)
+	var healed: int = hp - old_hp
+	if healed <= 0:
+		return
+	# Reuse damaged signal with negative amount as "healed" convention.
+	# hp_left is the new hp. Listeners use amount <= 0 to detect heals.
+	damaged.emit(actor_id, -healed, hp)
+	GameLogger.info("Actor", "%s +%d hp (%d/%d)" % [actor_id, healed, hp, max_hp])
 
 
 func is_alive() -> bool:
