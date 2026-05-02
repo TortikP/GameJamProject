@@ -57,6 +57,10 @@ var _edit_active_wave: int = 0
 var _anchor_positions: Array[float] = []  # x coordinates of each anchor
 var _bar_end_x: float = 0.0
 
+# T72c — wave_index → Label/LineEdit currently rendering its turns_to_next.
+# Used to pulse the current wave's number on each world_turn_ended tick.
+var _turns_widgets: Dictionary = {}  # int wave_idx → Control
+
 
 func _ready() -> void:
 	# Listen to wave events even in EDIT mode (no-op when _level is null).
@@ -106,6 +110,7 @@ func _rebuild() -> void:
 	for child in get_children():
 		child.queue_free()
 	_anchor_positions.clear()
+	_turns_widgets.clear()
 	if _level == null or _level.waves.is_empty():
 		_bar_end_x = PADDING_LEFT
 		custom_minimum_size = Vector2(_bar_end_x + PADDING_RIGHT, 56)
@@ -143,9 +148,11 @@ func _add_turns_label(wave_idx: int, x: float, ttn: int) -> void:
 		lbl.position = Vector2(x - 12, BAR_Y + NUMBER_OFFSET_Y)
 		lbl.size = Vector2(24, 18)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.pivot_offset = Vector2(12, 9)  # center for scale tweens
 		lbl.add_theme_font_size_override("font_size", UiThemeScript.WAVE_NUMBER_FONT_SIZE)
 		lbl.add_theme_color_override("font_color", UiThemeScript.WAVE_NUMBER_COLOR)
 		add_child(lbl)
+		_turns_widgets[wave_idx] = lbl
 		return
 	# EDIT mode: editable LineEdit.
 	var le := LineEdit.new()
@@ -159,6 +166,7 @@ func _add_turns_label(wave_idx: int, x: float, ttn: int) -> void:
 	le.text_submitted.connect(_on_turns_text_submitted.bind(wave_idx, le))
 	le.focus_exited.connect(_on_turns_focus_exited.bind(wave_idx, le))
 	add_child(le)
+	_turns_widgets[wave_idx] = le
 
 
 func _add_plus_wave_button(x: float) -> void:
@@ -315,3 +323,18 @@ func _on_world_turn_ended(_turn: int) -> void:
 		return
 	_runtime_turns_into_wave += 1
 	queue_redraw()
+	# T72c — pulse the current wave's turns_to_next label so the player
+	# gets a per-tick heartbeat in the timeline. The number itself stays
+	# at the original ttn (the cursor's position carries the "remaining"
+	# information); the pulse just announces "another turn passed".
+	var lbl: Control = _turns_widgets.get(_runtime_current_wave, null)
+	if lbl == null:
+		return
+	var dur: float = float(GameSpeed.get_value("ui", "wave_tick_anim_sec", 0.2))
+	if dur <= 0.0:
+		return
+	# Pivot already centered for Labels in _add_turns_label; LineEdits we
+	# don't pulse (EDIT mode never reaches this branch anyway).
+	var t: Tween = create_tween()
+	t.tween_property(lbl, "scale", Vector2(1.25, 1.25), dur * 0.5)
+	t.tween_property(lbl, "scale", Vector2(1.0, 1.0), dur * 0.5)

@@ -319,6 +319,13 @@ func _emit_initial_turn() -> void:
 	EventBus.world_turn_ended.emit(TurnManager.current())
 
 
+# 024 / T53e — proxy for WaveController.is_transitioning so input gates
+# stay terse. Returns false when no wave controller is mounted (procedural
+# sandbox).
+func _is_wave_transitioning() -> bool:
+	return _wave_controller != null and _wave_controller.is_transitioning()
+
+
 func _select_deferred() -> void:
 	_select(player)
 
@@ -589,14 +596,14 @@ func _handle_cast_lmb() -> void:
 # ── Actions ──────────────────────────────────────────────────────────────────
 
 func _wait_turn() -> void:
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 	GameLogger.info("Godmode", "player skipped turn")
 	TurnManager.advance()
 
 
 func _request_move() -> void:
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
@@ -677,7 +684,7 @@ func _cast_slot(slot_index: int) -> void:
 	if skill.abilities.is_empty():
 		GameLogger.warn("Godmode", "slot %d skill '%s' has no abilities" % [slot_index, skill.id])
 		return
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 
 	# Pre-check using mouse position. Cheap and matches 021 grey-out semantics.

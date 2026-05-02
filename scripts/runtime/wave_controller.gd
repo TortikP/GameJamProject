@@ -64,6 +64,12 @@ var _enemy_id_counter: int = 1
 var _actors_node: Node = null
 var _check_clear_queued: bool = false  # debounce repeated _check_auto_clear
 
+# 024 / T53e — wave transition input lock. Set true at the start of
+# _advance_wave's snapshot apply; cleared after wave_transition_sec via
+# GameSpeed.wait. Owners (godmode_controller) gate _unhandled_input on
+# is_transitioning() so player can't act mid-snapshot.
+var _is_transitioning: bool = false
+
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
 
@@ -111,6 +117,10 @@ func _advance_wave() -> void:
 		EventBus.level_completed.emit(RunScore.total)
 		return
 
+	# T53e — gate input across the snapshot apply + visual settle window.
+	# Owners (godmode_controller) read is_transitioning() in their input
+	# handlers to drop player events during this period.
+	_is_transitioning = true
 	_apply_wave_snapshot(_current_wave_index)
 	_turns_into_wave = 0
 	var w: Dictionary = _level.waves[_current_wave_index]
@@ -119,6 +129,30 @@ func _advance_wave() -> void:
 		int(w.get("turns_to_next", 0))
 	])
 	EventBus.wave_started.emit(_current_wave_index, bool(w.get("is_special", false)))
+	# Settle window — visuals tween, placeholders pop in. Clears the lock
+	# automatically. Spec AC-W16: GameSpeed.wait("battle", "wave_transition_sec").
+	_release_transition_lock_after_delay()
+
+
+## Returns true while a wave snapshot is being applied + the settle window
+## hasn't elapsed. Owners use this to gate player input.
+func is_transitioning() -> bool:
+	return _is_transitioning
+
+
+func _release_transition_lock_after_delay() -> void:
+	# Plain SceneTreeTimer here is intentional: GameSpeed.wait() awaits
+	# inside the calling function which would force _advance_wave to be
+	# async (and thus every of its many sync callers — _on_actor_died
+	# deferred, _on_world_turn_ended). Using a one-shot timer keeps
+	# _advance_wave synchronous while still honouring the GameSpeed
+	# config key (we read the value via get_value, not wait()).
+	var dur: float = float(GameSpeed.get_value("battle", "wave_transition_sec", 0.15))
+	if dur <= 0.0:
+		_is_transitioning = false
+		return
+	var timer: SceneTreeTimer = get_tree().create_timer(dur)
+	timer.timeout.connect(func() -> void: _is_transitioning = false)
 
 
 ## Apply waves[idx]'s snapshot (floor + objects + spawners) to the live

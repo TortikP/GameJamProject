@@ -48,7 +48,7 @@
   - [x] T53b. Diff old vs new objects: remove gone, add new, push-out если actor попал на newly-impassable.
   - [x] T53c. Discard `_pending_spawners`. Удалить старые placeholder ноды. Инстанциировать placeholder для каждого `waves[idx].spawners` (skip player kind на idx > 0). Скопировать в `_pending_spawners`.
   - [x] T53d. `_turns_into_wave = 0`.
-  - [ ] T53e. Wait `GameSpeed.wait("battle", "wave_transition_sec")` для visual settle. Player input блокировать на этот период. *(deferred — `start_level.call_deferred` already gives a frame; the explicit input lock can be added in P5/P7 polish if visible glitching warrants it. config key already added in P1.)*
+  - [x] T53e. Wait `GameSpeed.wait("battle", "wave_transition_sec")` для visual settle. Player input блокировать на этот период. *(WaveController.is_transitioning() returns true for wave_transition_sec after each _advance_wave; godmode_controller adds it to the existing `grid._moving or _world_processing` input gates at all three sites — wait_turn, request_move, request_cast.)*
 - [x] T54. `_on_world_turn_ended(turn)`:
   - [x] T54a. `_turns_into_wave++`.
   - [x] T54b. Decrement timer всех pending. timer→0 → `_spawn_from_pending` (создать actor через существующий spawn-helper, удалить placeholder, удалить из pending). Иначе → update placeholder label, оставить.
@@ -69,7 +69,7 @@
 - [x] T72. RUNTIME mode:
   - [x] T72a. Часы-курсор (Sprite2D или vector через _draw) на позиции `get_wave_start_turn(curr) + turns_into`. *(Drawn via `_draw` line + triangle pointer; no separate Sprite2D — simpler. Cursor uses `_runtime_current_wave` anchor x + `_runtime_turns_into_wave` × PIXELS_PER_TURN.)*
   - [x] T72b. Якоря пройденных волн — притушить (UiTheme `WAVE_ANCHOR_PASSED`).
-  - [ ] T72c. Tick анимация на decrement турн-счётчика — `Tween` на scale Label'a, `GameSpeed.wait("ui", "wave_tick_anim_sec")`. *(Deferred — cursor moves smoothly; per-number pulse can be added in 029-feedback-polish if it reads as flat.)*
+  - [x] T72c. Tick анимация на decrement турн-счётчика — `Tween` на scale Label'a, `GameSpeed.wait("ui", "wave_tick_anim_sec")`. *(_turns_widgets cache wave_idx → Label; on world_turn_ended in RUNTIME, scale-tween 1.0→1.25→1.0 over wave_tick_anim_sec on the current wave's number.)*
 - [x] T73. EDIT mode:
   - [x] T73a. Якоря — кликабельные `Control` ноды (не `_draw`). LMB → `anchor_clicked.emit(idx)`. RMB → `anchor_context_requested.emit(idx, screen_pos)`. *(Anchors hit-tested via `_gui_input` against the drawn discs — same end behaviour, less node bloat.)*
   - [x] T73b. Числа `turns_to_next` — `LineEdit` дети с numeric validation. Enter / focus_exit → `turns_to_next_changed.emit(idx, value)`. Esc → revert. *(Esc-revert deferred; commit on enter / focus_exit works.)*
@@ -86,7 +86,7 @@
 - [x] T80. `MapEditorController._level.waves` поле обращений (вместо корневых). `_active_wave_index: int = 0`. *(LevelData root fields stay as the active-wave view; `set_active_wave_index` sync-swaps them around. No 30+ callsite refactor needed.)*
 - [x] T81. Все placement-методы (`_place_floor`, `_place_object`, `_place_spawner`, `_erase_at`, replace-all, etc.) — пишут в `_level.waves[_active_wave_index]`. *(Achieved via the active-wave view; `to_dict` syncs root → waves[active] before serialize.)*
 - [x] T82. `_repaint_canvas()`: рисует только `_level.waves[_active_wave_index]` — это полный снапшот этой волны. *(Existing `_apply_level` repaints from root fields → which mirror waves[active]. Active-wave switch calls `_apply_level(_level, false)`.)*
-- [ ] T83. Highlight overlay для new-this-wave объектов. *(Deferred — pure visual aid; designer can A/B compare by clicking between waves. Land in 029-feedback-polish.)*
+- [x] T83. Highlight overlay для new-this-wave объектов. *(scripts/presentation/dev/wave_diff_overlay.gd compares waves[active] vs waves[active-1]: floor cells whose source/atlas changed, objects whose object_id changed, spawners whose kind/ref changed. Renders hex polygon (HexGeometry.flat_top_polygon_for_layer) with WAVE_DIFF_FILL/OUTLINE. Wave 0 → blank.)*
 - [x] T84. `scripts/presentation/dev/wave_panel.gd` + соответствующий node в `scenes/dev/map_editor.tscn` сверху над канвой.
 - [x] T85. WavePanel содержит:
   - [x] T85a. `WaveTimeline` instance в Mode.EDIT.
@@ -98,8 +98,8 @@
   - [x] T86c. `gap_context_requested(after_idx, pos)` → новая волна с copy-from-prev, индексы +1.
   - [x] T86d. `turns_to_next_changed(idx, value)` → `_level.waves[idx].turns_to_next = max(1, value)`, autosave.
   - [x] T86e. `add_wave_pressed` → append с copy-from-prev defaults, switch active. *(Previous-last-wave's ttn=0 promoted to DEFAULT_TURNS_TO_NEXT before append; new last gets ttn=0 to preserve invariant.)*
-- [ ] T87. Spawner placement / selection inline LineEdit для timer'a. *(Deferred — designers can hand-edit JSON or land in 029. Default timer=1 on placement; sample_waves.json shows non-default values.)*
-- [ ] T88. Visual: цифра timer'a рисуется на спавнере на канве. *(Deferred with T87.)*
+- [x] T87. Spawner placement / selection inline LineEdit для timer'a. *(_open_spawner_timer_editor floats LineEdit over hex on enemy placement and on IDLE-mode LMB on existing enemy spawner. Enter / focus_exit commits; Esc reverts. Position computed from camera.global_position + zoom. Closes on wave switch.)*
+- [x] T88. Visual: цифра timer'a рисуется на спавнере на канве. *(spawners_overlay.set_spawner now takes timer; renders FS_NUM_HUGE label with apply_world_text_outline next to the spawner glyph. Refreshed on commit / on _apply_level.)*
 - [x] T89. Validation: при save — extended `LevelData.validate()` уже учитывает waves-инварианты.
 - [x] T90. Autosave: любая wave-операция → debounce 1.5s → autosave. *(All wave handlers call `_mark_dirty()`.)*
 

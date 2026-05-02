@@ -123,6 +123,13 @@ const WAVE_NUMBER_COLOR             := Color("e8ecf3")  # turns_to_next digit
 const WAVE_CURSOR_COLOR             := Color("f5d97a")  # runtime "now" pointer
 const WAVE_CURSOR_HEIGHT            := 18.0             # px tall
 
+# 024 / T83 — wave-diff highlight (new-this-wave overlay in editor).
+# Subtle — designer should be able to ignore it during normal editing.
+# Applied to floor cells / objects / spawners that exist in waves[active]
+# but not in waves[active-1] at the same coord. Wave 0 → highlight off.
+const WAVE_DIFF_FILL                := Color(0.34, 0.78, 0.55, 0.18)  # green-ish fill
+const WAVE_DIFF_OUTLINE             := Color(0.34, 0.78, 0.55, 0.85)  # ring
+
 # ── Lookups ──────────────────────────────────────────────────
 
 ## Returns hp fill color by ratio (0..1).

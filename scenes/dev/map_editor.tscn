@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=19 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/paint_preview.gd" id="15_pp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="16_wt"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/wave_diff_overlay.gd" id="18_wdo"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -49,6 +50,9 @@ zoom = Vector2(0.5, 0.5)
 
 [node name="HexGrid" parent="." instance=ExtResource("2_hexgrid")]
 position = Vector2(640, 360)
+
+[node name="WaveDiffOverlay" type="Node2D" parent="HexGrid"]
+script = ExtResource("18_wdo")
 
 [node name="ObjectsOverlay" type="Node2D" parent="HexGrid"]
 script = ExtResource("4_oo")

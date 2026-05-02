@@ -59,6 +59,8 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 # 024: top docked WavePanel (timeline + buttons). Optional — editor still
 # works on a single-wave LevelData without it.
 @export var wave_panel_path: NodePath
+# 024 / T83: hex tint overlay for new-this-wave coords.
+@export var wave_diff_overlay_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -73,6 +75,7 @@ var _hotkey_overlay: Control
 var _tool_panel: Node
 var _paint_preview: Node2D
 var _wave_panel: Node
+var _wave_diff_overlay: Node2D
 var _autosave_timer: Timer
 
 # ── Editing state ───────────────────────────────────────────────────────────
@@ -139,6 +142,7 @@ func _ready() -> void:
 	_tool_panel = _resolve(tool_panel_path, "HUD/ToolPanel")
 	_paint_preview = _resolve(paint_preview_path, "HexGrid/PaintPreview") as Node2D
 	_wave_panel = _resolve(wave_panel_path, "HUD/WavePanel")
+	_wave_diff_overlay = _resolve(wave_diff_overlay_path, "HexGrid/WaveDiffOverlay") as Node2D
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
@@ -180,6 +184,9 @@ func _ready() -> void:
 	_wire_meta_panel()
 	_wire_tool_panel()
 	_wire_wave_panel()
+	# 024 / T83: initial bind of the diff overlay (wave 0 → no highlight).
+	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
+		_wave_diff_overlay.bind_level(_level)
 
 	# Pre-select the default floor tile so the user can immediately paint
 	# without first clicking a palette button.
@@ -485,7 +492,13 @@ func _paint_at(coord: Vector2i) -> void:
 func _paint_one(coord: Vector2i) -> void:
 	match _mode:
 		Mode.IDLE:
-			pass  # drag-existing is P3 stretch (T019)
+			# T87 — LMB on an existing enemy spawner opens the timer editor.
+			# Player spawner is skipped (timer fixed at 1); other targets
+			# are handled by other modes.
+			if _has_spawner_at(coord):
+				var s: Dictionary = _spawner_at(coord)
+				if s.get("kind", &"") == &"enemy":
+					_open_spawner_timer_editor(coord)
 		Mode.PLACING_FLOOR:
 			_place_floor(coord, _placing_source_id, _placing_atlas_coord)
 		Mode.ERASING_FLOOR:
@@ -647,10 +660,19 @@ func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 		if _has_object_at(coord) or _has_spawner_at(coord):
 			_emit_occupied_toast("Занято")
 			return
-	_level.spawners.append({"coord": coord, "kind": kind, "ref": ref})
+	_level.spawners.append({
+		"coord": coord, "kind": kind, "ref": ref,
+		"timer": LevelData.DEFAULT_SPAWNER_TIMER,
+	})
 	if _spawners_overlay != null and _spawners_overlay.has_method("set_spawner"):
-		_spawners_overlay.set_spawner(coord, kind, ref)
+		_spawners_overlay.set_spawner(coord, kind, ref, LevelData.DEFAULT_SPAWNER_TIMER)
 	_mark_dirty()
+	# T87 — pop the timer editor right after placement for enemy spawners.
+	# Player timer is fixed at 1 (player is permanent) so we skip it; jam-
+	# scope decision: hand a sensible default rather than block on a popup
+	# the designer would always Enter through.
+	if kind == &"enemy":
+		_open_spawner_timer_editor(coord)
 
 
 # ── RMB — pending delete ────────────────────────────────────────────────────
@@ -710,6 +732,15 @@ func _has_spawner_at(coord: Vector2i) -> bool:
 	return false
 
 
+## Returns the spawner dict at coord, or {} if none. Used by T87 to read
+## the current timer when opening the inline editor.
+func _spawner_at(coord: Vector2i) -> Dictionary:
+	for s in _level.spawners:
+		if s.coord == coord:
+			return s
+	return {}
+
+
 func _find_player_spawner() -> Vector2i:
 	for s in _level.spawners:
 		if s.kind == &"player":
@@ -759,6 +790,9 @@ func _mark_dirty() -> void:
 	# both flow through here.
 	if _wave_panel != null and _wave_panel.has_method("bind_level"):
 		_wave_panel.bind_level(_level)
+	# 024 / T83: diff overlay tracks the active wave's deltas vs prev wave.
+	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
+		_wave_diff_overlay.bind_level(_level)
 
 
 ## Counterpart to _mark_dirty — clear dirty state and update meta panel.
@@ -824,7 +858,8 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	for o in level.objects:
 		_objects_overlay.set_object(o.coord, o.object_id)
 	for s in level.spawners:
-		_spawners_overlay.set_spawner(s.coord, s.kind, s.ref)
+		_spawners_overlay.set_spawner(s.coord, s.kind, s.ref,
+				int(s.get("timer", LevelData.DEFAULT_SPAWNER_TIMER)))
 	# Update meta panel name field if present
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(level.name)
@@ -839,6 +874,9 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 			_wave_panel.bind_level(_level)
 		if _wave_panel.has_method("set_active_wave"):
 			_wave_panel.set_active_wave(_level.get_active_wave_index())
+	# 024 / T83: diff overlay refresh on load / wave switch / undo.
+	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
+		_wave_diff_overlay.bind_level(_level)
 
 
 # ── Wiring stubs (palettes/meta panel signal hookup) ────────────────────────
@@ -1192,6 +1230,9 @@ func _switch_to_wave(idx: int) -> void:
 		return
 	if idx == _level.get_active_wave_index():
 		return
+	# Close any in-flight inline editor — the spawner under it may not
+	# exist in the wave we're switching to.
+	_close_timer_editor()
 	# Persist current edits to the wave we're leaving, swap, repaint.
 	_level.set_active_wave_index(idx)
 	# _apply_level repaints the canvas + overlays from root fields, which
@@ -1267,3 +1308,113 @@ func _insert_wave_after(after_idx: int) -> void:
 	var last: int = _level.waves.size() - 1
 	_level.waves[last]["turns_to_next"] = 0
 	_switch_to_wave(insert_at)
+
+
+# ── 024 / T87-T88 — spawner timer inline editor ────────────────────────────
+#
+# Floats a numeric LineEdit over the spawner hex. Enter / focus_exit commits
+# to the spawner's `timer` field. Esc reverts. Re-opening on the same
+# spawner reuses the same node. Mounted as a child of HUD CanvasLayer
+# (positioned in viewport space via tile_map_layer.map_to_local +
+# camera transform). Opening twice on the same spawner steals focus.
+
+const SPAWNER_TIMER_MIN: int = 1
+const SPAWNER_TIMER_MAX: int = 99   # soft cap; validate() doesn't enforce
+
+var _timer_editor: LineEdit = null
+var _timer_editor_coord: Vector2i = Vector2i(-1, -1)
+var _timer_editor_baseline: int = 1   # for Esc-revert
+
+
+func _open_spawner_timer_editor(coord: Vector2i) -> void:
+	var s: Dictionary = _spawner_at(coord)
+	if s.is_empty():
+		return
+	var current_timer: int = int(s.get("timer", LevelData.DEFAULT_SPAWNER_TIMER))
+	if _timer_editor == null:
+		_timer_editor = LineEdit.new()
+		_timer_editor.context_menu_enabled = false
+		_timer_editor.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_timer_editor.custom_minimum_size = Vector2(48, 28)
+		_timer_editor.add_theme_font_size_override("font_size", 18)
+		_timer_editor.text_submitted.connect(_on_timer_editor_submitted)
+		_timer_editor.focus_exited.connect(_on_timer_editor_focus_exited)
+		_timer_editor.gui_input.connect(_on_timer_editor_gui_input)
+		# Mount under HUD so it floats above the canvas overlays.
+		var hud: Node = get_node_or_null("HUD")
+		if hud == null:
+			add_child(_timer_editor)
+		else:
+			hud.add_child(_timer_editor)
+	_timer_editor_coord = coord
+	_timer_editor_baseline = current_timer
+	_timer_editor.text = str(current_timer)
+	# Position over the spawner — convert tile-map-local to viewport space
+	# via the editor camera. Falls back to canvas-space if camera isn't
+	# resolved yet (shouldn't happen in steady state).
+	var world: Vector2 = grid.tile_map_layer.map_to_local(coord) + grid.position
+	if camera != null:
+		var screen: Vector2 = (world - camera.global_position) * camera.zoom \
+				+ get_viewport().get_visible_rect().size * 0.5
+		_timer_editor.position = screen + Vector2(-24, -56)
+	else:
+		_timer_editor.position = world + Vector2(-24, -56)
+	_timer_editor.show()
+	_timer_editor.grab_focus()
+	_timer_editor.select_all()
+
+
+func _on_timer_editor_submitted(_text: String) -> void:
+	_commit_timer_editor()
+
+
+func _on_timer_editor_focus_exited() -> void:
+	_commit_timer_editor()
+
+
+func _on_timer_editor_gui_input(event: InputEvent) -> void:
+	if event is InputEventKey and (event as InputEventKey).pressed \
+			and (event as InputEventKey).keycode == KEY_ESCAPE:
+		_revert_timer_editor()
+		get_viewport().set_input_as_handled()
+
+
+func _commit_timer_editor() -> void:
+	if _timer_editor == null:
+		return
+	if _timer_editor_coord == Vector2i(-1, -1):
+		return
+	var v_raw: int = int(_timer_editor.text)
+	var v: int = clampi(v_raw, SPAWNER_TIMER_MIN, SPAWNER_TIMER_MAX)
+	# Find the spawner and update its timer in the active wave's view.
+	for s in _level.spawners:
+		if s.coord == _timer_editor_coord:
+			if int(s.get("timer", 0)) != v:
+				_history.push(_level)
+				s["timer"] = v
+				_mark_dirty()
+			break
+	# Refresh the visual label on the canvas.
+	var s2: Dictionary = _spawner_at(_timer_editor_coord)
+	if not s2.is_empty() and _spawners_overlay != null \
+			and _spawners_overlay.has_method("set_spawner"):
+		_spawners_overlay.set_spawner(_timer_editor_coord,
+				s2.get("kind", &""), s2.get("ref", &""), v)
+	_close_timer_editor()
+
+
+func _revert_timer_editor() -> void:
+	if _timer_editor == null:
+		return
+	# Restore baseline; no history push since nothing changed.
+	for s in _level.spawners:
+		if s.coord == _timer_editor_coord:
+			s["timer"] = _timer_editor_baseline
+			break
+	_close_timer_editor()
+
+
+func _close_timer_editor() -> void:
+	if _timer_editor != null:
+		_timer_editor.hide()
+	_timer_editor_coord = Vector2i(-1, -1)
