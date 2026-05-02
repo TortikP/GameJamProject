@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://enemy_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/godmode/enemy_view.gd" id="1_view"]
+[ext_resource type="Script" path="res://scripts/presentation/health_bar.gd" id="2_hpbar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/status_icon_strip.tscn" id="3_strip"]
+
+[node name="Enemy" type="Node2D"]
+script = ExtResource("1_view")
+team = &"enemy"
+enemy_data_id = &""
+
+[node name="Body" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(1, 1)
+z_index = 4
+
+[node name="HealthBar" type="Node2D" parent="."]
+script = ExtResource("2_hpbar")
+y_offset = -50.0
+z_index = 6
+
+[node name="StatusIconStrip" parent="." instance=ExtResource("3_strip")]
+center_anchor = Vector2(0, -82)
+z_index = 8

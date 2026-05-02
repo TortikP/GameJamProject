@@ -34,7 +34,7 @@ const ENEMIES_DIR := "res://data/enemies/"
 ##                       declared one. View resolves Sprite2D and applies.
 ##
 ## Missing file / bad JSON → warn + return empty dict. Caller checks emptiness
-## and keeps scene defaults (manekin_view does max_hp <= 0 fallback).
+## and keeps scene defaults (enemy_view does max_hp <= 0 fallback).
 static func apply_to_actor(actor: Actor, enemy_id: StringName) -> Dictionary:
 	var hints: Dictionary = {}
 	if enemy_id == &"":

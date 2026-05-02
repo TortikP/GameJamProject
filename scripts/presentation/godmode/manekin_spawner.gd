@@ -6,7 +6,9 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
+# 036: single generic enemy.tscn, manekin selected by enemy_data_id JSON ref.
+const ENEMY_SCENE := preload("res://scenes/dev/enemy.tscn")
+const SANDBOX_ENEMY_ID: StringName = &"manekin"
 
 var _ctrl: Node = null
 var _next_idx: int = 1
@@ -29,7 +31,9 @@ func spawn() -> void:
 	var idx := _next_idx
 	_next_idx += 1
 	var id := StringName("dummy_%03d" % idx)
-	var manekin: Actor = MANEKIN_SCENE.instantiate()
+	var manekin: Actor = ENEMY_SCENE.instantiate()
+	# Set enemy_data_id BEFORE add_child so _ready loads manekin.json.
+	manekin.set(&"enemy_data_id", SANDBOX_ENEMY_ID)
 	manekin.actor_id = id
 	manekin.position = grid.tile_map_layer.map_to_local(coord)
 	var actors_node: Node = grid.get_node_or_null("Actors")

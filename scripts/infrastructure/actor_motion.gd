@@ -17,7 +17,7 @@ const _BODY_NODE_NAME: StringName = &"Body"
 
 ## 029 / req-7: subtle x-oscillation on the actor's visual sprite during a
 ## step. Targets the child node named "Body" (convention shared by player.tscn
-## and manekin.tscn — both have a Sprite2D child at that name). Fails silent
+## and enemy.tscn — both have a Sprite2D child at that name). Fails silent
 ## if the convention isn't met — sway is purely cosmetic.
 ##
 ## Why on Body, not the actor itself: the actor Node2D also carries HealthBar

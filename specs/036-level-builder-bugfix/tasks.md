@@ -3,60 +3,60 @@
 Sequential. Each task is committable on its own.
 
 ## T-1. Audit JSON sprite paths
-- [ ] For each `data/enemies/*.json`: check `sprite` value points to a real file under `assets/sprites/enemies/`.
-- [ ] Resolve any drift (e.g. `bush.json` → `assets/sprites/enemies/bush.png` exists; double-check all 12).
-- [ ] Output: list of mismatches if any. If list is non-empty, fix in this task.
+- [x] For each `data/enemies/*.json`: check `sprite` value points to a real file under `assets/sprites/enemies/`. **All 12 verified.**
+- [x] Resolve any drift (e.g. `bush.json` → `assets/sprites/enemies/bush.png` exists; double-check all 12). **No drift — all paths consistent.**
+- [x] Output: list of mismatches if any. If list is non-empty, fix in this task. **No mismatches.**
 
 ## T-2. Extend `EnemyDataLoader.apply_to_actor` to return view hints
-- [ ] File: `scripts/core/actors/enemy_data_loader.gd`.
-- [ ] Change return type `bool` → `Dictionary`. Empty dict = failure.
-- [ ] Populate `out["sprite"]` = `"res://" + data["sprite"]` if `data.has("sprite")`.
-- [ ] Update doc-comment to describe the dict contract.
+- [x] File: `scripts/core/actors/enemy_data_loader.gd`.
+- [x] Change return type `bool` → `Dictionary`. Empty dict = failure.
+- [x] Populate `out["sprite"]` = `"res://" + data["sprite"]` if `data.has("sprite")`.
+- [x] Update doc-comment to describe the dict contract.
 
 ## T-3. Update `manekin_view.gd` to apply sprite from hints
-- [ ] File: `scripts/presentation/godmode/manekin_view.gd`.
-- [ ] Call site reads new `Dictionary` return.
-- [ ] Resolve `Body` sprite, `load(hints["sprite"]) as Texture2D`, assign.
-- [ ] Keep fallback (`max_hp <= 0` → 20) intact.
-- [ ] **Rename file** to `enemy_view.gd`. Update `class_name` if any. Update `ext_resource` path in any .tscn that references it.
+- [x] File: `scripts/presentation/godmode/manekin_view.gd`.
+- [x] Call site reads new `Dictionary` return.
+- [x] Resolve `Body` sprite, `load(hints["sprite"]) as Texture2D`, assign.
+- [x] Keep fallback (`max_hp <= 0` → 20) intact.
+- [x] **Rename file** to `enemy_view.gd`. Update `class_name` if any. Update `ext_resource` path in any .tscn that references it. *(class_name not present; .tscn refs were in deleted bush.tscn/manekin.tscn — moot)*
 
 ## T-4. Create `scenes/dev/enemy.tscn`
-- [ ] Copy `scenes/dev/manekin.tscn` as starting point.
-- [ ] Drop the `Texture2D ext_resource`. Body keeps `Sprite2D` node, no texture.
-- [ ] Set `texture_filter = 1` on Body (nearest, for pixel art).
-- [ ] Keep `HealthBar` (script + y_offset = -50.0).
-- [ ] Keep `StatusIconStrip` (instance from `res://scenes/ui/status_icon_strip.tscn`, center_anchor (0, -82)).
-- [ ] Root node name: `Enemy`. Script: `enemy_view.gd` (renamed in T-3).
-- [ ] `enemy_data_id = &""` (must be set by spawner).
-- [ ] Set `team = &"enemy"`.
+- [x] Copy `scenes/dev/manekin.tscn` as starting point.
+- [x] Drop the `Texture2D ext_resource`. Body keeps `Sprite2D` node, no texture.
+- [x] Set `texture_filter = 1` on Body (nearest, for pixel art).
+- [x] Keep `HealthBar` (script + y_offset = -50.0).
+- [x] Keep `StatusIconStrip` (instance from `res://scenes/ui/status_icon_strip.tscn`, center_anchor (0, -82)).
+- [x] Root node name: `Enemy`. Script: `enemy_view.gd` (renamed in T-3).
+- [x] `enemy_data_id = &""` (must be set by spawner).
+- [x] Set `team = &"enemy"`.
 
 ## T-5. Collapse `ENEMY_SCENES` in `level_loader.gd`
-- [ ] File: `scripts/core/maps/level_loader.gd`.
-- [ ] Replace `MANEKIN_SCENE` / `BUSH_SCENE` consts + `ENEMY_SCENES` dict with single `const ENEMY_SCENE: PackedScene = preload("res://scenes/dev/enemy.tscn")`.
-- [ ] In `spawn_enemy_at`: drop `ENEMY_SCENES.has(enemy_id)` guard. Add upfront `FileAccess.file_exists("res://data/enemies/%s.json" % enemy_id)` check. If missing → warn + return null (same warn message — `unknown enemy_id` is still accurate).
-- [ ] After `instantiate()`, set `enemy.enemy_data_id = enemy_id` BEFORE `add_child`.
-- [ ] Apply same changes to private `_spawn_enemy`.
-- [ ] Drop unused `MANEKIN_SCENE` / `BUSH_SCENE` preloads.
+- [x] File: `scripts/core/maps/level_loader.gd`.
+- [x] Replace `MANEKIN_SCENE` / `BUSH_SCENE` consts + `ENEMY_SCENES` dict with single `const ENEMY_SCENE: PackedScene = preload("res://scenes/dev/enemy.tscn")`.
+- [x] In `spawn_enemy_at`: drop `ENEMY_SCENES.has(enemy_id)` guard. Add upfront `FileAccess.file_exists("res://data/enemies/%s.json" % enemy_id)` check. If missing → warn + return null (same warn message — `unknown enemy_id` is still accurate). *(Extracted as `_enemy_data_exists` helper, reused in `_spawn_enemy`.)*
+- [x] After `instantiate()`, set `enemy.enemy_data_id = enemy_id` BEFORE `add_child`. *(Used `actor.set(&"enemy_data_id", ...)` — keeps level_loader Actor-typed without depending on EnemyView's @export presence.)*
+- [x] Apply same changes to private `_spawn_enemy`.
+- [x] Drop unused `MANEKIN_SCENE` / `BUSH_SCENE` preloads.
 
 ## T-6. Delete `bush.tscn` and `manekin.tscn`
-- [ ] `git grep -F "manekin.tscn"` and `git grep -F "bush.tscn"` — list every reference.
-- [ ] For each ref: replace with `enemy.tscn`. If the ref is in a dev sandbox with a placed instance, that instance needs `enemy_data_id` set in the inspector.
-- [ ] Likely suspects: `scenes/dev/godmode.tscn`, `scenes/arena/` subscenes, anything that pre-instances an enemy at edit time.
-- [ ] After all refs migrated: `git rm scenes/dev/bush.tscn scenes/dev/manekin.tscn`.
+- [x] `git grep -F "manekin.tscn"` and `git grep -F "bush.tscn"` — list every reference.
+- [x] For each ref: replace with `enemy.tscn`. If the ref is in a dev sandbox with a placed instance, that instance needs `enemy_data_id` set in the inspector.
+- [x] Likely suspects: `scenes/dev/godmode.tscn`, `scenes/arena/` subscenes, anything that pre-instances an enemy at edit time. *(godmode.tscn does not pre-instance enemies — all spawns runtime via manekin_spawner / level_loader. Only `manekin_spawner.gd` referenced MANEKIN_SCENE — migrated to ENEMY_SCENE + enemy_data_id=&"manekin".)*
+- [x] After all refs migrated: `git rm scenes/dev/bush.tscn scenes/dev/manekin.tscn`.
 
 ## T-7. Verify sprite imports
-- [ ] Open Godot editor once on this branch. Let it import all 12 enemy sprites.
+- [ ] Open Godot editor once on this branch. Let it import all 12 enemy sprites. **(Egor — environmental.)**
 - [ ] `git status` — confirm `.import` files appear under `assets/sprites/enemies/`.
 - [ ] If `.gitignore` excludes `*.import` → leave it, document in HANDOFF that first-open imports are required. If it doesn't → commit them with this PR for one-shot setup.
 
 ## T-8. Smoke test
-- [ ] Build a test level in the map editor with one of each: angel, bear, bee, burning_bear, bush, fire_slime, lavender_lion, manekin, monkey, mushroom_boar, stapler, teapot.
+- [ ] Build a test level in the map editor with one of each: angel, bear, bee, burning_bear, bush, fire_slime, lavender_lion, manekin, monkey, mushroom_boar, stapler, teapot. **(Egor — needs running editor.)**
 - [ ] Save, reload as a level — confirm zero `unknown enemy_id` warnings, every enemy spawns with the correct sprite.
 - [ ] Confirm existing saved levels (find one in `data/maps/`) still load cleanly.
 
 ## T-9. Cleanup pass
-- [ ] Re-grep `manekin` across the repo — anything still referencing the removed scene/script/file should be flagged.
-- [ ] Update CLAUDE.md ownership table or HANDOFF only if the architecture change deserves a note. Otherwise leave both alone (don't churn docs for a localized fix).
+- [x] Re-grep `manekin` across the repo — anything still referencing the removed scene/script/file should be flagged. *(Two doc-comment fossils updated: `actor_motion.gd` and `enemy_data_loader.gd`.)*
+- [x] Update CLAUDE.md ownership table or HANDOFF only if the architecture change deserves a note. Otherwise leave both alone (don't churn docs for a localized fix). *(Skipped — bugfix doesn't change ownership lanes.)*
 
 ## Dependency graph
 
