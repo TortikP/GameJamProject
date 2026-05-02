@@ -484,6 +484,13 @@ func _update_castability() -> void:
 	# zone was computed against, so reachability and path agree.
 	_refresh_hover_path(coord)
 
+	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
+	# Only fires for enemies that have a non-null cast_intent — moving-only
+	# turns or idle holds get no tooltip (nothing to telegraph). The hex
+	# already shows the intent visually; tooltip adds the "what is this
+	# spell exactly" detail.
+	_refresh_intent_tooltip(target_id)
+
 
 ## 029 / bonus-2: hover-path computation + push to overlay. Cheap when no
 ## change (overlay early-returns on identical array) so calling per frame is OK.
@@ -531,13 +538,6 @@ func _refresh_hover_path(hover_coord: Vector2i) -> void:
 	for c in path:
 		typed.append(c)
 	_overlay.set_hover_path(typed)
-
-	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
-	# Only fires for enemies that have a non-null cast_intent — moving-only
-	# turns or idle holds get no tooltip (nothing to telegraph). The hex
-	# already shows the intent visually; tooltip adds the "what is this
-	# spell exactly" detail.
-	_refresh_intent_tooltip(target_id)
 
 
 ## 029 / req-6: hover-on-enemy → cast-intent tooltip dispatch. State-tracked so
