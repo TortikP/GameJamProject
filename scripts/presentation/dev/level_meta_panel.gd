@@ -15,6 +15,7 @@ extends PanelContainer
 ##   name_changed(new_name: String)
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const MAPS_DIR: String = "res://data/maps/"
 
@@ -64,6 +65,7 @@ func _build_ui() -> void:
 	header.text = "Level"
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
 	# Name input
 	var name_row := HBoxContainer.new()
@@ -134,3 +136,9 @@ func _on_playtest() -> void:
 
 func _on_exit() -> void:
 	exit_requested.emit()
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)

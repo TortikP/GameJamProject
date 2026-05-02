@@ -15,6 +15,7 @@ extends PanelContainer
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const ENEMIES_DIR: String = "res://data/enemies/"
 
@@ -66,6 +67,7 @@ func _build_ui() -> void:
 	header.text = "Objects"
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
 	_tab_bar = TabBar.new()
 	_tab_bar.add_tab("Spawners")
@@ -241,3 +243,9 @@ func _untoggle_others(self_btn: Button) -> void:
 	for child in _content.get_children():
 		if child is Button and child != self_btn:
 			(child as Button).button_pressed = false
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)

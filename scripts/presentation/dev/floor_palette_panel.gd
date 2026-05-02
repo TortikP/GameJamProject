@@ -16,6 +16,7 @@ extends PanelContainer
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
 	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
@@ -66,6 +67,7 @@ func _build_ui() -> void:
 	header.text = "Floor"
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
 	# Tileset dropdown
 	_tileset_dropdown = OptionButton.new()
@@ -244,3 +246,9 @@ func _label_for_atlas(source_id: int, atlas: Vector2i) -> String:
 			if tk != null and String(tk) != "":
 				return String(tk)
 	return "%d:%d,%d" % [source_id, atlas.x, atlas.y]
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)
