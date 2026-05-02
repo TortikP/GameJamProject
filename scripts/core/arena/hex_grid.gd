@@ -454,6 +454,176 @@ func rebuild_pathfinder() -> void:
 	_build_pathfinder()
 
 
+## 024-wave-editor: rebuild HexTile dict + pathfinder after a wave-snapshot
+## floor mutation, WITHOUT recreating the TileObject / TileEffect registries.
+## Full initialize() instantiates fresh registries, which breaks any cached
+## refs in TileObjectResolver (019). Wave transitions only mutate cell
+## existence + atlas — registries are stable across waves, so we keep them.
+func reinitialize_tiles_only() -> void:
+	if tile_map_layer == null:
+		GameLogger.warn("HexGrid", "reinitialize_tiles_only: tile_map_layer is null")
+		return
+	# Drop tile dict, rebuild from current TileMapLayer state. Registries
+	# stay attached.
+	_tiles.clear()
+	_build_tile_map()
+	_build_pathfinder()
+
+
+# ── Displacement / push-out (024-wave-editor) ───────────────────────────────
+##
+## When a wave snapshot makes a hex impassable while an actor is standing on
+## it, the actor must be pushed to the nearest passable cell. find_passable
+## does the BFS spiral lookup; displace_actor applies the move and recurses
+## if the target is itself occupied (chain-push). Same algorithm for player
+## and enemies — symmetry pillar (CLAUDE.md §design pillars).
+
+const MAX_DISPLACEMENT_RADIUS: int = 30
+
+
+## BFS hex-spiral from `from` outward, returning the first passable + free
+## coord. `exclude` is a list of coords to treat as blocked (used by
+## chain-push to avoid bouncing into already-resolved cells).
+##
+## Returns Vector2i.MAX as a sentinel when no target is reachable within
+## MAX_DISPLACEMENT_RADIUS layers. `from` itself is never considered as a
+## destination — by definition it's the cell we're trying to leave.
+##
+## Determinism: neighbour iteration uses _get_walkable_neighbours which goes
+## through TileMapLayer.get_neighbor_cell with a fixed dir order (TL→T→TR→
+## BR→B→BL). BFS expand-order is therefore stable across runs.
+func find_passable_for_displacement(from: Vector2i,
+		exclude: Array = []) -> Vector2i:
+	var blocked: Dictionary = { from: true }
+	for c in exclude:
+		blocked[c] = true
+	var frontier: Array[Vector2i] = [from]
+	for _depth in MAX_DISPLACEMENT_RADIUS:
+		var next: Array[Vector2i] = []
+		for coord in frontier:
+			# Iterate ALL neighbours (incl. impassable terrain) so the BFS
+			# can keep expanding through walls, but only return passable +
+			# unoccupied + non-excluded cells.
+			var dirs: Array = [
+				TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,
+				TileSet.CELL_NEIGHBOR_TOP_SIDE,
+				TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,
+				TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,
+				TileSet.CELL_NEIGHBOR_BOTTOM_SIDE,
+				TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,
+			]
+			for dir in dirs:
+				var nb: Vector2i = tile_map_layer.get_neighbor_cell(coord, dir)
+				if blocked.has(nb):
+					continue
+				blocked[nb] = true  # mark so we don't reprocess
+				# Pass through impassable for spiral expansion, but only
+				# return passable+free cells.
+				if not _tiles.has(nb):
+					continue
+				if not _is_tile_passable(_tiles[nb]):
+					next.append(nb)
+					continue
+				if _occupants.has(nb):
+					next.append(nb)
+					continue
+				return nb
+			# Bound on visited size as belt-and-suspenders against pathological
+			# tilemaps (huge but disconnected regions).
+			if blocked.size() > 4000:
+				return Vector2i.MAX
+		frontier = next
+		if frontier.is_empty():
+			break
+	return Vector2i.MAX
+
+
+## Move `actor` off its current coord onto the nearest passable + free cell.
+## If that target is occupied by another actor B (chain case), recurses to
+## displace B first. `exclude` accumulates source coords + intermediate
+## targets across the chain so a → b → ... never bounces back to a.
+##
+## Returns true if the actor is now on a different coord (or was killed —
+## either way we're done with it). Returns false only on hard failure
+## (actor isn't on the grid, no neighbour passable in the chain — last
+## actor in the chain dies in that case via kill_with_reason).
+##
+## Note: this uses _direct_set_position — NOT move_actor — because the cell
+## we're leaving is in the middle of being mutated (a snapshot apply just
+## erased it). move_actor would try to A* through a hole. We bypass the
+## pathfinder and tween/animate via the same actor_step_started signal so
+## listeners (camera, sprite tween) still get the visual.
+func displace_actor(actor: Actor, exclude: Array = []) -> bool:
+	if actor == null:
+		return false
+	var a: Actor = actor
+	var from: Vector2i = _actor_positions.get(a.actor_id, Vector2i(-1, -1))
+	if from == Vector2i(-1, -1):
+		return false
+	var target: Vector2i = find_passable_for_displacement(from, exclude)
+	if target == Vector2i.MAX:
+		# No room anywhere — actor is crushed. Frees the cell.
+		a.kill_with_reason("crushed")
+		_clear_position(a.actor_id)
+		return true
+	# If target is occupied, chain-push the resident first. Append the
+	# original from + chosen target to exclude so recursion doesn't
+	# double-back.
+	var resident: StringName = _occupants.get(target, &"")
+	if resident != &"" and resident != a.actor_id:
+		var occupant: Actor = null
+		if registry_lookup.has(resident):
+			occupant = registry_lookup[resident]
+		# Without a registry hook we fall back to scene-tree search.
+		if occupant == null:
+			occupant = _find_actor_node_by_id(resident)
+		var next_exclude: Array = exclude.duplicate()
+		next_exclude.append(from)
+		next_exclude.append(target)
+		if occupant != null:
+			var chained: bool = displace_actor(occupant, next_exclude)
+			if not chained:
+				# Couldn't move the occupant — abort this displacement, kill
+				# the original actor (worst case) so we don't leave stale
+				# state.
+				a.kill_with_reason("crushed")
+				_clear_position(a.actor_id)
+				return true
+	# Land the actor on target.
+	_clear_position(a.actor_id)
+	_actor_positions[a.actor_id] = target
+	_occupants[target] = a.actor_id
+	# Visual: snap position + emit step_started so listeners can tween.
+	emit_signal("actor_step_started", a.actor_id, from, target)
+	a.position = tile_map_layer.map_to_local(target)
+	EventBus.actor_moved.emit(a.actor_id, from, target)
+	EventBus.tile_entered.emit(a.actor_id, target)
+	# Trigger tile-effect resolution at the landing tile (lava, fountain,
+	# etc.) — push-out damage-on-land per spec AC-W11.
+	_check_tile_effect(a.actor_id, target)
+	emit_signal("actor_step_finished", a.actor_id, target)
+	return true
+
+
+# Optional registry-by-id lookup. Owners (godmode/arena controllers) can
+# poke their ActorRegistry into this dict so displace_actor's chain-push can
+# resolve occupant ids without a tree walk. Unset → falls back to scene-tree
+# scan (slow but works).
+var registry_lookup: Dictionary = {}
+
+
+func _find_actor_node_by_id(id: StringName) -> Actor:
+	# Slow path — scan all known actor nodes under HexGrid/Actors. Cheap
+	# enough for jam scope (a handful of enemies).
+	var actors_node: Node = get_node_or_null("Actors")
+	if actors_node == null:
+		actors_node = self
+	for child in actors_node.get_children():
+		if child is Actor and (child as Actor).actor_id == id:
+			return child
+	return null
+
+
 # ── Internal ─────────────────────────────────────────────────────────────────
 
 func _check_tile_effect(actor_id: StringName, coord: Vector2i) -> void:

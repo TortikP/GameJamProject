@@ -19,9 +19,14 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
-	{"label": "Placeholder (6 tiles)", "path": "res://scenes/dev/placeholder_terrain.tres"},
-	{"label": "Godmode Terrain",       "path": "res://scenes/dev/godmode_terrain.tres"},
-	{"label": "Hex Terrain",           "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
+	# Per Andrey: "Дропни все атласы кроме godmode из редактора уровней.
+	# Не нужны нам другие атласы, все новые гексы добавлять туда".
+	# placeholder_terrain.tres and hex_terrain.tres are no longer offered;
+	# levels referencing them still load (LevelData.tileset_path is just a
+	# string), but the palette will only build buttons for godmode tiles.
+	# Old levels saved with a different tileset will look "wrong" until
+	# their cells are repainted with godmode tiles — acceptable jam tradeoff.
+	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
 ]
 
 const ICON_SIZE: Vector2 = Vector2(48, 48)
@@ -70,12 +75,15 @@ func _build_ui() -> void:
 	vbox.add_child(header)
 	_install_drag(header)
 
-	# Tileset dropdown
+	# Tileset dropdown — only useful when there's more than one option.
+	# Hidden in jam config (godmode-only); re-shows automatically if
+	# TILESETS gains entries.
 	_tileset_dropdown = OptionButton.new()
 	for i in TILESETS.size():
 		_tileset_dropdown.add_item(TILESETS[i].label, i)
 	_tileset_dropdown.item_selected.connect(_on_tileset_selected)
 	UiTheme.apply_button_styling(_tileset_dropdown)
+	_tileset_dropdown.visible = TILESETS.size() > 1
 	vbox.add_child(_tileset_dropdown)
 
 	# Erase button

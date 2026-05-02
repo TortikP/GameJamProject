@@ -9,13 +9,33 @@ hand-editable if you want to tweak something quickly without launching the game.
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `name` | string | yes | Human-readable name. Filename is `<sanitized_name>.json` (lowercase, `[^a-z0-9_-]` → `_`). |
-| `version` | int | yes | Schema version. Current = `1`. |
+| `version` | int | yes | Schema version. Current = `2` (added `waves[]` in 024). |
 | `tileset_path` | string | yes | `res://...` path to a `.tres` TileSet. Default: `res://scenes/dev/godmode_terrain.tres`. |
-| `floor` | array | yes | Each painted hex. Empty array = empty map (won't pass validation if you also have a player spawner with no floor under it). |
-| `objects` | array | yes (may be empty) | TileObjects (018) placed on the floor. |
-| `spawners` | array | yes | Must contain exactly one `player` spawner. |
+| `waves` | array | yes | Sequence of waves. Wave 0 = initial state. Last wave's `turns_to_next` must be 0. |
 
-## `floor[]` entry
+`v1` files (with root-level `floor` / `objects` / `spawners` and no `waves[]`)
+are accepted for read and migrated transparently into a single-wave layout.
+The editor always writes `v2`. Hand-edited `v1` files keep working.
+
+## `waves[]` entry
+
+```json
+{
+  "index": 0,
+  "is_special": false,
+  "turns_to_next": 5,
+  "floor":    [ /* same shape as legacy LevelData.floor */ ],
+  "objects":  [ /* same shape as legacy LevelData.objects */ ],
+  "spawners": [ /* same shape as legacy LevelData.spawners + "timer": int */ ]
+}
+```
+
+- `index` — must equal the wave's position in the array (0-based, contiguous). The loader reindexes defensively.
+- `is_special` — visual tag only in v1 of 024 (renders as a larger anchor on the timeline). No mechanical effect yet.
+- `turns_to_next` — turns from this wave's start until the next wave auto-advances. Must be `>= 1` for every wave except the last; the last wave **must** have `turns_to_next: 0`. Auto-clear (kill all enemies + no pending spawners) advances earlier and credits the unused turns to `RunScore`.
+- `floor` / `objects` / `spawners` — full snapshot of the world at this wave's start. No diffs. Reordering or inserting waves does not cascade to neighbours.
+
+## `floor[]` entry (per wave)
 
 ```json
 { "coord": [3, 2], "source_id": 0, "atlas_coord": [0, 0] }
@@ -25,65 +45,101 @@ hand-editable if you want to tweak something quickly without launching the game.
 - `source_id` — TileSet source index. For `godmode_terrain.tres`: only `0`. For `hex_terrain.tres`: also `0`.
 - `atlas_coord` — `[ax, ay]` within the TileSetAtlasSource. Picks which tile graphic.
 
-## `objects[]` entry
+## `objects[]` entry (per wave)
 
 ```json
 { "coord": [3, 2], "object_id": "lava_pool" }
 ```
 
-- `coord` — must match a coord that exists in `floor[]`. Out-of-floor objects are dropped at load time with a warning.
+- `coord` — must match a coord that exists in the same wave's `floor[]`. Out-of-floor objects are dropped at load time with a warning.
 - `object_id` — must match a JSON file in `data/tile_objects/` (without `.json`). Unknown ids are dropped with a warning.
 
 Current valid `object_id`s: `boulder`, `heal_fountain`, `lava_pool`, `mountain`, `wooden_barrel`, `wooden_table`.
 
-One object per coord. The editor enforces this; hand edits that break it are caught by `LevelData.validate()` on save/load.
+One object per coord per wave. The editor enforces this; hand edits that break it are caught by `LevelData.validate()` on save/load.
 
-## `spawners[]` entry
+## `spawners[]` entry (per wave)
 
 ```json
-{ "coord": [4, 4], "kind": "player", "ref": "" }
-{ "coord": [6, 4], "kind": "enemy",  "ref": "manekin" }
+{ "coord": [4, 4], "kind": "player", "ref": "",        "timer": 1 }
+{ "coord": [6, 4], "kind": "enemy",  "ref": "manekin", "timer": 3 }
 ```
 
-- `coord` — must match a `floor[]` coord and not collide with another spawner or object.
-- `kind` — `"player"` or `"enemy"`. Exactly one `"player"` is required.
+- `coord` — must match the same wave's `floor[]` coord and not collide with another spawner or object.
+- `kind` — `"player"` or `"enemy"`. **Exactly one `"player"` is required across the union of all waves.**
 - `ref` —
   - For `player`: `""` (empty).
   - For `enemy`: enemy_id matching a JSON file in `data/enemies/` (without `.json`). Currently: `manekin`.
+- `timer` — integer `>= 1`. Counted **down** at the end of each `world_turn_ended` from the wave's start. When the timer ticks from 1→0, the actor instantiates on the next world-turn end and the placeholder disappears. Pending spawners are discarded if the wave changes before they fire.
 
 If `kind == "enemy"` and `ref` is unknown, the spawner is skipped at load time.
 
-## Full example
+## Full example (3-wave level)
 
 ```json
 {
-  "name": "Tutorial 1",
-  "version": 1,
+  "name": "Tutorial Waves",
+  "version": 2,
   "tileset_path": "res://scenes/dev/godmode_terrain.tres",
-  "floor": [
-    { "coord": [0, 0], "source_id": 0, "atlas_coord": [0, 0] },
-    { "coord": [1, 0], "source_id": 0, "atlas_coord": [0, 0] },
-    { "coord": [2, 0], "source_id": 0, "atlas_coord": [0, 0] }
-  ],
-  "objects": [
-    { "coord": [1, 0], "object_id": "lava_pool" }
-  ],
-  "spawners": [
-    { "coord": [0, 0], "kind": "player", "ref": "" },
-    { "coord": [2, 0], "kind": "enemy",  "ref": "manekin" }
+  "waves": [
+    {
+      "index": 0,
+      "is_special": false,
+      "turns_to_next": 5,
+      "floor": [
+        { "coord": [0, 0], "source_id": 0, "atlas_coord": [0, 0] },
+        { "coord": [1, 0], "source_id": 0, "atlas_coord": [0, 0] },
+        { "coord": [2, 0], "source_id": 0, "atlas_coord": [0, 0] }
+      ],
+      "objects": [],
+      "spawners": [
+        { "coord": [0, 0], "kind": "player", "ref": "",        "timer": 1 },
+        { "coord": [2, 0], "kind": "enemy",  "ref": "manekin", "timer": 2 }
+      ]
+    },
+    {
+      "index": 1,
+      "is_special": true,
+      "turns_to_next": 6,
+      "floor": [
+        { "coord": [0, 0], "source_id": 0, "atlas_coord": [0, 0] },
+        { "coord": [1, 0], "source_id": 0, "atlas_coord": [0, 0] },
+        { "coord": [2, 0], "source_id": 0, "atlas_coord": [0, 0] }
+      ],
+      "objects": [],
+      "spawners": [
+        { "coord": [2, 0], "kind": "enemy", "ref": "manekin", "timer": 3 }
+      ]
+    },
+    {
+      "index": 2,
+      "is_special": false,
+      "turns_to_next": 0,
+      "floor": [
+        { "coord": [0, 0], "source_id": 0, "atlas_coord": [0, 0] },
+        { "coord": [2, 0], "source_id": 0, "atlas_coord": [0, 0] }
+      ],
+      "objects": [],
+      "spawners": []
+    }
   ]
 }
 ```
 
 ## Validation errors
 
-`LevelData.validate()` returns a list of error strings; the editor blocks save if non-empty:
+`LevelData.validate()` returns a list of error strings; the editor blocks save if any non-`WARN:` entries are present:
 
-- `Object <id> on unpainted tile <coord>` — object's coord is not in `floor[]`.
-- `Tile <coord> already occupied` — two objects/spawners on the same hex.
-- `Spawner <kind> on unpainted tile <coord>` — spawner's coord is not in `floor[]`.
-- `No player spawner — set Player Spawn before saving`.
-- `Multiple player spawners (N) — only one allowed`.
+- `Wave N has index M (expected N)` — file has non-contiguous wave indices. Editor reindexes on load defensively, so this should only fire on hand-edits.
+- `Wave N turns_to_next must be >= 1 (got M)` — non-final waves need a positive turn budget.
+- `Last wave (N) turns_to_next must be 0 (got M)` — the final wave is closed by `level_completed`, not by a timer.
+- `Wave N: object <id> on unpainted tile <coord>` — object's coord is not in this wave's `floor[]`.
+- `Wave N: tile <coord> already occupied` — two objects/spawners on the same hex within one wave.
+- `Wave N: spawner <kind> on unpainted tile <coord>` — spawner's coord is not in this wave's `floor[]`.
+- `Wave N: spawner timer must be >= 1 (got M)`.
+- `WARN: Wave N: spawner timer (M) > turns_to_next (K) — won't trigger` — non-blocking; designer may have meant it (the spawner is intentionally inert in this wave).
+- `No player spawner — set Player Spawn in some wave before saving`.
+- `Multiple player spawners (N) across waves — only one allowed total`.
 
 ## Reserved filenames
 
