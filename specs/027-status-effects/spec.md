@@ -348,6 +348,13 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
   pull-через-разные-cast'ы — невозможен по re-apply-семантике, но
   суммируем на случай если в будущем разрешим многоисточниковый shield;
   пока всегда ≤1 инстанс).
+- **AC-RT-strong**: `Actor.damage_amplifier()` суммирует все snapshot'ы
+  активных инстансов strong (положительный знак). `DamageEffect.apply` и
+  `Ability.predicted_damage_to` оба читают этот суммарный bonus в
+  паре с `damage_bonus`. Final damage clamp'ится к 0.
+- **AC-RT-weak**: симметрично strong, но `damage_amplifier` возвращает
+  отрицательное (сложение с strong алгебраическое). Достаточно weak'а
+  больше базового урона → итоговый урон 0 (`maxi(0, ...)` в DamageEffect).
 
 ### Re-apply семантика
 - **AC-RA1**: `actor.add_status(instance_b)` при существующем инстансе с
@@ -431,7 +438,8 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
 
 ### Smoke / scenarios
 - **AC-X1**: Запуск проекта → `SkillDatabase` грузит все skills без warn'ов;
-  `StatusRegistry` грузит все 9 статусов без warn'ов.
+  `StatusRegistry` грузит 11 статусов (stunned, slowed, poisoned, rooted,
+  feared, burning, glitched, shielded, enraged, strong, weak) без warn'ов.
 - **AC-X2**: Godmode — каст `test_combo_hex_circle_damage_status` по группе
   врагов: damage применяется сразу (8), на следующем `world_turn_ended`
   burning(2,3,1) тикает по 3 урона, через 2 хода expire.
@@ -507,6 +515,19 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
 5. **DoT-урон vs death timing** — если burning убивает в начале хода,
    actor лишается своего хода целиком. Альтернатива — DoT в конце хода.
    Сейчас в начале — симметрично с poisoned по описанию из чата.
+6. **Full-absorb damage UX** — когда shielded полностью гасит входящий
+   урон, `Actor.take_damage` молча возвращает без `damage_dealt` event'а.
+   Игрок видит pill `◆` но никаких floating numbers — выглядит как
+   промах. Опции: emit'ить damage_dealt(amount=0), отдельный
+   `EventBus.damage_absorbed` сигнал, или floating-text «ABSORBED».
+7. **Slowed AI 1-tick lag** — slowed начинает действовать со ВТОРОГО
+   `world_turn_ended` после apply'а (resolve выполняется до plan'а в том же
+   фрейме, поэтому первый ход после применения уже spent на resolve старого
+   плана). Acceptable для джема; если очевидно playtester'ам — apply-time
+   set rt_flag=1 фиксит.
+8. **Stun multi-tick recursion** — N тиков stun = N×`stun_skip_delay`
+   «тёмных кадров» с pill'ом. Если играет нудно — можно тикать все
+   decrement'ы за один кадр без advance/recursion.
 
 ## Зависимости
 

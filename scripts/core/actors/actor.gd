@@ -165,7 +165,7 @@ func add_status(instance: StatusInstance) -> void:
 	# Re-apply: fire on_remove for the existing instance before overwriting.
 	if _statuses.has(instance.status_id):
 		var old: StatusInstance = _statuses[instance.status_id]
-		var old_rt: Variant = StatusRegistry.runtime_for(old.status_id)
+		var old_rt: GDScript = StatusRegistry.runtime_for(old.status_id)
 		if old_rt != null:
 			old_rt.on_remove(self, old)
 	_statuses[instance.status_id] = instance
