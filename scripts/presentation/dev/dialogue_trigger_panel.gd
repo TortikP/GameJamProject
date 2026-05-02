@@ -16,7 +16,7 @@ extends PanelContainer
 ##
 ## Owner: Andrey / 039-dialogue-triggers.
 
-const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
+const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const DraggablePanelScript = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
