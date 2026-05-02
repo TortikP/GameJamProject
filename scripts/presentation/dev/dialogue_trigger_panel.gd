@@ -97,7 +97,7 @@ func select_trigger(id: StringName) -> void:
 
 func _build_ui() -> void:
 	var vbox := VBoxContainer.new()
-	UiThemeScript.apply_spacing(vbox, 4)
+	vbox.add_theme_constant_override("separation", 4)
 	add_child(vbox)
 
 	# Header
@@ -114,7 +114,7 @@ func _build_ui() -> void:
 	UiThemeScript.apply_label_kind(_count_label, "dim")
 	header.add_child(_count_label)
 	_collapse_btn = Button.new()
-	UiThemeScript.apply_button_style(_collapse_btn)
+	UiThemeScript.apply_button_styling(_collapse_btn)
 	_collapse_btn.text = "v"
 	_collapse_btn.flat = true
 	_collapse_btn.pressed.connect(_on_collapse_toggled)
@@ -130,22 +130,22 @@ func _build_ui() -> void:
 	var btn_row := HBoxContainer.new()
 	vbox.add_child(btn_row)
 	var btn_add := Button.new()
-	UiThemeScript.apply_button_style(btn_add)
+	UiThemeScript.apply_button_styling(btn_add)
 	btn_add.text = "+ Add"
 	btn_add.pressed.connect(_on_add_pressed)
 	btn_row.add_child(btn_add)
 	_btn_edit = Button.new()
-	UiThemeScript.apply_button_style(_btn_edit)
+	UiThemeScript.apply_button_styling(_btn_edit)
 	_btn_edit.text = "Edit"
 	_btn_edit.pressed.connect(_on_edit_pressed)
 	btn_row.add_child(_btn_edit)
 	_btn_dupe = Button.new()
-	UiThemeScript.apply_button_style(_btn_dupe)
+	UiThemeScript.apply_button_styling(_btn_dupe)
 	_btn_dupe.text = "Dupe"
 	_btn_dupe.pressed.connect(_on_duplicate_pressed)
 	btn_row.add_child(_btn_dupe)
 	_btn_delete = Button.new()
-	UiThemeScript.apply_button_style(_btn_delete)
+	UiThemeScript.apply_button_styling(_btn_delete)
 	_btn_delete.text = "Delete"
 	_btn_delete.pressed.connect(_on_delete_pressed)
 	btn_row.add_child(_btn_delete)
@@ -236,10 +236,10 @@ func _build_form(parent: Control) -> void:
 	# Form buttons
 	var form_btns := HBoxContainer.new()
 	sb.add_child(form_btns)
-	var save_btn := Button.new(); UiThemeScript.apply_button_style(save_btn); save_btn.text = "Save"
+	var save_btn := Button.new(); UiThemeScript.apply_button_styling(save_btn); save_btn.text = "Save"
 	save_btn.pressed.connect(_on_form_save)
 	form_btns.add_child(save_btn)
-	var cancel_btn := Button.new(); UiThemeScript.apply_button_style(cancel_btn); cancel_btn.text = "Cancel"
+	var cancel_btn := Button.new(); UiThemeScript.apply_button_styling(cancel_btn); cancel_btn.text = "Cancel"
 	cancel_btn.pressed.connect(_on_form_cancel)
 	form_btns.add_child(cancel_btn)
 
