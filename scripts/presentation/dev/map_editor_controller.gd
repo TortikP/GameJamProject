@@ -1154,7 +1154,8 @@ func _refresh_wave_panel() -> void:
 		_wave_panel.bind_level(_level)
 	if _wave_panel.has_method("set_active_wave"):
 		_wave_panel.set_active_wave(_level.get_active_wave_index())
-	_refresh_timeline_dialogue_markers() ----------------------------------------
+	_refresh_timeline_dialogue_markers()
+
 
 func _wire_dialogue_trigger_panel() -> void:
 	if _dialogue_trigger_panel == null:
