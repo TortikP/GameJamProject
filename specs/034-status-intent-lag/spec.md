@@ -337,21 +337,22 @@ status. Designer-side ergonomics — collapses paper_jam-style stacks.
 
 **Format:**
 ```json
-"effects": [{"status_id": "rooted(2), slowed(3)"}]
+"effects": [{"status_id": "rooted(2); slowed(3)"}]
 ```
 
-Backward-compatible — single-status legacy `"burning(2, 3, 1)"` has zero
-top-level commas, splits to one element, parses as before.
+Semicolon (not comma) is the separator — comma is already used inside
+status args (`burning(2, 3, 1)`). Whitespace around the semicolon is
+tolerated. Backward-compatible: single-status legacy
+`"burning(2, 3, 1)"` has no semicolon, splits to one element, parses
+as before.
 
 **Implementation:** `AbilityDatabase._make_status_effect` (singular)
-becomes `_make_status_effects` (plural, returns Array). New helper
-`_split_top_level_commas(s)` does paren-depth-aware splitting so commas
-inside `(2, 3, 1)` aren't mistaken for status separators. Each part
-runs through the existing `_parse_status_string` + arity check; bad
-parts log + drop, good parts append to the effect list.
+becomes `_make_status_effects` (plural, returns Array). Body splits the
+value on `;` and runs each part through the existing `_parse_status_string`
++ arity check. Bad parts log + drop, good parts append to the effect list.
 
 **Touches:** `scripts/core/abilities/ability_database.gd`,
-`data/skills/test_status_multi.json` (new — uses `"rooted(2), slowed(3)"`
+`data/skills/test_status_multi.json` (new — uses `"rooted(2); slowed(3)"`
 in one effect for AC-F5 verification).
 
 **AC-F5a**: Cast `test_status_multi` on a manekin. Manekin gains both
@@ -359,5 +360,5 @@ rooted and slowed, with correct durations (2 and 3). Both pills visible.
 **AC-F5b**: Existing single-status JSONs (`paper_jam`, `ball_throw`,
 `spores`, `curse`, `honey_cold`, `staple_shot`) parse and apply
 unchanged.
-**AC-F5c**: Malformed entry in the list (e.g. `"rooted(2), garbage(x)"`)
+**AC-F5c**: Malformed entry in the list (e.g. `"rooted(2); garbage(99)"`)
 logs a warn for the bad part and applies the good one anyway.

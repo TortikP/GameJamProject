@@ -106,8 +106,9 @@ Manual via godmode (no automated tests in repo).
   hexes/turn from player).
 - [x] **F11** — `scripts/core/abilities/ability_database.gd`: replace
   `_make_status_effect` (singular) with `_make_status_effects` (plural,
-  returns Array). Add `_split_top_level_commas` paren-aware splitter.
-  Caller in `_make_effects_from_dict` switches to `out.append_array(...)`.
+  returns Array). Inline `String.split(";")` — no helper needed since
+  semicolon never collides with arg-comma. Caller in
+  `_make_effects_from_dict` switches to `out.append_array(...)`.
   Backward-compatible (single-status JSONs unchanged).
 - [x] **F12** — `data/skills/test_status_multi.json`: minimal test skill
   with `"status_id": "rooted(2), slowed(3)"` for AC-F5a manual run.

@@ -18,7 +18,7 @@
       "target": {"kind": "actor", "range": 5},
       "area": {"kind": "chain", "area_max_chain_length": 1, "area_radius": 1},
       "effects": [
-        {"status_id": "rooted(2), slowed(3)"}
+        {"status_id": "rooted(2); slowed(3)"}
       ],
       "modifiers": []
     }
