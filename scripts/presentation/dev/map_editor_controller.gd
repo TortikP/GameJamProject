@@ -60,6 +60,8 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 @export var wave_panel_path: NodePath
 # 024 / T83: hex tint overlay for new-this-wave coords.
 @export var wave_diff_overlay_path: NodePath
+# 039: dialogue trigger sidebar.
+@export var dialogue_trigger_panel_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -75,6 +77,7 @@ var _tool_panel: Node
 var _paint_preview: Node2D
 var _wave_panel: Node
 var _wave_diff_overlay: Node2D
+var _dialogue_trigger_panel: Node
 var _autosave_timer: Timer
 
 # ── Editing state ───────────────────────────────────────────────────────────
@@ -142,6 +145,7 @@ func _ready() -> void:
 	_paint_preview = _resolve(paint_preview_path, "HexGrid/PaintPreview") as Node2D
 	_wave_panel = _resolve(wave_panel_path, "HUD/WavePanel")
 	_wave_diff_overlay = _resolve(wave_diff_overlay_path, "HexGrid/WaveDiffOverlay") as Node2D
+	_dialogue_trigger_panel = _resolve(dialogue_trigger_panel_path, "HUD/DialogueTriggerPanel")
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
@@ -181,6 +185,7 @@ func _ready() -> void:
 	_wire_meta_panel()
 	_wire_tool_panel()
 	_wire_wave_panel()
+	_wire_dialogue_trigger_panel()
 	# 024 / T83: initial bind of the diff overlay (wave 0 → no highlight).
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
@@ -790,6 +795,8 @@ func _mark_dirty() -> void:
 	# 024 / T83: diff overlay tracks the active wave's deltas vs prev wave.
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
+	# 039: keep trigger markers in sync with wave anchor positions.
+	_refresh_timeline_dialogue_markers()
 
 
 ## Counterpart to _mark_dirty — clear dirty state and update meta panel.
@@ -874,6 +881,10 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	# 024 / T83: diff overlay refresh on load / wave switch / undo.
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
+	# 039: dialogue trigger panel refresh on load.
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
 
 
 # ── Wiring stubs (palettes/meta panel signal hookup) ────────────────────────
@@ -1143,6 +1154,69 @@ func _refresh_wave_panel() -> void:
 		_wave_panel.bind_level(_level)
 	if _wave_panel.has_method("set_active_wave"):
 		_wave_panel.set_active_wave(_level.get_active_wave_index())
+	_refresh_timeline_dialogue_markers() ────────────────────────────────────────
+
+func _wire_dialogue_trigger_panel() -> void:
+	if _dialogue_trigger_panel == null:
+		return
+	if _dialogue_trigger_panel.has_signal("trigger_created"):
+		_dialogue_trigger_panel.trigger_created.connect(_on_dlg_trigger_created)
+	if _dialogue_trigger_panel.has_signal("trigger_updated"):
+		_dialogue_trigger_panel.trigger_updated.connect(_on_dlg_trigger_updated)
+	if _dialogue_trigger_panel.has_signal("trigger_deleted"):
+		_dialogue_trigger_panel.trigger_deleted.connect(_on_dlg_trigger_deleted)
+	if _dialogue_trigger_panel.has_signal("trigger_selected"):
+		_dialogue_trigger_panel.trigger_selected.connect(_on_dlg_trigger_selected)
+	if _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+
+
+func _refresh_timeline_dialogue_markers() -> void:
+	if _wave_panel == null:
+		return
+	# WavePanel contains the WaveTimeline node.
+	var timeline: Node = _wave_panel.get_node_or_null("VBox/TimelineRow/Timeline")
+	if timeline == null:
+		return
+	if timeline.has_method("set_dialogue_trigger_markers"):
+		timeline.set_dialogue_trigger_markers(_level.dialogue_triggers, _level)
+
+
+func _on_dlg_trigger_created(d: Dictionary) -> void:
+	_level.dialogue_triggers.append(d)
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_updated(old_id: StringName, d: Dictionary) -> void:
+	for i in _level.dialogue_triggers.size():
+		if StringName(str(_level.dialogue_triggers[i].get("id", ""))) == old_id:
+			_level.dialogue_triggers[i] = d
+			break
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_deleted(trigger_id: StringName) -> void:
+	for i in _level.dialogue_triggers.size():
+		if StringName(str(_level.dialogue_triggers[i].get("id", ""))) == trigger_id:
+			_level.dialogue_triggers.remove_at(i)
+			break
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_selected(trigger_id: StringName) -> void:
+	# Timeline marker → highlight; click on list row → (already highlighted by panel).
+	# Nothing to do in controller for now — panel handles its own selection state.
+	pass
 
 
 # Signal handlers — each routes through _level + dirties + autosaves.

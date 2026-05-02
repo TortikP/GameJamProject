@@ -239,6 +239,10 @@ func _try_load_queued_level() -> bool:
 		camera.set_follow_target(_ctrl.player)
 	GameLogger.info("Godmode", "Loaded custom level '%s'" % level.name)
 	_ctrl.queued_level = level
+	# 039: signal the loaded level so LevelDialogueDirector can cache it
+	# before battle_started fires (which comes from WaveController.start_level
+	# on the next deferred frame).
+	EventBus.level_loaded.emit(level)
 	return true
 
 

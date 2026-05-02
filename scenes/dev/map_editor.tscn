@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=20 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="16_wt"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_diff_overlay.gd" id="18_wdo"]
+[ext_resource type="PackedScene" path="res://scenes/dev/dialogue_trigger_panel.tscn" id="19_dtp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -161,6 +162,19 @@ grow_vertical = 2
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 
 [node name="ConfirmModal" parent="HUD" instance=ExtResource("9_modal")]
+
+[node name="DialogueTriggerPanel" parent="HUD" instance=ExtResource("19_dtp")]
+anchors_preset = 7
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -280.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
 
 [node name="HotkeyOverlay" type="Control" parent="HUD"]
 script = ExtResource("13_hk")

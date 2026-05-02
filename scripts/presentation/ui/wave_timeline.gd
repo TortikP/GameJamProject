@@ -56,6 +56,11 @@ var _runtime_turns_into_wave: int = 0
 # EDIT-mode active wave (highlighted with WAVE_ANCHOR_CURRENT).
 var _edit_active_wave: int = 0
 
+# 039: dialogue trigger markers for EDIT mode.
+# Each entry: {trigger_id: StringName, x: float, y: float, summary: String}
+var _trigger_markers: Array = []
+signal dialogue_trigger_marker_clicked(trigger_id: StringName)
+
 # Track per-anchor screen positions so the right-click handler can map
 # screen_pos → wave_idx without re-walking layout.
 var _anchor_positions: Array[float] = []  # x coordinates of each anchor
@@ -111,6 +116,54 @@ func set_runtime_state(current_wave: int, turns_into_wave: int) -> void:
 	_runtime_current_wave = current_wave
 	_runtime_turns_into_wave = turns_into_wave
 	queue_redraw()
+
+
+## 039: Update dialogue trigger markers for EDIT mode.
+## triggers is an Array[Dictionary] (raw LevelData.dialogue_triggers entries).
+## level is the active LevelData (for turns_to_next lookup).
+## Pass an empty array to clear.
+func set_dialogue_trigger_markers(triggers: Array, level: LevelData) -> void:
+	if mode != Mode.EDIT:
+		_trigger_markers.clear()
+		queue_redraw()
+		return
+	_trigger_markers = _layout_trigger_markers(triggers, level)
+	queue_redraw()
+
+
+func _layout_trigger_markers(triggers: Array, level: LevelData) -> Array:
+	var out: Array = []
+	# Stack counters per x-bucket (to offset multiple markers at same x).
+	var stack: Dictionary = {}  # int(x_bucket) → int count
+	var misc_x: float = _bar_end_x + 8.0
+	for d in triggers:
+		if not (d is Dictionary):
+			continue
+		var ev: StringName = StringName(str(d.get("event", "")))
+		var tid: StringName = StringName(str(d.get("id", "")))
+		var did: StringName = StringName(str(d.get("dialogue_id", "")))
+		var c: Dictionary = d.get("conditions", {})
+		var mx: float = misc_x
+		if ev in [&"level_started", &"level_completed"]:
+			if not _anchor_positions.is_empty():
+				mx = _anchor_positions[0] if ev == &"level_started" else _anchor_positions[-1]
+		elif ev in [&"wave_started", &"wave_cleared", &"wave_about_to_start",
+				&"skill_offer_about_to_open", &"skill_offer_closed"]:
+			var wi: int = int(c.get("wave_index", -1))
+			if wi >= 0 and wi < _anchor_positions.size():
+				mx = _anchor_positions[wi]
+		elif ev == &"world_turn_ended":
+			var at: int = int(c.get("absolute_turn", -1))
+			if at >= 0:
+				mx = PADDING_LEFT + float(at) * PIXELS_PER_TURN
+		var bucket: int = int(mx)
+		var stack_idx: int = stack.get(bucket, 0)
+		stack[bucket] = stack_idx + 1
+		var my: float = BAR_Y - UiThemeScript.WAVE_ANCHOR_RADIUS - 6.0 \
+				- float(stack_idx) * (UiThemeScript.DIALOGUE_TRIGGER_MARKER_RADIUS * 2.5)
+		var summary: String = "%s · %s · %s" % [tid, ev, did]
+		out.append({"trigger_id": tid, "x": mx, "y": my, "summary": summary})
+	return out
 
 
 # ── Rebuild ─────────────────────────────────────────────────────────────────
@@ -289,6 +342,13 @@ func _draw() -> void:
 		draw_colored_polygon(pts, UiThemeScript.WAVE_CURSOR_COLOR)
 
 
+	# 039: dialogue trigger markers (EDIT mode only, AC-D20).
+	if mode == Mode.EDIT:
+		for m in _trigger_markers:
+			draw_circle(Vector2(m.x, m.y), UiThemeScript.DIALOGUE_TRIGGER_MARKER_RADIUS,
+					UiThemeScript.DIALOGUE_TRIGGER_MARKER_COLOR)
+
+
 func _anchor_color_for(wave_idx: int) -> Color:
 	if mode == Mode.EDIT:
 		return UiThemeScript.WAVE_ANCHOR_CURRENT if wave_idx == _edit_active_wave else UiThemeScript.WAVE_ANCHOR_FILL
@@ -311,6 +371,14 @@ func _gui_input(event: InputEvent) -> void:
 	if not mb.pressed:
 		return
 	var local_pos: Vector2 = mb.position
+	# 039: hit-test dialogue trigger markers first (smaller targets, on top).
+	if mb.button_index == MOUSE_BUTTON_LEFT:
+		for m in _trigger_markers:
+			var d: float = local_pos.distance_to(Vector2(m.x, m.y))
+			if d <= UiThemeScript.DIALOGUE_TRIGGER_MARKER_RADIUS + 4.0:
+				accept_event()
+				dialogue_trigger_marker_clicked.emit(m.trigger_id)
+				return
 	# Hit-test against anchor discs.
 	for i in _anchor_positions.size():
 		var ax: float = _anchor_positions[i]
