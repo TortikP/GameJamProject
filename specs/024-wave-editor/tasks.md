@@ -13,18 +13,18 @@
 
 ## P1 — Data + autoload + EventBus
 
-- [ ] T10. `LevelData.waves: Array[Dictionary]` поле, дефолт `[]`. (AC-W1)
-- [ ] T11. `LevelData.from_dict()` — миграция: если нет `waves` → пакуем root `floor/objects/spawners` в `waves[0]` с `is_special=false, turns_to_next=0`. Legacy spawner без `timer` → `timer=1`. (AC-W2)
-- [ ] T12. `LevelData.to_dict()` пишет всегда waves-формат, не корневые поля. (AC-W1)
-- [ ] T13. `LevelData.validate()` расширен: contiguous index, single player spawner across union, coord ∈ floor of own wave, `turns_to_next ≥ 1` (last = 0), `timer ≥ 1`. WARN if `timer > turns_to_next`. (AC-W3)
-- [ ] T14. `LevelData.get_wave_start_turn(idx)` — sum prev `turns_to_next`. (AC-W14, used by widget)
-- [ ] T15. `data/maps/_schema.md` — добавить раздел «waves» с примером.
-- [ ] T20. `EventBus`: добавить `wave_started(index: int, is_special: bool)`, `wave_cleared(index: int, unused_turns: int)`, `level_completed(total_score: int)`. (AC-W12, AC-W13)
-- [ ] T21. `EventBus`: проверить наличие `actor_spawned(actor)`. Добавить если нет.
-- [ ] T22. `EventBus.world_turn_ended(turn: int)` уже существует — verified line 53. Проверить, что эмитится после **полного** хода (player + AI), не после каждого actor'а. Если нет — fix in BattleController. (AC-W10)
-- [ ] T30. `scripts/infrastructure/run_score.gd` — autoload по plan.md. Подписан на `EventBus.run_started` для reset. (AC-W15)
-- [ ] T31. Регистрация `RunScore` в `[autoload]` `project.godot`, после `EventBus`.
-- [ ] T32. `config/game_speed.cfg`: `[battle] wave_transition_sec=0.15`, `[ui] wave_tick_anim_sec=0.2`, `score_punch_sec=0.25`. (AC-W16)
+- [x] T10. `LevelData.waves: Array[Dictionary]` поле, дефолт `[]`. (AC-W1)
+- [x] T11. `LevelData.from_dict()` — миграция: если нет `waves` → пакуем root `floor/objects/spawners` в `waves[0]` с `is_special=false, turns_to_next=0`. Legacy spawner без `timer` → `timer=1`. (AC-W2)
+- [x] T12. `LevelData.to_dict()` пишет всегда waves-формат, не корневые поля. (AC-W1)
+- [x] T13. `LevelData.validate()` расширен: contiguous index, single player spawner across union, coord ∈ floor of own wave, `turns_to_next ≥ 1` (last = 0), `timer ≥ 1`. WARN if `timer > turns_to_next`. (AC-W3)
+- [x] T14. `LevelData.get_wave_start_turn(idx)` — sum prev `turns_to_next`. (AC-W14, used by widget)
+- [x] T15. `data/maps/_schema.md` — добавить раздел «waves» с примером.
+- [x] T20. `EventBus`: добавить `wave_started(index: int, is_special: bool)`, `wave_cleared(index: int, unused_turns: int)`, `level_completed(total_score: int)`. (AC-W12, AC-W13)
+- [x] T21. `EventBus`: проверить наличие `actor_spawned(actor)`. Добавить если нет.
+- [x] T22. `EventBus.world_turn_ended(turn: int)` уже существует — verified line 53. Проверить, что эмитится после **полного** хода (player + AI), не после каждого actor'а. Если нет — fix in BattleController. (AC-W10)
+- [x] T30. `scripts/infrastructure/run_score.gd` — autoload по plan.md. Подписан на `EventBus.run_started` для reset. (AC-W15)
+- [x] T31. Регистрация `RunScore` в `[autoload]` `project.godot`, после `EventBus`.
+- [x] T32. `config/game_speed.cfg`: `[battle] wave_transition_sec=0.15`, `[ui] wave_tick_anim_sec=0.2`, `score_punch_sec=0.25`. (AC-W16)
 
 **P1 smoke:** загрузить `data/maps/sample.json` (legacy) → играется; save из редактора → JSON в waves-формате.
 
