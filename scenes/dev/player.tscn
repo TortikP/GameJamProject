@@ -14,11 +14,11 @@ speed = 2
 [node name="Body" type="Sprite2D" parent="."]
 texture_filter = 1
 texture = ExtResource("2_sprite")
-position = Vector2(0, 0)
+position = Vector2(0, -5)
 scale = Vector2(1.5, 1.5)
 z_index = 5
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("3_hpbar")
-y_offset = -42.0
+y_offset = -52.0
 z_index = 7

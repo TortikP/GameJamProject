@@ -25,6 +25,10 @@ const PLACEHOLDER_TEXTURE: Texture2D = null  # null = no texture, just modulated
                                        # (canopy/column rises out of tile);
                                        # tweak per-overlay if a hi-res
                                        # placeholder lands here.
+@export var sprite_y_offset: float = -12.0  # Lift sprites so their bottoms
+                                            # roughly align with heroine's
+                                            # feet (~y=+32 in actor-local
+                                            # coords). Tune as art settles.
 
 var _registry: TileObjectRegistry  # resolved from grid in _ready
 
@@ -50,6 +54,9 @@ func set_object(coord: Vector2i, object_id: StringName) -> void:
 		return
 
 	var center := grid.tile_map_layer.map_to_local(coord)
+	# Lift sprite so its visual bottom roughly aligns with where actors
+	# stand on the hex (their feet sit a bit above hex bottom edge).
+	center.y += sprite_y_offset
 	var tex: Texture2D = _resolve_texture(object_id)
 	if tex != null:
 		# Real sprite path — draw it.
