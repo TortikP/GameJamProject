@@ -307,7 +307,9 @@ func _seed_slots() -> void:
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
 		_slot_bar_node.set_slot(2, kb)
-	_slot_bar_node.set_active(0)
+	# 029 / req-1: do NOT pre-select an ability. Player must consciously pick
+	# Q/W/E/R (or click a slot) before LMB casts. Avoids accidental opening cast.
+	_slot_bar_node.set_active(-1)
 	# Sync player ability IDs for inspector/overlay display
 	var ids: Array[StringName] = []
 	for i in 4:
@@ -763,6 +765,12 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _cast_ctxs
 	_reset_cast_state()
 	var did_cast: bool = skill.cast(player, ctxs)
+	# 029 / req-2: deselect ability after a successful cast. Forces the player
+	# to consciously re-arm before next attack — no held-trigger spam, every
+	# turn a chosen action. activate(-1) emits slot_activated(-1) which clears
+	# the active-slot tint and PSP spell description via _on_slot_activated.
+	if did_cast and _slot_bar_node != null and _slot_bar_node.get_active() != -1:
+		_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
 	_refresh_overlay()
 	if did_cast:
@@ -1009,8 +1017,24 @@ func _resolve_move_intent(enemy: Actor) -> void:
 	if grid.get_actor_at(intent) != &"":
 		GameLogger.info("AI", "%s: move blocked at %s" % [enemy.actor_id, intent])
 		return
-	# move_actor handles validation; await ensures sequential animation
-	await grid.move_actor(enemy.actor_id, intent)
+	# 029 / req-5: re-pathfind around the CURRENT actor positions and walk the
+	# whole route (not just one step). Plan was made earlier this turn — other
+	# enemies have shifted since, so we recompute. move_actor_along revalidates
+	# each step's occupancy and breaks early on conflict.
+	var blocked: Array = []
+	for other_v in registry.all():
+		if not (other_v is Actor):
+			continue
+		var other: Actor = other_v
+		if other == enemy or not other.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(other.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	var path: Array = grid.find_path_around(enemy_coord, intent, blocked)
+	if path.size() < 2:
+		return
+	await grid.move_actor_along(enemy.actor_id, path)
 
 
 ## Resolves a previously-planned cast on `enemy`. Reads enemy.cast_intent (set

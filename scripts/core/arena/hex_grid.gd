@@ -270,6 +270,56 @@ func step_actor(id: StringName, neighbor: int) -> bool:
 	return true
 
 
+## 029 / req-5: walk the actor along a PRE-COMPUTED path. First element must be
+## the actor's current coord; subsequent elements are the steps to take. Each
+## step revalidates passability + occupancy at execute-time and breaks early on
+## conflict (another actor moved during this resolve phase). Same per-step
+## signal/EventBus contract as `move_actor`, so the controller's tween hook
+## fires identically per hex.
+##
+## Why not reuse `move_actor`: it re-pathfinds via `find_path` which doesn't
+## consider actor occupancy — for multi-step AI moves it could path through
+## another enemy. This entrypoint trusts the caller's path (built with
+## `find_path_around` + live blocks).
+func move_actor_along(id: StringName, path: Array) -> void:
+	if not _actor_positions.has(id):
+		GameLogger.warn("HexGrid", "move_actor_along: unknown actor %s" % id)
+		return
+	if _moving:
+		return
+	if path.size() < 2:
+		return
+	_moving = true
+	var prev: Vector2i = _actor_positions[id]
+	for i in range(1, path.size()):
+		var step_coord: Vector2i = path[i]
+		# Revalidate at execute-time. Plan was made earlier this turn; another
+		# enemy may have stepped into our path.
+		if not _tiles.has(step_coord) or not _is_tile_passable(_tiles[step_coord]):
+			break
+		if _occupants.has(step_coord):
+			break
+		_emit_actor_exited_if_object(prev, id)
+		_clear_position(id)
+		_actor_positions[id] = step_coord
+		_occupants[step_coord] = id
+
+		emit_signal("actor_step_started", id, prev, step_coord)
+		EventBus.actor_moved.emit(id, prev, step_coord)
+		EventBus.tile_entered.emit(id, step_coord)
+
+		var cost: int = _tiles[step_coord].move_cost if _tiles.has(step_coord) else 1
+		await GameSpeed.wait("arena", "step_duration")
+		if cost > 1:
+			for _i in range(cost - 1):
+				await GameSpeed.wait("arena", "path_step_pause")
+
+		_check_tile_effect(id, step_coord)
+		emit_signal("actor_step_finished", id, step_coord)
+		prev = step_coord
+	_moving = false
+
+
 func get_coord(id: StringName) -> Vector2i:
 	return _actor_positions.get(id, Vector2i(-1, -1))
 

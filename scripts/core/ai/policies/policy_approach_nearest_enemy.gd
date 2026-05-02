@@ -41,6 +41,11 @@ func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
 		return Vector2i(-1, -1)   # no anchor → hold
 
 	var path: Array = grid.find_path_around(my_coord, target_coord, blocked)
-	if path.size() < 2:
-		return Vector2i(-1, -1)   # no path or already there
-	return path[1]
+	# 029 / req-5: walk up to effective_speed steps along the path, but never
+	# step ONTO the target's own hex (path[-1]). path.size()-2 is the index of
+	# the cell adjacent to target; capping to that keeps melee range intact.
+	# Returns (-1,-1) if we're already adjacent (max_steps == 0).
+	var max_steps: int = mini(actor.effective_speed(), path.size() - 2)
+	if max_steps <= 0:
+		return Vector2i(-1, -1)
+	return path[max_steps]
