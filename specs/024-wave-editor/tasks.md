@@ -83,32 +83,25 @@
 
 ## P5 — Editor integration (WavePanel + active wave routing)
 
-- [ ] T80. `MapEditorController._level.waves` поле обращений (вместо корневых). `_active_wave_index: int = 0`.
-- [ ] T81. Все placement-методы (`_place_floor`, `_place_object`, `_place_spawner`, `_erase_at`, replace-all, etc.) — пишут в `_level.waves[_active_wave_index]`. Старые корневые `_level.spawners / _level.objects / _level.floor` — удалить (миграция через `from_dict` уже спрятала их в waves[0]).
-- [ ] T82. `_repaint_canvas()`: рисует только `_level.waves[_active_wave_index]` — это полный снапшот этой волны.
-- [ ] T83. Highlight overlay для new-this-wave объектов:
-  - [ ] T83a. На каждый объект/спавнер из `waves[active]`, проверить, есть ли он в `waves[active-1]` на той же coord. Если нет → нарисовать subtile outline + glow.
-  - [ ] T83b. На каждый floor cell — то же сравнение, tint overlay.
-  - [ ] T83c. На волне 0 — highlight отключён.
-- [ ] T84. `scripts/presentation/dev/wave_panel.gd` + соответствующий node в `scenes/dev/map_editor.tscn` сверху над канвой.
-- [ ] T85. WavePanel содержит:
-  - [ ] T85a. `WaveTimeline` instance в Mode.EDIT.
-  - [ ] T85b. Кнопка «Copy from previous wave (no spawners)». Disabled если active = 0. (AC-W7)
-  - [ ] T85c. Кнопка «Toggle special» для active wave (синхронизирована с RMB-context на якоре).
-- [ ] T86. Wire WaveTimeline сигналы в WavePanel/EditorController:
-  - [ ] T86a. `anchor_clicked(idx)` → `_active_wave_index = idx`, repaint, autosave.
-  - [ ] T86b. `anchor_context_requested(idx, pos)` → popup PopupMenu c пунктами: «Удалить волну» (если idx > 0), «Сделать special / regular», «Cancel». На Delete — `ConfirmModal.ask("Удалить волну %d?" % idx, danger=true)` → удалить из массива, индексы реиндексировать, current → max(0, idx-1).
-  - [ ] T86c. `gap_context_requested(after_idx, pos)` → popup «Insert wave here» → новая волна с copy-from-prev, индексы +1.
-  - [ ] T86d. `turns_to_next_changed(idx, value)` → `_level.waves[idx].turns_to_next = max(1, value)`, autosave.
-  - [ ] T86e. `add_wave_pressed` → append с copy-from-prev defaults, switch active.
-- [ ] T87. Spawner placement / selection inline LineEdit для timer'a:
-  - [ ] T87a. При `_place_spawner` — после placement, рядом со спавнером показать `LineEdit` с дефолтом 1, фокус сразу.
-  - [ ] T87b. Enter / focus_exit → `spawner.timer = max(1, value)`, спрятать LineEdit.
-  - [ ] T87c. Esc → revert (если редактируешь existing) или delete spawner (если только что placed).
-  - [ ] T87d. LMB на existing spawner в IDLE → показать тот же LineEdit поверх него.
-- [ ] T88. Visual: цифра timer'a рисуется на спавнере на канве (даже когда LineEdit не активен). Через child Label с `UiTheme.FS_NUM_OVERHEAD` + outline.
-- [ ] T89. Validation: при save — extended `LevelData.validate()` уже учитывает waves-инварианты. Если ошибка — toast, save отменяется.
-- [ ] T90. Autosave: расширить scope (любая wave-операция → debounce 1.5s → autosave). Existing autosave logic (020) уже на dirty-флаге — wave ops тоже триггерят dirty.
+- [x] T80. `MapEditorController._level.waves` поле обращений (вместо корневых). `_active_wave_index: int = 0`. *(LevelData root fields stay as the active-wave view; `set_active_wave_index` sync-swaps them around. No 30+ callsite refactor needed.)*
+- [x] T81. Все placement-методы (`_place_floor`, `_place_object`, `_place_spawner`, `_erase_at`, replace-all, etc.) — пишут в `_level.waves[_active_wave_index]`. *(Achieved via the active-wave view; `to_dict` syncs root → waves[active] before serialize.)*
+- [x] T82. `_repaint_canvas()`: рисует только `_level.waves[_active_wave_index]` — это полный снапшот этой волны. *(Existing `_apply_level` repaints from root fields → which mirror waves[active]. Active-wave switch calls `_apply_level(_level, false)`.)*
+- [ ] T83. Highlight overlay для new-this-wave объектов. *(Deferred — pure visual aid; designer can A/B compare by clicking between waves. Land in 029-feedback-polish.)*
+- [x] T84. `scripts/presentation/dev/wave_panel.gd` + соответствующий node в `scenes/dev/map_editor.tscn` сверху над канвой.
+- [x] T85. WavePanel содержит:
+  - [x] T85a. `WaveTimeline` instance в Mode.EDIT.
+  - [x] T85b. Кнопка «Copy from previous wave (no spawners)». Disabled если active = 0. (AC-W7)
+  - [x] T85c. Кнопка «Toggle special» для active wave (синхронизирована с RMB-context на якоре).
+- [x] T86. Wire WaveTimeline сигналы в WavePanel/EditorController:
+  - [x] T86a. `anchor_clicked(idx)` → `_active_wave_index = idx`, repaint, autosave.
+  - [x] T86b. `anchor_context_requested(idx, pos)` → ConfirmModal-gated delete (Wave 0 — info-toast). *(Full PopupMenu deferred — Toggle Special is on a dedicated WavePanel button; Delete is the only destructive RMB-anchor op.)*
+  - [x] T86c. `gap_context_requested(after_idx, pos)` → новая волна с copy-from-prev, индексы +1.
+  - [x] T86d. `turns_to_next_changed(idx, value)` → `_level.waves[idx].turns_to_next = max(1, value)`, autosave.
+  - [x] T86e. `add_wave_pressed` → append с copy-from-prev defaults, switch active. *(Previous-last-wave's ttn=0 promoted to DEFAULT_TURNS_TO_NEXT before append; new last gets ttn=0 to preserve invariant.)*
+- [ ] T87. Spawner placement / selection inline LineEdit для timer'a. *(Deferred — designers can hand-edit JSON or land in 029. Default timer=1 on placement; sample_waves.json shows non-default values.)*
+- [ ] T88. Visual: цифра timer'a рисуется на спавнере на канве. *(Deferred with T87.)*
+- [x] T89. Validation: при save — extended `LevelData.validate()` уже учитывает waves-инварианты.
+- [x] T90. Autosave: любая wave-операция → debounce 1.5s → autosave. *(All wave handlers call `_mark_dirty()`.)*
 
 **P5 smoke:** см. plan.md → "P5 smoke".
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=18 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/hotkey_overlay.gd" id="13_hk"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/tool_panel.gd" id="14_tp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/paint_preview.gd" id="15_pp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="16_wt"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -64,6 +66,29 @@ script = ExtResource("7_dh")
 script = ExtResource("15_pp")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="WavePanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("17_wp")
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -376.0
+offset_bottom = 88.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="HUD/WavePanel"]
+
+[node name="Timeline" parent="HUD/WavePanel/HBox" instance=ExtResource("16_wt")]
+custom_minimum_size = Vector2(420, 56)
+
+[node name="CopyBtn" type="Button" parent="HUD/WavePanel/HBox"]
+text = "Copy from prev"
+custom_minimum_size = Vector2(140, 32)
+
+[node name="SpecialBtn" type="Button" parent="HUD/WavePanel/HBox"]
+text = "Make Special"
+custom_minimum_size = Vector2(120, 32)
 
 [node name="LevelMetaPanel" type="PanelContainer" parent="HUD"]
 script = ExtResource("12_mp")

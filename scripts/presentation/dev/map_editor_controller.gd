@@ -56,6 +56,9 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 @export var hotkey_overlay_path: NodePath
 @export var tool_panel_path: NodePath
 @export var paint_preview_path: NodePath
+# 024: top docked WavePanel (timeline + buttons). Optional — editor still
+# works on a single-wave LevelData without it.
+@export var wave_panel_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -69,6 +72,7 @@ var _confirm_modal: Node
 var _hotkey_overlay: Control
 var _tool_panel: Node
 var _paint_preview: Node2D
+var _wave_panel: Node
 var _autosave_timer: Timer
 
 # ── Editing state ───────────────────────────────────────────────────────────
@@ -134,6 +138,7 @@ func _ready() -> void:
 	_hotkey_overlay = _resolve(hotkey_overlay_path, "HUD/HotkeyOverlay") as Control
 	_tool_panel = _resolve(tool_panel_path, "HUD/ToolPanel")
 	_paint_preview = _resolve(paint_preview_path, "HexGrid/PaintPreview") as Node2D
+	_wave_panel = _resolve(wave_panel_path, "HUD/WavePanel")
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
@@ -174,6 +179,7 @@ func _ready() -> void:
 	_wire_object_palette()
 	_wire_meta_panel()
 	_wire_tool_panel()
+	_wire_wave_panel()
 
 	# Pre-select the default floor tile so the user can immediately paint
 	# without first clicking a palette button.
@@ -749,6 +755,10 @@ func _mark_dirty() -> void:
 		_meta_panel.set_dirty(true)
 	if _autosave_timer != null:
 		_autosave_timer.start()  # restart debounce countdown
+	# 024: keep the WavePanel in sync — wave operations and per-cell edits
+	# both flow through here.
+	if _wave_panel != null and _wave_panel.has_method("bind_level"):
+		_wave_panel.bind_level(_level)
 
 
 ## Counterpart to _mark_dirty — clear dirty state and update meta panel.
@@ -823,6 +833,12 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	# a jump on every Ctrl+Z is jarring).
 	if recenter_camera:
 		_center_camera()
+	# 024: WavePanel reflects loaded/restored wave structure.
+	if _wave_panel != null:
+		if _wave_panel.has_method("bind_level"):
+			_wave_panel.bind_level(_level)
+		if _wave_panel.has_method("set_active_wave"):
+			_wave_panel.set_active_wave(_level.get_active_wave_index())
 
 
 # ── Wiring stubs (palettes/meta panel signal hookup) ────────────────────────
@@ -1045,3 +1061,209 @@ static func _sanitize_filename(s: String) -> String:
 	if out == "":
 		out = "untitled"
 	return out
+
+
+# ── 024-wave-editor — WavePanel wiring ──────────────────────────────────────
+
+func _wire_wave_panel() -> void:
+	if _wave_panel == null:
+		return
+	if _wave_panel.has_signal("anchor_clicked"):
+		_wave_panel.anchor_clicked.connect(_on_wave_anchor_clicked)
+	if _wave_panel.has_signal("anchor_context_requested"):
+		_wave_panel.anchor_context_requested.connect(_on_wave_anchor_context)
+	if _wave_panel.has_signal("gap_context_requested"):
+		_wave_panel.gap_context_requested.connect(_on_wave_gap_context)
+	if _wave_panel.has_signal("turns_to_next_changed"):
+		_wave_panel.turns_to_next_changed.connect(_on_wave_turns_changed)
+	if _wave_panel.has_signal("add_wave_pressed"):
+		_wave_panel.add_wave_pressed.connect(_on_wave_add)
+	if _wave_panel.has_signal("copy_from_prev_pressed"):
+		_wave_panel.copy_from_prev_pressed.connect(_on_wave_copy_prev)
+	if _wave_panel.has_signal("toggle_special_pressed"):
+		_wave_panel.toggle_special_pressed.connect(_on_wave_toggle_special)
+	# Initial bind so the panel reflects the default _level (single empty wave).
+	if _wave_panel.has_method("bind_level"):
+		_wave_panel.bind_level(_level)
+	if _wave_panel.has_method("set_active_wave"):
+		_wave_panel.set_active_wave(_level.get_active_wave_index())
+
+
+## Refresh the wave panel after any structural change to _level.waves
+## (add/insert/delete/active-switch/turns_to_next edit). Cheap — the
+## timeline rebuilds in O(num_waves).
+func _refresh_wave_panel() -> void:
+	if _wave_panel == null:
+		return
+	if _wave_panel.has_method("bind_level"):
+		_wave_panel.bind_level(_level)
+	if _wave_panel.has_method("set_active_wave"):
+		_wave_panel.set_active_wave(_level.get_active_wave_index())
+
+
+# Signal handlers — each routes through _level + dirties + autosaves.
+
+func _on_wave_anchor_clicked(idx: int) -> void:
+	_switch_to_wave(idx)
+
+
+func _on_wave_anchor_context(idx: int, _screen_pos: Vector2) -> void:
+	# Minimum viable: PopupMenu with Delete (if not wave 0) + Toggle Special.
+	# A full popup with positioning is a P-polish item; for now we handle
+	# the most common path — Delete — directly via ConfirmModal. Toggle
+	# special is exposed via the dedicated button in WavePanel.
+	if idx <= 0:
+		EventBus.ui_toast_requested.emit("Wave 0 удалить нельзя", 1.5, &"info")
+		return
+	_request_delete_wave(idx)
+
+
+func _on_wave_gap_context(after_idx: int, _screen_pos: Vector2) -> void:
+	# RMB on gap → insert a fresh wave between after_idx and after_idx+1.
+	_insert_wave_after(after_idx)
+
+
+func _on_wave_turns_changed(idx: int, new_value: int) -> void:
+	if idx < 0 or idx >= _level.waves.size():
+		return
+	_history.push(_level)
+	_level.waves[idx]["turns_to_next"] = max(1, new_value)
+	# Last wave's turns_to_next must be 0 — enforce.
+	if idx == _level.waves.size() - 1:
+		_level.waves[idx]["turns_to_next"] = 0
+	_mark_dirty()
+	_refresh_wave_panel()
+
+
+func _on_wave_add() -> void:
+	_history.push(_level)
+	# Sync root → current wave first so we don't lose pending edits.
+	_level.sync_root_to_active_wave()
+	# Convert previous "last wave" (turns_to_next=0) to a non-final wave with
+	# default turns_to_next, then append a new final wave.
+	var prev_last: int = _level.waves.size() - 1
+	if prev_last >= 0:
+		var ttn_was: int = int(_level.waves[prev_last].get("turns_to_next", 0))
+		if ttn_was == 0:
+			_level.waves[prev_last]["turns_to_next"] = LevelData.DEFAULT_TURNS_TO_NEXT
+	var new_idx: int = _level.waves.size()
+	# Copy floor + objects from previous wave; spawners empty; final-wave
+	# turns_to_next = 0.
+	var new_wave: Dictionary = _level.make_wave_copy_no_spawners(prev_last, new_idx, 0)
+	_level.waves.append(new_wave)
+	_switch_to_wave(new_idx)
+
+
+func _on_wave_copy_prev() -> void:
+	var active: int = _level.get_active_wave_index()
+	if active <= 0:
+		return
+	_history.push(_level)
+	# Replace current active wave's floor + objects with previous wave's;
+	# preserve current spawners, turns_to_next, is_special.
+	var src: Dictionary = _level.waves[active - 1]
+	var ttn_keep: int = int(_level.waves[active].get("turns_to_next", LevelData.DEFAULT_TURNS_TO_NEXT))
+	var special_keep: bool = bool(_level.waves[active].get("is_special", false))
+	var spawners_keep: Array = _level.waves[active].get("spawners", [])
+	var fresh: Dictionary = _level.make_wave_copy_no_spawners(active - 1, active, ttn_keep)
+	fresh["is_special"] = special_keep
+	fresh["spawners"] = spawners_keep
+	_level.waves[active] = fresh
+	_level.sync_active_wave_to_root()
+	_apply_level(_level, false)
+	_mark_dirty()
+	_refresh_wave_panel()
+	EventBus.ui_toast_requested.emit("Скопировано из волны %d" % (active - 1), 1.2, &"info")
+
+
+func _on_wave_toggle_special() -> void:
+	var active: int = _level.get_active_wave_index()
+	if active < 0 or active >= _level.waves.size():
+		return
+	_history.push(_level)
+	var was: bool = bool(_level.waves[active].get("is_special", false))
+	_level.waves[active]["is_special"] = not was
+	_mark_dirty()
+	_refresh_wave_panel()
+
+
+func _switch_to_wave(idx: int) -> void:
+	if idx < 0 or idx >= _level.waves.size():
+		return
+	if idx == _level.get_active_wave_index():
+		return
+	# Persist current edits to the wave we're leaving, swap, repaint.
+	_level.set_active_wave_index(idx)
+	# _apply_level repaints the canvas + overlays from root fields, which
+	# now mirror waves[idx]. recenter_camera=false so we don't jolt the
+	# view on every wave switch.
+	_apply_level(_level, false)
+	_refresh_wave_panel()
+
+
+func _request_delete_wave(idx: int) -> void:
+	if idx <= 0 or idx >= _level.waves.size():
+		return
+	if _confirm_modal == null or not _confirm_modal.has_method("ask"):
+		return
+	# Async confirm — must await before mutating.
+	_request_delete_wave_async(idx)
+
+
+func _request_delete_wave_async(idx: int) -> void:
+	var ok: bool = await _confirm_modal.ask(
+		"Удалить волну %d?" % idx,
+		"Содержимое волны (%d объектов / %d спавнеров) будет потеряно." % [
+			_level.waves[idx].get("objects", []).size(),
+			_level.waves[idx].get("spawners", []).size(),
+		],
+		"Удалить", "Отмена", true)
+	if not ok:
+		return
+	_history.push(_level)
+	# If the wave being deleted is currently active, pre-switch to a safe
+	# neighbour (idx-1) so set_active_wave_index doesn't try to sync into
+	# a wave we're about to drop.
+	var active_now: int = _level.get_active_wave_index()
+	if active_now == idx:
+		_level.set_active_wave_index(idx - 1)
+	else:
+		# Other active — just persist current edits before mutating waves.
+		_level.sync_root_to_active_wave()
+	# Drop the wave + reindex.
+	_level.waves.remove_at(idx)
+	for i in _level.waves.size():
+		_level.waves[i]["index"] = i
+	# Last wave's turns_to_next must be 0 — restore the invariant.
+	if not _level.waves.is_empty():
+		var last: int = _level.waves.size() - 1
+		_level.waves[last]["turns_to_next"] = 0
+	# If the active was past the deletion, indices shifted — re-resolve.
+	# (set_active_wave_index is no-op on same idx; we may need to clamp.)
+	var new_active: int = _level.get_active_wave_index()
+	if new_active >= _level.waves.size():
+		_level.set_active_wave_index(_level.waves.size() - 1)
+	_level.sync_active_wave_to_root()
+	_apply_level(_level, false)
+	_mark_dirty()
+	_refresh_wave_panel()
+
+
+func _insert_wave_after(after_idx: int) -> void:
+	if after_idx < 0:
+		return
+	_history.push(_level)
+	_level.sync_root_to_active_wave()
+	var insert_at: int = after_idx + 1
+	var src_idx: int = after_idx if after_idx >= 0 else 0
+	# Default turns_to_next for an inserted (non-final) wave.
+	var new_wave: Dictionary = _level.make_wave_copy_no_spawners(src_idx, insert_at,
+			LevelData.DEFAULT_TURNS_TO_NEXT)
+	_level.waves.insert(insert_at, new_wave)
+	# Reindex.
+	for i in _level.waves.size():
+		_level.waves[i]["index"] = i
+	# Last wave must keep turns_to_next=0.
+	var last: int = _level.waves.size() - 1
+	_level.waves[last]["turns_to_next"] = 0
+	_switch_to_wave(insert_at)
