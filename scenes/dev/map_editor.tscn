@@ -164,16 +164,14 @@ grow_vertical = 2
 [node name="ConfirmModal" parent="HUD" instance=ExtResource("9_modal")]
 
 [node name="DialogueTriggerPanel" parent="HUD" instance=ExtResource("19_dtp")]
-anchors_preset = 7
-anchor_left = 1.0
+anchors_preset = 6
 anchor_top = 1.0
-anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -280.0
-offset_right = -8.0
+offset_left = 16.0
+offset_top = -230.0
+offset_right = 246.0
 offset_bottom = -8.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 0
 
 [node name="HotkeyOverlay" type="Control" parent="HUD"]

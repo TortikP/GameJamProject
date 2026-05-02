@@ -18,6 +18,7 @@ extends PanelContainer
 
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const DraggablePanelScript = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 ## Emitted after CRUD -- controller updates _level.dialogue_triggers + _mark_dirty.
 signal trigger_created(trigger_dict: Dictionary)
@@ -47,6 +48,7 @@ var _collapsed: bool = false
 # UI references (built in _ready).
 var _count_label: Label
 var _collapse_btn: Button
+var _title_label: Label   # drag handle
 var _list: ItemList
 var _btn_edit: Button
 var _btn_dupe: Button
@@ -70,6 +72,11 @@ func _ready() -> void:
 	_build_ui()
 	_refresh_list()
 	_update_button_states()
+	# Make the panel draggable via its title label as handle.
+	var dragger := DraggablePanelScript.new()
+	add_child(dragger)
+	if _title_label != null:
+		dragger.setup(self, _title_label)
 
 
 ## Bind a LevelData. Called on level load + any CRUD from controller side.
@@ -107,6 +114,7 @@ func _build_ui() -> void:
 	UiThemeScript.apply_label_kind(title, "header")
 	title.text = "Dialogue Triggers"
 	header.add_child(title)
+	_title_label = title
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
