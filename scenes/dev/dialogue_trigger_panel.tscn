@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dialogue_trigger_panel"]
+
+[ext_resource type="Script" path="res://scripts/presentation/dev/dialogue_trigger_panel.gd" id="1_dtp"]
+
+[node name="DialogueTriggerPanel" type="PanelContainer"]
+script = ExtResource("1_dtp")

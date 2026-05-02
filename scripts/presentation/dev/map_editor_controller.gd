@@ -1,24 +1,24 @@
 extends Node2D
-## MapEditorController — drives the map editor scene. Owns the LevelData being
+## MapEditorController -- drives the map editor scene. Owns the LevelData being
 ## edited, mode/state, mouse handling, and the wiring between palettes and
 ## overlays.
 ##
 ## Scene tree assumptions (see scenes/dev/map_editor.tscn):
 ##   MapEditor (this script)
-##   ├── EditorCamera (Camera2D)
-##   ├── HexGrid (instance of scenes/arena/hex_grid.tscn)
-##   │   ├── Terrain (TileMapLayer)
-##   │   ├── VFXOverlay (TileMapLayer — unused, kept so HexGrid.initialize works)
-##   │   ├── ObjectsOverlay (Node2D, objects_overlay.gd)
-##   │   ├── SpawnersOverlay (Node2D, spawners_overlay.gd)
-##   │   ├── HoverHighlight (Node2D, hover_highlight.gd)
-##   │   └── DeleteHighlight (Node2D, delete_highlight.gd)
-##   └── HUD (CanvasLayer)
-##       ├── FloorPalettePanel (left-bottom)
-##       ├── ObjectPalettePanel (right)
-##       ├── LevelMetaPanel (right-top: name, save, load, playtest, exit)
-##       ├── ToastLayer (instance)
-##       └── ConfirmModal (instance)
+##   +-- EditorCamera (Camera2D)
+##   +-- HexGrid (instance of scenes/arena/hex_grid.tscn)
+##   ?   +-- Terrain (TileMapLayer)
+##   ?   +-- VFXOverlay (TileMapLayer -- unused, kept so HexGrid.initialize works)
+##   ?   +-- ObjectsOverlay (Node2D, objects_overlay.gd)
+##   ?   +-- SpawnersOverlay (Node2D, spawners_overlay.gd)
+##   ?   +-- HoverHighlight (Node2D, hover_highlight.gd)
+##   ?   ?-- DeleteHighlight (Node2D, delete_highlight.gd)
+##   ?-- HUD (CanvasLayer)
+##       +-- FloorPalettePanel (left-bottom)
+##       +-- ObjectPalettePanel (right)
+##       +-- LevelMetaPanel (right-top: name, save, load, playtest, exit)
+##       +-- ToastLayer (instance)
+##       ?-- ConfirmModal (instance)
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const LevelHistory = preload("res://scripts/presentation/dev/level_history.gd")
@@ -27,7 +27,7 @@ const HEX_TERRAIN_PATH: String = "res://scenes/arena/tilesets/hex_terrain.tres"
 
 const INITIAL_SOURCE_ID: int = 0
 const INITIAL_ATLAS_COORD: Vector2i = Vector2i(0, 0)
-const INITIAL_CANVAS_HALF: int = 12  # ⇒ 25×25 default paint, centered at origin
+const INITIAL_CANVAS_HALF: int = 12  # ? 25?25 default paint, centered at origin
 
 const MAPS_DIR: String = "res://data/maps/"
 const AUTOSAVE_PATH: String = "res://data/maps/__autosave__.json"
@@ -38,10 +38,10 @@ const AUTOSAVE_MAX_AGE_SEC: int = 86400  # 24h
 const MAIN_MENU_SCENE: String = "res://scenes/main_menu.tscn"
 const GODMODE_SCENE: String = "res://scenes/dev/godmode.tscn"
 
-# ── Mode state machine ──────────────────────────────────────────────────────
+# -- Mode state machine ------------------------------------------------------
 enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER }
 
-# ── Scene refs (resolved in _ready, exported for editor wiring) ─────────────
+# -- Scene refs (resolved in _ready, exported for editor wiring) -------------
 @export var grid: HexGrid
 @export var camera: Camera2D
 @export var objects_overlay_path: NodePath
@@ -55,11 +55,13 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 @export var hotkey_overlay_path: NodePath
 @export var tool_panel_path: NodePath
 @export var paint_preview_path: NodePath
-# 024: top docked WavePanel (timeline + buttons). Optional — editor still
+# 024: top docked WavePanel (timeline + buttons). Optional -- editor still
 # works on a single-wave LevelData without it.
 @export var wave_panel_path: NodePath
 # 024 / T83: hex tint overlay for new-this-wave coords.
 @export var wave_diff_overlay_path: NodePath
+# 039: dialogue trigger sidebar.
+@export var dialogue_trigger_panel_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -75,9 +77,10 @@ var _tool_panel: Node
 var _paint_preview: Node2D
 var _wave_panel: Node
 var _wave_diff_overlay: Node2D
+var _dialogue_trigger_panel: Node
 var _autosave_timer: Timer
 
-# ── Editing state ───────────────────────────────────────────────────────────
+# -- Editing state -----------------------------------------------------------
 var _level: LevelData = LevelData.new()
 var _mode: int = Mode.IDLE
 var _placing_source_id: int = INITIAL_SOURCE_ID
@@ -105,11 +108,11 @@ const TOOL_BRUSH: int = 0
 const TOOL_RECT: int = 1
 var _paint_tool: int = TOOL_BRUSH
 var _brush_size: int = 1
-# Rect-tool anchor — set on LMB-press in TOOL_RECT, cleared on release.
+# Rect-tool anchor -- set on LMB-press in TOOL_RECT, cleared on release.
 # (Rect mode itself lands in commit 3; defining the var here so brush/tool
 # transitions can already reset it.)
 var _rect_anchor: Vector2i = Vector2i(-1, -1)
-# Last cursor coord seen by motion — used to refresh brush/rect preview on
+# Last cursor coord seen by motion -- used to refresh brush/rect preview on
 # tool/size change without waiting for the next mouse-move.
 var _last_cursor_coord: Vector2i = Vector2i(-1, -1)
 
@@ -142,12 +145,13 @@ func _ready() -> void:
 	_paint_preview = _resolve(paint_preview_path, "HexGrid/PaintPreview") as Node2D
 	_wave_panel = _resolve(wave_panel_path, "HUD/WavePanel")
 	_wave_diff_overlay = _resolve(wave_diff_overlay_path, "HexGrid/WaveDiffOverlay") as Node2D
+	_dialogue_trigger_panel = _resolve(dialogue_trigger_panel_path, "HUD/DialogueTriggerPanel")
 
-	# 2. Paint a default 25×25 canvas centered at origin so the user has a
-	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
+	# 2. Paint a default 25?25 canvas centered at origin so the user has a
+	# starting surface. Map can grow anywhere up to ?MAP_HALF_LIMIT (500?500).
 	# Default canvas: hex_terrain.tres source 0 atlas (0,0) = grass tile
 	# (walkable=true, move_cost=1). Per 032-controller-refactor: this is the
-	# only tileset shipped — godmode_terrain.tres was deleted in the same PR,
+	# only tileset shipped -- godmode_terrain.tres was deleted in the same PR,
 	# floor palette now shows hex_terrain only.
 	grid.tile_map_layer.tile_set = HEX_TERRAIN
 	if grid.vfx_overlay != null:
@@ -181,7 +185,8 @@ func _ready() -> void:
 	_wire_meta_panel()
 	_wire_tool_panel()
 	_wire_wave_panel()
-	# 024 / T83: initial bind of the diff overlay (wave 0 → no highlight).
+	_wire_dialogue_trigger_panel()
+	# 024 / T83: initial bind of the diff overlay (wave 0 -> no highlight).
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
 
@@ -204,7 +209,7 @@ func _ready() -> void:
 
 	# 7. If we arrived here from a Back-to-Editor / queued path, load that
 	# level on top of the initial canvas. Skip autosave recovery in this
-	# case — the queued level is the explicit source of truth right now;
+	# case -- the queued level is the explicit source of truth right now;
 	# we don't want to nag about a stale __autosave__.json.
 	if ActiveLevel.has_queued():
 		var queued_path: String = ActiveLevel.consume()
@@ -216,7 +221,7 @@ func _ready() -> void:
 	else:
 		_check_autosave_recovery.call_deferred()
 
-	# 8. Defensive — if anything in the wiring above ended up firing
+	# 8. Defensive -- if anything in the wiring above ended up firing
 	# erase/object/spawner mode by accident (signal cascade, queued resume
 	# side-effect, etc.), reassert the default placing-floor mode here so
 	# the user's first LMB-click paints rather than erases.
@@ -235,11 +240,11 @@ func _resolve(path: NodePath, fallback: String) -> Node:
 	return n
 
 
-# ── Initial canvas / level state ────────────────────────────────────────────
+# -- Initial canvas / level state --------------------------------------------
 
-# Empty canvas at startup — _level.tileset_path defaults to godmode in
+# Empty canvas at startup -- _level.tileset_path defaults to godmode in
 # LevelData. Old _rebuild_level_floor_from_canvas / _tileset_path_for helpers
-# were dropped along with the 25×25 initial paint; if a future "import current
+# were dropped along with the 25?25 initial paint; if a future "import current
 # tileset" feature needs them, restore from git history.
 
 
@@ -256,7 +261,7 @@ func _center_camera() -> void:
 	camera.position = sum / cells.size()
 
 
-# ── Mode setters (called by palettes) ───────────────────────────────────────
+# -- Mode setters (called by palettes) ---------------------------------------
 
 func set_mode_idle() -> void:
 	_mode = Mode.IDLE
@@ -292,7 +297,7 @@ func get_level() -> LevelData:
 	return _level
 
 
-# ── Input ───────────────────────────────────────────────────────────────────
+# -- Input -------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey:
@@ -303,7 +308,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var coord: Vector2i = grid.coord_under_mouse_raw() if grid != null else Vector2i(-1, -1)
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
-				# Alt+LMB → eyedropper (T-17). No drag, no history.
+				# Alt+LMB -> eyedropper (T-17). No drag, no history.
 				if mb.alt_pressed:
 					if coord != Vector2i(-1, -1):
 						_eyedropper(coord)
@@ -349,13 +354,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			if coord != Vector2i(-1, -1) and coord != _last_paint_coord:
 				_paint_at(coord)
 				_last_paint_coord = coord
-		# Refresh multi-cell preview regardless of LMB state — shows brush
+		# Refresh multi-cell preview regardless of LMB state -- shows brush
 		# disk on hover, rect-fill region while LMB held in rect mode.
 		_update_paint_preview()
 
 
 ## Drag-paint allowed for placing-floor / erasing / placing-object / placing
-## non-player spawner. Player spawner is a singleton — no drag.
+## non-player spawner. Player spawner is a singleton -- no drag.
 func _is_drag_paint_mode() -> bool:
 	match _mode:
 		Mode.PLACING_FLOOR, Mode.ERASING_FLOOR, Mode.PLACING_OBJECT:
@@ -367,12 +372,12 @@ func _is_drag_paint_mode() -> bool:
 
 
 ## Editor shortcuts. Captured here (not via Input map) because they're
-## editor-scoped — godmode arena defines its own bindings and we don't want
+## editor-scoped -- godmode arena defines its own bindings and we don't want
 ## a global conflict.
 func _handle_key_event(event: InputEventKey) -> void:
 	if not event.pressed or event.echo:
 		return
-	# Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z — undo/redo (T-10)
+	# Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z -- undo/redo (T-10)
 	if event.ctrl_pressed and event.keycode == KEY_Z:
 		if event.shift_pressed:
 			_perform_redo()
@@ -384,19 +389,19 @@ func _handle_key_event(event: InputEventKey) -> void:
 		_perform_redo()
 		get_viewport().set_input_as_handled()
 		return
-	# Ctrl+S — save (T-11)
+	# Ctrl+S -- save (T-11)
 	if event.ctrl_pressed and event.keycode == KEY_S:
 		_on_save_requested()
 		get_viewport().set_input_as_handled()
 		return
-	# 1-9 — quick palette select (T-19). Bare digits only (no Ctrl/Alt/Shift)
+	# 1-9 -- quick palette select (T-19). Bare digits only (no Ctrl/Alt/Shift)
 	# so we don't clash with future shortcuts.
 	if not event.ctrl_pressed and not event.alt_pressed and not event.shift_pressed:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			_quick_select(event.keycode - KEY_1)
 			get_viewport().set_input_as_handled()
 			return
-		# H — toggle hotkey cheatsheet overlay (T-23)
+		# H -- toggle hotkey cheatsheet overlay (T-23)
 		if event.keycode == KEY_H:
 			if _hotkey_overlay != null:
 				_hotkey_overlay.visible = not _hotkey_overlay.visible
@@ -404,7 +409,7 @@ func _handle_key_event(event: InputEventKey) -> void:
 			return
 
 
-## Eyedropper (T-16): under cursor — pick spawner > object > floor (in that
+## Eyedropper (T-16): under cursor -- pick spawner > object > floor (in that
 ## priority). The matching palette button is toggled programmatically, which
 ## emits the usual signal and switches the controller into the right mode.
 func _eyedropper(coord: Vector2i) -> void:
@@ -426,11 +431,11 @@ func _eyedropper(coord: Vector2i) -> void:
 			if _floor_palette != null and _floor_palette.has_method("select_tile"):
 				_floor_palette.select_tile(f.source_id, f.atlas_coord)
 			return
-	# Empty hex — no-op (don't switch mode).
+	# Empty hex -- no-op (don't switch mode).
 
 
 ## Quick palette select (T-19): route to the palette matching current mode.
-## Floor / Erase / Idle → floor palette. Object / Spawner → object palette.
+## Floor / Erase / Idle -> floor palette. Object / Spawner -> object palette.
 func _quick_select(idx: int) -> void:
 	match _mode:
 		Mode.PLACING_OBJECT, Mode.PLACING_SPAWNER:
@@ -461,7 +466,7 @@ func _perform_redo() -> void:
 	EventBus.ui_toast_requested.emit("Redo", 0.6, &"info")
 
 
-# ── LMB — placement table ───────────────────────────────────────────────────
+# -- LMB -- placement table ---------------------------------------------------
 
 func _handle_lmb(coord: Vector2i) -> void:
 	# LMB always cancels pending delete (regardless of mode).
@@ -483,13 +488,13 @@ func _paint_at(coord: Vector2i) -> void:
 		_paint_one(c)
 
 
-## Pure paint operation for a single cell — no input-side-effects (pending-
+## Pure paint operation for a single cell -- no input-side-effects (pending-
 ## delete clear, etc.). Safe to call multiple times during a drag-paint or
 ## brush-disk expansion without retriggering them.
 func _paint_one(coord: Vector2i) -> void:
 	match _mode:
 		Mode.IDLE:
-			# T87 — LMB on an existing enemy spawner opens the timer editor.
+			# T87 -- LMB on an existing enemy spawner opens the timer editor.
 			# Player spawner is skipped (timer fixed at 1); other targets
 			# are handled by other modes.
 			if _has_spawner_at(coord):
@@ -506,7 +511,7 @@ func _paint_one(coord: Vector2i) -> void:
 			_place_spawner(coord, _placing_spawner_kind, _placing_spawner_ref)
 
 
-## Hex disk via BFS using TileMap's get_surrounding_cells — works for any
+## Hex disk via BFS using TileMap's get_surrounding_cells -- works for any
 ## hex layout (offset coords, even/odd-row staggering) without the editor
 ## needing to know the staggering rules. Capped to MAP_HALF_LIMIT.
 func _hex_disk(center: Vector2i, radius: int) -> Array[Vector2i]:
@@ -558,7 +563,7 @@ func _rect_cells(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
 	var x_max: int = maxi(a.x, b.x)
 	var y_min: int = mini(a.y, b.y)
 	var y_max: int = maxi(a.y, b.y)
-	# Clamp to bounds — rect should never extend past the editable region.
+	# Clamp to bounds -- rect should never extend past the editable region.
 	x_min = clampi(x_min, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
 	x_max = clampi(x_max, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
 	y_min = clampi(y_min, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
@@ -591,10 +596,10 @@ func _finish_rect(release_coord: Vector2i) -> void:
 
 
 func _place_floor(coord: Vector2i, source_id: int, atlas: Vector2i) -> void:
-	# Floor placement always allowed — overwrites whatever was there. Object
-	# and spawner stay (per plan.md table). Empty hex → painted.
+	# Floor placement always allowed -- overwrites whatever was there. Object
+	# and spawner stay (per plan.md table). Empty hex -> painted.
 	grid.tile_map_layer.set_cell(coord, source_id, atlas)
-	# Update level model — replace existing floor entry or append.
+	# Update level model -- replace existing floor entry or append.
 	var found: bool = false
 	for entry in _level.floor_cells:
 		if entry.coord == coord:
@@ -640,8 +645,8 @@ func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 	if not _is_floor_painted(coord):
 		_emit_occupied_toast("Сначала нарисуй пол")
 		return
-	# Player spawner is a singleton — placing while one exists fades the old
-	# out. Other collisions (object, enemy) → silent reject (toast).
+	# Player spawner is a singleton -- placing while one exists fades the old
+	# out. Other collisions (object, enemy) -> silent reject (toast).
 	if kind == &"player":
 		var existing_player_coord: Vector2i = _find_player_spawner()
 		if existing_player_coord != Vector2i(-1, -1):
@@ -664,7 +669,7 @@ func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 	if _spawners_overlay != null and _spawners_overlay.has_method("set_spawner"):
 		_spawners_overlay.set_spawner(coord, kind, ref, LevelData.DEFAULT_SPAWNER_TIMER)
 	_mark_dirty()
-	# T87 — pop the timer editor right after placement for enemy spawners.
+	# T87 -- pop the timer editor right after placement for enemy spawners.
 	# Player timer is fixed at 1 (player is permanent) so we skip it; jam-
 	# scope decision: hand a sensible default rather than block on a popup
 	# the designer would always Enter through.
@@ -672,7 +677,7 @@ func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 		_open_spawner_timer_editor(coord)
 
 
-# ── RMB — pending delete ────────────────────────────────────────────────────
+# -- RMB -- pending delete ----------------------------------------------------
 
 func _handle_rmb(coord: Vector2i) -> void:
 	if _delete == null:
@@ -684,7 +689,7 @@ func _handle_rmb(coord: Vector2i) -> void:
 		_execute_delete(coord)
 		_delete.clear()
 		return
-	# Different coord — re-mark
+	# Different coord -- re-mark
 	_delete.set_coord(coord)
 
 
@@ -706,7 +711,7 @@ func _clear_pending_delete() -> void:
 		_delete.clear()
 
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
+# -- Helpers -----------------------------------------------------------------
 
 func _is_floor_painted(coord: Vector2i) -> bool:
 	for f in _level.floor_cells:
@@ -765,7 +770,7 @@ func _remove_spawner_at(coord: Vector2i) -> void:
 		_spawners_overlay.clear_spawner(coord)
 
 
-## Silent-reject feedback. Single toast per ~800ms window — during drag-paint
+## Silent-reject feedback. Single toast per ~800ms window -- during drag-paint
 ## across occupied cells we don't want a stream of warnings, just the first one.
 func _emit_occupied_toast(text: String) -> void:
 	var now_ms: int = Time.get_ticks_msec()
@@ -775,7 +780,7 @@ func _emit_occupied_toast(text: String) -> void:
 	EventBus.ui_toast_requested.emit(text, 1.0, &"info")
 
 
-# ── Dirty / autosave ────────────────────────────────────────────────────────
+# -- Dirty / autosave --------------------------------------------------------
 
 func _mark_dirty() -> void:
 	_dirty = true
@@ -783,16 +788,18 @@ func _mark_dirty() -> void:
 		_meta_panel.set_dirty(true)
 	if _autosave_timer != null:
 		_autosave_timer.start()  # restart debounce countdown
-	# 024: keep the WavePanel in sync — wave operations and per-cell edits
+	# 024: keep the WavePanel in sync -- wave operations and per-cell edits
 	# both flow through here.
 	if _wave_panel != null and _wave_panel.has_method("bind_level"):
 		_wave_panel.bind_level(_level)
 	# 024 / T83: diff overlay tracks the active wave's deltas vs prev wave.
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
+	# 039: keep trigger markers in sync with wave anchor positions.
+	_refresh_timeline_dialogue_markers()
 
 
-## Counterpart to _mark_dirty — clear dirty state and update meta panel.
+## Counterpart to _mark_dirty -- clear dirty state and update meta panel.
 ## Called after successful Save and just-loaded levels (both = on-disk = clean).
 func _set_clean() -> void:
 	_dirty = false
@@ -801,7 +808,7 @@ func _set_clean() -> void:
 
 
 func _do_autosave() -> void:
-	# No validate, no toast — autosave is best-effort persistence.
+	# No validate, no toast -- autosave is best-effort persistence.
 	LevelSerializer.save(_level, AUTOSAVE_PATH)
 
 
@@ -823,13 +830,13 @@ func _check_autosave_recovery() -> void:
 		var loaded: LevelData = LevelSerializer.load_from(AUTOSAVE_PATH)
 		if loaded != null:
 			_apply_level(loaded)
-			_mark_dirty()  # restored — needs re-saving
+			_mark_dirty()  # restored -- needs re-saving
 			EventBus.ui_toast_requested.emit("Восстановлено", 1.5, &"success")
 	else:
 		DirAccess.remove_absolute(AUTOSAVE_PATH)
 
 
-# ── Apply a loaded LevelData to the editor ──────────────────────────────────
+# -- Apply a loaded LevelData to the editor ----------------------------------
 
 func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	_level = level
@@ -860,7 +867,7 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	# Update meta panel name field if present
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(level.name)
-	# Camera recenter is opt-in — load/queued-resume want it (user expects
+	# Camera recenter is opt-in -- load/queued-resume want it (user expects
 	# the new map in view), but undo/redo do NOT (we already see the map and
 	# a jump on every Ctrl+Z is jarring).
 	if recenter_camera:
@@ -874,9 +881,13 @@ func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	# 024 / T83: diff overlay refresh on load / wave switch / undo.
 	if _wave_diff_overlay != null and _wave_diff_overlay.has_method("bind_level"):
 		_wave_diff_overlay.bind_level(_level)
+	# 039: dialogue trigger panel refresh on load.
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
 
 
-# ── Wiring stubs (palettes/meta panel signal hookup) ────────────────────────
+# -- Wiring stubs (palettes/meta panel signal hookup) ------------------------
 
 func _wire_floor_palette() -> void:
 	if _floor_palette == null:
@@ -944,7 +955,7 @@ func _on_brush_size_changed(size: int) -> void:
 	_update_paint_preview()
 
 
-# ── Palette signal handlers ────────────────────────────────────────────────
+# -- Palette signal handlers ------------------------------------------------
 
 func _on_floor_tile_picked(source_id: int, atlas: Vector2i) -> void:
 	set_mode_place_floor(source_id, atlas)
@@ -972,7 +983,7 @@ func _on_replace_all_requested(from_source: int, from_atlas: Vector2i,
 	apply_replace_all(from_source, from_atlas, to_source, to_atlas)
 
 
-## Public — used by FloorPalette's replace-all flow.
+## Public -- used by FloorPalette's replace-all flow.
 func apply_replace_all(from_source: int, from_atlas: Vector2i,
 		to_source: int, to_atlas: Vector2i) -> void:
 	# Pre-count so we don't push a no-op snapshot to the undo stack.
@@ -1006,7 +1017,7 @@ func _on_name_changed(new_name: String) -> void:
 	_mark_dirty()
 
 
-# ── Save / Load / Playtest / Exit ───────────────────────────────────────────
+# -- Save / Load / Playtest / Exit -------------------------------------------
 
 func _on_save_requested() -> void:
 	var errors: Array[String] = _level.validate()
@@ -1105,7 +1116,7 @@ static func _sanitize_filename(s: String) -> String:
 	return out
 
 
-# ── 024-wave-editor — WavePanel wiring ──────────────────────────────────────
+# -- 024-wave-editor -- WavePanel wiring --------------------------------------
 
 func _wire_wave_panel() -> void:
 	if _wave_panel == null:
@@ -1134,7 +1145,7 @@ func _wire_wave_panel() -> void:
 
 
 ## Refresh the wave panel after any structural change to _level.waves
-## (add/insert/delete/active-switch/turns_to_next edit). Cheap — the
+## (add/insert/delete/active-switch/turns_to_next edit). Cheap -- the
 ## timeline rebuilds in O(num_waves).
 func _refresh_wave_panel() -> void:
 	if _wave_panel == null:
@@ -1143,9 +1154,73 @@ func _refresh_wave_panel() -> void:
 		_wave_panel.bind_level(_level)
 	if _wave_panel.has_method("set_active_wave"):
 		_wave_panel.set_active_wave(_level.get_active_wave_index())
+	_refresh_timeline_dialogue_markers()
 
 
-# Signal handlers — each routes through _level + dirties + autosaves.
+func _wire_dialogue_trigger_panel() -> void:
+	if _dialogue_trigger_panel == null:
+		return
+	if _dialogue_trigger_panel.has_signal("trigger_created"):
+		_dialogue_trigger_panel.trigger_created.connect(_on_dlg_trigger_created)
+	if _dialogue_trigger_panel.has_signal("trigger_updated"):
+		_dialogue_trigger_panel.trigger_updated.connect(_on_dlg_trigger_updated)
+	if _dialogue_trigger_panel.has_signal("trigger_deleted"):
+		_dialogue_trigger_panel.trigger_deleted.connect(_on_dlg_trigger_deleted)
+	if _dialogue_trigger_panel.has_signal("trigger_selected"):
+		_dialogue_trigger_panel.trigger_selected.connect(_on_dlg_trigger_selected)
+	if _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+
+
+func _refresh_timeline_dialogue_markers() -> void:
+	if _wave_panel == null:
+		return
+	# WavePanel contains the WaveTimeline node.
+	var timeline: Node = _wave_panel.get_node_or_null("VBox/TimelineRow/Timeline")
+	if timeline == null:
+		return
+	if timeline.has_method("set_dialogue_trigger_markers"):
+		timeline.set_dialogue_trigger_markers(_level.dialogue_triggers, _level)
+
+
+func _on_dlg_trigger_created(d: Dictionary) -> void:
+	_level.dialogue_triggers.append(d)
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_updated(old_id: StringName, d: Dictionary) -> void:
+	for i in _level.dialogue_triggers.size():
+		if StringName(str(_level.dialogue_triggers[i].get("id", ""))) == old_id:
+			_level.dialogue_triggers[i] = d
+			break
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_deleted(trigger_id: StringName) -> void:
+	for i in _level.dialogue_triggers.size():
+		if StringName(str(_level.dialogue_triggers[i].get("id", ""))) == trigger_id:
+			_level.dialogue_triggers.remove_at(i)
+			break
+	if _dialogue_trigger_panel != null and _dialogue_trigger_panel.has_method("bind_level"):
+		_dialogue_trigger_panel.bind_level(_level)
+	_refresh_timeline_dialogue_markers()
+	_mark_dirty()
+
+
+func _on_dlg_trigger_selected(trigger_id: StringName) -> void:
+	# Timeline marker -> highlight; click on list row -> (already highlighted by panel).
+	# Nothing to do in controller for now -- panel handles its own selection state.
+	pass
+
+
+# Signal handlers -- each routes through _level + dirties + autosaves.
 
 func _on_wave_anchor_clicked(idx: int) -> void:
 	_switch_to_wave(idx)
@@ -1154,7 +1229,7 @@ func _on_wave_anchor_clicked(idx: int) -> void:
 func _on_wave_anchor_context(idx: int, _screen_pos: Vector2) -> void:
 	# Minimum viable: PopupMenu with Delete (if not wave 0) + Toggle Special.
 	# A full popup with positioning is a P-polish item; for now we handle
-	# the most common path — Delete — directly via ConfirmModal. Toggle
+	# the most common path -- Delete -- directly via ConfirmModal. Toggle
 	# special is exposed via the dedicated button in WavePanel.
 	if idx <= 0:
 		EventBus.ui_toast_requested.emit("Wave 0 удалить нельзя", 1.5, &"info")
@@ -1163,7 +1238,7 @@ func _on_wave_anchor_context(idx: int, _screen_pos: Vector2) -> void:
 
 
 func _on_wave_gap_context(after_idx: int, _screen_pos: Vector2) -> void:
-	# RMB on gap → insert a fresh wave between after_idx and after_idx+1.
+	# RMB on gap -> insert a fresh wave between after_idx and after_idx+1.
 	_insert_wave_after(after_idx)
 
 
@@ -1172,7 +1247,7 @@ func _on_wave_turns_changed(idx: int, new_value: int) -> void:
 		return
 	_history.push(_level)
 	_level.waves[idx]["turns_to_next"] = max(1, new_value)
-	# Last wave's turns_to_next must be 0 — enforce.
+	# Last wave's turns_to_next must be 0 -- enforce.
 	if idx == _level.waves.size() - 1:
 		_level.waves[idx]["turns_to_next"] = 0
 	# _mark_dirty re-binds the wave panel + diff overlay; doing it again
@@ -1184,7 +1259,7 @@ func _on_wave_turns_changed(idx: int, new_value: int) -> void:
 
 func _on_wave_add() -> void:
 	_history.push(_level)
-	# Sync root → current wave first so we don't lose pending edits.
+	# Sync root -> current wave first so we don't lose pending edits.
 	_level.sync_root_to_active_wave()
 	# Convert previous "last wave" (turns_to_next=0) to a non-final wave with
 	# default turns_to_next, then append a new final wave.
@@ -1234,7 +1309,7 @@ func _on_wave_toggle_special() -> void:
 	_refresh_wave_panel()
 
 
-# v2 — visible Delete-wave button on the panel. Routes through the same
+# v2 -- visible Delete-wave button on the panel. Routes through the same
 # ConfirmModal flow as RMB-on-anchor for consistency.
 func _on_wave_delete_active() -> void:
 	var active: int = _level.get_active_wave_index()
@@ -1246,7 +1321,7 @@ func _switch_to_wave(idx: int) -> void:
 		return
 	if idx == _level.get_active_wave_index():
 		return
-	# Close any in-flight inline editor — the spawner under it may not
+	# Close any in-flight inline editor -- the spawner under it may not
 	# exist in the wave we're switching to.
 	_close_timer_editor()
 	# Persist current edits to the wave we're leaving, swap, repaint.
@@ -1263,7 +1338,7 @@ func _request_delete_wave(idx: int) -> void:
 		return
 	if _confirm_modal == null or not _confirm_modal.has_method("ask"):
 		return
-	# Async confirm — must await before mutating.
+	# Async confirm -- must await before mutating.
 	_request_delete_wave_async(idx)
 
 
@@ -1285,17 +1360,17 @@ func _request_delete_wave_async(idx: int) -> void:
 	if active_now == idx:
 		_level.set_active_wave_index(idx - 1)
 	else:
-		# Other active — just persist current edits before mutating waves.
+		# Other active -- just persist current edits before mutating waves.
 		_level.sync_root_to_active_wave()
 	# Drop the wave + reindex.
 	_level.waves.remove_at(idx)
 	for i in _level.waves.size():
 		_level.waves[i]["index"] = i
-	# Last wave's turns_to_next must be 0 — restore the invariant.
+	# Last wave's turns_to_next must be 0 -- restore the invariant.
 	if not _level.waves.is_empty():
 		var last: int = _level.waves.size() - 1
 		_level.waves[last]["turns_to_next"] = 0
-	# If the active was past the deletion, indices shifted — re-resolve.
+	# If the active was past the deletion, indices shifted -- re-resolve.
 	# (set_active_wave_index is no-op on same idx; we may need to clamp.)
 	var new_active: int = _level.get_active_wave_index()
 	if new_active >= _level.waves.size():
@@ -1326,7 +1401,7 @@ func _insert_wave_after(after_idx: int) -> void:
 	_switch_to_wave(insert_at)
 
 
-# ── 024 / T87-T88 — spawner timer inline editor ────────────────────────────
+# -- 024 / T87-T88 -- spawner timer inline editor ----------------------------
 #
 # Floats a numeric LineEdit over the spawner hex. Enter / focus_exit commits
 # to the spawner's `timer` field. Esc reverts. Re-opening on the same
@@ -1365,7 +1440,7 @@ func _open_spawner_timer_editor(coord: Vector2i) -> void:
 	_timer_editor_coord = coord
 	_timer_editor_baseline = current_timer
 	_timer_editor.text = str(current_timer)
-	# Position over the spawner — convert tile-map-local to viewport space
+	# Position over the spawner -- convert tile-map-local to viewport space
 	# via the editor camera. Falls back to canvas-space if camera isn't
 	# resolved yet (shouldn't happen in steady state).
 	var world: Vector2 = grid.tile_map_layer.map_to_local(coord) + grid.position

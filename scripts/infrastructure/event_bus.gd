@@ -30,6 +30,14 @@ signal upgrade_chosen(modifier_id: StringName)
 signal wave_started(index: int, is_special: bool)
 signal wave_cleared(index: int, unused_turns: int)
 signal level_completed(total_score: int)
+# 039: synthesized event — emitted by WaveController one frame before
+# _apply_wave_snapshot on wave N>0. Allows triggers to react "before the
+# new wave content is live". arg index = the incoming wave index.
+signal wave_about_to_start(index: int)
+# 039: emitted by godmode_setup after LevelData is fully applied (floor +
+# objects + player spawned). Director caches the level ref here, then wires
+# its event handlers when battle_started fires.
+signal level_loaded(level: LevelData)
 # 024: emitted when a deferred spawner-placeholder instantiates a real actor.
 # Listeners (e.g. AI planner, HUD) can react to the new actor entering play.
 signal actor_spawned(actor_id: StringName)

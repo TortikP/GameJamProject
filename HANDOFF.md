@@ -805,3 +805,34 @@ JSON-формат:
 - `006-meta-screens` — owner Alexey (после темы).
 
 Темы заготовок (002, 003) можно разрабатывать в параллель вечером среды или утром четверга. Темы 004-006 — после объявления темы джема, потому что они привязаны к концепту.
+
+## 20. 039-dialogue-triggers — точки интеграции
+
+**Статус (2026-05-03):** PR открыт, ждёт ревью. Реализовано всё из spec.
+
+### Что добавлено
+
+- `scripts/core/dialogue/dialogue_trigger.gd` — value class (`from_dict`, `to_dict`, `validate`).
+- `LevelData.dialogue_triggers: Array[Dictionary]` — персистентно в JSON, backward-compatible.
+- `EventBus`: новые сигналы `wave_about_to_start(index)` и `level_loaded(level)`.
+- `WaveController`: эмитит `battle_started` из `start_level`, `wave_about_to_start` перед snapshot N>0, `battle_ended(true)` на `level_completed`.
+- `scripts/runtime/level_dialogue_director.gd` — autoload. Слушает `level_loaded` → кэширует level; `battle_started` → коннектит хендлеры по уникальным event; `battle_ended` → дисконнектит.
+- `WaveTimeline`: `set_dialogue_trigger_markers(triggers, level)` — violet circles в `Mode.EDIT`. Click → `dialogue_trigger_marker_clicked(id)`.
+- `scenes/dev/dialogue_trigger_panel.tscn` + `dialogue_trigger_panel.gd` — CRUD sidebar. Сигналы → controller.
+- `map_editor_controller.gd`: `_wire_dialogue_trigger_panel`, `_refresh_timeline_dialogue_markers`, CRUD handlers.
+- `data/maps/sample_dialogues.json` — smoke-уровень, 5 триггеров.
+
+### Точка интеграции с 040 (wave-skill-choice)
+
+040 должен добавить в `EventBus`:
+```gdscript
+signal skill_offer_about_to_open(wave_index: int, ...)
+signal skill_offer_closed(wave_index: int, ...)
+```
+Director подключится к ним автоматически когда trigger `event` = `"skill_offer_about_to_open"` / `"skill_offer_closed"` встретится в level JSON. До мержа 040 — warn-once в лог, триггеры мёртвы, остальные работают.
+
+### Известные ограничения (post-jam)
+
+- Editor: ConfirmModal не задействован для Delete (прямой emit сигнала). Добавить при наличии времени.
+- Markers: tooltip при hover — не реализован (P3, cut из scope). Позиция marker Y считается от `BAR_Y - ANCHOR_RADIUS - 6` — если добавятся anchors другого размера, пересмотреть.
+- `_refresh_timeline_dialogue_markers()` ищет Timeline по hardcoded path `VBox/TimelineRow/Timeline` внутри WavePanel — хрупко если WavePanel перестроится.

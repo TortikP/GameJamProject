@@ -1,0 +1,236 @@
+{
+  "name": "Sample Dialogue Triggers",
+  "version": 2,
+  "tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
+  "waves": [
+    {
+      "index": 0,
+      "is_special": false,
+      "turns_to_next": 8,
+      "floor": [
+        {
+          "coord": [
+            0,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            -1,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            -1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            -2,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        }
+      ],
+      "objects": [],
+      "spawners": [
+        {
+          "coord": [
+            0,
+            0
+          ],
+          "kind": "player",
+          "ref": "",
+          "timer": 1
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "is_special": false,
+      "turns_to_next": 6,
+      "floor": [
+        {
+          "coord": [
+            0,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            -1,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            -1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            -2,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        }
+      ],
+      "objects": [],
+      "spawners": []
+    }
+  ],
+  "dialogue_triggers": [
+    {
+      "id": "intro",
+      "event": "level_started",
+      "dialogue_id": "boss_intro",
+      "play_mode": "play",
+      "conditions": {
+        "once_per_run": true
+      }
+    },
+    {
+      "id": "wave1_taunt",
+      "event": "wave_about_to_start",
+      "dialogue_id": "boss_intro",
+      "play_mode": "request",
+      "conditions": {
+        "wave_index": 1
+      }
+    },
+    {
+      "id": "quick_clear",
+      "event": "wave_cleared",
+      "dialogue_id": "narrator_ambient",
+      "play_mode": "request",
+      "conditions": {
+        "wave_index": 0,
+        "cleared_in_turns_lt": 3
+      }
+    },
+    {
+      "id": "tick40",
+      "event": "world_turn_ended",
+      "dialogue_id": "narrator_ambient",
+      "play_mode": "request",
+      "conditions": {
+        "absolute_turn": 4,
+        "once_per_run": true
+      }
+    },
+    {
+      "id": "outro",
+      "event": "level_completed",
+      "dialogue_id": "boss_intro",
+      "play_mode": "play",
+      "conditions": {}
+    }
+  ]
+}
