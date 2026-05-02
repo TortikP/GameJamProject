@@ -1,4 +1,4 @@
-# 025-feedback-polish — spec (RESERVED)
+# 029-feedback-polish — spec (RESERVED)
 
 **Owner:** Andrey (driver, polish — его территория), все остальные точечно.
 **Status:** Reserved — содержание заполняется утром, вне этой сессии.
@@ -40,7 +40,7 @@
 
 - OQ-1: brand audio direction. Кто отвечает? Внешний free-asset pack? AI-generated через Suno? Никита?
 - OQ-2: VFX набор — иконки/спрайты от Кати или Godot built-in particles?
-- OQ-3: всё ли уложится в одну спеку, или придётся пилить на: 025-telegraph-pass / 025a-audio-pass / 025b-juice-pass? Вероятно да.
+- OQ-3: всё ли уложится в одну спеку, или придётся пилить на: 029-telegraph-pass / 029a-audio-pass / 029b-juice-pass? Вероятно да.
 - OQ-4: какие из этих пунктов НЕ нужны для MVP-демо в субботу? Cut-list строить отсюда.
 
 ## Зависимости
