@@ -260,6 +260,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
+				# Alt+LMB → eyedropper (T-17). No drag, no history.
+				if mb.alt_pressed:
+					if coord != Vector2i(-1, -1):
+						_eyedropper(coord)
+					get_viewport().set_input_as_handled()
+					return
 				_lmb_held = true
 				_last_paint_coord = Vector2i(-1, -1)
 				_history.begin_transaction(_level)
@@ -323,6 +329,50 @@ func _handle_key_event(event: InputEventKey) -> void:
 		_on_save_requested()
 		get_viewport().set_input_as_handled()
 		return
+	# 1-9 — quick palette select (T-19). Bare digits only (no Ctrl/Alt/Shift)
+	# so we don't clash with future shortcuts.
+	if not event.ctrl_pressed and not event.alt_pressed and not event.shift_pressed:
+		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+			_quick_select(event.keycode - KEY_1)
+			get_viewport().set_input_as_handled()
+			return
+
+
+## Eyedropper (T-16): under cursor — pick spawner > object > floor (in that
+## priority). The matching palette button is toggled programmatically, which
+## emits the usual signal and switches the controller into the right mode.
+func _eyedropper(coord: Vector2i) -> void:
+	# Spawner first (rendered over object/floor visually, semantically "on top").
+	for s in _level.spawners:
+		if s.coord == coord:
+			if _object_palette != null and _object_palette.has_method("select_spawner"):
+				_object_palette.select_spawner(s.kind, s.ref)
+			return
+	# Object next.
+	for o in _level.objects:
+		if o.coord == coord:
+			if _object_palette != null and _object_palette.has_method("select_object"):
+				_object_palette.select_object(o.object_id)
+			return
+	# Floor last.
+	for f in _level.floor_cells:
+		if f.coord == coord:
+			if _floor_palette != null and _floor_palette.has_method("select_tile"):
+				_floor_palette.select_tile(f.source_id, f.atlas_coord)
+			return
+	# Empty hex — no-op (don't switch mode).
+
+
+## Quick palette select (T-19): route to the palette matching current mode.
+## Floor / Erase / Idle → floor palette. Object / Spawner → object palette.
+func _quick_select(idx: int) -> void:
+	match _mode:
+		Mode.PLACING_OBJECT, Mode.PLACING_SPAWNER:
+			if _object_palette != null and _object_palette.has_method("select_nth"):
+				_object_palette.select_nth(idx)
+		_:
+			if _floor_palette != null and _floor_palette.has_method("select_nth"):
+				_floor_palette.select_nth(idx)
 
 
 func _perform_undo() -> void:

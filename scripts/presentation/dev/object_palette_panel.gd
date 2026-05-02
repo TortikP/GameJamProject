@@ -163,6 +163,8 @@ func _make_spawner_button(label: String, kind: StringName, ref: StringName) -> B
 	btn.text = label
 	btn.toggle_mode = true
 	UiTheme.apply_button_styling(btn)
+	btn.set_meta("spawner_kind", String(kind))
+	btn.set_meta("spawner_ref", String(ref))
 	btn.pressed.connect(_on_spawner_pressed.bind(kind, ref, btn))
 	return btn
 
@@ -230,6 +232,7 @@ func _make_object_button(obj: TileObject) -> Button:
 		lines.append("aura radius: %d" % obj.aura_radius)
 	btn.tooltip_text = "\n".join(lines)
 	UiTheme.apply_button_styling(btn)
+	btn.set_meta("object_id", String(obj.id))
 	btn.pressed.connect(_on_object_pressed.bind(obj.id, btn))
 	return btn
 
@@ -249,3 +252,85 @@ func _install_drag(handle: Control) -> void:
 	var dragger := DraggablePanel.new()
 	add_child(dragger)
 	dragger.setup(self, handle)
+
+
+# ── Public selection API (eyedropper / 1-9 quick select) ───────────────────
+
+## Programmatically select the spawner button matching (kind, ref). Switches
+## tab to Spawners first. No-op if not found.
+func select_spawner(kind: StringName, ref: StringName) -> void:
+	_switch_tab(TAB_SPAWNERS)
+	if _content == null:
+		return
+	for child in _content.get_children():
+		if not (child is Button):
+			continue
+		var btn := child as Button
+		if String(btn.get_meta("spawner_kind", "")) != String(kind):
+			continue
+		if String(btn.get_meta("spawner_ref", "")) != String(ref):
+			continue
+		btn.button_pressed = true
+		_on_spawner_pressed(kind, ref, btn)
+		return
+
+
+## Programmatically select the object button matching object_id. Switches
+## tab to Obstacles or Interactive based on the object's traits. No-op if
+## the registry isn't loaded or the id isn't found.
+func select_object(object_id: StringName) -> void:
+	if _registry == null:
+		return
+	var obj: TileObject = _registry.get_object(object_id)
+	if obj == null:
+		return
+	var is_interactive: bool = obj.breakable or obj.behavior_effect_id != &""
+	var target_tab: int = TAB_INTERACTIVE if is_interactive else TAB_OBSTACLES
+	_switch_tab(target_tab)
+	if _content == null:
+		return
+	for child in _content.get_children():
+		if not (child is Button):
+			continue
+		var btn := child as Button
+		if String(btn.get_meta("object_id", "")) != String(object_id):
+			continue
+		btn.button_pressed = true
+		_on_object_pressed(object_id, btn)
+		return
+
+
+## Quick palette select — pick the N-th button (0-indexed) within the
+## currently-active tab. Out of range → no-op.
+func select_nth(idx: int) -> void:
+	if _content == null or idx < 0:
+		return
+	var i: int = 0
+	for child in _content.get_children():
+		if not (child is Button):
+			continue
+		if i == idx:
+			var btn := child as Button
+			# Dispatch by tab — meta keys differ.
+			match _current_tab:
+				TAB_SPAWNERS:
+					var kind := StringName(String(btn.get_meta("spawner_kind", "")))
+					var ref := StringName(String(btn.get_meta("spawner_ref", "")))
+					btn.button_pressed = true
+					_on_spawner_pressed(kind, ref, btn)
+				_:
+					var obj_id := StringName(String(btn.get_meta("object_id", "")))
+					if String(obj_id) == "":
+						return
+					btn.button_pressed = true
+					_on_object_pressed(obj_id, btn)
+			return
+		i += 1
+
+
+## Internal — switch tab and rebuild content if needed. No event-loop wait.
+func _switch_tab(tab: int) -> void:
+	if _tab_bar == null or _current_tab == tab:
+		# Same tab — content is already current, nothing to do.
+		return
+	_tab_bar.current_tab = tab  # fires tab_changed → _on_tab_changed → rebuild
