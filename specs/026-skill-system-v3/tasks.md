@@ -251,11 +251,11 @@ print("done")
           _cast_step = 0
           _cast_ctxs = []
           _cast_in_progress = true
-          _begin_cast_step()
+          _begin_step()
       ```
-- [ ] Добавить `_begin_cast_step()`:
+- [ ] Добавить `_begin_step()`:
       ```gdscript
-      func _begin_cast_step() -> void:
+      func _begin_step() -> void:
           var ab := _cast_skill.abilities[_cast_step]
           if ab.target is SelfTarget:
               var caster_coord := grid.get_coord(player.actor_id)
@@ -263,9 +263,9 @@ print("done")
           else:
               _cast_overlay.show_range_for_ability(player, ab)
       ```
-- [ ] Добавить `_commit_cast_step(coord, target_id)`:
+- [ ] Добавить `_commit_step(coord, target_id)`:
       ```gdscript
-      func _commit_cast_step(coord: Vector2i, target_id: StringName) -> void:
+      func _commit_step(coord: Vector2i, target_id: StringName) -> void:
           var ctx := {"registry": registry, "grid": grid, "target_id": target_id, "target_coord": coord}
           _cast_ctxs.append(ctx)
           _cast_step += 1
@@ -273,14 +273,14 @@ print("done")
           if _cast_step == _cast_skill.abilities.size():
               await _commit_cast()
           else:
-              _begin_cast_step()
+              _begin_step()
       ```
 - [ ] Добавить `_commit_cast()`:
       ```gdscript
       func _commit_cast() -> void:
-          var skill := _cast_skill
-          var ctxs := _cast_ctxs
-          _reset_cast_state()
+          var skill: Skill = _cast_skill
+          var ctxs: Array[Dictionary] = _cast_ctxs
+          _reset_cast_state()    # reset BEFORE cast — EventBus subscribers see clean state
           var did_cast: bool = skill.cast(player, ctxs)
           if did_cast:
               await GameSpeed.wait("godmode", "ability_cast_delay")
@@ -308,27 +308,51 @@ print("done")
           return
       ```
 - [ ] В `_unhandled_input` right-click ветка: если `_cast_in_progress` → `_cancel_cast()` вместо `_request_move()`.
-- [ ] В `_unhandled_input` slot-toggle: если `_cast_in_progress` И повторное нажатие active слота И текущая ability — SelfTarget → commit step с caster-ctx, иначе cancel.
-- [ ] В `_unhandled_input` left-click: если `_cast_in_progress` — обработать как commit step:
+- [ ] В `_unhandled_input` slot-key (`cast_slot_<i>`): если `_cast_in_progress`:
       ```gdscript
-      var coord := grid.coord_under_mouse()
-      if coord == Vector2i(-1, -1):
-          return  # off-grid click — no commit, no cancel
-      var ab := _cast_skill.abilities[_cast_step]
-      if ab.target is SelfTarget:
-          # Click on caster hex confirms; click elsewhere cancels.
-          if coord == grid.get_coord(player.actor_id):
-              _commit_cast_step(coord, player.actor_id)
+      var active: int = _slot_bar_node.get_active()
+      if i == active:
+          # Same slot pressed again
+          if _is_self_step():
+              _commit_step(grid.get_coord(player.actor_id), player.actor_id)
           else:
               _cancel_cast()
+              _slot_bar_node.activate(i)   # toggle off
       else:
-          # Validate: coord must be in target's range. Cheap re-check via ability.target.get_range_hexes.
-          var caster_coord := grid.get_coord(player.actor_id)
-          var valid_hexes := ab.target.get_range_hexes(caster_coord, grid)
+          # Different slot — cancel and switch
+          _cancel_cast()
+          _slot_bar_node.activate(i)       # may re-enter via _request_cast_active
+      get_viewport().set_input_as_handled()
+      return
+      ```
+- [ ] В `_unhandled_input` left-click: если `_cast_in_progress` — обработать как commit step:
+      ```gdscript
+      var ab: Ability = _cast_skill.abilities[_cast_step]
+      if ab.target is SelfTarget:
+          # Self: ANY LMB confirms (grid / UI / off-grid). target_coord = caster's coord.
+          var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+          _commit_step(caster_coord, player.actor_id)
+      else:
+          # Non-self: must click on a hex within target.range. Off-grid or out-of-range = no-op.
+          var coord: Vector2i = grid.coord_under_mouse()
+          if coord == Vector2i(-1, -1):
+              return  # off-grid — stay on step
+          var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+          var valid_hexes: Array[Vector2i] = ab.target.get_range_hexes(caster_coord, grid)
           if coord in valid_hexes:
-              _commit_cast_step(coord, grid.get_actor_at(coord))
-          else:
-              return  # invalid click — neither commit nor cancel; stay on step
+              _commit_step(coord, grid.get_actor_at(coord))
+          # else: invalid range click — neither commit nor cancel; stay on step
+      get_viewport().set_input_as_handled()
+      return
+      ```
+- [ ] Helper `_is_self_step()` рядом с state-vars:
+      ```gdscript
+      func _is_self_step() -> bool:
+          if not _cast_in_progress or _cast_skill == null:
+              return false
+          if _cast_step >= _cast_skill.abilities.size():
+              return false
+          return _cast_skill.abilities[_cast_step].target is SelfTarget
       ```
 - [ ] В `_resolve_cast_intent` (AI path): заменить `skill.cast(enemy, ctx)` на:
       ```gdscript
@@ -427,7 +451,7 @@ print("done")
 Запустить `scenes/dev/godmode.tscn` (F5) и пройти ручные сценарии:
 
 - [ ] `SkillDatabase` грузит 15 файлов, 0 warn в консоли.
-- [ ] **AC-X2** vamp_strike: ЛКМ по врагу → self-confirm → повторный Q или ЛКМ по себе → damage 100, heal 50.
+- [ ] **AC-X2** vamp_strike: ЛКМ по врагу → vs_dmg-step commit → self-overlay появляется → ЛКМ в любой точке (или повторный Q) → vs_heal commit → cast применяется. Damage 100, heal 50.
 - [ ] **AC-X3** test_combo_multikey_effect: cast → лог damage до status (порядок в `GameLogger`-выводе).
 - [ ] **AC-X4** ESC mid-phase-1: слот не уходит на cooldown, повторный каст работает.
 - [ ] **AC-X5** debug_punch / melee_punch / manekin_attack / knockback_punch — single-step cast как в 021.

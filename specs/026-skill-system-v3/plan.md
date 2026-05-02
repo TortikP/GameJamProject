@@ -265,12 +265,37 @@ Hard break vs 021: caller'ы получат parse error на старом single
 
 Новая state в `godmode_controller.gd`. Минимальный API внутри контроллера, без отдельного класса (jam-scope).
 
+### Состояния
+
+```
+IDLE                      — нет активного каста
+AWAIT_TARGET              — ждём ЛКМ по hex'у в target.get_range_hexes
+AWAIT_SELF_CONFIRM        — ждём ЛКМ где угодно (self-step)
+```
+
+Состояние не хранится как enum — оно derivable из `_cast_in_progress` + `abilities[_cast_step].target is SelfTarget`. State-vars:
+
 ```gdscript
 # State for multi-step cast collection.
 var _cast_in_progress: bool = false
 var _cast_skill: Skill = null
-var _cast_step: int = 0              # current ability index in skill.abilities
-var _cast_ctxs: Array[Dictionary] = []  # collected so far
+var _cast_step: int = 0                  # current ability index in skill.abilities
+var _cast_ctxs: Array[Dictionary] = []   # collected so far (length == _cast_step)
+```
+
+Helper: `func _is_self_step() -> bool: return _cast_in_progress and _cast_skill.abilities[_cast_step].target is SelfTarget`.
+
+### Переходы
+
+```
+IDLE  ──[slot active + LMB / hotkey + can_apply]──►  AWAIT_*  (i=0)
+AWAIT_TARGET   ──[LMB on valid hex]──►  AWAIT_*  (i+=1) | _commit_cast (last)
+AWAIT_TARGET   ──[LMB out of range]──►  AWAIT_TARGET (no-op, stay)
+AWAIT_SELF     ──[LMB anywhere]   ──►   AWAIT_*  (i+=1) | _commit_cast (last)
+AWAIT_SELF     ──[same-slot key press]──►  AWAIT_*  (i+=1) | _commit_cast (last)
+AWAIT_*        ──[ESC / RMB]──►  IDLE (cancel, no commit, no cooldown)
+AWAIT_*        ──[other slot key press]──►  IDLE (cancel) → AWAIT_* (new skill, i=0)
+AWAIT_TARGET   ──[same-slot key press]──►  IDLE (cancel — toggle off)
 ```
 
 ### Entry: игрок жмёт ЛКМ при активном слоте
@@ -279,78 +304,137 @@ var _cast_ctxs: Array[Dictionary] = []  # collected so far
 
 ```
 1. skill = active slot
-2. if skill == null or not skill.can_apply(player, mouse_ctx): return
-3. _cast_skill = skill
-4. _cast_step = 0
-5. _cast_ctxs = []
-6. _cast_in_progress = true
-7. _begin_step()
+2. if skill == null or skill.abilities.is_empty(): return
+3. mouse_ctx = {grid, registry, target_id: grid.get_actor_at(coord), target_coord: coord}
+4. if not skill.can_apply(player, mouse_ctx): return    # slot greyed
+5. _cast_skill = skill
+6. _cast_step = 0
+7. _cast_ctxs = []
+8. _cast_in_progress = true
+9. _begin_step()
 ```
+
+`can_apply` проверяет только `abilities[0]` (как 021). Если `abilities[1]` сломается — phase-2 поглотит, cooldown поставится только если `any_resolved == true`. Это намеренно: разрешаем «частичный» каст (e.g. damage hit, heal-step без живого таргета).
 
 `_begin_step()`:
-```
-ab = _cast_skill.abilities[_cast_step]
-if ab.target.kind is SelfTarget:
-    UI: показать «Confirm» prompt (см. ниже)
-else:
-    cast_range_overlay.show_range_for_ability(player, ab)  # одна ability, не all-skill
+```gdscript
+func _begin_step() -> void:
+    var ab: Ability = _cast_skill.abilities[_cast_step]
+    if ab.target is SelfTarget:
+        var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+        _cast_overlay.show_self_confirm(caster_coord)
+    else:
+        _cast_overlay.show_range_for_ability(player, ab)
 ```
 
-### Step commit
+### Commit step
 
-ЛКМ по гексу (или confirm-action для self-target):
-```
-1. coord = mouse_coord (для self → caster_coord)
-2. target_id = grid.get_actor_at(coord) (для self → player.actor_id)
-3. ctx = {"registry": registry, "grid": grid, "target_id": target_id, "target_coord": coord}
-4. _cast_ctxs.append(ctx)
-5. _cast_step += 1
-6. if _cast_step == _cast_skill.abilities.size():
-       _commit_cast()
-   else:
-       _begin_step()
+`_commit_step(coord, target_id)`:
+```gdscript
+func _commit_step(coord: Vector2i, target_id: StringName) -> void:
+    _cast_ctxs.append({
+        "registry": registry,
+        "grid": grid,
+        "target_id": target_id,
+        "target_coord": coord,
+    })
+    _cast_step += 1
+    _cast_overlay.hide_range()
+    if _cast_step == _cast_skill.abilities.size():
+        await _commit_cast()
+    else:
+        _begin_step()
 ```
 
 `_commit_cast()`:
-```
-1. cast_range_overlay.hide_range()
-2. did_cast = _cast_skill.cast(player, _cast_ctxs)
-3. _reset_cast_state()
-4. if did_cast:
-       await GameSpeed.wait("godmode", "ability_cast_delay")
-       TurnManager.advance()
+```gdscript
+func _commit_cast() -> void:
+    var skill: Skill = _cast_skill
+    var ctxs: Array[Dictionary] = _cast_ctxs
+    _reset_cast_state()    # reset BEFORE cast — so EventBus subscribers see clean state
+    var did_cast: bool = skill.cast(player, ctxs)
+    if did_cast:
+        await GameSpeed.wait("godmode", "ability_cast_delay")
+        TurnManager.advance()
 ```
 
 ### Cancel
 
-ESC, right-click, переключение слота, или клик вне валидного гекса — все ведут в `_cancel_cast()`:
-```
-1. cast_range_overlay.hide_range()
-2. _reset_cast_state()
-   (no cooldown, no commit, no turn advance)
+`_cancel_cast()`:
+```gdscript
+func _cancel_cast() -> void:
+    _cast_overlay.hide_range()
+    _reset_cast_state()
+    # no cooldown, no commit, no turn advance
 ```
 
 `_reset_cast_state()`:
+```gdscript
+func _reset_cast_state() -> void:
+    _cast_in_progress = false
+    _cast_skill = null
+    _cast_step = 0
+    _cast_ctxs = []
 ```
-_cast_in_progress = false
-_cast_skill = null
-_cast_step = 0
-_cast_ctxs = []
+
+### Input dispatch (`_unhandled_input`)
+
+Приоритет в `_unhandled_input` (от высокого к низкому):
+
+```
+1. ESC:
+     if _cast_in_progress: _cancel_cast(); handled; return
+     else: existing 009-T051 chain (selection / pause menu)
+
+2. RMB (mouse button right pressed):
+     if _cast_in_progress: _cancel_cast(); handled; return
+     else: _request_move()   (existing)
+
+3. LMB (mouse button left pressed):
+     if _cast_in_progress:
+         coord = grid.coord_under_mouse()
+         ab = _cast_skill.abilities[_cast_step]
+         if ab.target is SelfTarget:
+             # Self: any LMB confirms (even off-grid → coord may be (-1,-1))
+             _commit_step(grid.get_coord(player.actor_id), player.actor_id)
+         else:
+             # Non-self: LMB on valid range hex commits, off-range no-op.
+             if coord == Vector2i(-1, -1): return
+             var caster_coord = grid.get_coord(player.actor_id)
+             var valid = ab.target.get_range_hexes(caster_coord, grid)
+             if coord in valid:
+                 _commit_step(coord, grid.get_actor_at(coord))
+             # else: stay on step
+         handled; return
+     else: _request_cast_active()   (existing entry path)
+
+4. cast_slot_<i>:
+     if _cast_in_progress:
+         active = _slot_bar_node.get_active()
+         if i == active:
+             # Same slot pressed again
+             if _is_self_step():
+                 _commit_step(grid.get_coord(player.actor_id), player.actor_id)
+             else:
+                 _cancel_cast()
+                 _slot_bar_node.activate(i)   # toggle off
+         else:
+             # Different slot — cancel current, activate new (re-enters via _request_cast_active)
+             _cancel_cast()
+             _slot_bar_node.activate(i)
+         handled; return
+     else: existing slot-toggle (_slot_bar_node.activate(i))
 ```
 
-### Self-confirm UI
+### Self-confirm overlay
 
-`target.kind is SelfTarget` — каст-overlay не показывает обычные target hexes. Вместо этого:
-- `cast_range_overlay.show_self_confirm(player_coord)` — подсветка гекса под игроком тем же стилем, что и обычный target hex (но цвет = SEM_BUFF / тёплый, не SEM_DEBUFF). Визуально читаемо как «целишь в себя».
-- Один из triggers commit'ит шаг:
-  - повторное нажатие активного слота;
-  - ЛКМ по гексу под caster'ом.
+`cast_range_overlay.show_self_confirm(coord)` — подсветка ОДНОГО hex'а под caster'ом цветом `UiTheme.SEM_BUFF` (или fallback на `SEM_DEBUFF` если SEM_BUFF не определён) с alpha 0.45 / outline 0.85. Без full-grid tint'а, без cursor-floating label'а.
 
-Реализация — расширение `cast_range_overlay.gd`: добавить `show_self_confirm(coord, color)`. ~10 строк.
+Реализация — расширение `cast_range_overlay.gd`: новый метод `show_self_confirm(coord)`. ~10 строк.
 
 ### Single-ability fast path
 
-Если `skill.abilities.size() == 1` — UX неотличим от 021: один target step → cast. State-machine остаётся (для единообразия), но игрок не замечает разницы.
+Single-ability skill (`abilities.size() == 1`): тот же state-machine, один step → cast. Игрок не замечает разницы для non-self skills (одно ЛКМ — каст применяется, как в 021). Для single-ability self-skill (`test_combo_self_self_heal`) — нажатие слота → AWAIT_SELF_CONFIRM → один ЛКМ где угодно → cast. На один клик больше vs «instant cast» 021. Намеренно uniform; fast-path выносится в OOS / playtest review.
 
 ## AI broadcast
 

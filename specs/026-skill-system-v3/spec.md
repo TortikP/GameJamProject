@@ -136,14 +136,22 @@ Caller (godmode_controller для игрока, AI для врагов) соби
 }
 ```
 
-**Player flow** (godmode_controller, новый стейт-машин):
+**Player flow** (godmode_controller, state-machine с тремя состояниями):
 
-1. Игрок жмёт Q/W/E/R → слот активен, `i = 0`.
+```
+IDLE → AWAIT_TARGET   (для non-self abilities[i])
+IDLE → AWAIT_SELF_CONFIRM (для self abilities[i])
+AWAIT_*  → IDLE (на cancel)
+AWAIT_*  → AWAIT_*  (на commit step → следующая ability)
+AWAIT_*  → IDLE + skill.cast(player, ctxs) (на commit последней ability)
+```
+
+1. Игрок жмёт Q/W/E/R → entry pre-check: `skill.can_apply(player, mouse_ctx) == true`. Если false — slot greyed, нет entry.
 2. Для `abilities[i]`:
-   - `target.kind == "self"`: показать prompt «Confirm» (повторное нажатие активного слота, или Enter, или ЛКМ). На confirm → `ctxs[i] = ctx_with(caster_coord, caster_id)`, `i += 1`.
-   - иначе: показать `cast_range_overlay` для `abilities[i].target.get_range_hexes(...)`, ждать ЛКМ по валидному гексу. На клик → `ctxs[i] = ctx_with(clicked_coord, actor_at_coord)`, `i += 1`.
-3. Если `i == abilities.size()` → вызвать `Skill.cast(player, ctxs)`. Reset state.
-4. **Cancel** на любом шаге phase 1 (ESC / right-click / переключение слота) → drop ctxs, hide overlay, no cast, no cooldown.
+   - `target` — `SelfTarget` → AWAIT_SELF_CONFIRM. Overlay подсвечивает caster-hex (`show_self_confirm`). Любой ЛКМ на экране (грид, UI, вне грида) — commit step с `{target_id: caster, target_coord: caster_coord}`. Повторное нажатие активного слота — тоже commit (keyboard path).
+   - Иначе → AWAIT_TARGET. Overlay подсвечивает `target.get_range_hexes(caster_coord, grid)`. ЛКМ по валидному hex'у — commit с `{target_id: actor_at(coord), target_coord: coord}`. ЛКМ вне range — no-op (остаёмся, overlay сохраняется — защита от misclick'а).
+3. Если `i == abilities.size() - 1` после commit'а — вызвать `Skill.cast(player, ctxs)`, reset state, `TurnManager.advance()`.
+4. **Cancel** в любом AWAIT_*-состоянии (ESC / RMB / переключение на другой слот / повторное нажатие активного слота на non-self шаге) → drop ctxs, hide overlay, no cast, no cooldown, no turn advance.
 
 **AI flow** (godmode_controller `_resolve_cast_intent`):
 
@@ -170,10 +178,15 @@ Cooldown ставится только при `any_resolved == true` в phase 2 
 
 `target.kind == "self"` требует явного действия (не auto-skip), чтобы:
 - multi-ability flow читался как «собрал → собрал → собрал → применил» (uniform UX);
-- player мог отменить весь скилл уже внутри self-step'а (ESC);
-- self-цель визуально подтверждалась (флэш на caster'е, см. plan §"Self-confirm UI").
+- player мог отменить весь скилл уже внутри self-step'а (ESC / RMB);
+- self-цель визуально подтверждалась (подсветка caster-hex'а).
 
-Confirm trigger: повторное нажатие активного слота (Q/W/E/R), либо `Enter`, либо ЛКМ. В рамках этого спека — реализуем повторное нажатие слота + ЛКМ. Enter — на след. итерацию.
+**Confirm trigger:** ЛКМ в любой точке экрана (грид / UI / off-grid) ИЛИ повторное нажатие активного слота.
+**Cancel trigger:** ESC, RMB, переключение слота.
+
+Это намеренная асимметрия с non-self шагом (где ЛКМ вне target.range — no-op). Self-шаг не имеет «вне range» области — цель всегда caster — поэтому ЛКМ безусловно интерпретируется как commit, а отмена идёт только через явные cancel-keys.
+
+**Single-ability self-skill** (например `test_combo_self_self_heal`) проходит через этот же путь — нажатие слота → AWAIT_SELF_CONFIRM → ЛКМ → cast. Намеренно uniform; fast-path «instant cast» НЕ реализуется в 026 (см. §"Out of scope").
 
 ## Уровень навыка (level scaling)
 
@@ -198,8 +211,8 @@ Confirm trigger: повторное нажатие активного слота
 - **AC-C1**: Сигнатура `Skill.cast(caster, ctxs: Array[Dictionary]) -> bool`. Размерность `ctxs.size() == abilities.size()` проверяется, ошибка → log error + return false.
 - **AC-C2**: `abilities[i].cast(caster, ctxs[i], level)` — каждая ability получает свой ctx.
 - **AC-C3**: godmode_controller player path — multi-step state-machine: для multi-ability скилла собирает targets по очереди в phase 1, применяет в phase 2.
-- **AC-C4**: `target.kind == "self"` — UI показывает confirm-prompt (флэш на caster'е через cast_range_overlay tinting, или иной visual; см. plan), требует explicit confirm (повторный слот / ЛКМ).
-- **AC-C5**: ESC / right-click в phase 1 на любом step'е — отмена всего каста, no cooldown, no commit.
+- **AC-C4**: `target.kind == "self"` — UI показывает подсветку caster-hex (`show_self_confirm`); коммит step'а — **любой ЛКМ на экране** (грид, UI, off-grid) ИЛИ повторное нажатие активного слота. Не auto-skip.
+- **AC-C5**: ESC, RMB, переключение слота, или повторное нажатие активного слота на non-self шаге — отмена всего каста (no cooldown, no commit, no turn advance). ЛКМ по hex'у вне `target.get_range_hexes` на non-self шаге — **no-op** (остаёмся в текущем шаге, overlay не сбрасывается).
 - **AC-C6**: AI path — `_resolve_cast_intent` строит `ctxs = [ctx] * skill.abilities.size()`, вызов `skill.cast(enemy, ctxs)` — поведенческий no-regression vs 021.
 - **AC-C7**: Single-ability скилл (`abilities.size() == 1`) — phase 1 collection в один шаг (текущий UX 021 сохраняется визуально).
 
@@ -230,6 +243,8 @@ Confirm trigger: повторное нажатие активного слота
 - Per-ability AI-таргетинг — AI шарит ctx между abilities (broadcast). Когда AI поумнеет — отдельная фича в 008-enemy-ai.
 - Object-сущность для `target.kind = object` — остаётся stub.
 - `Enter` как self-confirm trigger — на след. итерацию (в 026 — повторное нажатие слота / ЛКМ).
+- Fast-path «instant cast» для single-ability self-target скиллов — НЕТ. Все скиллы идут через state-machine для uniform-UX. Если плейтест покажет что лишний клик раздражает — добавляем отдельной фичей.
+- Hint-label «ЛКМ — подтвердить, ESC — отмена» в нижнем краю экрана — nice-to-have, не блокирует 026.
 - Локализация loc-keys — отдельный сервис.
 - Mood-система — поле сохраняется, потребитель отсутствует.
 - Backward-compat layer — НЕТ (hard rename, как 021).
@@ -241,7 +256,7 @@ Confirm trigger: повторное нажатие активного слота
 Эти решения зафиксированы как timed-out на этап плейтеста; ревизия после смотра геймдизайнера, не блокирует 026-merge:
 
 1. **Effect dispatch order** — registry-order (damage→heal→status→move→create) сейчас. Если плейтест покажет, что нужен другой порядок (например, move перед damage для «бросок об стену» юзкейса) — рефакторим в priority-field или JSON key-order.
-2. **Self-confirm UX** — повторное нажатие слота как trigger. Если игроки спотыкаются — добавляем кнопку «Confirm» в HUD / Enter / hold-space.
+2. **Self-confirm UX** — ЛКМ-везде + повторный слот как commit, ESC/RMB/смена слота как cancel. Если игроки спотыкаются — добавляем кнопку «Confirm» в HUD / Enter-биндинг / fast-path для single-ability self-skills.
 3. **Cancel UX** — ESC + right-click оба отменяют. Если right-click нужен под move (как сейчас) — оставляем только ESC и переключение слота.
 
 ## Зависимости
