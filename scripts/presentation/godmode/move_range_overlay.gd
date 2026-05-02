@@ -22,23 +22,15 @@ extends Node2D
 
 const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
 
-# Edge index → Godot CELL_NEIGHBOR_* enum. Maps polygon edge i (between
-# corners[i] and corners[(i+1)%6]) to the neighbor cell on the other side
-# of that edge. Used for boundary-edge detection in _draw_zone_outline:
-# an edge is on the zone border iff the corresponding neighbor is NOT in
-# the zone.
-#
-# Polygon corner layout from HexGeometry.flat_top_polygon (CCW screen-space):
-#   0=R, 1=BR, 2=BL, 3=L, 4=TL, 5=TR
-# Edge 0(R→BR) faces BOTTOM_RIGHT_SIDE; edge 1(BR→BL) faces BOTTOM_SIDE; etc.
-const _EDGE_NEIGHBOR_DIRS: Array = [
-	TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,  # edge 0
-	TileSet.CELL_NEIGHBOR_BOTTOM_SIDE,        # edge 1
-	TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,   # edge 2
-	TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,      # edge 3
-	TileSet.CELL_NEIGHBOR_TOP_SIDE,           # edge 4
-	TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,     # edge 5
-]
+# 029 / B-003: removed the polygon-edge-index → CELL_NEIGHBOR_*_SIDE enum table.
+# The mapping was correct for tile_shape = HEXAGON but Godot returns different
+# neighbor coords for the same enums on tile_shape = HALF_OFFSET_SQUARE, which
+# is what hex_terrain.tres currently uses. Now boundary detection works
+# geometrically: for each polygon edge, project a sample point just past the
+# edge midpoint and ask the layer which cell owns that point via local_to_map.
+# Independent of tile_shape interpretation — works on either tileset. Slightly
+# more work per edge (vec math + one local_to_map call) but still O(N * 6),
+# negligible for N ≤ 20 typical zone sizes.
 
 var _grid: Node = null  # HexGrid
 
@@ -240,17 +232,19 @@ func _draw() -> void:
 					aoe_line, 2.0, true)
 
 
-## 029 / req-3 + bonus-3: outline ONLY the boundary edges of the zone (not
-## per-hex). For each cell in the zone, for each of its 6 edges, draw the
-## edge IFF the neighbor on the other side of that edge is NOT in the zone.
-## Result: one continuous contour around the entire walkable region.
+## 029 / req-3 + bonus-3 + B-003: outline ONLY the boundary edges of the zone.
+## For each cell in the zone, for each of its 6 polygon edges, draw the edge
+## IFF the cell that owns the point JUST PAST the edge midpoint is NOT in the
+## zone. Geometric — no dependency on TileSet's CellNeighbor enum semantics
+## (which differ between HEXAGON and HALF_OFFSET_SQUARE shapes — see B-003).
 ##
 ## Bonus-3: alpha modulates as a sine across BREATH_PERIOD_S. Mid-alpha is
 ## high enough that the contour is always clearly visible — the breathing is
 ## a "this is alive UI" cue, not a flash that loses information.
 ##
-## Cost: O(N * 6) where N = zone size. For typical reach (≤12 hexes) that's
-## ~72 edge tests per redraw. Now called per frame (breath), still cheap.
+## Cost: O(N * 6) where N = zone size. Per edge: 1 local_to_map call (cheap
+## hash on the layer's tile grid). For typical reach (≤12 hexes) that's
+## ~72 probes per redraw — still cheap, called per frame for the breath.
 func _draw_zone_outline(layer: TileMapLayer, corners: PackedVector2Array) -> void:
 	if _zone_coords.is_empty():
 		return
@@ -264,13 +258,23 @@ func _draw_zone_outline(layer: TileMapLayer, corners: PackedVector2Array) -> voi
 		var coord: Vector2i = coord_v
 		var center: Vector2 = layer.map_to_local(coord)
 		for edge_idx in 6:
-			var neighbor_dir: int = _EDGE_NEIGHBOR_DIRS[edge_idx]
-			var neighbor: Vector2i = layer.get_neighbor_cell(coord, neighbor_dir)
-			if _zone_coords.has(neighbor):
+			var v_a: Vector2 = corners[edge_idx]
+			var v_b: Vector2 = corners[(edge_idx + 1) % 6]
+			# Probe a point past the edge midpoint, away from the cell center.
+			# midpoint × 1.4 in local space lands a few pixels inside the
+			# neighbor cell. local_to_map then routes through the tileset's
+			# actual neighbor topology — works on HEXAGON and HALF_OFFSET_SQUARE
+			# alike (no enum mapping needed).
+			var probe: Vector2 = center + (v_a + v_b) * 0.5 * 1.4
+			var neighbor: Vector2i = layer.local_to_map(probe)
+			if neighbor == coord:
+				# Probe didn't escape the cell (very squashed tile geometry).
+				# Try a bigger reach as fallback.
+				neighbor = layer.local_to_map(center + (v_a + v_b) * 0.5 * 2.0)
+			if neighbor != coord and _zone_coords.has(neighbor):
 				continue   # internal edge — neighbor is also in the zone
 			# Boundary edge — draw it.
-			draw_line(center + corners[edge_idx], center + corners[(edge_idx + 1) % 6],
-					outline, 2.5, true)
+			draw_line(center + v_a, center + v_b, outline, 2.5, true)
 
 
 ## 029 / bonus-2: draw a thin polyline through hex centers along _hover_path.

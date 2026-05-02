@@ -1087,21 +1087,33 @@ func _run_enemy_turn() -> void:
 
 	# Phase 1: RESOLVE — execute everyone's planned move, then planned cast.
 	# Movement first so casts happen from the post-move position.
+	# 029 / B-001: defensive is_instance_valid — same reasoning as Phase 2,
+	# an enemy can die from another enemy's cast (AoE friendly fire) earlier
+	# in this loop's iteration.
 	for actor in enemies:
+		if not is_instance_valid(actor):
+			continue
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
 		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
 			continue
 		await _resolve_move_intent(enemy)
-		if not enemy.is_alive():
+		if not is_instance_valid(enemy) or not enemy.is_alive():
 			continue
 		await _resolve_cast_intent(enemy)
 
 	# Phase 2: PLAN — pick next move and next cast (writes cast_intent /
 	# move_intent_coord on each enemy). Visuals rebuilt at the end of this loop.
+	# 029 / B-001: with multi-step movement (req-5), an enemy can step through
+	# a damage-zone tile in Phase 1 and die mid-resolve. Its node is queue_freed
+	# but the local `enemies` array still holds the stale ref. `actor is Actor`
+	# on a freed instance throws "Left operand of 'is' is a previously freed
+	# instance". Filter via is_instance_valid BEFORE any other check.
 	var ctx: Dictionary = _world_ctx()
 	for actor in enemies:
+		if not is_instance_valid(actor):
+			continue
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
