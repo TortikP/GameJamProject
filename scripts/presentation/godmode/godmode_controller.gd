@@ -160,6 +160,32 @@ func _on_actor_died_for_selection(id: StringName) -> void:
 		deselect_to_player()
 
 
+# 041 follow-up: generic dead-actor cleanup. Pre-existing bug: only
+# F1-spawned manekins had `died.connect(ManekinSpawner._on_actor_died)`
+# wired up during spawn(); wave-spawned and CreateEffect-summoned actors
+# went through LevelLoader.spawn_enemy_at, which doesn't connect anything,
+# so they were left dangling on the scene tree and on the grid after death.
+# Centralised here via EventBus.actor_died (one global listener handles all
+# enemy spawn paths). Player is filtered out — sandbox respawn (F2) and
+# future death-screen flows expect the node to remain.
+func _on_actor_died_for_cleanup(id: StringName) -> void:
+	if id == &"" or id == &"player":
+		return
+	var actor: Actor = registry.get_actor(id) if registry != null else null
+	if actor == null:
+		return
+	if actor.team == &"player" and actor == player:
+		return  # safety net — never free the player node
+	if grid != null:
+		grid.clear_actor(id)
+	if registry != null:
+		registry.unregister(id)
+	actor.queue_free()
+	# A killed enemy's intent label should disappear with it.
+	if telegraphs != null and telegraphs.has_method("refresh"):
+		telegraphs.refresh()
+
+
 func _on_slot_activated(_index: int) -> void:
 	refresh_overlay()
 	# 009-T044+: push active spell into PlayerStatusPanel description block.
