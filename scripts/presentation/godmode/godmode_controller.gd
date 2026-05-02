@@ -30,30 +30,45 @@ const GRID_H := 9
 @export var grid: HexGrid
 @export var registry: ActorRegistry
 @export var player: Actor
-@export var slot_bar: NodePath  # path to HBoxContainer with slot_bar.gd
+@export var slot_bar_path: NodePath  # path to HBoxContainer with slot_bar.gd
 @export var inspector_path: NodePath
 @export var overlay_path: NodePath
 @export var player_status_panel_path: NodePath  # 016/F-034 — was hardcoded "../HUD/PlayerStatusPanel"
 
-var _slot_bar_node: Node
-var _inspector: Node      # ActorInspector
-var _overlay: Node        # MoveRangeOverlay
-var _cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
+# Shared scene-tree refs — public so sibling modules can read them via _ctrl.X.
+# Resolved in _ready (Phase 1) before _resolve_modules() and setup.run().
+var slot_bar: Node
+var inspector: Node      # ActorInspector
+var overlay: Node        # MoveRangeOverlay
+var cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
+var tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+# 024-wave-editor: present iff a queued LevelData is loaded; null in
+# procedural godmode sandbox.
+var wave_controller: WaveController = null
+# 024: held only between _try_load_queued_level success and the end of
+# _ready, where WaveController is instantiated and start_level called.
+var queued_level: LevelData = null
+
+# 032: module accessors — populated by _resolve_modules() in _ready before
+# setup.run() runs. Each is a Node sibling of the controller (child in the
+# scene tree, accessible to other modules via _ctrl.X).
+var setup: Node              # GodmodeSetup
+var input: Node              # GodmodeInput
+var cast_fsm: Node           # CastFsm
+var ai: Node                 # AiDriver
+var telegraphs: Node         # TelegraphRenderer
+var hover: Node              # HoverDispatcher
+var manekin_spawner: Node    # ManekinSpawner
+var step_animator: Node      # StepAnimator
+
 var _selected: Actor      # currently inspected actor (default: player)
 var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
-var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
 # 029 / req-6: track which enemy is currently under cursor (or &"") so we can
 # show/hide the cast-intent tooltip with no flicker on idle frames.
 var _hover_intent_actor_id: StringName = &""
-# 024-wave-editor: present iff a queued LevelData is loaded; null in
-# procedural godmode sandbox.
-var _wave_controller: WaveController = null
-# 024: held only between _try_load_queued_level success and the end of
-# _ready, where WaveController is instantiated and start_level called.
-var _queued_level: LevelData = null
 
 # 026: multi-step cast collection state. Phase-1 (per-ability target picker)
 # lives here; phase-2 is Skill.cast(player, ctxs).
@@ -64,6 +79,7 @@ var _cast_ctxs: Array[Dictionary] = []   # collected so far (length == _cast_ste
 
 
 func _ready() -> void:
+	_resolve_modules()
 	# 1. Resolve
 	if grid == null:
 		grid = get_node_or_null("../HexGrid") as HexGrid
@@ -92,11 +108,11 @@ func _ready() -> void:
 		player = PLAYER_SCENE.instantiate() as Actor
 		actors_node.add_child(player)
 
-	if not slot_bar.is_empty():
-		_slot_bar_node = get_node_or_null(slot_bar)
-	if _slot_bar_node == null:
-		_slot_bar_node = get_tree().root.find_child("SlotBar", true, false)
-	if _slot_bar_node == null:
+	if not slot_bar_path.is_empty():
+		slot_bar = get_node_or_null(slot_bar_path)
+	if slot_bar == null:
+		slot_bar = get_tree().root.find_child("SlotBar", true, false)
+	if slot_bar == null:
 		GameLogger.warn("Godmode", "SlotBar not found — abilities won't be visible")
 
 	# 2. Paint, 3. Initialize, 4. Place
@@ -121,41 +137,41 @@ func _ready() -> void:
 	# 019 — wire tile object runtime resolver. Must be after grid.initialize()
 	# so registries are populated. add_child before setup so the node is in
 	# the tree when EventBus signals arrive.
-	_tile_object_resolver = TileObjectResolver.new()
-	_tile_object_resolver.name = "TileObjectResolver"
-	add_child(_tile_object_resolver)
-	_tile_object_resolver.setup(grid, grid.get_object_registry(), grid.get_effect_registry(), registry)
+	tile_object_resolver = TileObjectResolver.new()
+	tile_object_resolver.name = "TileObjectResolver"
+	add_child(tile_object_resolver)
+	tile_object_resolver.setup(grid, grid.get_object_registry(), grid.get_effect_registry(), registry)
 
 	# 5. Seed slots — DEFERRED. Sibling order in scene tree means SlotBar._ready
 	#    fires AFTER GodmodeController._ready (HUD is a later sibling), so its
 	#    buttons array is empty when we get here. call_deferred runs after the
 	#    rest of the frame's _ready calls.
 	_seed_slots.call_deferred()
-	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_activated"):
-		_slot_bar_node.slot_activated.connect(_on_slot_activated)
-	if _slot_bar_node != null and _slot_bar_node.has_signal("slot_right_clicked"):
-		_slot_bar_node.slot_right_clicked.connect(_on_slot_right_clicked)
+	if slot_bar != null and slot_bar.has_signal("slot_activated"):
+		slot_bar.slot_activated.connect(_on_slot_activated)
+	if slot_bar != null and slot_bar.has_signal("slot_right_clicked"):
+		slot_bar.slot_right_clicked.connect(_on_slot_right_clicked)
 		_build_ability_picker.call_deferred()
 
 	# Inspector + overlay — resolve
 	if not inspector_path.is_empty():
-		_inspector = get_node_or_null(inspector_path)
-	if _inspector == null:
-		_inspector = get_tree().root.find_child("ActorInspector", true, false)
+		inspector = get_node_or_null(inspector_path)
+	if inspector == null:
+		inspector = get_tree().root.find_child("ActorInspector", true, false)
 	if not overlay_path.is_empty():
-		_overlay = get_node_or_null(overlay_path)
-	if _overlay == null:
-		_overlay = grid.get_node_or_null("MoveRangeOverlay")
-	if _overlay != null and _overlay.has_method("setup"):
-		_overlay.setup(grid)
+		overlay = get_node_or_null(overlay_path)
+	if overlay == null:
+		overlay = grid.get_node_or_null("MoveRangeOverlay")
+	if overlay != null and overlay.has_method("setup"):
+		overlay.setup(grid)
 	# CastRangeOverlay (009-T033) — present in godmode.tscn as sibling under HexGrid.
 	# 026: promoted to class member so the multi-step cast FSM can call
 	# show_range_for_ability / show_self_confirm / hide_range from any handler.
-	_cast_overlay = grid.get_node_or_null("CastRangeOverlay")
-	if _cast_overlay != null and _cast_overlay.has_method("setup"):
-		_cast_overlay.setup(grid)
-	if _inspector != null and _inspector.has_signal("speed_changed"):
-		_inspector.speed_changed.connect(_on_inspector_speed_changed)
+	cast_overlay = grid.get_node_or_null("CastRangeOverlay")
+	if cast_overlay != null and cast_overlay.has_method("setup"):
+		cast_overlay.setup(grid)
+	if inspector != null and inspector.has_signal("speed_changed"):
+		inspector.speed_changed.connect(_on_inspector_speed_changed)
 
 	# Reset turn counter for this session
 	TurnManager.reset()
@@ -184,12 +200,12 @@ func _ready() -> void:
 	# 024-wave-editor: spin up WaveController iff we loaded a custom level.
 	# Procedural godmode sandbox (no queued level) leaves it null — runtime
 	# stays single-wave-implicit and behaves as before.
-	if _queued_level != null:
-		_wave_controller = WaveController.new()
-		_wave_controller.name = "WaveController"
-		_wave_controller.grid = grid
-		_wave_controller.registry = registry
-		add_child(_wave_controller)
+	if queued_level != null:
+		wave_controller = WaveController.new()
+		wave_controller.name = "WaveController"
+		wave_controller.grid = grid
+		wave_controller.registry = registry
+		add_child(wave_controller)
 		# Bind the LevelData to the HUD WaveTimeline FIRST — its _do_rebuild
 		# runs deferred and must populate _anchor_positions before
 		# wave_started fires (the runtime cursor reads _anchor_positions).
@@ -197,10 +213,10 @@ func _ready() -> void:
 		# means rebuild runs first.
 		var wt: Node = get_node_or_null("../HUD/WaveTimeline")
 		if wt != null and wt.has_method("bind_level"):
-			wt.bind_level.call_deferred(_queued_level)
+			wt.bind_level.call_deferred(queued_level)
 		# Then start the wave controller — its first emit of wave_started
 		# is now safe because the timeline already has its anchors.
-		_wave_controller.start_level.call_deferred(_queued_level)
+		wave_controller.start_level.call_deferred(queued_level)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────
@@ -212,11 +228,30 @@ func _paint_grid() -> void:
 			grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(0, 0))
 
 
+# 032 — populate module accessors. Children exist in the scene tree (added in
+# .tscn under GodmodeController) and have already run their own _ready, but
+# they don't reach into _ctrl until setup.run() — so the order here just
+# matters for the controller, not for the children's own _ready.
+func _resolve_modules() -> void:
+	setup = get_node_or_null("GodmodeSetup")
+	input = get_node_or_null("GodmodeInput")
+	cast_fsm = get_node_or_null("CastFsm")
+	ai = get_node_or_null("AiDriver")
+	telegraphs = get_node_or_null("TelegraphRenderer")
+	hover = get_node_or_null("HoverDispatcher")
+	manekin_spawner = get_node_or_null("ManekinSpawner")
+	step_animator = get_node_or_null("StepAnimator")
+	if setup == null or input == null or cast_fsm == null or ai == null \
+			or telegraphs == null or hover == null or manekin_spawner == null \
+			or step_animator == null:
+		GameLogger.warn("Godmode", "_resolve_modules: one or more sibling modules missing — check godmode.tscn child order")
+
+
 ## 020 — paint + spawn from a queued LevelData. Returns true on success.
 ## Failure modes (level can't load, no player spawner) → return false and let
 ## the caller fall back to the procedural _paint_grid + _place_player path.
 ##
-## 024 — on success, also caches the loaded LevelData in _queued_level so
+## 024 — on success, also caches the loaded LevelData in queued_level so
 ## the post-init WaveController setup can pick it up.
 func _try_load_queued_level() -> bool:
 	var queued_path: String = ActiveLevel.consume()
@@ -277,7 +312,7 @@ func _try_load_queued_level() -> bool:
 	if camera != null and camera.has_method("set_follow_target") and player != null:
 		camera.set_follow_target(player)
 	GameLogger.info("Godmode", "Loaded custom level '%s'" % level.name)
-	_queued_level = level
+	queued_level = level
 	return true
 
 
@@ -298,26 +333,26 @@ func _place_player() -> void:
 
 
 func _seed_slots() -> void:
-	if _slot_bar_node == null:
+	if slot_bar == null:
 		return
 	var debug: Skill = SkillDatabase.get_skill(&"skill_debug_punch")
 	if debug != null:
-		_slot_bar_node.set_slot(0, debug)
+		slot_bar.set_slot(0, debug)
 	else:
 		GameLogger.warn("Godmode", "skill_debug_punch not found in SkillDatabase")
 	var melee: Skill = SkillDatabase.get_skill(&"skill_melee_punch")
 	if melee != null:
-		_slot_bar_node.set_slot(1, melee)
+		slot_bar.set_slot(1, melee)
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
-		_slot_bar_node.set_slot(2, kb)
+		slot_bar.set_slot(2, kb)
 	# 029 / req-1: do NOT pre-select an ability. Player must consciously pick
 	# Q/W/E/R (or click a slot) before LMB casts. Avoids accidental opening cast.
-	_slot_bar_node.set_active(-1)
+	slot_bar.set_active(-1)
 	# Sync player ability IDs for inspector/overlay display
 	var ids: Array[StringName] = []
 	for i in 4:
-		var sk: Skill = _slot_bar_node.get_slot(i) as Skill
+		var sk: Skill = slot_bar.get_slot(i) as Skill
 		if sk != null:
 			ids.append_array(sk.get_ability_ids())
 	player.set_abilities(ids)
@@ -331,7 +366,7 @@ func _emit_initial_turn() -> void:
 # stay terse. Returns false when no wave controller is mounted (procedural
 # sandbox).
 func _is_wave_transitioning() -> bool:
-	return _wave_controller != null and _wave_controller.is_transitioning()
+	return wave_controller != null and wave_controller.is_transitioning()
 
 
 func _select_deferred() -> void:
@@ -342,8 +377,8 @@ func _select_deferred() -> void:
 
 func _select(actor: Actor) -> void:
 	_selected = actor
-	if _inspector != null and _inspector.has_method("bind"):
-		_inspector.bind(actor)
+	if inspector != null and inspector.has_method("bind"):
+		inspector.bind(actor)
 	# Also show hex layer for this actor's current position
 	if actor != null:
 		var coord: Vector2i = grid.get_coord(actor.actor_id)
@@ -362,20 +397,20 @@ func _inspect_hex(coord: Vector2i) -> void:
 	# Note: we deliberately don't change _selected — leaving it on the
 	# player so subsequent overlay refreshes have a sensible source if
 	# anything ever re-introduces selection-driven logic.
-	if _inspector != null and _inspector.has_method("unbind"):
-		_inspector.unbind()
+	if inspector != null and inspector.has_method("unbind"):
+		inspector.unbind()
 	_bind_hex_at(coord)
 
 
 func _bind_hex_at(coord: Vector2i) -> void:
-	if _inspector == null or not _inspector.has_method("bind_hex"):
+	if inspector == null or not inspector.has_method("bind_hex"):
 		return
 	if coord == Vector2i(-1, -1):
-		_inspector.unbind_hex()
+		inspector.unbind_hex()
 		return
 	var tile_kind: StringName = grid.get_tile_kind(coord)
 	var effect_id: StringName = grid.get_effect_id(coord)
-	_inspector.bind_hex(coord, tile_kind, effect_id)
+	inspector.bind_hex(coord, tile_kind, effect_id)
 
 
 func _refresh_overlay() -> void:
@@ -384,20 +419,20 @@ func _refresh_overlay() -> void:
 	# tile) should not hide the player's tactical info (Pillar 1 visibility).
 	# Inspector binding still follows _selected — that's the "what am I
 	# looking at" panel, separate concern from "what can I do this turn".
-	if _overlay == null or player == null:
+	if overlay == null or player == null:
 		return
 	# Skills (post-007) wrap multiple abilities. Pass Ability objects directly
 	# rather than IDs — avoids AbilityDatabase collisions when multiple skills
 	# share an ability ID (e.g. "vs_dmg").
 	var ability_items: Array = []
-	if _slot_bar_node != null:
-		var active: int = _slot_bar_node.get_active()
+	if slot_bar != null:
+		var active: int = slot_bar.get_active()
 		if active != -1:
-			var sk := _slot_bar_node.get_slot(active) as Skill
+			var sk := slot_bar.get_slot(active) as Skill
 			if sk != null:
 				for ab in sk.abilities:
 					ability_items.append(ab)
-	_overlay.show_for(player, registry, ability_items)
+	overlay.show_for(player, registry, ability_items)
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:
@@ -416,7 +451,7 @@ func _process(_delta: float) -> void:
 
 
 func _update_castability() -> void:
-	if _slot_bar_node == null or grid == null or registry == null or player == null:
+	if slot_bar == null or grid == null or registry == null or player == null:
 		return
 	var coord := grid.coord_under_mouse()
 	var target_id: StringName = &""
@@ -431,14 +466,14 @@ func _update_castability() -> void:
 	# Slot castability tints. 027: stunned player → all slots greyed.
 	var stunned: bool = player.is_stunned()
 	for i in 4:
-		var skill := _slot_bar_node.get_slot(i) as Skill
+		var skill := slot_bar.get_slot(i) as Skill
 		var castable: bool = skill != null and not stunned and skill.can_apply(player, ctx)
-		_slot_bar_node.set_castable(i, castable)
+		slot_bar.set_castable(i, castable)
 
 	# Damage preview on enemies — only the hovered one shows red strip,
 	# others get cleared. Active slot's ability is the source.
-	var active_idx: int = _slot_bar_node.get_active()
-	var active_skill := _slot_bar_node.get_slot(active_idx) as Skill
+	var active_idx: int = slot_bar.get_active()
+	var active_skill := slot_bar.get_slot(active_idx) as Skill
 	var hover_target: Actor = registry.get_actor(target_id) if target_id != &"" else null
 	var preview_for_hover: int = 0
 	if active_skill != null and hover_target != null and hover_target.team == &"enemy":
@@ -456,7 +491,7 @@ func _update_castability() -> void:
 		hp_bar.set_preview_damage(preview_for_hover if a == hover_target else 0)
 
 	# Zone AoE preview — repaint every frame so it follows the cursor.
-	if _overlay != null and _overlay.has_method("show_zone_preview"):
+	if overlay != null and overlay.has_method("show_zone_preview"):
 		var zone_hexes: Array[Vector2i] = []
 		if active_skill != null and coord != Vector2i(-1, -1):
 			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
@@ -474,7 +509,7 @@ func _update_castability() -> void:
 				for c in affected:
 					if not zone_hexes.has(c):
 						zone_hexes.append(c)
-		_overlay.show_zone_preview(zone_hexes)
+		overlay.show_zone_preview(zone_hexes)
 
 	# 029 / bonus-2: hover-path preview. Show the route the player would take
 	# IFF the cursor is over a reachable hex (within effective_speed) AND
@@ -495,22 +530,22 @@ func _update_castability() -> void:
 ## 029 / bonus-2: hover-path computation + push to overlay. Cheap when no
 ## change (overlay early-returns on identical array) so calling per frame is OK.
 func _refresh_hover_path(hover_coord: Vector2i) -> void:
-	if _overlay == null or not _overlay.has_method("set_hover_path"):
+	if overlay == null or not overlay.has_method("set_hover_path"):
 		return
 	if player == null or grid == null:
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	# Skip during cast FSM (player is targeting, not considering movement) and
 	# during AI turns / stun.
 	if _cast_in_progress or _world_processing or player.is_stunned():
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	var from: Vector2i = grid.get_coord(player.actor_id)
 	if from == Vector2i(-1, -1) or hover_coord == Vector2i(-1, -1) or hover_coord == from:
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	if not grid.is_walkable(hover_coord) or grid.get_actor_at(hover_coord) != &"":
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	# Build live actor-block list — same convention as _resolve_move_intent
 	# and the move-zone occupied list, so paths match the boundary visually.
@@ -526,18 +561,18 @@ func _refresh_hover_path(hover_coord: Vector2i) -> void:
 			blocked.append(c)
 	var path: Array = grid.find_path_around(from, hover_coord, blocked)
 	if path.size() < 2:
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	# Cap to effective_speed — only show preview if it's actually reachable
 	# THIS turn (path.size() - 1 = number of steps).
 	if path.size() - 1 > player.effective_speed():
-		_overlay.set_hover_path([] as Array[Vector2i])
+		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	# Re-type Array → Array[Vector2i] for the typed setter.
 	var typed: Array[Vector2i] = []
 	for c in path:
 		typed.append(c)
-	_overlay.set_hover_path(typed)
+	overlay.set_hover_path(typed)
 
 
 ## 029 / req-6: hover-on-enemy → cast-intent tooltip dispatch. State-tracked so
@@ -591,8 +626,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			#   1. active cast slot → toggle off
 			#   2. selection != player → reset selection to player
 			#   3. otherwise → open pause menu
-			if _slot_bar_node != null and _slot_bar_node.get_active() != -1:
-				_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
+			if slot_bar != null and slot_bar.get_active() != -1:
+				slot_bar.activate(slot_bar.get_active())  # toggle off
 				get_viewport().set_input_as_handled()
 				return
 			if _selected != null and _selected != player:
@@ -639,8 +674,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			# 026: when an FSM cast is in progress, slot keys gate through it.
-			if _cast_in_progress and _slot_bar_node != null:
-				var active_now: int = _slot_bar_node.get_active()
+			if _cast_in_progress and slot_bar != null:
+				var active_now: int = slot_bar.get_active()
 				if i == active_now:
 					# Same slot pressed again — alternate keyboard path.
 					# On a self-step, this commits; otherwise it cancels (toggle off).
@@ -649,17 +684,17 @@ func _unhandled_input(event: InputEvent) -> void:
 						_commit_step(caster_coord, player.actor_id)
 					else:
 						_cancel_cast()
-						_slot_bar_node.activate(i)  # toggle off
+						slot_bar.activate(i)  # toggle off
 				else:
 					# Different slot — drop current cast, switch slot. New entry happens
 					# only on the next LMB (matches 021 — slot key just selects, doesn't fire).
 					_cancel_cast()
-					_slot_bar_node.activate(i)
+					slot_bar.activate(i)
 				get_viewport().set_input_as_handled()
 				return
 			# Default: activate() in SlotBar toggles selection.
-			if _slot_bar_node != null:
-				_slot_bar_node.activate(i)
+			if slot_bar != null:
+				slot_bar.activate(i)
 			get_viewport().set_input_as_handled()
 			return
 	if event is InputEventMouseButton:
@@ -751,7 +786,7 @@ func _request_move() -> void:
 
 
 func _request_cast_active() -> void:
-	if _slot_bar_node == null:
+	if slot_bar == null:
 		return
 	if player != null and player.is_stunned():
 		# 027: cast slots are greyed via _update_castability; this guards the
@@ -765,10 +800,10 @@ func _request_cast_active() -> void:
 		"registry": registry, "grid": grid,
 		"target_id": target_id, "target_coord": coord,
 	}
-	var active_idx: int = _slot_bar_node.get_active()
+	var active_idx: int = slot_bar.get_active()
 	# If a spell is selected and can cast → start the FSM
 	if active_idx != -1:
-		var skill := _slot_bar_node.get_slot(active_idx) as Skill
+		var skill := slot_bar.get_slot(active_idx) as Skill
 		if skill != null and skill.can_apply(player, ctx):
 			_cast_slot(active_idx)
 			# 026 fix: the entry LMB also acts as the commit click for step 0.
@@ -798,9 +833,9 @@ func _request_cast_active() -> void:
 ## Pre-checks `skill.can_apply(player, mouse_ctx)` against abilities[0] (021
 ## semantics). If false, slot stays greyed and FSM does not start.
 func _cast_slot(slot_index: int) -> void:
-	if _slot_bar_node == null:
+	if slot_bar == null:
 		return
-	var skill := _slot_bar_node.get_slot(slot_index) as Skill
+	var skill := slot_bar.get_slot(slot_index) as Skill
 	if skill == null:
 		GameLogger.info("Godmode", "slot %d empty" % slot_index)
 		return
@@ -829,8 +864,8 @@ func _cast_slot(slot_index: int) -> void:
 	# 026 fix: hide MoveRangeOverlay's slot-activation attack-range paint
 	# so CastRangeOverlay's per-step paint doesn't render on top of it.
 	# Restored on FSM exit via _refresh_overlay (in _commit_cast/_cancel_cast).
-	if _overlay != null and _overlay.has_method("clear"):
-		_overlay.clear()
+	if overlay != null and overlay.has_method("clear"):
+		overlay.clear()
 	_begin_step()
 
 
@@ -838,15 +873,15 @@ func _begin_step() -> void:
 	if _cast_skill == null or _cast_step >= _cast_skill.abilities.size():
 		return
 	var ab: Ability = _cast_skill.abilities[_cast_step]
-	if _cast_overlay == null:
+	if cast_overlay == null:
 		return
 	if ab.target is SelfTarget:
 		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-		if _cast_overlay.has_method("show_self_confirm"):
-			_cast_overlay.show_self_confirm(caster_coord)
+		if cast_overlay.has_method("show_self_confirm"):
+			cast_overlay.show_self_confirm(caster_coord)
 	else:
-		if _cast_overlay.has_method("show_range_for_ability"):
-			_cast_overlay.show_range_for_ability(player, ab)
+		if cast_overlay.has_method("show_range_for_ability"):
+			cast_overlay.show_range_for_ability(player, ab)
 
 
 func _commit_step(coord: Vector2i, target_id: StringName) -> void:
@@ -856,8 +891,8 @@ func _commit_step(coord: Vector2i, target_id: StringName) -> void:
 	}
 	_cast_ctxs.append(ctx)
 	_cast_step += 1
-	if _cast_overlay != null and _cast_overlay.has_method("hide_range"):
-		_cast_overlay.hide_range()
+	if cast_overlay != null and cast_overlay.has_method("hide_range"):
+		cast_overlay.hide_range()
 	if _cast_step == _cast_skill.abilities.size():
 		await _commit_cast()
 	else:
@@ -874,8 +909,8 @@ func _commit_cast() -> void:
 	# to consciously re-arm before next attack — no held-trigger spam, every
 	# turn a chosen action. activate(-1) emits slot_activated(-1) which clears
 	# the active-slot tint and PSP spell description via _on_slot_activated.
-	if did_cast and _slot_bar_node != null and _slot_bar_node.get_active() != -1:
-		_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
+	if did_cast and slot_bar != null and slot_bar.get_active() != -1:
+		slot_bar.activate(slot_bar.get_active())  # toggle off
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
 	_refresh_overlay()
 	if did_cast:
@@ -884,8 +919,8 @@ func _commit_cast() -> void:
 
 
 func _cancel_cast() -> void:
-	if _cast_overlay != null and _cast_overlay.has_method("hide_range"):
-		_cast_overlay.hide_range()
+	if cast_overlay != null and cast_overlay.has_method("hide_range"):
+		cast_overlay.hide_range()
 	_reset_cast_state()
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM cancels.
 	_refresh_overlay()
@@ -925,8 +960,8 @@ func _on_slot_activated(_index: int) -> void:
 	var psp: Node = _get_player_status_panel()
 	if psp != null and psp.has_method("set_active_spell"):
 		var ability = null
-		if _index != -1 and _slot_bar_node != null:
-			ability = _slot_bar_node.get_slot(_index)
+		if _index != -1 and slot_bar != null:
+			ability = slot_bar.get_slot(_index)
 		psp.set_active_spell(ability)
 
 
@@ -1421,8 +1456,8 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	var skill: Skill = SkillDatabase.get_skill(skill_id)
 	if skill == null:
 		return
-	if _slot_bar_node != null:
-		_slot_bar_node.set_slot(_picker_target_slot, skill)
+	if slot_bar != null:
+		slot_bar.set_slot(_picker_target_slot, skill)
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
 
 
