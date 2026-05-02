@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://bush_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/godmode/manekin_view.gd" id="1_view"]
+[ext_resource type="Script" path="res://scripts/presentation/health_bar.gd" id="2_hpbar"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bush.png" id="3_sprite"]
+
+[node name="Bush" type="Node2D"]
+script = ExtResource("1_view")
+team = &"enemy"
+enemy_data_id = &"bush"
+
+[node name="Body" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("3_sprite")
+scale = Vector2(1, 1)
+z_index = 4
+
+[node name="HealthBar" type="Node2D" parent="."]
+script = ExtResource("2_hpbar")
+y_offset = -51.0
+z_index = 6

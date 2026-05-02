@@ -213,6 +213,21 @@ func _try_load_queued_level() -> bool:
 		# by hand may not have one.
 		GameLogger.warn("Godmode", "Loaded level has no player spawner — placing default")
 		_place_player()
+	# Render tile-object visuals. LevelLoader writes object_id to HexTile
+	# (logic / pathfinder / resolver), but doesn't paint sprites — that's the
+	# editor's job in editor scenes, godmode's here.
+	var objects_overlay: Node = grid.get_node_or_null("ObjectsOverlay")
+	if objects_overlay != null:
+		if objects_overlay.has_method("bind_registry"):
+			objects_overlay.bind_registry(grid.get_object_registry())
+		if objects_overlay.has_method("clear_all"):
+			objects_overlay.clear_all()
+		if objects_overlay.has_method("set_object"):
+			for entry in level.objects:
+				var coord: Vector2i = entry.get("coord", Vector2i(-1, -1))
+				var obj_id: StringName = entry.get("object_id", &"")
+				if coord != Vector2i(-1, -1) and obj_id != &"":
+					objects_overlay.set_object(coord, obj_id)
 	# Camera follow
 	var camera: Node = get_node_or_null("../GodmodeCamera")
 	if camera != null and camera.has_method("set_follow_target") and player != null:
