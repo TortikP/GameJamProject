@@ -1,0 +1,79 @@
+{
+  "id": "manekin_attack",
+  "name": "manekin_attack_name",
+  "tooltip": "manekin_attack_tooltip",
+  "desc": "manekin_attack_desc",
+  "icon": "assets/sprites/icons/skills/manekin_attack.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "melee",
+    "damage"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "direct_melee_damage",
+      "sound_start": "assets/audio/skills/direct_melee_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/direct_melee_damage/impact.prefab",
+      "sound_end": "assets/audio/skills/direct_melee_damage/end.wav",
+      "animation": "assets/animations/skills/direct_melee_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 7
+        }
+      ]
+    },
+    {
+      "id": "apply_stun_single",
+      "sound_start": "assets/audio/skills/apply_stun_single/start.wav",
+      "collision_effect": "assets/vfx/status/stunned/apply_single.prefab",
+      "sound_end": "assets/audio/status/stunned/end.wav",
+      "animation": "assets/animations/status/apply_stun_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 2
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "status_id": "stunned (3)"
+        }
+      ]
+    },
+    {
+      "id": "push_single",
+      "sound_start": "assets/audio/skills/push_single/start.wav",
+      "collision_effect": "assets/vfx/skills/push_single/impact.prefab",
+      "sound_end": "assets/audio/skills/push_single/end.wav",
+      "animation": "assets/animations/skills/push_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 5,
+          "move_type": "push"
+        }
+      ]
+    }
+  ]
+}
