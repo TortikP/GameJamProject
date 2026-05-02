@@ -129,13 +129,13 @@
 
 ## P-cleanup
 
-- [ ] T120. `data/maps/_schema.md` — полный раздел про waves, пример sample_waves.json.
-- [ ] T121. `HANDOFF.md`:
-  - [ ] T121a. §work-in-progress: «024-wave-editor смержена в staging».
-  - [ ] T121b. §EventBus signals — добавить `wave_started`, `wave_cleared`, `level_completed`.
-  - [ ] T121c. §модули — `WaveController`, `RunScore`.
-- [ ] T122. `CLAUDE.md` — claimed table: `024-wave-editor` → Andrey.
-- [ ] T123. `specs/024-wave-editor/spec.md` — обновить «История правок» с финальной отметкой merge.
+- [x] T120. `data/maps/_schema.md` — полный раздел про waves, пример sample_waves.json. *(Done in P1.)*
+- [x] T121. `HANDOFF.md`:
+  - [ ] T121a. §work-in-progress: «024-wave-editor смержена в staging». *(Pending merge — Andrey marks after staging PR lands.)*
+  - [x] T121b. §EventBus signals — добавить `wave_started`, `wave_cleared`, `level_completed`, `actor_spawned`.
+  - [x] T121c. §модули — `WaveController`, `RunScore`. *(RunScore section added next to GameSpeed/EventBus; WaveController is documented in code header + spec.)*
+- [x] T122. `CLAUDE.md` — claimed table: `024-wave-editor` → Andrey.
+- [ ] T123. `specs/024-wave-editor/spec.md` — обновить «История правок» с финальной отметкой merge. *(Pending merge.)*
 
 ## Открытые на post-merge (не блокеры)
 

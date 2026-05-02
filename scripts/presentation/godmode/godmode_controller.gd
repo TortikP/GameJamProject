@@ -161,6 +161,11 @@ func _ready() -> void:
 	# Default selection = player (deferred so player node is fully initialised)
 	_select_deferred.call_deferred()
 
+	# 024: announce the start of a fresh run so RunScore resets to 0 and
+	# any other run-scoped state listeners get a clean slate. Emitted
+	# whether or not we're loading a queued level — godmode procedural
+	# sandbox is also "a new run".
+	EventBus.run_started.emit()
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_on_world_turn_ended)
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
