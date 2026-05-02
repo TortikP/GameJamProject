@@ -12,8 +12,8 @@ const R: int   = 3307   # 150 ms
 const GAIN: float = 0.35
 const OCTAVE_OFFSET: int = 12   # one octave above chord root
 
-var _calm_prob:   float = 0.3
-var _battle_prob: float = 0.7
+var _calm_prob:   float = 0.2
+var _battle_prob: float = 0.5
 var _is_battle:   bool  = false
 var _enabled: bool = true
 var _last_voice: int = -1
@@ -55,6 +55,6 @@ func tick_beat(beat_in_bar: int, harmony: Harmony, voice_pool: VoicePool,
 
 	var freq: float = Harmony.midi_to_freq(midi)
 	_last_voice = voice_pool.note_on(
-		VoicePool.OSC_SQUARE, freq,
+		VoicePool.OSC_TRIANGLE, freq,
 		[A, D, S, R], GAIN, &"lead", rng
 	)

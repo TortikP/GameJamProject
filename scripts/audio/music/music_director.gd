@@ -14,6 +14,7 @@ extends Node
 const MIX_RATE:        int = 22050
 const BUFFER_LEN_SEC:  float = 0.1
 const CHUNK_SIZE:      int = 512
+const MASTER_GAIN:     float = 0.35   # prevents summed voices from clipping
 
 # Preloads — explicit paths, no class_name registry issues.
 const _WaveTables     = preload("res://scripts/audio/music/synth/wavetables.gd")
@@ -281,6 +282,9 @@ func _render_chunk(n: int) -> void:
 				_drums_gen.tick_beat(beat_in_bar, _harmony, _voice_pool, _noise_rng)
 
 	_voice_pool.mix(_buf, n)
+	# Scale by master gain to prevent inter-voice clipping.
+	for i in n:
+		_buf[i] *= MASTER_GAIN
 	_playback.push_buffer(_buf)
 
 # ── Internal ──────────────────────────────────────────────────────────────────

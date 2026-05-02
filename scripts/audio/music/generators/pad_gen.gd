@@ -5,11 +5,11 @@
 class_name PadGen
 
 # ADSR in samples @ 22050 Hz
-const A: int   = 8820   # 400 ms
-const D: int   = 441    # 20 ms (go to sustain quickly)
-const S: float = 0.5
-const R: int   = 13230  # 600 ms
-const GAIN: float = 0.25
+const A: int   = 13230  # 600 ms — softer entry
+const D: int   = 441
+const S: float = 0.4
+const R: int   = 17640  # 800 ms — smooth release
+const GAIN: float = 0.3
 const OCTAVE_OFFSET: int = 0
 
 var _enabled: bool = true
