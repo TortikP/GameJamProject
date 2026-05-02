@@ -1,7 +1,7 @@
 extends PanelContainer
 ## FloorPalettePanel — pick a floor tile to paint. Dropdown switches between
-## available TileSets (godmode_terrain / hex_terrain); each TileSet's tiles
-## render as a button grid. Erase mode is a separate button.
+## available TileSets (post-032: only hex_terrain.tres ships); each TileSet's
+## tiles render as a button grid. Erase mode is a separate button.
 ##
 ## Right-click on any tile button opens a "Replace all" popup, listing every
 ## OTHER tile_kind currently in the level — picking one swaps every painted
@@ -19,14 +19,11 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
-	# Per Andrey: "Дропни все атласы кроме godmode из редактора уровней.
-	# Не нужны нам другие атласы, все новые гексы добавлять туда".
-	# placeholder_terrain.tres and hex_terrain.tres are no longer offered;
-	# levels referencing them still load (LevelData.tileset_path is just a
-	# string), but the palette will only build buttons for godmode tiles.
-	# Old levels saved with a different tileset will look "wrong" until
-	# their cells are repainted with godmode tiles — acceptable jam tradeoff.
-	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
+	# Per 032-controller-refactor: single tileset post-refactor — hex_terrain.tres
+	# (HEXAGON shape, 128×80 cells, multi-atlas: hex_atlas grass/wall/swamp/acid/
+	# fountain at source 0, godmode_atlas forest at source 1). Old levels referencing
+	# godmode_terrain.tres won't load anymore — that file was deleted in the same PR.
+	{"label": "Hex Terrain", "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
 ]
 
 const ICON_SIZE: Vector2 = Vector2(48, 48)

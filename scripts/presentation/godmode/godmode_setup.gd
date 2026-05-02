@@ -6,7 +6,7 @@ extends Node
 ## controller after node + module resolution.
 
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
-const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
+const HEX_TERRAIN := preload("res://scenes/arena/tilesets/hex_terrain.tres")
 const PLAYER_ID: StringName = &"player"
 const GRID_W := 14
 const GRID_H := 9
@@ -57,8 +57,7 @@ func run() -> void:
 		GameLogger.warn("Godmode", "SlotBar not found — abilities won't be visible")
 
 	# 2. Paint, 3. Initialize, 4. Place
-	# Godmode uses its own tileset (128×112 hexes, single grass tile) — keeps
-	# arena_demo's 64×56 untouched.
+	# Single tileset post-032 — hex_terrain.tres (HEXAGON shape, 128×80 cells).
 	#
 	# 020 — if ActiveLevel.has_queued(), load that level instead of running
 	# the procedural _paint_grid + _place_player path. Falls through to the
@@ -68,9 +67,9 @@ func run() -> void:
 	if ActiveLevel.has_queued():
 		loaded_via_active_level = _try_load_queued_level()
 	if not loaded_via_active_level:
-		_ctrl.grid.tile_map_layer.tile_set = GODMODE_TERRAIN
+		_ctrl.grid.tile_map_layer.tile_set = HEX_TERRAIN
 		if _ctrl.grid.vfx_overlay != null:
-			_ctrl.grid.vfx_overlay.tile_set = GODMODE_TERRAIN
+			_ctrl.grid.vfx_overlay.tile_set = HEX_TERRAIN
 		_paint_grid()
 		_ctrl.grid.initialize()
 		_place_player()
@@ -163,7 +162,8 @@ func run() -> void:
 # ── Setup helpers ────────────────────────────────────────────────────────────
 
 func _paint_grid() -> void:
-	# All grass, no walls. Godmode sandbox = clean slate.
+	# Procedural godmode sandbox: all grass, no walls. Source 0 atlas (0,0)
+	# in hex_terrain.tres is the grass tile (walkable=true, move_cost=1).
 	for row in GRID_H:
 		for col in GRID_W:
 			_ctrl.grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(0, 0))

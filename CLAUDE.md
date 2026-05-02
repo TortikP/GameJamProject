@@ -43,7 +43,7 @@ Concrete:
 4. Cross-system communication goes through EventBus signals, not direct references.
 5. UI colors and spacing — only via `UiTheme.X`. No `Color(...)` inline in `scripts/presentation/`. New stylebox? `UiTheme.make_*_stylebox()`. New label kind? Extend `UiTheme.apply_label_kind`.
 6. Hex polygon geometry — via `HexGeometry.flat_top_polygon(layer.tile_set.tile_size)` (preload `scripts/infrastructure/hex_geometry.gd`). No hardcoded `RADIUS = 60.0` in overlays — `tile_size` in the .tres is the single source of truth, polygons inscribe into the tile bbox at draw time. See spec 022.
-7. **All TileSet `.tres` files use the same `tile_size = Vector2i(128, 80)`.** Two tilesets exist (`scenes/dev/godmode_terrain.tres`, `scenes/arena/tilesets/hex_terrain.tres`) — they MUST stay the same size so actor sprites, camera zoom limits, and overlay polygons behave identically across godmode and arena. If you need a different size, change BOTH at once and re-tune `player.tscn` / `manekin.tscn` anchor offsets in the same PR.
+7. **One TileSet — `scenes/arena/tilesets/hex_terrain.tres`** (`tile_shape = HEXAGON`, `tile_size = Vector2i(128, 80)`). Source 0 = `hex_atlas.png` (grass/wall/swamp/acid/fountain at 64×56 source-region size, rendered into 128×80 cells). Source 1 = `godmode_atlas.png` (forest tile at 128×80). All scenes (godmode procedural sandbox, map editor, every loaded level) reference this single file. Per 032: `scenes/dev/godmode_terrain.tres` was deleted in the consolidation PR — adding a second tileset re-introduces shape-mismatch bugs (B-003 origin) and divergent neighbour topology (`*_SIDE` enums). Don't.
 
 ### Timing
 5. NO hardcoded timer values. Use `GameSpeed.wait(section, key)` or read
