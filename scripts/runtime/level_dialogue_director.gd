@@ -1,12 +1,12 @@
 extends Node
-## LevelDialogueDirector — autoload (039-dialogue-triggers).
+## LevelDialogueDirector -- autoload (039-dialogue-triggers).
 ##
 ## Lifecycle:
-##   level_loaded(level)   → cache LevelData ref, build DialogueTrigger list.
-##   battle_started(arena) → disconnect any stale handlers, connect fresh ones
+##   level_loaded(level)   -> cache LevelData ref, build DialogueTrigger list.
+##   battle_started(arena) -> disconnect any stale handlers, connect fresh ones
 ##                           per unique event in _triggers.
-##   battle_ended(victory) → disconnect all, clear state.
-##   run_started           → clear once-per-run fired set.
+##   battle_ended(victory) -> disconnect all, clear state.
+##   run_started           -> clear once-per-run fired set.
 ##
 ## On each matched EventBus signal, checks conditions (AND semantics), then
 ## calls DialogueManager.play(id) or DialogueManager.request(event, ctx).
@@ -27,7 +27,7 @@ var _triggers: Array = []
 ## Each entry: {event: String, callable: Callable}
 var _connected_signals: Array = []
 
-## Once-tracking sets (trigger_id → true).
+## Once-tracking sets (trigger_id -> true).
 var _fired_per_run: Dictionary = {}
 var _fired_per_session: Dictionary = {}
 
@@ -35,7 +35,7 @@ var _fired_per_session: Dictionary = {}
 var _pending_plays: Array = []
 var _is_chaining: bool = false
 
-## Warn-once guard: signal name → true.
+## Warn-once guard: signal name -> true.
 var _warned_missing_signal: Dictionary = {}
 
 ## Warn-once guard: MoodTracker absence.
@@ -65,11 +65,11 @@ func _on_battle_started(arena_id: StringName) -> void:
 	# Re-entry guard: disconnect previous battle's handlers first.
 	_disconnect_all()
 	if _level == null:
-		GameLogger.warn("LevelDialogueDirector", "battle_started but no level loaded — no triggers will fire")
+		GameLogger.warn("LevelDialogueDirector", "battle_started but no level loaded -- no triggers will fire")
 		return
 	_connect_for_events()
 	# Special case: level_started triggers must fire NOW because their
-	# underlying signal (battle_started) already fired — we're inside it.
+	# underlying signal (battle_started) already fired -- we're inside it.
 	# Connecting to it again would wait for the NEXT battle.
 	_on_event_fired(&"level_started", [arena_id, null, null])
 
@@ -106,13 +106,13 @@ func _connect_for_events() -> void:
 		# Connecting here would only catch the NEXT battle_started.
 		if ev_curated == "level_started":
 			continue
-		# Translate curated UI name → actual EventBus signal name.
+		# Translate curated UI name -> actual EventBus signal name.
 		var ev_signal: String = _curated_to_signal(ev_curated)
 		if not EventBus.has_signal(ev_signal):
 			if not _warned_missing_signal.has(ev_signal):
 				_warned_missing_signal[ev_signal] = true
 				GameLogger.warn("LevelDialogueDirector",
-					"EventBus has no signal '%s' (for event '%s') — triggers using it are dead" % [ev_signal, ev_curated])
+					"EventBus has no signal '%s' (for event '%s') -- triggers using it are dead" % [ev_signal, ev_curated])
 			continue
 		# Handler fires with the curated name so _on_event_fired matches trigger.event.
 		var cb: Callable = _make_handler(StringName(ev_curated))
@@ -120,7 +120,7 @@ func _connect_for_events() -> void:
 		_connected_signals.append({"event": ev_signal, "callable": cb})
 
 
-## Translate curated editor event names → actual EventBus signal names.
+## Translate curated editor event names -> actual EventBus signal names.
 ## "level_started" is the user-facing alias for battle_started(arena_id).
 ## All other curated names already match their EventBus signal.
 func _curated_to_signal(ev: String) -> String:
@@ -130,7 +130,7 @@ func _curated_to_signal(ev: String) -> String:
 
 
 func _make_handler(event_name: StringName) -> Callable:
-	# Variadic lambda — covers all signal arities up to 3 args.
+	# Variadic lambda -- covers all signal arities up to 3 args.
 	return func(a0 = null, a1 = null, a2 = null) -> void:
 		_on_event_fired(event_name, [a0, a1, a2])
 
@@ -152,7 +152,7 @@ func _on_event_fired(event_name: StringName, args: Array) -> void:
 func _conditions_pass(t: DialogueTrigger, event_name: StringName, args: Array) -> bool:
 	var c: Dictionary = t.conditions
 
-	# ── Event-arg-bound conditions ──────────────────────────────────────────
+	# -- Event-arg-bound conditions ------------------------------------------
 	if c.has("wave_index"):
 		var want: int = int(c["wave_index"])
 		var got: int = -1
@@ -182,7 +182,7 @@ func _conditions_pass(t: DialogueTrigger, event_name: StringName, args: Array) -
 		if unused < ttn - int(c["cleared_in_turns_lt"]):
 			return false
 
-	# ── Global state conditions ──────────────────────────────────────────────
+	# -- Global state conditions ----------------------------------------------
 	if c.has("mood_required"):
 		var moods: Array = c["mood_required"]
 		var mt: Node = _get_autoload("MoodTracker")
@@ -190,7 +190,7 @@ func _conditions_pass(t: DialogueTrigger, event_name: StringName, args: Array) -
 			if not _warned_no_mood:
 				_warned_no_mood = true
 				GameLogger.warn("LevelDialogueDirector",
-					"MoodTracker absent — mood_required condition ignored")
+					"MoodTracker absent -- mood_required condition ignored")
 			# Condition skipped (degraded gracefully per AC-D23).
 		else:
 			var dominant: StringName = mt.get_dominant() if mt.has_method("get_dominant") else &""

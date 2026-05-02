@@ -1,5 +1,5 @@
 extends PanelContainer
-## DialogueTriggerPanel — editor sidebar for 039-dialogue-triggers.
+## DialogueTriggerPanel -- editor sidebar for 039-dialogue-triggers.
 ##
 ## CRUD for LevelData.dialogue_triggers[]. Emits signals consumed by
 ## map_editor_controller which owns _level and _mark_dirty().
@@ -9,21 +9,21 @@ extends PanelContainer
 ##   VBox
 ##     Header: Label "Dialogue triggers" + count + collapse button
 ##     ItemList (trigger list)
-##     ButtonRow: Add · Edit · Duplicate · Delete
-##     EditForm (collapsible VBox) — Add/Edit only
+##     ButtonRow: Add . Edit . Duplicate . Delete
+##     EditForm (collapsible VBox) -- Add/Edit only
 ##       IdRow, EventRow, DialogueRow, PlayModeRow, ConditionsSection
-##       FormButtons: Save · Cancel
+##       FormButtons: Save . Cancel
 ##
 ## Owner: Andrey / 039-dialogue-triggers.
 
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-## Emitted after CRUD — controller updates _level.dialogue_triggers + _mark_dirty.
+## Emitted after CRUD -- controller updates _level.dialogue_triggers + _mark_dirty.
 signal trigger_created(trigger_dict: Dictionary)
 signal trigger_updated(old_id: StringName, trigger_dict: Dictionary)
 signal trigger_deleted(trigger_id: StringName)
-## Emitted when user clicks a row — controller calls select_trigger from timeline.
+## Emitted when user clicks a row -- controller calls select_trigger from timeline.
 signal trigger_selected(trigger_id: StringName)
 
 ## Curated event vocabulary shown in the dropdown.
@@ -61,7 +61,7 @@ var _form_playmode_request: CheckBox
 var _form_playmode_play: CheckBox
 var _form_conditions: VBoxContainer
 # Condition widgets (checkbox + value editor pairs)
-var _cond_widgets: Dictionary = {}  # key → {check: CheckBox, editor: Control}
+var _cond_widgets: Dictionary = {}  # key -> {check: CheckBox, editor: Control}
 var _form_error_label: Label
 
 
@@ -93,7 +93,7 @@ func select_trigger(id: StringName) -> void:
 			return
 
 
-# ── UI construction ─────────────────────────────────────────────────────────
+# -- UI construction ---------------------------------------------------------
 
 func _build_ui() -> void:
 	var vbox := VBoxContainer.new()
@@ -115,7 +115,7 @@ func _build_ui() -> void:
 	header.add_child(_count_label)
 	_collapse_btn = Button.new()
 	UiThemeScript.apply_button_style(_collapse_btn)
-	_collapse_btn.text = "▾"
+	_collapse_btn.text = "v"
 	_collapse_btn.flat = true
 	_collapse_btn.pressed.connect(_on_collapse_toggled)
 	header.add_child(_collapse_btn)
@@ -187,7 +187,7 @@ func _build_form(parent: Control) -> void:
 	_form_event_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for e in CURATED_EVENTS:
 		_form_event_option.add_item(e)
-	_form_event_option.add_item("Custom…")
+	_form_event_option.add_item("Custom...")
 	_form_event_option.item_selected.connect(_on_event_option_selected)
 	ev_row.add_child(_form_event_option)
 	_form_event_custom = LineEdit.new()
@@ -202,7 +202,7 @@ func _build_form(parent: Control) -> void:
 	var dlg_lbl := Label.new(); dlg_lbl.text = "dialogue:"; UiThemeScript.apply_label_kind(dlg_lbl, "dim")
 	dlg_row.add_child(dlg_lbl)
 	_form_dialogue_filter = LineEdit.new()
-	_form_dialogue_filter.placeholder_text = "filter…"
+	_form_dialogue_filter.placeholder_text = "filter..."
 	_form_dialogue_filter.custom_minimum_size = Vector2(60, 0)
 	_form_dialogue_filter.text_changed.connect(_on_dialogue_filter_changed)
 	dlg_row.add_child(_form_dialogue_filter)
@@ -249,7 +249,7 @@ func _build_condition_widgets() -> void:
 		{"key": "wave_index",         "label": "wave_index (int)",       "type": "int"},
 		{"key": "absolute_turn",      "label": "absolute_turn (int)",    "type": "int"},
 		{"key": "cleared_in_turns_lt","label": "cleared_in_turns_lt (int)", "type": "int"},
-		{"key": "chance",             "label": "chance 0–1 (float)",     "type": "float"},
+		{"key": "chance",             "label": "chance 0-1 (float)",     "type": "float"},
 		{"key": "once_per_run",       "label": "once_per_run",           "type": "bool"},
 		{"key": "once_per_session",   "label": "once_per_session",       "type": "bool"},
 	]
@@ -272,7 +272,7 @@ func _build_condition_widgets() -> void:
 		_cond_widgets[spec["key"]] = {"check": chk, "editor": ed}
 
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
+# -- Helpers -----------------------------------------------------------------
 
 func _populate_dialogue_picker(filter: String) -> void:
 	_form_dialogue_option.clear()
@@ -302,7 +302,7 @@ func _refresh_list() -> void:
 		var tid: String = str(d.get("id", "?"))
 		var ev: String = str(d.get("event", "?"))
 		var did: String = str(d.get("dialogue_id", "?"))
-		_list.add_item("%s · %s · %s" % [tid, ev, did])
+		_list.add_item("%s . %s . %s" % [tid, ev, did])
 
 
 func _update_button_states() -> void:
@@ -324,7 +324,7 @@ func _open_form(data: Dictionary) -> void:
 		_form_event_option.select(ev_idx)
 		_form_event_custom.visible = false
 	else:
-		_form_event_option.select(CURATED_EVENTS.size())  # "Custom…"
+		_form_event_option.select(CURATED_EVENTS.size())  # "Custom..."
 		_form_event_custom.visible = true
 		_form_event_custom.text = ev
 	var pm: String = str(data.get("play_mode", "request"))
@@ -396,7 +396,7 @@ func _validate_form(d: Dictionary) -> String:
 	if _level != null:
 		for i in _level.dialogue_triggers.size():
 			if i == _selected_idx and not _editing_new:
-				continue  # same entry, editing — skip self
+				continue  # same entry, editing -- skip self
 			if str(_level.dialogue_triggers[i].get("id", "")) == tid:
 				return "id '%s' already exists" % tid
 	if str(d.get("event", "")) == "":
@@ -404,13 +404,13 @@ func _validate_form(d: Dictionary) -> String:
 	return ""
 
 
-# ── Signals ─────────────────────────────────────────────────────────────────
+# -- Signals -----------------------------------------------------------------
 
 func _on_collapse_toggled() -> void:
 	_collapsed = not _collapsed
 	_list.visible = not _collapsed
 	_form_container.visible = _form_container.visible and not _collapsed
-	_collapse_btn.text = "▾" if not _collapsed else "▸"
+	_collapse_btn.text = "v" if not _collapsed else ">"
 
 
 func _on_list_item_selected(idx: int) -> void:
@@ -456,7 +456,7 @@ func _on_delete_pressed() -> void:
 	if _selected_idx >= _level.dialogue_triggers.size():
 		return
 	var tid: StringName = StringName(str(_level.dialogue_triggers[_selected_idx].get("id", "")))
-	# Simple confirm via toast — ConfirmModal is on controller; use a direct delete here.
+	# Simple confirm via toast -- ConfirmModal is on controller; use a direct delete here.
 	trigger_deleted.emit(tid)
 	_selected_idx = -1
 	_close_form()

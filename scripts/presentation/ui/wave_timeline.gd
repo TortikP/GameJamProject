@@ -1,15 +1,15 @@
 class_name WaveTimeline
 extends Control
 
-## WaveTimeline — horizontal "1 turn = 1 px" timeline of waves.
+## WaveTimeline -- horizontal "1 turn = 1 px" timeline of waves.
 ##
 ## Modes:
 ##   - Mode.RUNTIME: read-only. Used in the battle HUD. A clock cursor
-##     slides left→right as turns elapse, anchors before the current wave
+##     slides left->right as turns elapse, anchors before the current wave
 ##     dim, the current wave highlights, special waves render as larger
 ##     discs. Subscribes to EventBus.wave_started / wave_cleared /
 ##     world_turn_ended (for the cursor) and re-renders on each.
-##   - Mode.EDIT: anchors are clickable (LMB → switch active wave, RMB →
+##   - Mode.EDIT: anchors are clickable (LMB -> switch active wave, RMB ->
 ##     context menu), turns_to_next numbers are editable LineEdits, "+ Wave"
 ##     button at the bar's right end appends. Editor wires up via signals.
 ##
@@ -18,7 +18,7 @@ extends Control
 ##
 ## Re-render strategy: rebuild the child Controls (anchors, numbers, "+ Wave"
 ## button, cursor) every bind_level / set_runtime_state to keep the code
-## simple. Cheap — at most a few dozen children.
+## simple. Cheap -- at most a few dozen children.
 ##
 ## Custom drawing: bar trough + anchor discs go through _draw. LineEdits
 ## and the "+ Wave" button are real Control children (need event handling).
@@ -41,7 +41,7 @@ signal special_toggled(wave_index: int)
 const PADDING_LEFT: float = 24.0     # space before wave 0 anchor
 const PADDING_RIGHT: float = 32.0    # space after last anchor (before "+ Wave")
 # Spec called for "1 turn = 1 px"; that's mathematically tidy but visually
-# unreadable at jam-scale ttn values (5–6 turns = anchors overlap, numbers
+# unreadable at jam-scale ttn values (5?6 turns = anchors overlap, numbers
 # illegible). Bumped to 24 px/turn so anchors of radius 10 don't collide
 # at the minimum legal ttn=1 and the inter-anchor number has room to read.
 const PIXELS_PER_TURN: float = 24.0
@@ -62,15 +62,15 @@ var _trigger_markers: Array = []
 signal dialogue_trigger_marker_clicked(trigger_id: StringName)
 
 # Track per-anchor screen positions so the right-click handler can map
-# screen_pos → wave_idx without re-walking layout.
+# screen_pos -> wave_idx without re-walking layout.
 var _anchor_positions: Array[float] = []  # x coordinates of each anchor
 var _bar_end_x: float = 0.0
 
-# T72c — wave_index → Label/LineEdit currently rendering its turns_to_next.
+# T72c -- wave_index -> Label/LineEdit currently rendering its turns_to_next.
 # Used to pulse the current wave's number on each world_turn_ended tick.
-var _turns_widgets: Dictionary = {}  # int wave_idx → Control
+var _turns_widgets: Dictionary = {}  # int wave_idx -> Control
 
-# Bug-fix guard: bind_level → _rebuild can be triggered from inside a
+# Bug-fix guard: bind_level -> _rebuild can be triggered from inside a
 # child LineEdit's focus_exited signal (commit-on-blur). Godot 4 then
 # rejects add_child with "Parent node is busy setting up children". We
 # defer the actual rebuild via call_deferred and coalesce repeated
@@ -87,13 +87,13 @@ func _ready() -> void:
 		EventBus.world_turn_ended.connect(_on_world_turn_ended)
 	# Apply theme stylebox to the widget background.
 	_apply_theme()
-	# Default size — widget grows to fit content on bind_level / runtime
+	# Default size -- widget grows to fit content on bind_level / runtime
 	# updates, but give it a sensible minimum so it shows up empty too.
 	custom_minimum_size = Vector2(64, 56)
 	queue_redraw()
 
 
-# ── Public API ──────────────────────────────────────────────────────────────
+# -- Public API --------------------------------------------------------------
 
 ## Bind a LevelData to display. Called by editor (each repaint) and by
 ## runtime (once at battle start). Triggers a full rebuild + redraw.
@@ -134,7 +134,7 @@ func set_dialogue_trigger_markers(triggers: Array, level: LevelData) -> void:
 func _layout_trigger_markers(triggers: Array, level: LevelData) -> Array:
 	var out: Array = []
 	# Stack counters per x-bucket (to offset multiple markers at same x).
-	var stack: Dictionary = {}  # int(x_bucket) → int count
+	var stack: Dictionary = {}  # int(x_bucket) -> int count
 	var misc_x: float = _bar_end_x + 8.0
 	for d in triggers:
 		if not (d is Dictionary):
@@ -161,14 +161,14 @@ func _layout_trigger_markers(triggers: Array, level: LevelData) -> Array:
 		stack[bucket] = stack_idx + 1
 		var my: float = BAR_Y - UiThemeScript.WAVE_ANCHOR_RADIUS - 6.0 \
 				- float(stack_idx) * (UiThemeScript.DIALOGUE_TRIGGER_MARKER_RADIUS * 2.5)
-		var summary: String = "%s · %s · %s" % [tid, ev, did]
+		var summary: String = "%s . %s . %s" % [tid, ev, did]
 		out.append({"trigger_id": tid, "x": mx, "y": my, "summary": summary})
 	return out
 
 
-# ── Rebuild ─────────────────────────────────────────────────────────────────
+# -- Rebuild -----------------------------------------------------------------
 
-## Public-facing rebuild — coalesces and defers to dodge "Parent busy
+## Public-facing rebuild -- coalesces and defers to dodge "Parent busy
 ## setting up children" when triggered from inside a child Control's
 ## signal handler.
 func _rebuild() -> void:
@@ -181,7 +181,7 @@ func _rebuild() -> void:
 func _do_rebuild() -> void:
 	_rebuild_pending = false
 	# Drop existing dynamic children (LineEdits, +button). Keep persistent
-	# nodes (none currently — all dynamic).
+	# nodes (none currently -- all dynamic).
 	for child in get_children():
 		child.queue_free()
 	_anchor_positions.clear()
@@ -198,7 +198,7 @@ func _do_rebuild() -> void:
 	var x: float = PADDING_LEFT
 	for i in _level.waves.size():
 		_anchor_positions.append(x)
-		# v2 — wave index label "W0", "W1", ... under each anchor for
+		# v2 -- wave index label "W0", "W1", ... under each anchor for
 		# at-a-glance identification regardless of mode.
 		_add_wave_index_label(i, x)
 		var ttn: int = int(_level.waves[i].get("turns_to_next", 0))
@@ -274,12 +274,12 @@ func _add_plus_wave_button(x: float) -> void:
 
 
 func _apply_theme() -> void:
-	# Lightweight panel-ish background — keep transparent, the bar itself
+	# Lightweight panel-ish background -- keep transparent, the bar itself
 	# draws its trough.
 	pass
 
 
-# ── Drawing ─────────────────────────────────────────────────────────────────
+# -- Drawing -----------------------------------------------------------------
 
 func _draw() -> void:
 	if _level == null or _level.waves.is_empty():
@@ -308,7 +308,7 @@ func _draw() -> void:
 		var fill: Color = _anchor_color_for(i)
 		# Active wave (EDIT) or current wave (RUNTIME) gets an outer
 		# focus ring so it reads as "selected" on top of any background.
-		# The fill colour alone wasn't enough — at small radii on dark
+		# The fill colour alone wasn't enough -- at small radii on dark
 		# panels the colour shift was hard to spot.
 		var is_active: bool = (mode == Mode.EDIT and i == _edit_active_wave) \
 				or (mode == Mode.RUNTIME and i == _runtime_current_wave)
@@ -322,7 +322,7 @@ func _draw() -> void:
 	# RUNTIME cursor.
 	# _anchor_positions is populated by _do_rebuild which is call_deferred'd
 	# (see _rebuild). On the first frame after bind_level there's a paint
-	# pass where _level is set but _anchor_positions is still empty —
+	# pass where _level is set but _anchor_positions is still empty --
 	# without this guard, `clampi(0, 0, -1)` returns -1 and `_anchor_positions[-1]`
 	# blows up (98 errors per second flooding the debugger). Skipping the
 	# cursor for that one frame is invisible to the user.
@@ -360,7 +360,7 @@ func _anchor_color_for(wave_idx: int) -> Color:
 	return UiThemeScript.WAVE_ANCHOR_FILL
 
 
-# ── Input (EDIT mode anchor click + RMB context) ────────────────────────────
+# -- Input (EDIT mode anchor click + RMB context) ----------------------------
 
 func _gui_input(event: InputEvent) -> void:
 	if mode != Mode.EDIT or _level == null:
@@ -397,7 +397,7 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 				anchor_context_requested.emit(i, get_global_mouse_position())
 				return
-	# RMB on a gap (between anchors) → gap context.
+	# RMB on a gap (between anchors) -> gap context.
 	if mb.button_index == MOUSE_BUTTON_RIGHT and abs(local_pos.y - BAR_Y) < 16.0:
 		var after_idx: int = -1
 		for i in _anchor_positions.size():
@@ -408,7 +408,7 @@ func _gui_input(event: InputEvent) -> void:
 			gap_context_requested.emit(after_idx, get_global_mouse_position())
 
 
-# ── EDIT-mode LineEdit handlers ─────────────────────────────────────────────
+# -- EDIT-mode LineEdit handlers ---------------------------------------------
 
 func _on_turns_text_submitted(text: String, wave_idx: int, le: LineEdit) -> void:
 	_commit_turns(wave_idx, text, le)
@@ -428,7 +428,7 @@ func _commit_turns(wave_idx: int, text: String, le: LineEdit) -> void:
 	queue_redraw()
 
 
-# ── RUNTIME signal handlers ─────────────────────────────────────────────────
+# -- RUNTIME signal handlers -------------------------------------------------
 
 func _on_wave_started(idx: int, _is_special: bool) -> void:
 	_runtime_current_wave = idx
@@ -447,7 +447,7 @@ func _on_world_turn_ended(_turn: int) -> void:
 		return
 	_runtime_turns_into_wave += 1
 	queue_redraw()
-	# T72c — pulse the current wave's turns_to_next label so the player
+	# T72c -- pulse the current wave's turns_to_next label so the player
 	# gets a per-tick heartbeat in the timeline. The number itself stays
 	# at the original ttn (the cursor's position carries the "remaining"
 	# information); the pulse just announces "another turn passed".
