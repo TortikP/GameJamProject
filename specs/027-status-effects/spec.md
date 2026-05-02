@@ -44,6 +44,8 @@
 | `glitched` | `glitched(d)` | **STUB.** Runtime — пустой класс. Хранится, тикает duration, отображается иконкой. Поведение — отдельной фичей. |
 | `shielded` | `shielded(d, n_block, lvl_bonus)` | при вызове `take_damage(amount)` на target'е урон уменьшается на `n_block + level * lvl_bonus` (до min 0). Не consume'ится, не decrement'ится от удара — только от tick'а duration. |
 | `enraged`  | `enraged(d)` | **На player'е — статус хранится, runtime no-op**. **На AI:** на `add_status` swap'ит `actor.behavior_id` → `&"enraged"` (сценарий: `policy_approach_specific_actor` + один rule с `selector_specific_actor`, `tag_priority: ["damage"]`). Source — через ctx `behavior_target_id`. AI бежит к source и при наличии damage-скилла в range атакует его, игнорируя других врагов. На expire — restore. Source мёртв на tick → expire. |
+| `strong`   | `strong(d, n_buff, lvl_bonus)` | Увеличивает весь исходящий урон актера на `n_buff + level * lvl_bonus`. Сложение с `weak` алгебраическое. Не consume'ится от удара. snapshot складывается с `caster.damage_bonus` в `DamageEffect.apply` и `Ability.predicted_damage_to`. |
+| `weak`     | `weak(d, n_debuff, lvl_bonus)` | Симметричен strong с обратным знаком. Финальный урон clamp'ится к 0 (через существующий `maxi(0, ...)` в DamageEffect). |
 
 ### Behavior-override mutual exclusivity
 
@@ -131,6 +133,7 @@ designer-side метаданных:
 {
   "id": "poisoned",
   "family": "dot",
+  "icon": "",
   "arity": 3,
   "param_names": ["duration", "damage_pct", "lvl_bonus_pct"],
   "loc_name": "status.poisoned.name",
@@ -140,6 +143,11 @@ designer-side метаданных:
 
 `family` — для UI-pill цвета (`buff` / `debuff` / `dot` / `hot` / `control` /
 `shield`), уже определены в `status_icon_strip._ICON_BY_FAMILY`.
+
+`icon` — путь к Texture2D (например `"res://assets/icons/status/poisoned.png"`)
+или пустая строка. Если задан и ресурс существует, pill рендерит его как
+`TextureRect`. Иначе fallback — unicode-glyph по `family`. Дизайнер может
+точечно переопределить иконку без замены family.
 
 `arity` и `param_names` — для парсера: warn если кол-во аргументов в строке
 не сходится с arity. `loc_*` — стабы под локализацию (как у Skill).
