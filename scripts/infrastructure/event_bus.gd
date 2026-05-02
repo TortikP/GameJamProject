@@ -57,6 +57,10 @@ signal tile_object_damaged(coord: Vector2i, hp_remaining: int)
 signal tile_object_destroyed(coord: Vector2i, object_id: StringName)
 signal tile_object_effect_triggered(coord: Vector2i, target_actor_id: StringName, effect_id: StringName)
 signal tile_object_actor_exited(coord: Vector2i, actor_id: StringName, object_id: StringName)
+# 041-effect-create-entity: emitted by CreateEffect after summoning a tile
+# object via grid.set_tile_object_id + resolver.add_summon_timer. Listeners
+# (presentation: spawn FX / outline) can react. duration=-1 means infinite.
+signal tile_object_summoned(coord: Vector2i, object_id: StringName, duration: int)
 
 # Turn loop
 signal player_turn_ended(turn: int)
