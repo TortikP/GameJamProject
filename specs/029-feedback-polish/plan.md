@@ -55,6 +55,10 @@ Nine concrete UX changes (req-1..9 from the chat brief), all touching presentati
 - `move_actor_along` does NOT support entering a tile that triggers a state change preventing further movement (e.g. portal teleport). Existing `move_actor` doesn't either — same shape, parity for jam.
 - `Body` node convention (req-7) is informal. New actor scenes that don't have a Sprite2D named `Body` will silently skip sway. Not enforced — just convention.
 
-## Bonuses NOT included
+## Bonuses included
 
-Three suggestions floated in the chat preamble (active-slot perimeter outline, hover-path-line preview, breathing alpha on move-zone boundary) — not in this pass, awaiting Andrey's go/no-go.
+Three suggestions floated in the chat preamble — Andrey approved all three:
+
+- **B1** active-slot perimeter outline: 2px FOCUS-yellow border swap on the slot's `normal` + `hover` styleboxes when active. Cached per-button at init (StyleBoxFlat instances are not shared per UiTheme convention), rebuilt on theme reload. Existing modulate-tint and scale-pop kept.
+- **B2** hover-path-line preview: thin team-colored polyline through hex centers from heroine to the hovered hex, with a small disc at the destination. Path computed via `find_path_around` with live actor blocks (same set as zone occupied list — paths and boundary stay visually consistent). Capped to `effective_speed`. Cleared during cast FSM, AI turn, stun, or when hover is on player / unwalkable / occupied tile.
+- **B3** breathing alpha on move-zone boundary: sine across `BREATH_PERIOD_S` (1.6 s), centered at high mid-alpha so the contour is always clearly visible. Implementation: `_process` advances phase + queue_redraws while a zone is shown.

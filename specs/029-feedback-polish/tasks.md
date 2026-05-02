@@ -77,11 +77,30 @@
 - [ ] V09 — F6 to enable CRT — RGB-tinted bands now run horizontally; tint reads cool blue, not warm orange. Curvature still pronounced; other effects subtle.
 - [ ] V10 — Editor scenes (map_editor.tscn) still work — they don't use MoveRangeOverlay or CastRangeOverlay so no spillover, but verify nothing broke during the rewrites.
 
+## Bonuses (preamble suggestions, all approved)
+
+### B1: active slot perimeter outline
+- [x] B01a — `SlotBar`: cache both normal and active stylebox sets per button (`_styles_normal`/`_hover` and `_styles_active_normal`/`_hover`). Active variant uses `UiTheme.make_button_stylebox("focus")` which carries the FOCUS-yellow 2px border.
+- [x] B01b — `_refresh_visual`: when slot transitions to/from active, swap the "normal" + "hover" stylebox overrides (border survives mouse moving over the slot).
+- [x] B01c — `_on_theme_reloaded`: rebuild the cached active set too — palette could have shifted FOCUS color.
+
+### B2: hover-path-line preview
+- [x] B02a — `MoveRangeOverlay.set_hover_path(coords)`: new public API. Overlay no-ops on identical array.
+- [x] B02b — `_draw`: thin team-colored polyline through hex centers + filled disc at destination. Drawn between the zone outline and the attack/AoE outlines so it sits over the boundary but doesn't cross range previews.
+- [x] B02c — `GodmodeController._refresh_hover_path(hover_coord)`: per-frame computation. Calls `find_path_around` with live actor blocks (same set as zone occupied list — paths and boundary stay visually consistent). Caps to `effective_speed`. Cleared during cast FSM, AI turn, stun, or when hovering on player's own hex / unwalkable / occupied tile.
+
+### B3: breathing alpha on move-zone boundary
+- [x] B03a — `MoveRangeOverlay._process(delta)`: advances `_breath_phase` and triggers `queue_redraw` while a zone is shown. No-op when no zone.
+- [x] B03b — `_draw_zone_outline`: alpha modulates as sine across `BREATH_PERIOD_S` (1.6 s) centered at `BREATH_MID_ALPHA` (0.78) ± `BREATH_AMP` (0.18). Boundary is always clearly visible — breathing is "alive UI" cue, not a flash.
+
+## Verify (bonuses)
+
+- [ ] V11 — Select Q in godmode; slot 0 button now has a yellow border in addition to the tint+scale-pop. Press Q again (deselect) — border disappears.
+- [ ] V12 — Hover over a hex inside the move zone — thin team-colored line draws from heroine through hex centers to the hover hex, with a small disc at the destination. Hover off the zone (or onto a manekin) — line clears.
+- [ ] V13 — Move zone boundary contour gently pulses (~1.6 s period). Look closely — alpha varies, but the contour is always clearly readable.
+
 ## Out of scope (explicit)
 
 - Kite policies (req-5 carve-out — single-step neighbor scoring stays).
-- Active slot perimeter outline (chat-preamble bonus, awaiting go/no-go).
-- Hover-path-line preview (chat-preamble bonus).
-- Pulsing alpha breathing on move-zone boundary (chat-preamble bonus).
 - Audio direction (spec.md OQ-1 — separate question, separate pass).
 - Death animations (spec.md Pillar 2 — likely 029a/b).
