@@ -261,17 +261,19 @@ func _place_player() -> void:
 func _seed_slots() -> void:
 	if _ctrl.slot_bar == null:
 		return
+	# 034: clone_for_owner so player's cooldowns are isolated from any other
+	# owner of the same skill (DB-shared instance never receives cd state).
 	var debug: Skill = SkillDatabase.get_skill(&"skill_debug_punch")
 	if debug != null:
-		_ctrl.slot_bar.set_slot(0, debug)
+		_ctrl.slot_bar.set_slot(0, debug.clone_for_owner())
 	else:
 		GameLogger.warn("Godmode", "skill_debug_punch not found in SkillDatabase")
 	var melee: Skill = SkillDatabase.get_skill(&"skill_melee_punch")
 	if melee != null:
-		_ctrl.slot_bar.set_slot(1, melee)
+		_ctrl.slot_bar.set_slot(1, melee.clone_for_owner())
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
-		_ctrl.slot_bar.set_slot(2, kb)
+		_ctrl.slot_bar.set_slot(2, kb.clone_for_owner())
 	# 029 / req-1: do NOT pre-select an ability. Player must consciously pick
 	# Q/W/E/R (or click a slot) before LMB casts. Avoids accidental opening cast.
 	_ctrl.slot_bar.set_active(-1)
@@ -282,6 +284,11 @@ func _seed_slots() -> void:
 		if sk != null:
 			ids.append_array(sk.get_ability_ids())
 	_ctrl.player.set_abilities(ids)
+	# 031 phase 2: also push the actual Skill resources onto Actor._skills so
+	# AiDriver._tick_all_skills can decrement their cooldowns. Without this,
+	# slot-bound skills cast fine but never come off cooldown for the player
+	# (enemies work because enemy_data_loader sets _skills directly).
+	_ctrl.sync_player_skills_from_slots()
 
 
 func _emit_initial_turn() -> void:

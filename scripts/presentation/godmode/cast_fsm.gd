@@ -35,6 +35,29 @@ func is_self_step() -> bool:
 	return _skill.abilities[_step].target is SelfTarget
 
 
+# 031 phase 13: which ability should overlays preview "right now"?
+# - During FSM cast: abilities[_step] (the step the next click resolves).
+# - Idle slot active: abilities[0] (the step the FSM will resolve first).
+# - No active slot: null (caller paints nothing).
+# Used by both controller.refresh_overlay (target-range paint) and
+# hover_dispatcher.update_castability (zone-area paint) so the two stay in
+# sync — same source of truth, no chance of one preview showing step N
+# while the other shows step 0.
+func current_preview_ability() -> Ability:
+	if _in_progress and _skill != null and _step < _skill.abilities.size():
+		return _skill.abilities[_step]
+	var slot_bar: Node = _ctrl.slot_bar
+	if slot_bar == null:
+		return null
+	var active: int = slot_bar.get_active()
+	if active == -1:
+		return null
+	var sk := slot_bar.get_slot(active) as Skill
+	if sk == null or sk.abilities.is_empty():
+		return null
+	return sk.abilities[0]
+
+
 ## Entry point — called when player presses LMB with an active slot.
 ## Pre-checks `skill.can_apply(player, mouse_ctx)` against abilities[0] (021
 ## semantics). If false, slot stays greyed and FSM does not start.
@@ -151,10 +174,14 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _ctxs
 	_reset_state()
 	var did_cast: bool = skill.cast(_ctrl.player, ctxs)
-	# 029 / req-2: deselect ability after a successful cast. Forces the player
-	# to consciously re-arm before next attack — no held-trigger spam, every
-	# turn a chosen action. activate(-1) emits slot_activated(-1) which clears
-	# the active-slot tint and PSP spell description via _on_slot_activated.
+	# 029 req-2 / 031 phase 11: deselect ability after a successful cast.
+	# Forces the player to consciously re-arm before next attack — no
+	# held-trigger spam. Using activate(active) (toggle off) emits
+	# slot_activated(-1), which also clears the PSP spell description
+	# (set_active(-1) alone wouldn't trigger that signal).
+	# 031 phase 12: must run BEFORE _ctrl.refresh_overlay() — otherwise
+	# refresh reads the still-active slot and re-paints its range, leaving
+	# stale overlay paint until the next refresh trigger (end of enemy turn).
 	var slot_bar: Node = _ctrl.slot_bar
 	if did_cast and slot_bar != null and slot_bar.get_active() != -1:
 		slot_bar.activate(slot_bar.get_active())  # toggle off

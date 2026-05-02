@@ -68,7 +68,17 @@ func setup(grid: Node) -> void:
 
 
 func _ready() -> void:
-	z_index = 2
+	# 031 phase 14: z=5 so the unified _draw() output (including zone preview)
+	# renders ABOVE CastRangeOverlay's polys (z=4). Pre-029 zone preview was
+	# z=4 via individual Polygon2D children with explicit z_index; the 029
+	# refactor merged everything into one _draw at the node's z, which had
+	# been z=2 — leaving cast-range hexes painted on top of the area zone.
+	# Area is "what your cast will hit" → must visually dominate the
+	# "where you can click" target range.
+	# Other z=5 users: spawner_placeholder (runtime), delete_highlight /
+	# paint_preview (editor only). spawner_placeholder coexists rarely
+	# (player rarely stands on a spawner during cast).
+	z_index = 5
 	EventBus.ui_theme_reloaded.connect(queue_redraw)
 
 

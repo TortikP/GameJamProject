@@ -136,17 +136,16 @@ func refresh_overlay() -> void:
 	# looking at" panel, separate concern from "what can I do this turn".
 	if overlay == null or player == null:
 		return
-	# Skills (post-007) wrap multiple abilities. Pass Ability objects directly
-	# rather than IDs — avoids AbilityDatabase collisions when multiple skills
-	# share an ability ID (e.g. "vs_dmg").
+	# 031 phase 12+13: idle slot preview shows only the *current* ability's
+	# range — abilities[0] when idle, abilities[_step] during FSM. Painting
+	# the full ability list would mix every step's range/area into one
+	# mash-up. cast_fsm.current_preview_ability() is the shared source of
+	# truth with the zone-area preview in HoverDispatcher.update_castability.
 	var ability_items: Array = []
-	if slot_bar != null:
-		var active: int = slot_bar.get_active()
-		if active != -1:
-			var sk := slot_bar.get_slot(active) as Skill
-			if sk != null:
-				for ab in sk.abilities:
-					ability_items.append(ab)
+	if cast_fsm != null:
+		var preview_ability: Ability = cast_fsm.current_preview_ability()
+		if preview_ability != null:
+			ability_items.append(preview_ability)
 	overlay.show_for(player, registry, ability_items)
 
 
@@ -200,12 +199,49 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	if item_id < 0 or item_id >= ids.size():
 		return
 	var skill_id: StringName = StringName(ids[item_id])
-	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	# 034: get-or-clone. If the player already owns a copy of this skill
+	# (e.g. it's already in another slot), reuse it so its cooldown state
+	# is shared between slots — same spell, one cooldown. Only mint a new
+	# clone when the player doesn't yet own this id.
+	var skill: Skill = _get_or_clone_player_skill(skill_id)
 	if skill == null:
 		return
 	if slot_bar != null:
 		slot_bar.set_slot(_picker_target_slot, skill)
+	# 031 phase 2: rebuild player._skills so the new slot's cooldown ticks.
+	sync_player_skills_from_slots()
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
+
+
+# 034: returns the player's existing per-instance Skill if they already
+# have one for this id, else mints a fresh clone from the DB. Keeps the
+# DB-shared resource read-only at runtime.
+func _get_or_clone_player_skill(skill_id: StringName) -> Skill:
+	if player != null:
+		var existing: Skill = player.get_skill_by_id(skill_id)
+		if existing != null:
+			return existing
+	var src: Skill = SkillDatabase.get_skill(skill_id)
+	if src == null:
+		return null
+	return src.clone_for_owner()
+
+
+# 031 phase 2: rebuild Actor._skills from the current slot bar contents.
+# Slot bar holds the canonical Skill resources for the player; this just
+# mirrors them onto the Actor so the cooldown tick (driven from
+# AiDriver._tick_all_skills via Actor.tick_skills) reaches the same instances
+# that the player actually casts. De-duped — same skill in two slots ticks once.
+# Public so GodmodeSetup can call it after _seed_slots.
+func sync_player_skills_from_slots() -> void:
+	if player == null or slot_bar == null:
+		return
+	var skills: Array = []
+	for i in 4:
+		var sk: Skill = slot_bar.get_slot(i) as Skill
+		if sk != null and not skills.has(sk):
+			skills.append(sk)
+	player.set_skills(skills)
 
 
 ## 016/F-034 — resolves PlayerStatusPanel via @export NodePath, with fallback

@@ -68,22 +68,21 @@ func update_castability() -> void:
 	# Zone AoE preview — repaint every frame so it follows the cursor.
 	if overlay != null and overlay.has_method("show_zone_preview"):
 		var zone_hexes: Array[Vector2i] = []
-		if active_skill != null and coord != Vector2i(-1, -1):
+		# 031 phase 13: paint only the *current* ability's area, not the union
+		# of every ability in the skill. Previously the loop merged every
+		# ability's affected hexes into one dedup'd dictionary → always
+		# painted the largest radius across the skill (paper_jam: 3
+		# abilities with radii 1/1/2 → 2-radius blob always shown).
+		# During the FSM the "current" ability is the step the next click
+		# resolves; idle preview falls back to abilities[0]. cast_fsm is
+		# the shared source of truth with controller.refresh_overlay.
+		var preview_ability: Ability = _ctrl.cast_fsm.current_preview_ability()
+		if preview_ability != null and preview_ability.area != null and coord != Vector2i(-1, -1):
 			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-			for ab_obj in active_skill.abilities:
-				var ab := ab_obj as Ability
-				if ab == null or ab.area == null:
-					continue
-				# Anchor the preview where the area will actually resolve at cast time.
-				# SelfTarget pins this to caster_coord; spatial targets (Hex/Entity)
-				# fall through to hover_coord. See AbilityTarget.preview_anchor_coord.
-				var anchor: Vector2i = coord
-				if ab.target != null:
-					anchor = ab.target.preview_anchor_coord(caster_coord, coord)
-				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, anchor, grid)
-				for c in affected:
-					if not zone_hexes.has(c):
-						zone_hexes.append(c)
+			var anchor: Vector2i = coord
+			if preview_ability.target != null:
+				anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
+			zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
 		overlay.show_zone_preview(zone_hexes)
 
 	# 029 / bonus-2: hover-path preview. Show the route the player would take

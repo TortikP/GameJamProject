@@ -66,6 +66,10 @@ func _on_world_turn_ended(_turn: int) -> void:
 	# 027 / AC-CT1: tick statuses for ALL actors before AI runs. DoT damage
 	# may kill some — they're skipped naturally in subsequent loops.
 	_tick_all_statuses()
+	# 031: tick skill cooldowns for ALL actors. Must run before the stun-skip
+	# branch below, otherwise a stunned actor's cooldowns freeze for the
+	# stun's duration. See specs/031-skill-system-fixes.
+	_tick_all_skills()
 	# 027 / AC-X5: if player is stunned (newly applied or carried over),
 	# show the icon for stun_skip_delay seconds, then auto-advance their turn.
 	# Recursion is fine — next world_turn_ended will tick again, and either
@@ -94,6 +98,21 @@ func _tick_all_statuses() -> void:
 		var actor: Actor = actor_v
 		if actor.is_alive():
 			actor.tick_statuses_with_ctx(ctx)
+
+
+# 031: skill-cooldown tick for all live actors. Mirrors _tick_all_statuses.
+# No ctx — Actor.tick_skills only needs the decrement amount. Dead actors
+# skipped (their skills can't fire anyway; consistent with status helper).
+func _tick_all_skills() -> void:
+	var registry: ActorRegistry = _ctrl.registry
+	if registry == null:
+		return
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor.is_alive():
+			actor.tick_skills(1)
 
 
 func _run_enemy_turn() -> void:
@@ -194,7 +213,10 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 	var intent: CastIntent = intent_v as CastIntent
 	if intent == null or not intent.is_valid():
 		return
-	var skill: Skill = SkillDatabase.get_skill(intent.skill_id)
+	# 034: read the *enemy's* per-owner Skill copy, not the DB-shared one.
+	# Otherwise cast() writes cooldown state onto the shared resource,
+	# leaking cd between every actor that uses this skill_id.
+	var skill: Skill = enemy.get_skill_by_id(intent.skill_id)
 	if skill == null or not skill.is_ready():
 		return
 

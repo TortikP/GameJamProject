@@ -119,11 +119,15 @@ func get_slot(index: int):
 
 
 ## Called by controller per-frame for each slot. true → bright, false → dim.
+##
+## Spec 031 phase 3: this also drives cooldown-label refreshes —
+## _refresh_visual reads the slot's _cd_remaining each call. The earlier
+## early-return on unchanged castability skipped those refreshes, leaving
+## stale numbers on slots that stayed dim across multiple ticks. 4 slots
+## × per-frame is negligible.
 func set_castable(index: int, castable: bool) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
-	if _castable.get(index, false) == castable:
-		return  # no-op skip to avoid redundant modulate writes
 	_castable[index] = castable
 	_refresh_visual(index)
 
