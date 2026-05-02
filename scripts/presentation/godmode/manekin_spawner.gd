@@ -57,7 +57,7 @@ func clear_all() -> void:
 		grid.clear_actor(a.actor_id)
 		registry.unregister(a.actor_id)
 		a.queue_free()
-	_ctrl._clear_all_telegraphs()
+	_ctrl.telegraphs.clear()
 	# F2 doubles as a sandbox reset: revive player and refill HP. Lets the
 	# tester keep playing after death without restarting the scene.
 	if _ctrl.player != null:
@@ -74,4 +74,4 @@ func _on_actor_died(id: StringName) -> void:
 	_ctrl.registry.unregister(id)
 	actor.queue_free()
 	# An enemy died → its intent is gone, refresh visuals to drop its label
-	_ctrl._refresh_telegraphs()
+	_ctrl.telegraphs.refresh()
