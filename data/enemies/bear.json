@@ -2,7 +2,7 @@
   "id": "bear",
   "name": "bear_name",
   "desc": "bear_desc",
-  "sprite": "assets/sprites/enemies/bear.png",
+  "sprite": "assets/sprites/enemies/enemy_bear.png",
   "max_hp": 50,
   "team": "enemy",
   "speed": 3,

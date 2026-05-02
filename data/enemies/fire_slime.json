@@ -1,0 +1,14 @@
+{
+  "id": "fire_slime",
+  "name": "fire_slime_name",
+  "desc": "fire_slime_desc",
+  "sprite": "assets/sprites/enemies/enemy_fire_slime.png",
+  "max_hp": 20,
+  "team": "enemy",
+  "speed": 2,
+  "skills": [
+    "flame_burst"
+  ],
+  "behavior_id": "default_caster",
+  "fallback_skill_id": "flame_burst"
+}

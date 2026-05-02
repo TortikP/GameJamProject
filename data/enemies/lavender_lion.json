@@ -1,0 +1,15 @@
+{
+  "id": "lavender_lion",
+  "name": "lavender_lion_name",
+  "desc": "lavender_lion_desc",
+  "sprite": "assets/sprites/enemies/enemy_lavender_lion.png",
+  "max_hp": 55,
+  "team": "enemy",
+  "speed": 4,
+  "skills": [
+    "lion_pounce",
+    "lavender_breath"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "lion_pounce"
+}

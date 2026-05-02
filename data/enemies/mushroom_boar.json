@@ -2,7 +2,7 @@
   "id": "mushroom_boar",
   "name": "mushroom_boar_name",
   "desc": "mushroom_boar_desc",
-  "sprite": "assets/sprites/enemies/mushroom_boar.png",
+  "sprite": "assets/sprites/enemies/enemy_mushroom_boar.png",
   "max_hp": 40,
   "team": "enemy",
   "speed": 4,

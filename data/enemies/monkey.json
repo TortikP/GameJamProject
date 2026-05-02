@@ -1,0 +1,15 @@
+{
+  "id": "monkey",
+  "name": "monkey_name",
+  "desc": "monkey_desc",
+  "sprite": "assets/sprites/enemies/enemy_monkey.png",
+  "max_hp": 20,
+  "team": "enemy",
+  "speed": 5,
+  "skills": [
+    "banana_throw",
+    "screech"
+  ],
+  "behavior_id": "default_ranged",
+  "fallback_skill_id": "banana_throw"
+}

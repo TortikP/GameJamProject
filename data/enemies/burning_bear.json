@@ -1,0 +1,16 @@
+{
+  "id": "burning_bear",
+  "name": "burning_bear_name",
+  "desc": "burning_bear_desc",
+  "sprite": "assets/sprites/enemies/enemy_burning_bear.png",
+  "max_hp": 60,
+  "team": "enemy",
+  "speed": 3,
+  "skills": [
+    "fire_claw",
+    "ember_roar",
+    "hallo"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "fire_claw"
+}
