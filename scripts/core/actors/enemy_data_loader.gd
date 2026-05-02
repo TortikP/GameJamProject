@@ -1,12 +1,13 @@
 extends Object
 ## EnemyDataLoader — reads data/enemies/<id>.json and applies fields to an Actor.
 ##
-## Static-only helper, no instance state. Called from manekin_view._ready (and any
+## Static-only helper, no instance state. Called from enemy_view._ready (and any
 ## future enemy view that wants data-driven config).
 ##
 ## JSON schema:
 ##   {
 ##     "id": "manekin",
+##     "sprite": "assets/sprites/enemies/manekin.png",
 ##     "max_hp": 30,
 ##     "team": "enemy",
 ##     "speed": 1,
@@ -24,22 +25,31 @@ const ENEMIES_DIR := "res://data/enemies/"
 
 
 ## Reads data/enemies/<id>.json and writes max_hp / team / speed / behavior_id
-## / skills onto the actor. Missing file → warn + return false (caller keeps
-## scene defaults).
-static func apply_to_actor(actor: Actor, enemy_id: StringName) -> bool:
+## / skills onto the actor. Returns a Dictionary of view hints for the caller
+## (presentation layer) — keeps Actor itself free of presentation-only fields
+## per CLAUDE.md hard rule #1.
+##
+## Returned dict (empty on failure):
+##   "sprite": String  — res://-prefixed path to the body texture, if JSON
+##                       declared one. View resolves Sprite2D and applies.
+##
+## Missing file / bad JSON → warn + return empty dict. Caller checks emptiness
+## and keeps scene defaults (enemy_view does max_hp <= 0 fallback).
+static func apply_to_actor(actor: Actor, enemy_id: StringName) -> Dictionary:
+	var hints: Dictionary = {}
 	if enemy_id == &"":
-		return false
+		return hints
 	var path: String = ENEMIES_DIR + str(enemy_id) + ".json"
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		GameLogger.warn("EnemyDataLoader", "missing enemy data: %s" % path)
-		return false
+		return hints
 	var text := f.get_as_text()
 	f.close()
 	var parsed: Variant = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		GameLogger.warn("EnemyDataLoader", "bad JSON: %s" % path)
-		return false
+		return hints
 	var data: Dictionary = parsed
 
 	if data.has("max_hp"):
@@ -66,4 +76,11 @@ static func apply_to_actor(actor: Actor, enemy_id: StringName) -> bool:
 				GameLogger.warn("EnemyDataLoader", "%s: unknown skill_id '%s' — skipped" % [enemy_id, sid])
 		actor.set_skills(skills)
 
-	return true
+	# View hints — sprite path. JSON stores repo-relative ("assets/sprites/..."),
+	# we prefix res:// once here so callers can pass straight to load().
+	if data.has("sprite"):
+		var sprite_rel: String = String(data["sprite"])
+		if sprite_rel != "":
+			hints["sprite"] = "res://" + sprite_rel
+
+	return hints
