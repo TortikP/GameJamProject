@@ -1,0 +1,58 @@
+{
+  "id": "archer_volley",
+  "name": "archer_volley_name",
+  "tooltip": "archer_volley_tooltip",
+  "desc": "archer_volley_desc",
+  "icon": "assets/sprites/icons/skills/archer_volley.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "direct_ranged_damage",
+      "sound_start": "assets/audio/skills/direct_ranged_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/direct_ranged_damage/projectile_hit.prefab",
+      "sound_end": "assets/audio/skills/direct_ranged_damage/end.wav",
+      "animation": "assets/animations/skills/direct_ranged_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 8
+        }
+      ]
+    },
+    {
+      "id": "area_damage_medium",
+      "sound_start": "assets/audio/skills/area_damage_medium/start.wav",
+      "collision_effect": "assets/vfx/skills/area_damage_medium/area_impact.prefab",
+      "sound_end": "assets/audio/skills/area_damage_medium/end.wav",
+      "animation": "assets/animations/skills/area_damage_medium.anim",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "damage": 12
+        }
+      ]
+    }
+  ]
+}
