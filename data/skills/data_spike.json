@@ -51,7 +51,7 @@
       "effects": [
         {
           "damage": 5,
-          "status_id": "glitched (2)"
+          "status_id": "glitched(2)"
         }
       ]
     }
