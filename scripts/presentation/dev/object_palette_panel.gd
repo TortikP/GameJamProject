@@ -70,6 +70,7 @@ func _build_ui() -> void:
 	_install_drag(header)
 
 	_tab_bar = TabBar.new()
+	_tab_bar.clip_tabs = false  # show all 3 tabs always; no scroll arrows
 	_tab_bar.add_tab("Spawners")
 	_tab_bar.add_tab("Obstacles")
 	_tab_bar.add_tab("Interactive")
