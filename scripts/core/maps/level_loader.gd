@@ -23,15 +23,29 @@ const BUSH_SCENE: PackedScene = preload("res://scenes/dev/bush.tscn")
 const BEAR_SCENE: PackedScene = preload("res://scenes/dev/bear.tscn")
 const BEE_SCENE: PackedScene = preload("res://scenes/dev/bee.tscn")
 const MUSHROOM_BOAR_SCENE: PackedScene = preload("res://scenes/dev/mushroom_boar.tscn")
+const ANGEL_SCENE: PackedScene = preload("res://scenes/dev/angel.tscn")
+const BURNING_BEAR_SCENE: PackedScene = preload("res://scenes/dev/burning_bear.tscn")
+const FIRE_SLIME_SCENE: PackedScene = preload("res://scenes/dev/fire_slime.tscn")
+const LAVENDER_LION_SCENE: PackedScene = preload("res://scenes/dev/lavender_lion.tscn")
+const MONKEY_SCENE: PackedScene = preload("res://scenes/dev/monkey.tscn")
+const STAPLER_SCENE: PackedScene = preload("res://scenes/dev/stapler.tscn")
+const TEAPOT_SCENE: PackedScene = preload("res://scenes/dev/teapot.tscn")
 
 # enemy_id → PackedScene mapping. New enemies plug in here as we add prefabs.
 # data/enemies/<id>.json files declare existence; this table maps id → scene.
 const ENEMY_SCENES: Dictionary = {
-	&"manekin": MANEKIN_SCENE,
-	&"bush": BUSH_SCENE,
-	&"bear": BEAR_SCENE,
-	&"bee": BEE_SCENE,
+	&"manekin":       MANEKIN_SCENE,
+	&"bush":          BUSH_SCENE,
+	&"bear":          BEAR_SCENE,
+	&"bee":           BEE_SCENE,
 	&"mushroom_boar": MUSHROOM_BOAR_SCENE,
+	&"angel":         ANGEL_SCENE,
+	&"burning_bear":  BURNING_BEAR_SCENE,
+	&"fire_slime":    FIRE_SLIME_SCENE,
+	&"lavender_lion": LAVENDER_LION_SCENE,
+	&"monkey":        MONKEY_SCENE,
+	&"stapler":       STAPLER_SCENE,
+	&"teapot":        TEAPOT_SCENE,
 }
 
 const PLAYER_ID: StringName = &"player"

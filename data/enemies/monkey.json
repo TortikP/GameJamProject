@@ -10,6 +10,6 @@
     "monkey_time",
     "monkey_business"
   ],
-  "behavior_id": "default_melee",
+  "behavior_id": "monkey_aggressive",
   "fallback_skill_id": "monkey_business"
 }

@@ -1,0 +1,35 @@
+{
+  "id": "monkey_aggressive",
+  "rules": [
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 1
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "melee",
+        "damage"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "always"
+      },
+      "target_selector": {
+        "kind": "self"
+      },
+      "tag_priority": [
+        "buff"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy_unclaimed"
+  },
+  "fallback_skill_id": ""
+}

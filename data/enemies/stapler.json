@@ -11,6 +11,6 @@
     "stapler_paper_jam",
     "stapler_under_desk_jump"
   ],
-  "behavior_id": "default_melee",
+  "behavior_id": "stapler_aggressive",
   "fallback_skill_id": "stapler_staple_shot"
 }
