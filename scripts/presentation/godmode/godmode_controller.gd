@@ -20,7 +20,6 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
-const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
 const PLAYER_ID: StringName = &"player"
@@ -62,7 +61,6 @@ var manekin_spawner: Node    # ManekinSpawner
 var step_animator: Node      # StepAnimator
 
 var _selected: Actor      # currently inspected actor (default: player)
-var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
@@ -370,27 +368,27 @@ func _is_wave_transitioning() -> bool:
 
 
 func _select_deferred() -> void:
-	_select(player)
+	select(player)
 
 
 # ── Selection / Inspector / Overlay ──────────────────────────────────────────
 
-func _select(actor: Actor) -> void:
+func select(actor: Actor) -> void:
 	_selected = actor
 	if inspector != null and inspector.has_method("bind"):
 		inspector.bind(actor)
 	# Also show hex layer for this actor's current position
 	if actor != null:
 		var coord: Vector2i = grid.get_coord(actor.actor_id)
-		_bind_hex_at(coord)
-	_refresh_overlay()
+		bind_hex_at(coord)
+	refresh_overlay()
 
 
-func _deselect_to_player() -> void:
-	_select(player)
+func deselect_to_player() -> void:
+	select(player)
 
 
-func _inspect_hex(coord: Vector2i) -> void:
+func inspect_hex(coord: Vector2i) -> void:
 	# Click on empty hex → inspector shows hex info, actor section hides.
 	# Selection state and player's move/cast overlay are NOT touched
 	# (009-ui-kit decoupling: overlay tracks player, not _selected).
@@ -399,10 +397,10 @@ func _inspect_hex(coord: Vector2i) -> void:
 	# anything ever re-introduces selection-driven logic.
 	if inspector != null and inspector.has_method("unbind"):
 		inspector.unbind()
-	_bind_hex_at(coord)
+	bind_hex_at(coord)
 
 
-func _bind_hex_at(coord: Vector2i) -> void:
+func bind_hex_at(coord: Vector2i) -> void:
 	if inspector == null or not inspector.has_method("bind_hex"):
 		return
 	if coord == Vector2i(-1, -1):
@@ -413,7 +411,7 @@ func _bind_hex_at(coord: Vector2i) -> void:
 	inspector.bind_hex(coord, tile_kind, effect_id)
 
 
-func _refresh_overlay() -> void:
+func refresh_overlay() -> void:
 	# Decoupled from _selected: the move-range and cast-range overlays are
 	# always for the PLAYER. Selecting an enemy/hex (LMB on actor, click on
 	# tile) should not hide the player's tactical info (Pillar 1 visibility).
@@ -436,12 +434,12 @@ func _refresh_overlay() -> void:
 
 
 func _on_inspector_speed_changed(_actor: Actor) -> void:
-	_refresh_overlay()
+	refresh_overlay()
 
 
 func _on_actor_died_for_selection(id: StringName) -> void:
 	if _selected != null and _selected.actor_id == id:
-		_deselect_to_player()
+		deselect_to_player()
 
 
 # ── Input ────────────────────────────────────────────────────────────────────
@@ -631,7 +629,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			if _selected != null and _selected != player:
-				_deselect_to_player()
+				deselect_to_player()
 				get_viewport().set_input_as_handled()
 				return
 			# No selection to clear, no active cast — open pause menu if mounted.
@@ -641,15 +639,15 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			# Last-resort fallback: original behavior (no-op deselect).
-			_deselect_to_player()
+			deselect_to_player()
 			get_viewport().set_input_as_handled()
 			return
 	if event.is_action_pressed("godmode_spawn_dummy"):
-		_spawn_manekin()
+		manekin_spawner.spawn()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("godmode_clear"):
-		_clear_manekins()
+		manekin_spawner.clear_all()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("dev_open_editor"):
@@ -782,7 +780,7 @@ func _request_move() -> void:
 	await grid.move_actor(PLAYER_ID, coord)
 	if grid.get_coord(PLAYER_ID) != from:
 		TurnManager.advance()
-		_refresh_overlay()
+		refresh_overlay()
 
 
 func _request_cast_active() -> void:
@@ -817,9 +815,9 @@ func _request_cast_active() -> void:
 	# No active skill: inspect hovered actor or hex
 	var target_actor: Actor = registry.get_actor(target_id) if target_id != &"" else null
 	if target_actor != null:
-		_select(target_actor)
+		select(target_actor)
 	elif grid.is_walkable(coord):
-		_inspect_hex(coord)
+		inspect_hex(coord)
 
 
 # ── 026: multi-step cast collection (phase 1) ──────────────────────────────────
@@ -863,7 +861,7 @@ func _cast_slot(slot_index: int) -> void:
 	_cast_in_progress = true
 	# 026 fix: hide MoveRangeOverlay's slot-activation attack-range paint
 	# so CastRangeOverlay's per-step paint doesn't render on top of it.
-	# Restored on FSM exit via _refresh_overlay (in _commit_cast/_cancel_cast).
+	# Restored on FSM exit via refresh_overlay (in _commit_cast/_cancel_cast).
 	if overlay != null and overlay.has_method("clear"):
 		overlay.clear()
 	_begin_step()
@@ -912,7 +910,7 @@ func _commit_cast() -> void:
 	if did_cast and slot_bar != null and slot_bar.get_active() != -1:
 		slot_bar.activate(slot_bar.get_active())  # toggle off
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
-	_refresh_overlay()
+	refresh_overlay()
 	if did_cast:
 		await GameSpeed.wait("godmode", "ability_cast_delay")
 		TurnManager.advance()
@@ -923,7 +921,7 @@ func _cancel_cast() -> void:
 		cast_overlay.hide_range()
 	_reset_cast_state()
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM cancels.
-	_refresh_overlay()
+	refresh_overlay()
 	# no cooldown, no commit, no turn advance
 
 
@@ -954,7 +952,7 @@ func _get_player_status_panel() -> Node:
 
 
 func _on_slot_activated(_index: int) -> void:
-	_refresh_overlay()
+	refresh_overlay()
 	# 009-T044+: push active spell into PlayerStatusPanel description block.
 	# -1 = deselect → pass null which collapses the spell section.
 	var psp: Node = _get_player_status_panel()
@@ -965,37 +963,10 @@ func _on_slot_activated(_index: int) -> void:
 		psp.set_active_spell(ability)
 
 
-# ── Spawning ─────────────────────────────────────────────────────────────────
-
-func _spawn_manekin() -> void:
-	var coord := grid.coord_under_mouse()
-	if coord == Vector2i(-1, -1) or not grid.is_walkable(coord):
-		GameLogger.info("Godmode", "cannot spawn at %s" % str(coord))
-		return
-	if grid.get_actor_at(coord) != &"":
-		GameLogger.info("Godmode", "occupied at %s" % str(coord))
-		return
-	var idx := _next_manekin_idx
-	_next_manekin_idx += 1
-	var id := StringName("dummy_%03d" % idx)
-	var manekin: Actor = MANEKIN_SCENE.instantiate()
-	manekin.actor_id = id
-	manekin.position = grid.tile_map_layer.map_to_local(coord)
-	var actors_node: Node = grid.get_node_or_null("Actors")
-	if actors_node == null:
-		actors_node = grid
-	actors_node.add_child(manekin)
-	grid.place_actor(id, coord)
-	registry.register(manekin)
-	manekin.died.connect(_on_actor_died)
-	GameLogger.info("Godmode", "spawned %s at %s" % [id, str(coord)])
-	# Plan immediately so the player sees the new manekin's intent right away,
-	# without having to end their turn first. Re-plans ALL enemies because
-	# adding a new one can block existing pathing.
-	_replan_all_and_refresh()
-	_refresh_overlay()
+# ── AI ───────────────────────────────────────────────────────────────────────
 
 
+# 032 transitional stub — used by ManekinSpawner until AiDriver (T16) claims it.
 func _replan_all_and_refresh() -> void:
 	var enemies: Array = []
 	for actor in registry.all():
@@ -1006,39 +977,6 @@ func _replan_all_and_refresh() -> void:
 		if actor is Actor and (actor as Actor).is_alive():
 			EnemyAIPlanner.plan(actor as Actor, ctx)
 	_refresh_telegraphs()
-
-
-func _clear_manekins() -> void:
-	var to_remove: Array = []
-	for actor in registry.all():
-		if actor is Actor and (actor as Actor).team == &"enemy":
-			to_remove.append(actor)
-	for actor in to_remove:
-		var a: Actor = actor
-		grid.clear_actor(a.actor_id)
-		registry.unregister(a.actor_id)
-		a.queue_free()
-	_clear_all_telegraphs()
-	# F2 doubles as a sandbox reset: revive player and refill HP. Lets the
-	# tester keep playing after death without restarting the scene.
-	if player != null:
-		player.heal_to_full()
-	_deselect_to_player()
-	GameLogger.info("Godmode", "cleared %d manekins, player reset" % to_remove.size())
-
-
-func _on_actor_died(id: StringName) -> void:
-	var actor: Actor = registry.get_actor(id)
-	if actor == null:
-		return
-	grid.clear_actor(id)
-	registry.unregister(id)
-	actor.queue_free()
-	# An enemy died → its intent is gone, refresh visuals to drop its label
-	_refresh_telegraphs()
-
-
-# ── AI ───────────────────────────────────────────────────────────────────────
 #
 # Two-stage per enemy on world_turn_ended:
 #   1. RESOLVE last turn's attack intent (if any). If player still on the
@@ -1079,7 +1017,7 @@ func _on_world_turn_ended(_turn: int) -> void:
 		return
 	await _run_enemy_turn()
 	_world_processing = false
-	_refresh_overlay()
+	refresh_overlay()
 
 
 # 027: status tick for all live actors. ctx mirrors what AI gets — runtimes
