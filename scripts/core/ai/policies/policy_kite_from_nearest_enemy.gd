@@ -1,8 +1,13 @@
 class_name PolicyKiteFromNearestEnemy
 extends MovementPolicy
-## AC-S2: step into the walkable neighbor that maximizes distance to the nearest
-## opposing-team actor. If no neighbor is better than current spot OR no enemies
-## exist on the map → return (-1,-1) (planner falls back to hold + log per Q-AI-6).
+## Walk up to actor.effective_speed() hexes into the coord that maximises
+## the minimum distance to any opposing-team actor. If no reachable coord
+## improves on the current safest distance → return (-1,-1) (planner falls
+## back to hold + log per Q-AI-6).
+##
+## 034: was 1-hex/turn regardless of speed. Mirror of PolicyKiteSpecificActor's
+## fix — use HexGrid.reachable_within over the full speed budget instead of
+## just the 6 neighbours.
 
 
 func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
@@ -13,10 +18,14 @@ func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
 	if my_coord == Vector2i(-1, -1):
 		return Vector2i(-1, -1)
 
+	var speed: int = actor.effective_speed()
+	if speed <= 0:
+		return Vector2i(-1, -1)
+
 	# Collect enemy coords + occupied tiles.
 	var actors: Array = ctx.get("all_actors", [])
 	var enemy_coords: Array[Vector2i] = []
-	var occupied: Dictionary = {}   # Vector2i -> true
+	var occupied: Array = []
 	for other_v in actors:
 		if not (other_v is Actor):
 			continue
@@ -26,26 +35,23 @@ func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
 		var c: Vector2i = grid.get_coord(other.actor_id)
 		if c == Vector2i(-1, -1):
 			continue
-		occupied[c] = true
+		occupied.append(c)
 		if other.team != actor.team:
 			enemy_coords.append(c)
 
 	if enemy_coords.is_empty():
 		return Vector2i(-1, -1)   # no anchor
 
-	# Score: minimum distance to ANY enemy. Higher = safer.
+	# Score: minimum distance to ANY enemy. Higher = safer. BFS ring-by-ring
+	# means strict > picks the cheapest path among ties.
 	var current_score: int = _min_dist_to_enemies(my_coord, enemy_coords, grid)
 	var best_step: Vector2i = Vector2i(-1, -1)
 	var best_score: int = current_score
-
-	for nb in grid.get_walkable_neighbours(my_coord):
-		if occupied.has(nb):
-			continue
-		var s: int = _min_dist_to_enemies(nb, enemy_coords, grid)
+	for cand in grid.reachable_within(my_coord, speed, occupied):
+		var s: int = _min_dist_to_enemies(cand, enemy_coords, grid)
 		if s > best_score:
 			best_score = s
-			best_step = nb
-
+			best_step = cand
 	return best_step
 
 
