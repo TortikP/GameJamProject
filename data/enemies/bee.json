@@ -11,6 +11,6 @@
     "bee_honey_cold",
     "bee_summon_bee"
   ],
-  "behavior_id": "bee_aggressive",
+  "behavior_id": "default_melee",
   "fallback_skill_id": "bee_sting"
 }

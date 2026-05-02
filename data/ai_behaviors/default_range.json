@@ -1,23 +1,26 @@
 {
-  "id": "default_melee",
+  "id": "default_range",
   "rules": [
     {
       "condition": {
         "kind": "enemy_in_range",
-        "distance": 1
+        "distance": 4
       },
       "target_selector": {
         "kind": "nearest_enemy"
       },
       "tag_priority": [
         "damage",
-        "melee"
+        "ranged",
+        "debuff"
       ],
       "min_skill_count": 1
     }
   ],
   "movement_policy": {
-    "kind": "approach_nearest_enemy_unclaimed"
+    "kind": "maintain_range",
+    "desired_min": 2,
+    "desired_max": 3
   },
   "fallback_skill_id": ""
 }

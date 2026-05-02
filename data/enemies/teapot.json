@@ -11,6 +11,6 @@
     "teapot_spill_the_t",
     "teapot_tea_gathering"
   ],
-  "behavior_id": "teapot_aggressive",
-  "fallback_skill_id": "teapot_spill_the_t"
+  "behavior_id": "default_range",
+  "fallback_skill_id": "teapot_low_possibility"
 }
