@@ -310,6 +310,46 @@ hotkey).
 
 ---
 
+## Phase 12 — Idle range/area preview lingered + mixed all abilities
+
+### Problem
+Two related but independent bugs in the same overlay path:
+
+1. **Range/area paint persisted past the cast.** After
+   `_commit_cast`, the move-range overlay (`_overlay`) kept showing the
+   slot's range and didn't clear until the start of the next round
+   (when something else triggered `_refresh_overlay`). Cause: the order
+   inside `_commit_cast` was `_refresh_overlay()` *before*
+   `set_active(-1)` from phase 11 — so refresh saw the still-active
+   slot and re-painted; the post-deselect state never re-rendered.
+
+2. **Idle preview mixed every ability of the skill.**
+   `_refresh_overlay` iterated `sk.abilities` and forwarded all of them
+   to `_overlay.show_for(player, registry, ability_items)`. For
+   multi-ability skills (e.g. damage + self-heal vampirism), the
+   overlay painted the union of every ability's range/area
+   simultaneously — meaningless since each ability resolves with its
+   own ctx at its own FSM step. The player saw a noisy mash-up that
+   didn't match where their first click would land.
+
+### Fix
+1. Move the `set_active(-1)` call to *before* `_refresh_overlay()` in
+   `_commit_cast`. Refresh now sees `active = -1`, paints empty.
+2. `_refresh_overlay` forwards only `abilities[0]` — the step the FSM
+   resolves first when the player clicks. Subsequent ability previews
+   are already handled correctly by `_cast_overlay.show_range_for_ability`
+   inside `_begin_step`, called once per FSM step.
+
+### Acceptance
+- AC32: after a successful cast, the range/area overlay disappears
+  immediately (same frame as the slot deselect).
+- AC33: with a slot active, the overlay paints only `abilities[0]`'s
+  range and area — not a mash-up.
+- AC34: during the FSM, each step's overlay paint matches that step's
+  ability (regression check on existing `_cast_overlay` path).
+
+---
+
 ## Out of scope (across all phases)
 
 - Per-caster turn-end ticking (round-based is correct for current TurnManager).

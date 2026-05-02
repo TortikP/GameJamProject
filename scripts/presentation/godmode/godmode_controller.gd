@@ -339,17 +339,19 @@ func _refresh_overlay() -> void:
 	# looking at" panel, separate concern from "what can I do this turn".
 	if _overlay == null or player == null:
 		return
-	# Skills (post-007) wrap multiple abilities. Pass Ability objects directly
-	# rather than IDs — avoids AbilityDatabase collisions when multiple skills
-	# share an ability ID (e.g. "vs_dmg").
+	# 031 phase 12: idle slot preview shows only abilities[0] — the step the
+	# FSM resolves first. Painting all abilities at once mixes their ranges
+	# and areas (e.g. damage range + self-area heal of a vampirism skill)
+	# which misleads the player about where their first click lands. Steps
+	# 1..N are previewed by _cast_overlay one at a time as the FSM walks
+	# through them (see _begin_step → show_range_for_ability).
 	var ability_items: Array = []
 	if _slot_bar_node != null:
 		var active: int = _slot_bar_node.get_active()
 		if active != -1:
 			var sk := _slot_bar_node.get_slot(active) as Skill
-			if sk != null:
-				for ab in sk.abilities:
-					ability_items.append(ab)
+			if sk != null and not sk.abilities.is_empty():
+				ability_items.append(sk.abilities[0])
 	_overlay.show_for(player, registry, ability_items)
 
 
@@ -722,14 +724,19 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _cast_ctxs
 	_reset_cast_state()
 	var did_cast: bool = skill.cast(player, ctxs)
+	# 031 phase 11: deselect the active slot after a successful cast so the
+	# next click is a plain move, not a re-cast attempt on the (now greyed)
+	# cooled-down slot. Failed casts leave the slot active so the player can
+	# adjust target without re-pressing the hotkey.
+	# 031 phase 12: must run BEFORE _refresh_overlay — otherwise _refresh_overlay
+	# reads the still-active slot and re-paints its range, leaving stale
+	# overlay paint visible until the next refresh trigger (which doesn't
+	# fire until end of enemy turn).
+	if did_cast and _slot_bar_node != null:
+		_slot_bar_node.set_active(-1)
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
 	_refresh_overlay()
 	if did_cast:
-		# 031 phase 11: deselect the active slot after a successful cast so
-		# the next click is a plain move, not an immediate re-cast attempt
-		# on the (now greyed) cooled-down slot.
-		if _slot_bar_node != null:
-			_slot_bar_node.set_active(-1)
 		await GameSpeed.wait("godmode", "ability_cast_delay")
 		TurnManager.advance()
 

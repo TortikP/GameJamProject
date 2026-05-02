@@ -57,6 +57,10 @@ run Godot.
 ## Phase 11 — Clear active slot on cast
 - [x] T32 — `_commit_cast`: `set_active(-1)` after successful cast.
 
+## Phase 12 — Idle preview clears on cast + shows only abilities[0]
+- [x] T33 — reorder `_commit_cast`: `set_active(-1)` BEFORE `_refresh_overlay`.
+- [x] T34 — `_refresh_overlay`: forward `abilities[0]` only, not the full list.
+
 ## Manual smoke (deferred to user)
 
 - [ ] M1 — Wave with multiple identical enemies: cd is per-actor, not
