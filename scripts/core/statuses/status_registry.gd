@@ -81,13 +81,6 @@ func icon_of(id: StringName) -> String:
 	return String(m.get("icon", ""))
 
 
-## Path to the status icon texture (e.g. "res://assets/icons/burning.png").
-## Empty if not configured — UI falls back to family-glyph.
-func icon_of(id: StringName) -> String:
-	var m: Dictionary = _meta.get(id, {})
-	return String(m.get("icon", ""))
-
-
 ## Number of expected args in the inline encoding `id(d, a1, ...)`.
 ## Returns 0 for unknown ids — parser uses 0 as the "reject" signal.
 func arity_of(id: StringName) -> int:
