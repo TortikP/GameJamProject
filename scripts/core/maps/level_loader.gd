@@ -18,8 +18,21 @@ class_name LevelLoader
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/dev/player.tscn")
-const ENEMY_SCENE: PackedScene = preload("res://scenes/dev/enemy.tscn")
-const ENEMIES_DIR: String = "res://data/enemies/"
+const MANEKIN_SCENE: PackedScene = preload("res://scenes/dev/manekin.tscn")
+const BUSH_SCENE: PackedScene = preload("res://scenes/dev/bush.tscn")
+const BEAR_SCENE: PackedScene = preload("res://scenes/dev/bear.tscn")
+const BEE_SCENE: PackedScene = preload("res://scenes/dev/bee.tscn")
+const MUSHROOM_BOAR_SCENE: PackedScene = preload("res://scenes/dev/mushroom_boar.tscn")
+
+# enemy_id → PackedScene mapping. New enemies plug in here as we add prefabs.
+# data/enemies/<id>.json files declare existence; this table maps id → scene.
+const ENEMY_SCENES: Dictionary = {
+	&"manekin": MANEKIN_SCENE,
+	&"bush": BUSH_SCENE,
+	&"bear": BEAR_SCENE,
+	&"bee": BEE_SCENE,
+	&"mushroom_boar": MUSHROOM_BOAR_SCENE,
+}
 
 const PLAYER_ID: StringName = &"player"
 
@@ -95,21 +108,17 @@ static func apply_to(grid: HexGrid, registry: ActorRegistry, level: LevelData,
 ## an enemy from a spawner dict at countdown=0. Mirrors the private path used
 ## by apply_to — same id pattern, same registry registration, same place_actor
 ## semantics. Returns the spawned Actor (or null on failure).
-##
-## 036: enemy_id resolved via data/enemies/<id>.json existence — single generic
-## scene + per-id JSON, no hardcoded id→scene table.
 static func spawn_enemy_at(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i, enemy_id: StringName,
 		idx_for_id: int) -> Actor:
-	if not _enemy_data_exists(enemy_id):
+	if not ENEMY_SCENES.has(enemy_id):
 		GameLogger.warn("LevelLoader", "spawn_enemy_at: unknown enemy_id '%s' at %s" % [enemy_id, coord])
 		return null
-	var enemy: Actor = ENEMY_SCENE.instantiate() as Actor
+	var scene: PackedScene = ENEMY_SCENES[enemy_id]
+	var enemy: Actor = scene.instantiate() as Actor
 	if enemy == null:
 		GameLogger.warn("LevelLoader", "spawn_enemy_at: scene for %s did not instantiate as Actor" % enemy_id)
 		return null
-	# Set enemy_data_id BEFORE add_child so _ready() loads the right JSON.
-	enemy.set(&"enemy_data_id", enemy_id)
 	enemy.actor_id = StringName("%s_%03d" % [enemy_id, idx_for_id])
 	enemy.position = grid.tile_map_layer.map_to_local(coord)
 	actors_node.add_child(enemy)
@@ -122,12 +131,6 @@ static func spawn_enemy_at(grid: HexGrid, registry: ActorRegistry,
 
 
 # ── Internal ────────────────────────────────────────────────────────────────
-
-static func _enemy_data_exists(enemy_id: StringName) -> bool:
-	if enemy_id == &"":
-		return false
-	return FileAccess.file_exists(ENEMIES_DIR + str(enemy_id) + ".json")
-
 
 static func _spawn_player(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i) -> Actor:
@@ -150,15 +153,14 @@ static func _spawn_player(grid: HexGrid, registry: ActorRegistry,
 
 static func _spawn_enemy(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i, enemy_id: StringName, idx: int) -> void:
-	if not _enemy_data_exists(enemy_id):
+	if not ENEMY_SCENES.has(enemy_id):
 		GameLogger.warn("LevelLoader", "Unknown enemy_id '%s' — skipping spawner at %s" % [enemy_id, coord])
 		return
-	var enemy: Actor = ENEMY_SCENE.instantiate() as Actor
+	var scene: PackedScene = ENEMY_SCENES[enemy_id]
+	var enemy: Actor = scene.instantiate() as Actor
 	if enemy == null:
 		GameLogger.warn("LevelLoader", "Scene for %s did not instantiate as Actor" % enemy_id)
 		return
-	# Set enemy_data_id BEFORE add_child so _ready() loads the right JSON.
-	enemy.set(&"enemy_data_id", enemy_id)
 	# id pattern follows godmode's _spawn_manekin convention.
 	enemy.actor_id = StringName("%s_%03d" % [enemy_id, idx])
 	enemy.position = grid.tile_map_layer.map_to_local(coord)

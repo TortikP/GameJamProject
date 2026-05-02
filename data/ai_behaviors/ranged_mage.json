@@ -11,7 +11,8 @@
       },
       "tag_priority": [
         "damage",
-        "damage_aoe"
+        "damage_aoe",
+        "debuff"
       ],
       "min_skill_count": 1
     },
@@ -41,20 +42,23 @@
     {
       "condition": {
         "kind": "enemy_in_range",
-        "distance": 2
+        "distance": 4
       },
       "target_selector": {
         "kind": "nearest_enemy"
       },
       "tag_priority": [
         "damage",
-        "damage_aoe"
+        "damage_aoe",
+        "debuff"
       ],
       "min_skill_count": 1
     }
   ],
   "movement_policy": {
-    "kind": "kite_from_nearest_enemy"
+    "kind": "maintain_range",
+    "desired_min": 2,
+    "desired_max": 3
   },
   "fallback_skill_id": ""
 }

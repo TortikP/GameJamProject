@@ -242,6 +242,11 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 		"approach_specific_actor":  return PolicyApproachSpecificActor.new()   # 027: enraged
 		"kite_specific_actor":      return PolicyKiteSpecificActor.new()       # 027: feared
 		"approach_nearest_enemy_unclaimed": return PolicyApproachNearestEnemyUnclaimed.new()  # 030
+		"maintain_range":
+			var p := PolicyMaintainRange.new()
+			p.desired_min = int(data.get("desired_min", 2))
+			p.desired_max = int(data.get("desired_max", 3))
+			return p
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()
