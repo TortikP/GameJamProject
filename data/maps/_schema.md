@@ -10,7 +10,7 @@ hand-editable if you want to tweak something quickly without launching the game.
 |---|---|---|---|
 | `name` | string | yes | Human-readable name. Filename is `<sanitized_name>.json` (lowercase, `[^a-z0-9_-]` → `_`). |
 | `version` | int | yes | Schema version. Current = `2` (added `waves[]` in 024). |
-| `tileset_path` | string | yes | `res://...` path to a `.tres` TileSet. Default: `res://scenes/dev/godmode_terrain.tres`. |
+| `tileset_path` | string | yes | `res://...` path to a `.tres` TileSet. Default: `res://scenes/arena/tilesets/hex_terrain.tres`. |
 | `waves` | array | yes | Sequence of waves. Wave 0 = initial state. Last wave's `turns_to_next` must be 0. |
 
 `v1` files (with root-level `floor` / `objects` / `spawners` and no `waves[]`)
@@ -42,7 +42,7 @@ The editor always writes `v2`. Hand-edited `v1` files keep working.
 ```
 
 - `coord` — `[col, row]` in TileMapLayer cell space. `Vector2i` serialized as 2-element array.
-- `source_id` — TileSet source index. For `godmode_terrain.tres`: only `0`. For `hex_terrain.tres`: also `0`.
+- `source_id` — TileSet source index. For `hex_terrain.tres`: `0` (godmode_atlas: Katya's grass tile, the default) or `1` (hex_atlas placeholder palette: grass/wall/swamp/acid/fountain). It's the only tileset shipped post-032.
 - `atlas_coord` — `[ax, ay]` within the TileSetAtlasSource. Picks which tile graphic.
 
 ## `objects[]` entry (per wave)
@@ -80,7 +80,7 @@ If `kind == "enemy"` and `ref` is unknown, the spawner is skipped at load time.
 {
   "name": "Tutorial Waves",
   "version": 2,
-  "tileset_path": "res://scenes/dev/godmode_terrain.tres",
+  "tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
   "waves": [
     {
       "index": 0,
