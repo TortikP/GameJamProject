@@ -1,0 +1,59 @@
+{
+  "id": "ball_throw",
+  "name": "ball_throw_name",
+  "tooltip": "ball_throw_tooltip",
+  "desc": "ball_throw_desc",
+  "icon": "icons/skills/ball_throw.png",
+  "cooldown": 1,
+  "behaviour_tags": [
+    "ranged",
+    "damage",
+    "debuff"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "heavy_ranged_damage",
+      "sound_start": "heavy_ranged_damage/heavy_ranged_damage_start.wav",
+      "collision_effect": "heavy_ranged_damage/heavy_ranged_damage_collision.prefab",
+      "sound_end": "heavy_ranged_damage/heavy_ranged_damage_end.wav",
+      "animation": "heavy_ranged_damage/heavy_ranged_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 13
+        }
+      ]
+    },
+    {
+      "id": "apply_stun_single",
+      "sound_start": "apply_stun_single/apply_stun_single_start.wav",
+      "collision_effect": "apply_stun_single/apply_stun_single_collision.prefab",
+      "sound_end": "apply_stun_single/apply_stun_single_end.wav",
+      "animation": "apply_stun_single/apply_stun_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "status_id": "stunned(3)"
+        }
+      ]
+    }
+  ]
+}
