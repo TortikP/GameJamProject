@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=19 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -15,6 +15,9 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/hotkey_overlay.gd" id="13_hk"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/tool_panel.gd" id="14_tp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/paint_preview.gd" id="15_pp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="16_wt"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/wave_diff_overlay.gd" id="18_wdo"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -48,6 +51,9 @@ zoom = Vector2(0.5, 0.5)
 [node name="HexGrid" parent="." instance=ExtResource("2_hexgrid")]
 position = Vector2(640, 360)
 
+[node name="WaveDiffOverlay" type="Node2D" parent="HexGrid"]
+script = ExtResource("18_wdo")
+
 [node name="ObjectsOverlay" type="Node2D" parent="HexGrid"]
 script = ExtResource("4_oo")
 
@@ -64,6 +70,45 @@ script = ExtResource("7_dh")
 script = ExtResource("15_pp")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="WavePanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("17_wp")
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -376.0
+offset_bottom = 140.0
+grow_horizontal = 2
+
+[node name="VBox" type="VBoxContainer" parent="HUD/WavePanel"]
+
+[node name="HeaderRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]
+
+[node name="StatusLabel" type="Label" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Wave 1 of 1"
+custom_minimum_size = Vector2(220, 32)
+vertical_alignment = 1
+
+[node name="HeaderSpacer" type="Control" parent="HUD/WavePanel/VBox/HeaderRow"]
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="CopyBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Copy from prev"
+custom_minimum_size = Vector2(140, 32)
+
+[node name="SpecialBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Make Special"
+custom_minimum_size = Vector2(120, 32)
+
+[node name="DeleteBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Delete wave"
+custom_minimum_size = Vector2(120, 32)
+
+[node name="TimelineRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]
+
+[node name="Timeline" parent="HUD/WavePanel/VBox/TimelineRow" instance=ExtResource("16_wt")]
 
 [node name="LevelMetaPanel" type="PanelContainer" parent="HUD"]
 script = ExtResource("12_mp")

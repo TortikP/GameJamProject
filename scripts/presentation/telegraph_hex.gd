@@ -32,6 +32,16 @@ var damage: int = 0:
 		damage = value
 		queue_redraw()
 
+## 029 / req-6: secondary-hex mode. When true, draws only the outline (no
+## fill, no damage label) so the AoE shape of an incoming spell reads as
+## "this whole zone will be hit" without competing visually with the primary
+## telegraph hex (which carries the damage number). Set by godmode_controller
+## when an intent's area extends beyond its target_coord.
+var outline_only: bool = false:
+	set(value):
+		outline_only = value
+		queue_redraw()
+
 
 func _ready() -> void:
 	EventBus.ui_theme_reloaded.connect(queue_redraw)
@@ -52,17 +62,24 @@ func _draw() -> void:
 	var tile_size: Vector2 = _resolve_tile_size()
 	var pts: PackedVector2Array = HexGeometry.flat_top_polygon(tile_size)
 	# Hex polygon (matches grid hex orientation: flat-top, vertex on right)
-	draw_colored_polygon(pts, _get_fill_color())
-	# Outline
+	if not outline_only:
+		draw_colored_polygon(pts, _get_fill_color())
+	# Outline — secondary hexes use a thinner, dimmer line so the AoE shape
+	# reads without overwhelming the primary telegraph hex sitting on top of
+	# the damage source.
 	var frame_col: Color = _get_frame_color()
+	var line_w: float = 2.0
+	if outline_only:
+		frame_col = Color(frame_col.r, frame_col.g, frame_col.b, 0.55)
+		line_w = 1.5
 	for i in 6:
 		var a: Vector2 = pts[i]
 		var b: Vector2 = pts[(i + 1) % 6]
-		draw_line(a, b, frame_col, 2.0, true)
+		draw_line(a, b, frame_col, line_w, true)
 	# Damage label — pushed above the hex so it isn't hidden by an actor sprite
 	# standing on the threatened tile. Crisp dark outline (visibility doctrine
 	# in CLAUDE.md — incoming-damage telegraphs are Pillar 1 critical UI).
-	if damage <= 0:
+	if outline_only or damage <= 0:
 		return
 	var font: Font = ThemeDB.fallback_font
 	var font_size: int = UiTheme.BAR_FONT_SIZE_OVERHEAD

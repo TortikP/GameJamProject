@@ -143,6 +143,25 @@ func heal(amount: int) -> void:
 	GameLogger.info("Actor", "%s +%d hp (%d/%d)" % [actor_id, healed, hp, max_hp])
 
 
+## Instant death with a logged reason (e.g. "crushed" by no-target push-out
+## from 024-wave-editor). Idempotent on already-dead actors. Bypasses
+## take_damage hooks (no damage_dealt emit, no per-amount HP step) — this is
+## a discrete out-of-combat death event. Fires `died` and `EventBus.actor_died`
+## exactly once.
+func kill_with_reason(reason: String) -> void:
+	if _dead:
+		return
+	hp = 0
+	_dead = true
+	GameLogger.info("Actor", "%s killed (%s)" % [actor_id, reason])
+	# Reuse `damaged` so HealthBar repaints to 0. Amount = current full bar
+	# (semantic "state changed, hp now 0") — listeners using amount<=0 for
+	# heal won't misinterpret because hp_left is also 0.
+	damaged.emit(actor_id, max_hp, hp)
+	died.emit(actor_id)
+	EventBus.actor_died.emit(actor_id)
+
+
 func is_alive() -> bool:
 	return not _dead
 

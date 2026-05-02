@@ -220,6 +220,10 @@ tick_animation_duration=0.2
 
 **Правило для всей команды:** хардкоженных таймеров в коде не должно быть. PR с `await get_tree().create_timer(0.5)` без обёртки `GameSpeed.wait(...)` — отклоняется на ревью.
 
+### `RunScore` (`scripts/infrastructure/run_score.gd`) — добавлен в 024
+
+Per-run счётчик очков. `RunScore.add(delta)` → `total += delta` + emit `score_changed(total, delta)`. Подписан на `EventBus.run_started` для авто-сброса при новом ране (godmode emits run_started в `_ready`). Используется WaveController'ом (auto-clear → `add(turns_to_next - turns_into_wave)`) и HUD виджетом `score_corner.tscn`.
+
 ### `EventBus` (`scripts/infrastructure/event_bus.gd`)
 
 Глобальный сигнал-хаб. Все системы публикуют и слушают через него.
@@ -238,6 +242,14 @@ signal wave_spawned(wave_index: int)
 signal portal_opened
 signal upgrade_offered(options: Array)
 signal upgrade_chosen(modifier_id)
+
+# Waves (024) — runtime wave lifecycle, separate from legacy wave_spawned.
+# WaveController emits these; HUD wave_timeline + score_corner + 025
+# level_dialogues subscribe.
+signal wave_started(index: int, is_special: bool)
+signal wave_cleared(index: int, unused_turns: int)
+signal level_completed(total_score: int)
+signal actor_spawned(actor_id: StringName)
 
 # Run-цикл
 signal run_started

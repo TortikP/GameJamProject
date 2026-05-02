@@ -111,7 +111,7 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	# (primary == caster, i.e. SelfTarget) AND (b) the area is a real zone that
 	# can contain others (not SelfArea). SelfArea returns exactly [caster] —
 	# stripping the caster there would empty the victim list and break self-
-	# heals / self-buffs (spec 033). Non-self targets (actor, hex) can catch
+	# heals / self-buffs (spec 031 phase 6). Non-self targets (actor, hex) can catch
 	# the caster in their zone — intentional friendly-fire design space.
 	var exclude_caster: bool = (
 		primary is Actor

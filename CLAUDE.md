@@ -118,6 +118,7 @@ Append yourself when you start a feature.
 | 009-ui-kit (spec; Phase 4 blocked on 007 + 008) | Andrey |
 | 018-tile-objects (data class + registry, HexGrid wiring, EventBus signals) | Sergey (spec) → Andrey (impl) |
 | 021-skill-system-v2 (loc keys, mood, level scaling, sound/animation, entity→actor) | Egor |
+| 024-wave-editor (LevelData waves, WaveController, WaveTimeline, RunScore, push-out) | Andrey |
 
 ## Git workflow
 

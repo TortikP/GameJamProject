@@ -19,6 +19,7 @@ extends Node
 ##   godmode_clear        → remove all manekins (no tick)
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
@@ -44,6 +45,15 @@ var _world_processing: bool = false  # true while AI takes its turn — locks pl
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
 var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+# 029 / req-6: track which enemy is currently under cursor (or &"") so we can
+# show/hide the cast-intent tooltip with no flicker on idle frames.
+var _hover_intent_actor_id: StringName = &""
+# 024-wave-editor: present iff a queued LevelData is loaded; null in
+# procedural godmode sandbox.
+var _wave_controller: WaveController = null
+# 024: held only between _try_load_queued_level success and the end of
+# _ready, where WaveController is instantiated and start_level called.
+var _queued_level: LevelData = null
 
 # 026: multi-step cast collection state. Phase-1 (per-ability target picker)
 # lives here; phase-2 is Skill.cast(player, ctxs).
@@ -155,6 +165,11 @@ func _ready() -> void:
 	# Default selection = player (deferred so player node is fully initialised)
 	_select_deferred.call_deferred()
 
+	# 024: announce the start of a fresh run so RunScore resets to 0 and
+	# any other run-scoped state listeners get a clean slate. Emitted
+	# whether or not we're loading a queued level — godmode procedural
+	# sandbox is also "a new run".
+	EventBus.run_started.emit()
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_on_world_turn_ended)
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
@@ -165,6 +180,27 @@ func _ready() -> void:
 	var psp: Node = _get_player_status_panel()
 	if psp != null and psp.has_method("bind_player"):
 		psp.bind_player(player)
+
+	# 024-wave-editor: spin up WaveController iff we loaded a custom level.
+	# Procedural godmode sandbox (no queued level) leaves it null — runtime
+	# stays single-wave-implicit and behaves as before.
+	if _queued_level != null:
+		_wave_controller = WaveController.new()
+		_wave_controller.name = "WaveController"
+		_wave_controller.grid = grid
+		_wave_controller.registry = registry
+		add_child(_wave_controller)
+		# Bind the LevelData to the HUD WaveTimeline FIRST — its _do_rebuild
+		# runs deferred and must populate _anchor_positions before
+		# wave_started fires (the runtime cursor reads _anchor_positions).
+		# call_deferred preserves call order via FIFO, so bind queued first
+		# means rebuild runs first.
+		var wt: Node = get_node_or_null("../HUD/WaveTimeline")
+		if wt != null and wt.has_method("bind_level"):
+			wt.bind_level.call_deferred(_queued_level)
+		# Then start the wave controller — its first emit of wave_started
+		# is now safe because the timeline already has its anchors.
+		_wave_controller.start_level.call_deferred(_queued_level)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────
@@ -179,6 +215,9 @@ func _paint_grid() -> void:
 ## 020 — paint + spawn from a queued LevelData. Returns true on success.
 ## Failure modes (level can't load, no player spawner) → return false and let
 ## the caller fall back to the procedural _paint_grid + _place_player path.
+##
+## 024 — on success, also caches the loaded LevelData in _queued_level so
+## the post-init WaveController setup can pick it up.
 func _try_load_queued_level() -> bool:
 	var queued_path: String = ActiveLevel.consume()
 	var level: LevelData = LevelSerializer.load_from(queued_path)
@@ -203,7 +242,7 @@ func _try_load_queued_level() -> bool:
 	var actors_node: Node = grid.get_node_or_null("Actors")
 	if actors_node == null:
 		actors_node = grid
-	var spawned_player: Actor = LevelLoader.apply_to(grid, registry, level, actors_node)
+	var spawned_player: Actor = LevelLoader.apply_to(grid, registry, level, actors_node, true)
 	if spawned_player != null:
 		player = spawned_player
 	else:
@@ -213,6 +252,11 @@ func _try_load_queued_level() -> bool:
 		# by hand may not have one.
 		GameLogger.warn("Godmode", "Loaded level has no player spawner — placing default")
 		_place_player()
+	# 024: track player in the grid's id→actor lookup so push-out chain
+	# logic (HexGrid.displace_actor recursive case) can resolve occupants
+	# without scene-tree walks.
+	if player != null:
+		grid.registry_lookup[player.actor_id] = player
 	# Render tile-object visuals. LevelLoader writes object_id to HexTile
 	# (logic / pathfinder / resolver), but doesn't paint sprites — that's the
 	# editor's job in editor scenes, godmode's here.
@@ -233,6 +277,7 @@ func _try_load_queued_level() -> bool:
 	if camera != null and camera.has_method("set_follow_target") and player != null:
 		camera.set_follow_target(player)
 	GameLogger.info("Godmode", "Loaded custom level '%s'" % level.name)
+	_queued_level = level
 	return true
 
 
@@ -268,7 +313,9 @@ func _seed_slots() -> void:
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
 		_slot_bar_node.set_slot(2, kb.clone_for_owner())
-	_slot_bar_node.set_active(0)
+	# 029 / req-1: do NOT pre-select an ability. Player must consciously pick
+	# Q/W/E/R (or click a slot) before LMB casts. Avoids accidental opening cast.
+	_slot_bar_node.set_active(-1)
 	# Sync player ability IDs for inspector/overlay display
 	var ids: Array[StringName] = []
 	for i in 4:
@@ -285,6 +332,13 @@ func _seed_slots() -> void:
 
 func _emit_initial_turn() -> void:
 	EventBus.world_turn_ended.emit(TurnManager.current())
+
+
+# 024 / T53e — proxy for WaveController.is_transitioning so input gates
+# stay terse. Returns false when no wave controller is mounted (procedural
+# sandbox).
+func _is_wave_transitioning() -> bool:
+	return _wave_controller != null and _wave_controller.is_transitioning()
 
 
 func _select_deferred() -> void:
@@ -424,6 +478,107 @@ func _update_castability() -> void:
 				anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
 			zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
 		_overlay.show_zone_preview(zone_hexes)
+
+	# 029 / bonus-2: hover-path preview. Show the route the player would take
+	# IFF the cursor is over a reachable hex (within effective_speed) AND
+	# isn't blocked. Skipped during cast FSM and stun — neither is "I'm
+	# considering moving here" mode. Path is recomputed via find_path_around
+	# with live actor blocks so it bends around enemies — same set the move
+	# zone was computed against, so reachability and path agree.
+	_refresh_hover_path(coord)
+
+	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
+	# Only fires for enemies that have a non-null cast_intent — moving-only
+	# turns or idle holds get no tooltip (nothing to telegraph). The hex
+	# already shows the intent visually; tooltip adds the "what is this
+	# spell exactly" detail.
+	_refresh_intent_tooltip(target_id)
+
+
+## 029 / bonus-2: hover-path computation + push to overlay. Cheap when no
+## change (overlay early-returns on identical array) so calling per frame is OK.
+func _refresh_hover_path(hover_coord: Vector2i) -> void:
+	if _overlay == null or not _overlay.has_method("set_hover_path"):
+		return
+	if player == null or grid == null:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Skip during cast FSM (player is targeting, not considering movement) and
+	# during AI turns / stun.
+	if _cast_in_progress or _world_processing or player.is_stunned():
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	var from: Vector2i = grid.get_coord(player.actor_id)
+	if from == Vector2i(-1, -1) or hover_coord == Vector2i(-1, -1) or hover_coord == from:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	if not grid.is_walkable(hover_coord) or grid.get_actor_at(hover_coord) != &"":
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Build live actor-block list — same convention as _resolve_move_intent
+	# and the move-zone occupied list, so paths match the boundary visually.
+	var blocked: Array = []
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var a: Actor = actor_v
+		if a == player or not a.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(a.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	var path: Array = grid.find_path_around(from, hover_coord, blocked)
+	if path.size() < 2:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Cap to effective_speed — only show preview if it's actually reachable
+	# THIS turn (path.size() - 1 = number of steps).
+	if path.size() - 1 > player.effective_speed():
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Re-type Array → Array[Vector2i] for the typed setter.
+	var typed: Array[Vector2i] = []
+	for c in path:
+		typed.append(c)
+	_overlay.set_hover_path(typed)
+
+
+## 029 / req-6: hover-on-enemy → cast-intent tooltip dispatch. State-tracked so
+## moving the cursor between hexes doesn't spam show_tooltip every frame —
+## tooltip only re-renders when the hovered actor id actually changes.
+func _refresh_intent_tooltip(hovered_id: StringName) -> void:
+	# Resolve to "do we have an enemy with a planned cast under cursor?"
+	var new_id: StringName = &""
+	if hovered_id != &"" and registry != null:
+		var hov: Actor = registry.get_actor(hovered_id)
+		if hov != null and hov.team == &"enemy" and hov.is_alive() and hov.cast_intent != null:
+			new_id = hovered_id
+	if new_id == _hover_intent_actor_id:
+		return  # no transition — current tooltip state is correct
+	_hover_intent_actor_id = new_id
+	var tooltip: Node = get_node_or_null("../HUD/TooltipPanel")
+	if tooltip == null:
+		return
+	if new_id == &"":
+		if tooltip.has_method("hide_tooltip"):
+			tooltip.hide_tooltip()
+		return
+	# Render: skill id headline + formatted body. SkillFormatter is the same
+	# helper PSP/inspector use — single source of truth, so a buff/CD note
+	# changes everywhere at once.
+	var actor: Actor = registry.get_actor(new_id)
+	var ci: CastIntent = actor.cast_intent as CastIntent
+	if ci == null:
+		return
+	var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
+	if skill == null:
+		return
+	var title: String = "%s → %s" % [String(actor.actor_id), String(skill.id)]
+	var body: String = SkillFormatter.format_skill(skill)
+	if tooltip.has_method("show_tooltip"):
+		# anchor=null → tooltip places itself near the mouse pointer (see
+		# tooltip_panel.gd::_place_near).
+		tooltip.show_tooltip(null, title, body)
 
 
 # 031 phase 13: which ability should overlays preview "right now"?
@@ -580,14 +735,14 @@ func _handle_cast_lmb() -> void:
 # ── Actions ──────────────────────────────────────────────────────────────────
 
 func _wait_turn() -> void:
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 	GameLogger.info("Godmode", "player skipped turn")
 	TurnManager.advance()
 
 
 func _request_move() -> void:
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 	if player.is_stunned():
 		# 027: pill icon over player explains why; no log spam.
@@ -676,7 +831,7 @@ func _cast_slot(slot_index: int) -> void:
 	if skill.abilities.is_empty():
 		GameLogger.warn("Godmode", "slot %d skill '%s' has no abilities" % [slot_index, skill.id])
 		return
-	if grid._moving or _world_processing:
+	if grid._moving or _world_processing or _is_wave_transitioning():
 		return
 
 	# Pre-check using mouse position. Cheap and matches 021 grey-out semantics.
@@ -739,16 +894,16 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _cast_ctxs
 	_reset_cast_state()
 	var did_cast: bool = skill.cast(player, ctxs)
-	# 031 phase 11: deselect the active slot after a successful cast so the
-	# next click is a plain move, not a re-cast attempt on the (now greyed)
-	# cooled-down slot. Failed casts leave the slot active so the player can
-	# adjust target without re-pressing the hotkey.
-	# 031 phase 12: must run BEFORE _refresh_overlay — otherwise _refresh_overlay
+	# 029 req-2 / 031 phase 11: deselect ability after a successful cast.
+	# Forces the player to consciously re-arm before next attack — no
+	# held-trigger spam. Using activate(active) (toggle off) emits
+	# slot_activated(-1), which also clears the PSP spell description
+	# (set_active(-1) alone wouldn't trigger that signal).
+	# 031 phase 12: must run BEFORE _refresh_overlay — otherwise refresh
 	# reads the still-active slot and re-paints its range, leaving stale
-	# overlay paint visible until the next refresh trigger (which doesn't
-	# fire until end of enemy turn).
-	if did_cast and _slot_bar_node != null:
-		_slot_bar_node.set_active(-1)
+	# overlay paint until the next refresh trigger (end of enemy turn).
+	if did_cast and _slot_bar_node != null and _slot_bar_node.get_active() != -1:
+		_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
 	_refresh_overlay()
 	if did_cast:
@@ -885,6 +1040,10 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
 	create_tween().tween_property(actor, "position", pos, duration)
+	# 029 / req-7: barely-visible side-to-side sway on the actor's sprite
+	# during the step. Helper finds the conventional "Body" child sprite —
+	# leaves the actor's own position tween (above) and overhead UI alone.
+	ActorMotion.apply_step_sway(actor, duration)
 
 
 # ── AI ───────────────────────────────────────────────────────────────────────
@@ -903,6 +1062,7 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
 const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
+const ActorMotion = preload("res://scripts/infrastructure/actor_motion.gd")
 
 var _telegraph_hexes: Dictionary = {}  # Vector2i coord -> TelegraphHex node
 var _intent_arrows: Dictionary = {}    # StringName actor_id -> IntentArrow node
@@ -973,10 +1133,10 @@ func _run_enemy_turn() -> void:
 
 	# Phase 1: RESOLVE — execute everyone's planned move, then planned cast.
 	# Movement first so casts happen from the post-move position.
+	# 029 / B-001: defensive is_instance_valid — same reasoning as Phase 2,
+	# an enemy can die from another enemy's cast (AoE friendly fire) earlier
+	# in this loop's iteration.
 	for actor in enemies:
-		# 032: another enemy's cast/DoT in this same Phase-1 may have killed
-		# this one; queue_free + await turned the ref into a freed instance.
-		# Must check BEFORE the `is` operator (which errors on freed refs).
 		if not is_instance_valid(actor):
 			continue
 		if not (actor is Actor):
@@ -985,16 +1145,19 @@ func _run_enemy_turn() -> void:
 		if not enemy.is_alive() or registry.get_actor(enemy.actor_id) == null:
 			continue
 		await _resolve_move_intent(enemy)
-		if not enemy.is_alive():
+		if not is_instance_valid(enemy) or not enemy.is_alive():
 			continue
 		await _resolve_cast_intent(enemy)
 
 	# Phase 2: PLAN — pick next move and next cast (writes cast_intent /
 	# move_intent_coord on each enemy). Visuals rebuilt at the end of this loop.
+	# 029 / B-001: with multi-step movement (req-5), an enemy can step through
+	# a damage-zone tile in Phase 1 and die mid-resolve. Its node is queue_freed
+	# but the local `enemies` array still holds the stale ref. `actor is Actor`
+	# on a freed instance throws "Left operand of 'is' is a previously freed
+	# instance". Filter via is_instance_valid BEFORE any other check.
 	var ctx: Dictionary = _world_ctx()
 	for actor in enemies:
-		# 032: same staleness as Phase 1 — by here a full round of casts may
-		# have killed entries; freed refs reach this loop too.
 		if not is_instance_valid(actor):
 			continue
 		if not (actor is Actor):
@@ -1022,8 +1185,24 @@ func _resolve_move_intent(enemy: Actor) -> void:
 	if grid.get_actor_at(intent) != &"":
 		GameLogger.info("AI", "%s: move blocked at %s" % [enemy.actor_id, intent])
 		return
-	# move_actor handles validation; await ensures sequential animation
-	await grid.move_actor(enemy.actor_id, intent)
+	# 029 / req-5: re-pathfind around the CURRENT actor positions and walk the
+	# whole route (not just one step). Plan was made earlier this turn — other
+	# enemies have shifted since, so we recompute. move_actor_along revalidates
+	# each step's occupancy and breaks early on conflict.
+	var blocked: Array = []
+	for other_v in registry.all():
+		if not (other_v is Actor):
+			continue
+		var other: Actor = other_v
+		if other == enemy or not other.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(other.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	var path: Array = grid.find_path_around(enemy_coord, intent, blocked)
+	if path.size() < 2:
+		return
+	await grid.move_actor_along(enemy.actor_id, path)
 
 
 ## Resolves a previously-planned cast on `enemy`. Reads enemy.cast_intent (set
@@ -1128,7 +1307,14 @@ func _refresh_telegraphs() -> void:
 
 	# Aggregate per-coord telegraph state across all enemies' intents.
 	# Each hex tracks (tag, damage). Damage only sums when both intents are damage-class.
+	# 029 / req-6: also collect per-intent area-shape hexes so we can paint
+	# secondary outlines for AoE skills (the affected tiles around the
+	# primary target). entry: {tag, area_hexes: Array[Vector2i]} per coord.
 	var by_coord: Dictionary = {}   # Vector2i -> {tag: StringName, damage: int}
+	# Per-intent area-shape collection. Built separately because area can extend
+	# beyond the primary target_coord and we want to draw secondary outlines on
+	# coords NOT already in by_coord (= primary takes priority over secondary).
+	var area_coords: Dictionary = {}   # Vector2i -> StringName tag (first one wins)
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
@@ -1166,6 +1352,25 @@ func _refresh_telegraphs() -> void:
 							prev.damage += dmg
 					else:
 						by_coord[coord] = {"tag": tag, "damage": dmg}
+					# 029 / req-6: collect AoE-affected hexes for this intent.
+					# Skill.area lives on each Ability; iterate them and ask for
+					# the affected tiles given caster + target. Area can be null
+					# (single-target spells); skip those — primary hex above is
+					# already enough.
+					if skill != null:
+						var caster_coord: Vector2i = grid.get_coord(enemy.actor_id)
+						for ab in skill.abilities:
+							var ability := ab as Ability
+							if ability == null or ability.area == null:
+								continue
+							var anchor: Vector2i = coord
+							if ability.target != null:
+								anchor = ability.target.preview_anchor_coord(caster_coord, coord)
+							var affected: Array[Vector2i] = ability.area.get_affected_hexes(
+									caster_coord, anchor, grid)
+							for ac in affected:
+								if not area_coords.has(ac):
+									area_coords[ac] = tag
 
 		# Movement arrow — one per enemy with a planned move.
 		var mv: Vector2i = enemy.move_intent_coord
@@ -1190,6 +1395,20 @@ func _refresh_telegraphs() -> void:
 		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
+
+	# 029 / req-6: secondary AoE-shape hexes — outline-only so they read as
+	# "the spell will sweep through here" without competing with the primary
+	# damage-bearing hex. Skip coords already painted as primary.
+	for area_coord in area_coords.keys():
+		if _telegraph_hexes.has(area_coord):
+			continue
+		var sec: Node2D = TELEGRAPH_HEX_SCRIPT.new()
+		sec.position = grid.tile_map_layer.map_to_local(area_coord)
+		sec.z_index = 3
+		sec.set("semantic_tag", area_coords[area_coord])
+		sec.set("outline_only", true)
+		grid.add_child(sec)
+		_telegraph_hexes[area_coord] = sec
 
 
 func _clear_all_telegraphs() -> void:
