@@ -2,14 +2,14 @@
   "id": "monkey",
   "name": "monkey_name",
   "desc": "monkey_desc",
-  "sprite": "assets/sprites/enemies/enemy_monkey.png",
-  "max_hp": 20,
+  "sprite": "assets/sprites/enemies/monkey.png",
+  "max_hp": 25,
   "team": "enemy",
-  "speed": 5,
+  "speed": 4,
   "skills": [
-    "banana_throw",
-    "screech"
+    "monkey_time",
+    "monkey_business"
   ],
-  "behavior_id": "default_ranged",
-  "fallback_skill_id": "banana_throw"
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "monkey_business"
 }
