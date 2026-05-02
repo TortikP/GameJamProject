@@ -220,10 +220,6 @@ tick_animation_duration=0.2
 
 **Правило для всей команды:** хардкоженных таймеров в коде не должно быть. PR с `await get_tree().create_timer(0.5)` без обёртки `GameSpeed.wait(...)` — отклоняется на ревью.
 
-### `RunScore` (`scripts/infrastructure/run_score.gd`) — добавлен в 024
-
-Per-run счётчик очков. `RunScore.add(delta)` → `total += delta` + emit `score_changed(total, delta)`. Подписан на `EventBus.run_started` для авто-сброса при новом ране (godmode emits run_started в `_ready`). Используется WaveController'ом (auto-clear → `add(turns_to_next - turns_into_wave)`) и HUD виджетом `score_corner.tscn`.
-
 ### `EventBus` (`scripts/infrastructure/event_bus.gd`)
 
 Глобальный сигнал-хаб. Все системы публикуют и слушают через него.
@@ -242,14 +238,6 @@ signal wave_spawned(wave_index: int)
 signal portal_opened
 signal upgrade_offered(options: Array)
 signal upgrade_chosen(modifier_id)
-
-# Waves (024) — runtime wave lifecycle, separate from legacy wave_spawned.
-# WaveController emits these; HUD wave_timeline + score_corner + 025
-# level_dialogues subscribe.
-signal wave_started(index: int, is_special: bool)
-signal wave_cleared(index: int, unused_turns: int)
-signal level_completed(total_score: int)
-signal actor_spawned(actor_id: StringName)
 
 # Run-цикл
 signal run_started
@@ -726,8 +714,6 @@ JSON-формат:
 **Не работайте после полуночи.** Серьёзно. Завтра тема + 72 часа интенсива. Силы нужны.
 
 **В работе сейчас:** `020-map-editor` (data-driven mouse-driven editor для карт: пол/объекты/спавнеры → `data/maps/*.json`, Playtest сразу в бой). Ветка `andrey/020-map-editor-impl`, spec/plan/tasks в `specs/020-map-editor/`. После мержа Стасян может рисовать карты мышью или править JSON руками по `data/maps/_schema.md`. **Смерженное в staging:** `018-tile-objects` (data-driven статика тайлов: камни/лава/фонтаны/бочки), `019-tile-object-resolver` (runtime триггеры этих объектов).
-
-**032-controller-refactor (in-PR, ветка `andrey/controller-refactor`):** `godmode_controller.gd` распилен с 1432 строк до 225 — 8 sibling-нод под GodmodeController в `scripts/presentation/godmode/`: `godmode_setup.gd` (288), `ai_driver.gd` (224), `godmode_input.gd` (210), `telegraph_renderer.gd` (194), `hover_dispatcher.gd` (193), `cast_fsm.gd` (169), `manekin_spawner.gd` (77), `step_animator.gd` (24). Контроллер держит селекшн-фасад (`select`/`inspect_hex`/`bind_hex_at`/`refresh_overlay`/`deselect_to_player`), SlotBar signal pump, ability picker, `_resolve_modules` и `_is_wave_transitioning` proxy. Pattern: модули читают shared state через `_ctrl.X` (controller as facade), нет EventBus-шума. Параллельно — tileset consolidation: `scenes/dev/godmode_terrain.tres` удалён, `scenes/arena/tilesets/hex_terrain.tres` (`tile_shape = HEXAGON`, 128×80) — единственный TileSet в проекте (sample maps + level_data + map_editor + floor_palette перенаправлены). B-001 верифицирован закрытым (гарды `is_instance_valid` в обеих фазах AI после переноса). B-003 (move-overlay не отрисовывается) — теоретически закрыт ещё в 029 геометрической edge-detection, тайлсет-консолидация снимает остаточный риск. **Pending Andrey:** ручная смок-проверка в Godot editor по T29 (procedural godmode + sample.json Playtest + sample_waves.json Playtest). **B-002** (`UiTheme.apply_label_kind` static-call warning) — out-of-scope, отдельным PR.
 
 ---
 

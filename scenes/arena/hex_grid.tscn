@@ -9,12 +9,10 @@ tile_map_layer = NodePath("Terrain")
 vfx_overlay = NodePath("VFXOverlay")
 
 [node name="Terrain" type="TileMapLayer" parent="."]
-texture_filter = 2
 y_sort_enabled = true
 tile_set = ExtResource("2_tileset")
 
 [node name="VFXOverlay" type="TileMapLayer" parent="."]
-texture_filter = 2
 y_sort_enabled = false
 tile_set = ExtResource("2_tileset")
 

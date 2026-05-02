@@ -12,11 +12,12 @@ extends Node2D
 ##
 ## Controllers set `mode` based on cast_mode + target validity. Default is IDLE.
 
-## Hex polygon is built from the live tileset's tile_size — see
-## scripts/infrastructure/hex_geometry.gd. No hex-radius constant here:
-## tile_size in the .tres is the single source of truth, this overlay
-## just inscribes a flat-top hex into that bbox at draw time.
-const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
+## Hex outer radius — must match the live terrain. Godmode arena and the
+## hex_grid_demo use 60. The original 33 came from the atlas's BG_R, which
+## is the texture-tile size, not the gameplay-hex size — the cursor was
+## visibly half-size against the rendered hex. All other overlays
+## (MoveRangeOverlay, TelegraphHex, CastRangeOverlay) already use 60.
+const HEX_RADIUS := 60.0
 
 enum Mode { IDLE, ACTION_VALID, ACTION_INVALID, INSPECT }
 
@@ -69,15 +70,14 @@ func _get_color_and_width() -> Array:
 
 
 func _draw() -> void:
-	if grid == null or grid.tile_map_layer == null or grid.tile_map_layer.tile_set == null:
-		return
 	var ret := _get_color_and_width()
 	var color: Color = ret[0]
 	var width: float = ret[1]
-	# Flat-top hex inscribed in the live tile bbox. Polygon adapts when
-	# tile_size in the .tres changes — no const sync needed.
-	var corners: PackedVector2Array = HexGeometry.flat_top_polygon(
-		Vector2(grid.tile_map_layer.tile_set.tile_size))
+	# Build hex corners in local coords (flat-top orientation matches grid).
+	var corners: PackedVector2Array = []
+	for i in 6:
+		var a: float = deg_to_rad(60.0 * i)
+		corners.append(Vector2(cos(a) * HEX_RADIUS, sin(a) * HEX_RADIUS))
 	if mode == Mode.INSPECT:
 		_draw_inspect_brackets(corners, color, width)
 	else:

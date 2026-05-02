@@ -70,23 +70,16 @@ func _build_scenario(data: Dictionary) -> BehaviorScenario:
 	scenario.fallback_skill_id = StringName(data.get("fallback_skill_id", ""))
 
 	var rules_raw: Variant = data.get("rules", [])
-	if typeof(rules_raw) != TYPE_ARRAY:
-		GameLogger.warn("BehaviorDatabase", "%s: 'rules' must be array — skipping scenario" % sid)
+	if typeof(rules_raw) != TYPE_ARRAY or (rules_raw as Array).is_empty():
+		GameLogger.warn("BehaviorDatabase", "%s: 'rules' must be non-empty array" % sid)
 		return null
-	# 027 / 034: empty rules array is legal — it means "this scenario only uses
-	# movement_policy, never attacks". Required for the feared scenario
-	# (027 AC-X8). Pre-034 the loader rejected empty arrays, which silently
-	# degraded feared to default_melee at runtime → feared enemies chased
-	# and attacked the source instead of fleeing.
 	for r_data in rules_raw:
 		var rule := _build_rule(r_data, sid)
 		if rule != null:
 			scenario.rules.append(rule)
 
-	# Only complain if the JSON declared rules but every one of them failed
-	# to parse. Empty intent (rules: []) is fine.
-	if scenario.rules.is_empty() and not (rules_raw as Array).is_empty():
-		GameLogger.warn("BehaviorDatabase", "%s: all rules failed to parse — skipping scenario" % sid)
+	if scenario.rules.is_empty():
+		GameLogger.warn("BehaviorDatabase", "%s: no valid rules — skipping scenario" % sid)
 		return null
 
 	scenario.movement_policy = _build_policy(data.get("movement_policy", {}), sid)
@@ -207,7 +200,6 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		"lowest_hp_ally":     return SelectorLowestHpAlly.new()
 		"densest_enemy_hex":  return SelectorDensestEnemyHex.new()
 		"random_enemy":       return SelectorRandomEnemy.new()
-		"specific_actor":     return SelectorSpecificActor.new()   # 027: feared/enraged
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown target_selector kind '%s'" % [scenario_id, kind])
 			return null
@@ -223,8 +215,6 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 		"kite_from_nearest_enemy":  return PolicyKiteFromNearestEnemy.new()
 		"hold_position":            return PolicyHoldPosition.new()
 		"follow_lowest_hp_ally":    return PolicyFollowLowestHpAlly.new()
-		"approach_specific_actor":  return PolicyApproachSpecificActor.new()   # 027: enraged
-		"kite_specific_actor":      return PolicyKiteSpecificActor.new()       # 027: feared
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()

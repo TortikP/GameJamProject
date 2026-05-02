@@ -22,23 +22,12 @@ extends Resource
 ##
 ## Modifier formula (007 AC-M5): final = (base + Σ adds) × Π muls
 ## Applied per-param, commutative, int → floor, float → as-is.
-##
-## 026 additions (026-skill-system-v3):
-##  - sound (021) renamed → sound_start (cast-start cue).
-##  - sound_end — new (cast-resolution cue).
-##  - collision_effect — new (VFX id at impact, distinct from `animation`
-##    which is the caster's pose/gesture).
-## All four presentation IDs (sound_start / sound_end / collision_effect /
-## animation) are stored as StringName, default &"". Dispatch (AudioDB / VFXDB)
-## lives in future features — 026 only fixes the data shape.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 @export var id: StringName = &""
-@export var sound_start:      StringName = &""    # 026 — was `sound` in 021
-@export var sound_end:        StringName = &""    # 026 — new
-@export var collision_effect: StringName = &""    # 026 — new (VFX at impact)
-@export var animation:        StringName = &""    # caster pose/gesture (021)
+@export var sound: StringName = &""        # 021: AudioDB lookup id (no dispatch yet)
+@export var animation: StringName = &""    # 021: animation id (no dispatch yet)
 @export var target: AbilityTarget
 @export var area: AbilityArea
 @export var effects: Array[AbilityEffect] = []
@@ -65,10 +54,7 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 ## KEEP IN SYNC with DamageEffect.apply + the cast lifecycle order.
 func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level: int = 0) -> int:
 	var total: int = 0
-	# 027: damage_amplifier sums strong/weak status modifiers (signed).
-	var bonus: int = 0
-	if caster != null:
-		bonus = caster.damage_bonus + caster.damage_amplifier()
+	var bonus: int = 0 if caster == null else caster.damage_bonus
 	for base_eff in effects:
 		if not base_eff is DamageEffect:
 			continue
@@ -107,17 +93,10 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
 		return false
 
-	# Caster is excluded from zone AoE only when (a) the ability is self-targeted
-	# (primary == caster, i.e. SelfTarget) AND (b) the area is a real zone that
-	# can contain others (not SelfArea). SelfArea returns exactly [caster] —
-	# stripping the caster there would empty the victim list and break self-
-	# heals / self-buffs (spec 031 phase 6). Non-self targets (actor, hex) can catch
-	# the caster in their zone — intentional friendly-fire design space.
-	var exclude_caster: bool = (
-		primary is Actor
-		and (primary as Actor) == caster
-		and not (eff_area is SelfArea)
-	)
+	# Caster is excluded from zone AoE only when the ability is self-targeted
+	# (primary == caster, i.e. SelfTarget). Non-self targets (actor, hex) can
+	# catch the caster in their zone — intentional friendly-fire design space.
+	var exclude_caster: bool = (primary is Actor and (primary as Actor) == caster)
 	if exclude_caster:
 		var filtered: Array = []
 		for v in victims:

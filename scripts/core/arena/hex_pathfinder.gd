@@ -7,6 +7,8 @@ class_name HexPathfinder
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 var _astar: AStar2D = AStar2D.new()
+var _grid_width: int = 0
+var _grid_height: int = 0
 var _object_registry: TileObjectRegistry = null   # 018 — optional; null = legacy behaviour
 
 
@@ -17,10 +19,9 @@ func set_object_registry(reg: TileObjectRegistry) -> void:
 	_object_registry = reg
 
 
-## grid_width / grid_height kept in the signature for backward compat with
-## HexGrid._build_pathfinder; ignored now that point IDs use a fixed
-## origin-centred encoding (see _coord_to_idx).
-func build(tiles: Dictionary, _grid_width: int, _grid_height: int) -> void:
+func build(tiles: Dictionary, grid_width: int, grid_height: int) -> void:
+	_grid_width = grid_width
+	_grid_height = grid_height
 	_astar.clear()
 
 	# Add points
@@ -74,20 +75,9 @@ func set_point_walkable(coord: Vector2i, walkable: bool) -> void:
 		_astar.set_point_disabled(idx, not walkable)
 
 
-## AStar2D requires non-negative point IDs. Editor + future maps use signed
-## coords (canvas centered at origin in 023), so we offset by HALF_LIMIT and
-## use a fixed span. Constants mirror HexGrid.MAP_HALF_LIMIT (kept in sync;
-## not imported to avoid cyclic class dependency).
-const COORD_HALF_LIMIT: int = 250
-const COORD_SPAN: int = 2 * COORD_HALF_LIMIT + 1  # 501
-
-
 func _coord_to_idx(coord: Vector2i) -> int:
-	return (coord.y + COORD_HALF_LIMIT) * COORD_SPAN + (coord.x + COORD_HALF_LIMIT)
+	return coord.y * _grid_width + coord.x
 
 
 func _idx_to_coord(idx: int) -> Vector2i:
-	return Vector2i(
-		(idx % COORD_SPAN) - COORD_HALF_LIMIT,
-		(idx / COORD_SPAN) - COORD_HALF_LIMIT,
-	)
+	return Vector2i(idx % _grid_width, idx / _grid_width)
