@@ -2,7 +2,7 @@
   "id": "manekin",
   "name": "manekin_name",
   "desc": "manekin_desc",
-  "sprite": "assets/sprites/enemies/enemy_manekin.png",
+  "sprite": "assets/sprites/enemies/manekin.png",
   "max_hp": 20,
   "team": "enemy",
   "speed": 1,
