@@ -321,6 +321,8 @@ func tick_statuses_with_ctx(ctx: Dictionary) -> void:
 			rt.on_turn_start(self, inst, ctx)
 		if _dead:
 			return   # DoT killed us; remaining statuses won't tick this turn
+		if inst.duration < 0:
+			continue   # 041: infinite-duration sentinel — never decrement, never expire
 		inst.duration -= 1
 		any_decremented = true
 		if inst.duration <= 0:

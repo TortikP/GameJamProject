@@ -256,6 +256,14 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 			# semicolon → split returns 1 element).
 			out.append_array(_make_status_effects(data[key], ability_id))
 			continue
+		if key == "entity_id":
+			# 041: status-style "id(duration)" encoding. arity=1, args=[duration].
+			# duration > 0 — N turns; duration = -1 — infinite. duration = 0 — invalid.
+			# Bare "id" without parens — invalid (legacy 026 format dropped).
+			var ce: CreateEffect = _make_create_effect(data[key], ability_id)
+			if ce != null:
+				out.append(ce)
+			continue
 		# Defensive type pattern (CLAUDE.md trap #6): Variant→Object→cast.
 		var script_v: Variant = EFFECT_KIND_BY_KEY[key]
 		var inst: Object = (script_v as GDScript).new()
@@ -263,8 +271,9 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 		# so DamageEffect picks up `damage`, MoveEffect picks up
 		# `move_type`+`move_distance`, etc. `duration` and `status_id` are
 		# skipped explicitly (status_id is handled above; duration is gone).
+		# 041: `entity_id` skipped too — handled by dedicated branch above.
 		for k in data.keys():
-			if k == "kind" or k == "status" or k == "status_id" or k == "duration":
+			if k == "kind" or k == "status" or k == "status_id" or k == "duration" or k == "entity_id":
 				continue
 			inst.set(k, data[k])
 		var eff := inst as AbilityEffect
@@ -317,6 +326,34 @@ func _build_one_status_effect(s: String, ability_id: String) -> StatusEffect:
 	eff.status_id = id
 	eff.args = args
 	return eff
+
+
+# 041: parse `"id(duration)"` into a CreateEffect. Same grammar as status,
+# but arity=1 strictly, args=[duration]. duration > 0 — N turns; duration = -1 —
+# infinite (Actor.tick_statuses_with_ctx skips decrement when duration < 0).
+# duration = 0 invalid. Bare "id" without parens — invalid (no shim from 026).
+# Returns null on any malformed input; caller continues, skill loads without
+# this create-effect.
+func _make_create_effect(value: Variant, ability_id: String) -> CreateEffect:
+	if not (value is String):
+		GameLogger.warn("AbilityDatabase", "%s: entity_id must be string, got %s" % [ability_id, type_string(typeof(value))])
+		return null
+	var parsed: Dictionary = _parse_status_string(value as String)
+	if parsed.is_empty():
+		GameLogger.warn("AbilityDatabase", "%s: malformed entity_id '%s' (expected 'id(duration)')" % [ability_id, value])
+		return null
+	var args: Array[int] = parsed["args"]
+	if args.size() != 1:
+		GameLogger.warn("AbilityDatabase", "%s: entity_id arity mismatch — expected 1 (duration), got %d" % [ability_id, args.size()])
+		return null
+	var dur: int = args[0]
+	if dur == 0:
+		GameLogger.warn("AbilityDatabase", "%s: entity_id duration=0 invalid — skipping" % ability_id)
+		return null
+	var ce := CreateEffect.new()
+	ce.entity_id = parsed["id"]
+	ce.duration = dur
+	return ce
 
 
 # Strict parser for the inline encoding. Returns {} on any malformed input.

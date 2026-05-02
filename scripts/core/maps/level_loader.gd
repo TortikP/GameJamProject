@@ -129,6 +129,12 @@ static func _enemy_data_exists(enemy_id: StringName) -> bool:
 	return FileAccess.file_exists(ENEMIES_DIR + str(enemy_id) + ".json")
 
 
+## 041: public alias on _enemy_data_exists. CreateEffect uses this to discriminate
+## actor ids vs tile-object ids without a duplicate FileAccess implementation.
+static func enemy_data_exists(enemy_id: StringName) -> bool:
+	return _enemy_data_exists(enemy_id)
+
+
 static func _spawn_player(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i) -> Actor:
 	# Prefer a player Actor that's already in the scene tree (godmode.tscn

@@ -132,6 +132,9 @@ func run() -> void:
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_ctrl.ai._on_world_turn_ended)
 	EventBus.actor_died.connect(_ctrl._on_actor_died_for_selection)
+	# 041 follow-up: generic dead-actor cleanup (frees node + clears grid +
+	# unregisters). Replaces ManekinSpawner's per-spawn died.connect path.
+	EventBus.actor_died.connect(_ctrl._on_actor_died_for_cleanup)
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
 	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null

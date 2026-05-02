@@ -33,6 +33,7 @@ const _RT_BY_ID: Dictionary = {
 	&"enraged":  preload("res://scripts/core/statuses/runtimes/enraged_runtime.gd"),
 	&"strong":   preload("res://scripts/core/statuses/runtimes/strong_runtime.gd"),
 	&"weak":     preload("res://scripts/core/statuses/runtimes/weak_runtime.gd"),
+	&"summoned": preload("res://scripts/core/statuses/runtimes/summoned_runtime.gd"),  # 041
 }
 
 # id → {family, arity, param_names, loc_name, loc_desc}
