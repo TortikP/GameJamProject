@@ -107,10 +107,17 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
 		return false
 
-	# Caster is excluded from zone AoE only when the ability is self-targeted
-	# (primary == caster, i.e. SelfTarget). Non-self targets (actor, hex) can
-	# catch the caster in their zone — intentional friendly-fire design space.
-	var exclude_caster: bool = (primary is Actor and (primary as Actor) == caster)
+	# Caster is excluded from zone AoE only when (a) the ability is self-targeted
+	# (primary == caster, i.e. SelfTarget) AND (b) the area is a real zone that
+	# can contain others (not SelfArea). SelfArea returns exactly [caster] —
+	# stripping the caster there would empty the victim list and break self-
+	# heals / self-buffs (spec 033). Non-self targets (actor, hex) can catch
+	# the caster in their zone — intentional friendly-fire design space.
+	var exclude_caster: bool = (
+		primary is Actor
+		and (primary as Actor) == caster
+		and not (eff_area is SelfArea)
+	)
 	if exclude_caster:
 		var filtered: Array = []
 		for v in victims:
