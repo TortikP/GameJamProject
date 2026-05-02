@@ -1,0 +1,53 @@
+{
+  "id": "fermentation",
+  "name": "fermentation_name",
+  "tooltip": "fermentation_tooltip",
+  "desc": "fermentation_desc",
+  "icon": "assets/sprites/icons/skills/fermentation.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "melee"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "self_heal_small",
+      "sound_start": "assets/audio/skills/self_heal_small/start.wav",
+      "collision_effect": "assets/vfx/skills/self_heal_small/self_heal.prefab",
+      "sound_end": "assets/audio/skills/self_heal_small/end.wav",
+      "animation": "assets/animations/skills/self_heal_small.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "heal": 8
+        }
+      ]
+    },
+    {
+      "id": "self_enrage",
+      "sound_start": "assets/audio/skills/self_enrage/start.wav",
+      "collision_effect": "assets/vfx/status/enraged/apply_self.prefab",
+      "sound_end": "assets/audio/status/enraged/end.wav",
+      "animation": "assets/animations/status/self_enrage.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "enraged (2)"
+        }
+      ]
+    }
+  ]
+}
