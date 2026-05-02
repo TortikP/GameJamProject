@@ -7,6 +7,14 @@ extends StatusRuntime
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 
+static func arity() -> int:
+	return 3
+
+
+static func family() -> StringName:
+	return &"dot"
+
+
 static func compute_snapshot(args: Array[int], skill_level: int) -> int:
 	# args = [duration, dmg, lvl_bonus]
 	if args.size() < 3:

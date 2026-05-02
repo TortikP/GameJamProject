@@ -9,6 +9,10 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const _BEHAVIOR_ID: StringName = &"feared"
 
 
+static func family() -> StringName:
+	return &"control"
+
+
 static func on_apply(actor: Actor, _instance: StatusInstance) -> void:
 	if actor == null or actor.team == &"player":
 		return  # variant C: status хранится, runtime no-op на player'е

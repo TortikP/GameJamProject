@@ -1,8 +1,0 @@
-{
-  "id": "slowed",
-  "family": "debuff",
-  "arity": 1,
-  "param_names": ["duration"],
-  "loc_name": "status.slowed.name",
-  "loc_desc": "status.slowed.desc"
-}

@@ -5,6 +5,21 @@ extends RefCounted
 ## StatusRegistry.runtime_for(id).
 ##
 ## 027: spec/027-status-effects/spec.md §"StatusRuntime (abstract base)".
+## 027 (revised): runtimes carry their own arity()/family() — the
+## data/status_effects/ JSON metadata layer was dropped.
+
+
+## Number of args expected in the inline encoding "id(d, a1, ...)" (incl. duration).
+## Defaults to 1 (just duration); subclasses with additional numeric params override.
+static func arity() -> int:
+	return 1
+
+
+## UI pill family — drives colour and glyph fallback in StatusIconStrip.
+## One of: &"buff", &"debuff", &"dot", &"hot", &"control", &"shield".
+## Defaults to &"debuff" — subclasses override per spec table.
+static func family() -> StringName:
+	return &"debuff"
 
 
 ## Compute snapshot_value at apply-time. Args come straight from JSON parse;

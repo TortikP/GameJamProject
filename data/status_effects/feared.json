@@ -1,8 +1,0 @@
-{
-  "id": "feared",
-  "family": "control",
-  "arity": 1,
-  "param_names": ["duration"],
-  "loc_name": "status.feared.name",
-  "loc_desc": "status.feared.desc"
-}

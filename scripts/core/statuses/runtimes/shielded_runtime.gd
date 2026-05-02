@@ -6,6 +6,14 @@ extends StatusRuntime
 ## 027: spec §"Контракт статусов" / AC-RT-shielded.
 
 
+static func arity() -> int:
+	return 3
+
+
+static func family() -> StringName:
+	return &"shield"
+
+
 static func compute_snapshot(args: Array[int], skill_level: int) -> int:
 	# args = [duration, n_block, lvl_bonus]
 	if args.size() < 3:

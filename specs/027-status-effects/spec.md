@@ -124,30 +124,22 @@ in-place в этой же фиче.
 
 ### Status registry
 
-Новая папка `data/status_effects/<id>.json` — один файл на статус, для
-designer-side метаданных:
+**ОТМЕНЕНО (commit 027.fix-1).** Папка `data/status_effects/` и JSON
+metadata-layer убраны. Теперь runtime-классы сами знают свою арность и
+family — через `static func arity()` и `static func family()`. Skill JSON
+остаётся единственным источником per-status параметров через инлайн-
+кодировку `"id(d, a1, a2, ...)"`.
 
-```json
-{
-  "id": "poisoned",
-  "family": "dot",
-  "arity": 3,
-  "param_names": ["duration", "damage_pct", "lvl_bonus_pct"],
-  "loc_name": "status.poisoned.name",
-  "loc_desc": "status.poisoned.desc"
-}
-```
+`StatusRegistry` — pure dispatch table:
+- `runtime_for(id) -> GDScript` — returns the runtime class for static-method dispatch
+- `arity_of(id) -> int` — delegates to `runtime.arity()`
+- `family_of(id) -> StringName` — delegates to `runtime.family()`
+- `has_status(id) -> bool`
 
-`family` — для UI-pill цвета (`buff` / `debuff` / `dot` / `hot` / `control` /
-`shield`), уже определены в `status_icon_strip._ICON_BY_FAMILY`.
-
-`arity` и `param_names` — для парсера: warn если кол-во аргументов в строке
-не сходится с arity. `loc_*` — стабы под локализацию (как у Skill).
-
-Runtime-классы статусов — код в `scripts/core/statuses/runtimes/` (по
-аналогии с `abilities/effects/`). Один класс на статус. Lookup —
-`StatusRegistry.runtime_for(id)` через preload-таблицу (как
-`EFFECT_KIND_BY_KEY` в AbilityDatabase).
+См. `scripts/core/statuses/status_registry.gd`. Соответствующие AC-R*
+переинтерпретированы: AC-R1 не применим (нет JSON), AC-R2 заменён на
+"runtime classes carry their own metadata", AC-R3 без изменений
+(unknown id → null + warn).
 
 ### Actor — новая поверхность
 

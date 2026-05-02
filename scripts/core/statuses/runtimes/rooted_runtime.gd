@@ -6,6 +6,10 @@ extends StatusRuntime
 ## 027: spec §"Контракт статусов" / AC-RT-rooted.
 
 
+static func family() -> StringName:
+	return &"control"
+
+
 static func modify_speed(_current: int, _instance: StatusInstance) -> int:
 	return 0
 

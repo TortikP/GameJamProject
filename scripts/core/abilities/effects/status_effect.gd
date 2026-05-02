@@ -46,7 +46,7 @@ func apply(caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	if args[0] <= 0:
 		GameLogger.info("StatusEffect", "duration <= 0 for '%s' — skipping" % status_id)
 		return
-	var rt: Variant = StatusRegistry.runtime_for(status_id)
+	var rt: GDScript = StatusRegistry.runtime_for(status_id)
 	if rt == null:
 		GameLogger.warn("StatusEffect", "no runtime for '%s' — skipping" % status_id)
 		return

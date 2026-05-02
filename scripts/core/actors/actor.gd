@@ -169,7 +169,7 @@ func add_status(instance: StatusInstance) -> void:
 		if old_rt != null:
 			old_rt.on_remove(self, old)
 	_statuses[instance.status_id] = instance
-	var rt: Variant = StatusRegistry.runtime_for(instance.status_id)
+	var rt: GDScript = StatusRegistry.runtime_for(instance.status_id)
 	if rt != null:
 		rt.on_apply(self, instance)
 	statuses_changed.emit(actor_id)
@@ -181,7 +181,7 @@ func remove_status(id: StringName) -> void:
 	if not _statuses.has(id):
 		return
 	var inst: StatusInstance = _statuses[id]
-	var rt: Variant = StatusRegistry.runtime_for(id)
+	var rt: GDScript = StatusRegistry.runtime_for(id)
 	if rt != null:
 		rt.on_remove(self, inst)
 	_statuses.erase(id)
@@ -213,7 +213,7 @@ func effective_speed() -> int:
 	var s: int = speed
 	for inst_v in _statuses.values():
 		var inst := inst_v as StatusInstance
-		var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
 		if rt != null:
 			s = rt.modify_speed(s, inst)
 	return maxi(0, s)
@@ -225,7 +225,7 @@ func damage_reduction() -> int:
 	var sum: int = 0
 	for inst_v in _statuses.values():
 		var inst := inst_v as StatusInstance
-		var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
 		if rt != null:
 			sum += rt.damage_reduction(inst)
 	return maxi(0, sum)
@@ -253,7 +253,7 @@ func tick_statuses_with_ctx(ctx: Dictionary) -> void:
 		if not _statuses.has(id_v):
 			continue   # cascaded-removed (e.g. by mutual exclusivity earlier)
 		var inst := _statuses[id_v] as StatusInstance
-		var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
 		if rt != null:
 			rt.on_turn_start(self, inst, ctx)
 		if _dead:

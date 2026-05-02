@@ -56,7 +56,7 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 	var hold_movement: bool = false
 	for inst_v in actor.get_statuses():
 		var inst := inst_v as StatusInstance
-		var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
 		if rt == null:
 			continue
 		var ov: Vector2i = rt.override_movement(actor, inst, ctx)
