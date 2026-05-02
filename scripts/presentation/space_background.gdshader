@@ -26,7 +26,10 @@ uniform float center_fade_start : hint_range(0.0, 0.5) = 0.05;  // r below this:
 uniform float center_fade_end   : hint_range(0.05, 0.9) = 0.45; // r above this: full ray contribution
 uniform float edge_lift = 0.20;          // extra brightness multiplier at radial edges (0 = none)
 
-const float TAU = 6.28318530718;
+// NB: TAU is a Godot shader built-in (== 2π). Don't redeclare — Godot 4.6
+// errors with "Redefinition of 'TAU'" and the whole shader fails to compile,
+// which surfaces as a shader-compile error from main_menu.gd at the call-site
+// that loads this scene. (029 fix.)
 
 
 void fragment() {
