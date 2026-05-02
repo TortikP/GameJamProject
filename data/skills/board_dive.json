@@ -1,0 +1,53 @@
+{
+  "id": "board_dive",
+  "name": "board_dive_name",
+  "tooltip": "board_dive_tooltip",
+  "desc": "board_dive_desc",
+  "icon": "assets/sprites/icons/skills/board_dive.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "teleport_self",
+      "sound_start": "assets/audio/skills/teleport_self/start.wav",
+      "collision_effect": "assets/vfx/skills/teleport_self/blink.prefab",
+      "sound_end": "assets/audio/skills/teleport_self/end.wav",
+      "animation": "assets/animations/skills/teleport_self.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "move_type": "teleport"
+        }
+      ]
+    },
+    {
+      "id": "self_enrage",
+      "sound_start": "assets/audio/skills/self_enrage/start.wav",
+      "collision_effect": "assets/vfx/status/enraged/apply_self.prefab",
+      "sound_end": "assets/audio/status/enraged/end.wav",
+      "animation": "assets/animations/status/self_enrage.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "enraged (2)"
+        }
+      ]
+    }
+  ]
+}
