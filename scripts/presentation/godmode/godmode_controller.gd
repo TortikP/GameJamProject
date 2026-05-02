@@ -374,10 +374,11 @@ func _update_castability() -> void:
 		"target_id": target_id,
 		"target_coord": coord,
 	}
-	# Slot castability tints
+	# Slot castability tints. 027: stunned player → all slots greyed.
+	var stunned: bool = player.is_stunned()
 	for i in 4:
 		var skill := _slot_bar_node.get_slot(i) as Skill
-		var castable: bool = skill != null and skill.can_apply(player, ctx)
+		var castable: bool = skill != null and not stunned and skill.can_apply(player, ctx)
 		_slot_bar_node.set_castable(i, castable)
 
 	# Damage preview on enemies — only the hovered one shows red strip,
@@ -477,6 +478,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
+			# 027: stunned player can't enter cast FSM. _update_castability
+			# already greys the slot visually; this guards the keyboard path.
+			if player != null and player.is_stunned() and not _cast_in_progress:
+				get_viewport().set_input_as_handled()
+				return
 			# 026: when an FSM cast is in progress, slot keys gate through it.
 			if _cast_in_progress and _slot_bar_node != null:
 				var active_now: int = _slot_bar_node.get_active()
@@ -559,6 +565,9 @@ func _wait_turn() -> void:
 func _request_move() -> void:
 	if grid._moving or _world_processing:
 		return
+	if player.is_stunned():
+		# 027: pill icon over player explains why; no log spam.
+		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		return
@@ -571,13 +580,14 @@ func _request_move() -> void:
 	if grid.get_actor_at(coord) != &"":
 		GameLogger.info("Godmode", "occupied: %s" % str(coord))
 		return
-	if player.speed <= 0:
-		GameLogger.info("Godmode", "cannot move (speed=0)")
+	if player.effective_speed() <= 0:
+		# 027: rooted or speed=0. Pill icon explains.
+		GameLogger.info("Godmode", "cannot move (effective_speed=0)")
 		return
 	var path: Array = grid.find_path(from, coord)
 	var dist: int = path.size() - 1
-	if dist > player.speed:
-		GameLogger.info("Godmode", "too far (speed=%d, distance=%d)" % [player.speed, dist])
+	if dist > player.effective_speed():
+		GameLogger.info("Godmode", "too far (effective_speed=%d, distance=%d)" % [player.effective_speed(), dist])
 		return
 	await grid.move_actor(PLAYER_ID, coord)
 	if grid.get_coord(PLAYER_ID) != from:
@@ -587,6 +597,10 @@ func _request_move() -> void:
 
 func _request_cast_active() -> void:
 	if _slot_bar_node == null:
+		return
+	if player != null and player.is_stunned():
+		# 027: cast slots are greyed via _update_castability; this guards the
+		# direct LMB-to-cast path when an active slot is already selected.
 		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
@@ -866,9 +880,36 @@ func _on_world_turn_ended(_turn: int) -> void:
 	if player == null or not player.is_alive():
 		return
 	_world_processing = true
+	# 027 / AC-CT1: tick statuses for ALL actors before AI runs. DoT damage
+	# may kill some — they're skipped naturally in subsequent loops.
+	_tick_all_statuses()
+	# 027 / AC-X5: if player is stunned (newly applied or carried over),
+	# show the icon for stun_skip_delay seconds, then auto-advance their turn.
+	# Recursion is fine — next world_turn_ended will tick again, and either
+	# decrement to expire or skip again.
+	if player.is_alive() and player.is_stunned():
+		await get_tree().create_timer(GameSpeed.get_value("arena", "stun_skip_delay", 0.4)).timeout
+		_world_processing = false
+		TurnManager.advance()
+		return
 	await _run_enemy_turn()
 	_world_processing = false
 	_refresh_overlay()
+
+
+# 027: status tick for all live actors. ctx mirrors what AI gets — runtimes
+# (feared/enraged source-validity, and any future ctx-dependent runtime) read
+# `registry` / `grid` / `all_actors` from it.
+func _tick_all_statuses() -> void:
+	if registry == null:
+		return
+	var ctx: Dictionary = _world_ctx()
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor.is_alive():
+			actor.tick_statuses_with_ctx(ctx)
 
 
 func _run_enemy_turn() -> void:

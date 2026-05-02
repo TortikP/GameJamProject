@@ -5,7 +5,10 @@
   "desc": "skill.test_combo_multikey_effect.desc",
   "icon": "",
   "cooldown": 0,
-  "behaviour_tags": ["damage", "debuff"],
+  "behaviour_tags": [
+    "damage",
+    "debuff"
+  ],
   "mood": [],
   "level": 0,
   "abilities": [
@@ -15,10 +18,20 @@
       "sound_end": "",
       "collision_effect": "",
       "animation": "",
-      "target": {"kind": "actor", "range": 1},
-      "area":   {"kind": "chain", "area_max_chain_length": 1, "area_radius": 1},
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "area_max_chain_length": 1,
+        "area_radius": 1
+      },
       "effects": [
-        {"duration": 1, "damage": 8, "status": "burning"}
+        {
+          "damage": 8,
+          "status": "burning(1, 2, 1)"
+        }
       ],
       "modifiers": []
     }

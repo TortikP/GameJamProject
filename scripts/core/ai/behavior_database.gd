@@ -200,6 +200,7 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		"lowest_hp_ally":     return SelectorLowestHpAlly.new()
 		"densest_enemy_hex":  return SelectorDensestEnemyHex.new()
 		"random_enemy":       return SelectorRandomEnemy.new()
+		"specific_actor":     return SelectorSpecificActor.new()   # 027: feared/enraged
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown target_selector kind '%s'" % [scenario_id, kind])
 			return null
@@ -215,6 +216,8 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 		"kite_from_nearest_enemy":  return PolicyKiteFromNearestEnemy.new()
 		"hold_position":            return PolicyHoldPosition.new()
 		"follow_lowest_hp_ally":    return PolicyFollowLowestHpAlly.new()
+		"approach_specific_actor":  return PolicyApproachSpecificActor.new()   # 027: enraged
+		"kite_specific_actor":      return PolicyKiteSpecificActor.new()       # 027: feared
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()

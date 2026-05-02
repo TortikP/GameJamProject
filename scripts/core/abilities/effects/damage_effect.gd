@@ -3,7 +3,7 @@ extends AbilityEffect
 ## Flat damage. `damage` field set from JSON via AbilityDatabase.
 ## target is Variant — cast to Actor; silent no-op if cast fails.
 ##
-## DoT (duration > 0): # TODO 007 DoT scaffold — not implemented, works as instant.
+## 027: was a DoT scaffold via base.duration; unused. Removed with base field.
 
 @export var damage: int = 1
 
@@ -13,7 +13,10 @@ func apply(caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	if actor == null:
 		return
 	# KEEP IN SYNC with Ability.predicted_damage_to
-	var bonus: int = 0 if caster == null else caster.damage_bonus
+	# 027: damage_amplifier sums strong/weak status modifiers (signed).
+	var bonus: int = 0
+	if caster != null:
+		bonus = caster.damage_bonus + caster.damage_amplifier()
 	actor.take_damage(maxi(0, damage + bonus))
 
 

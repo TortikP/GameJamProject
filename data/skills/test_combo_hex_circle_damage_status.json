@@ -24,12 +24,10 @@
       },
       "effects": [
         {
-          "duration": 0,
           "damage": 8
         },
         {
-          "duration": 2,
-          "status": "burning"
+          "status": "burning(2, 3, 1)"
         }
       ],
       "modifiers": [],

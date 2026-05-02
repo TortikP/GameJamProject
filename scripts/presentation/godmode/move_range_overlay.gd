@@ -74,7 +74,8 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 				if c != Vector2i(-1, -1):
 					occupied.append(c)
 
-	var reachable: Array[Vector2i] = _grid.reachable_within(actor_coord, actor.speed, occupied)
+	# 027: effective_speed accounts for slowed (×0.5) and rooted (→0).
+	var reachable: Array[Vector2i] = _grid.reachable_within(actor_coord, actor.effective_speed(), occupied)
 
 	# Resolve colors via UiTheme. Team color drives both fill (low alpha) and
 	# outline (higher alpha). Self-hex uses heal-green for "you are here".

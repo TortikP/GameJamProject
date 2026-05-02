@@ -21,7 +21,6 @@
       },
       "effects": [
         {
-          "duration": 0,
           "heal": 20
         }
       ],
