@@ -32,11 +32,11 @@ func _apply_theme() -> void:
 func show_tooltip(anchor: Control, title: String, body: String = "") -> void:
 	if _suppressed:
 		return
-	_title_label.text = title
+	_title_label.text = Localization.t(title, title)
 	if body.is_empty():
 		_body_label.hide()
 	else:
-		_body_label.text = body
+		_body_label.text = Localization.t(body, body)
 		_body_label.show()
 	# Make sure size is computed before placement.
 	visible = true

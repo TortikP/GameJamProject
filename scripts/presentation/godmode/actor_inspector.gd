@@ -271,7 +271,11 @@ func _disconnect_actor() -> void:
 		return
 	if _actor.damaged.is_connected(_on_actor_damaged):
 		_actor.damaged.disconnect(_on_actor_damaged)
-	# died was CONNECT_ONE_SHOT — auto-disconnects after fire, no manual needed
+	# died is CONNECT_ONE_SHOT, but if bind() is called a second time on the
+	# SAME actor before death, the previous one-shot connection is still
+	# active → re-connect spams "already connected". Defensive disconnect.
+	if _actor.died.is_connected(_on_actor_died):
+		_actor.died.disconnect(_on_actor_died)
 	if dev_mode:
 		if _spin_curr_hp.value_changed.is_connected(_on_curr_hp_changed):
 			_spin_curr_hp.value_changed.disconnect(_on_curr_hp_changed)
@@ -348,11 +352,11 @@ func _build_tooltip(ability_id: StringName) -> String:
 	lines.append(String(ability_id))
 	for eff in ability.effects:
 		if eff is DamageEffect:
-			lines.append("Damage: %d" % (eff as DamageEffect).damage)
+			lines.append(Localization.tf("Damage: %d", [(eff as DamageEffect).damage], "Damage: %d"))
 		else:
-			lines.append("Effect: %s" % eff.get_class())
+			lines.append(Localization.tf("Effect: %s", [eff.get_class()], "Effect: %s"))
 	if ability.target != null:
-		lines.append("Target: %s" % ability.target.get_class())
+		lines.append(Localization.tf("Target: %s", [ability.target.get_class()], "Target: %s"))
 	return "\n".join(lines)
 
 

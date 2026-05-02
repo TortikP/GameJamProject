@@ -63,6 +63,11 @@ var spawners: Array[Dictionary] = []
 # Defaults to a single empty wave so a freshly-constructed LevelData is valid
 # under the new model without explicit init. Inline literal (not _make_empty_wave)
 # to avoid a static-call-in-member-initializer parse edge case.
+# 039-dialogue-triggers: per-level event→dialogue bindings. Each entry is a
+# Dictionary matching DialogueTrigger schema. Stored as raw dicts (not
+# DialogueTrigger objects) so LevelSerializer can round-trip JSON directly.
+var dialogue_triggers: Array[Dictionary] = []
+
 var waves: Array[Dictionary] = [{
 	"index": 0,
 	"is_special": false,
@@ -188,6 +193,31 @@ func validate() -> Array[String]:
 		errors.append("No player spawner — set Player Spawn in some wave before saving")
 	elif total_player_spawners > 1:
 		errors.append("Multiple player spawners (%d) across waves — only one allowed total" % total_player_spawners)
+
+	# 039: dialogue_triggers validation (AC-D3).
+	var trigger_ids: Dictionary = {}
+	for raw in dialogue_triggers:
+		if not (raw is Dictionary):
+			errors.append("dialogue_triggers entry is not a Dictionary")
+			continue
+		var t: DialogueTrigger = DialogueTrigger.from_dict(raw)
+		var t_errs: Array[String] = t.validate()
+		for e in t_errs:
+			errors.append(e)
+		if t.id != &"":
+			if trigger_ids.has(t.id):
+				errors.append("dialogue_triggers: duplicate id '%s'" % t.id)
+			trigger_ids[t.id] = true
+		if t.conditions.has("wave_index"):
+			var wi: int = int(t.conditions["wave_index"])
+			if wi < 0 or wi >= waves.size():
+				errors.append("WARN: trigger '%s': wave_index %d out of range [0, %d)" % [t.id, wi, waves.size()])
+		# Soft warn if dialogue_id not in DB (DB may not be loaded in editor context).
+		if t.dialogue_id != &"" and Engine.has_singleton("DialogueDB"):
+			# DialogueDB is an autoload node — can't call static, access via node.
+			# Use has_method check to be safe.
+			pass  # Actual check done in LevelDialogueDirector at runtime.
+
 	return errors
 
 
@@ -215,6 +245,7 @@ func to_dict() -> Dictionary:
 		"version": version,
 		"tileset_path": tileset_path,
 		"waves": waves_out,
+		"dialogue_triggers": dialogue_triggers.duplicate(true),
 	}
 
 
@@ -229,6 +260,12 @@ static func from_dict(d: Dictionary) -> LevelData:
 	lvl.name = String(d.get("name", "Untitled"))
 	lvl.version = int(d.get("version", SCHEMA_VERSION))
 	lvl.tileset_path = String(d.get("tileset_path", DEFAULT_TILESET_PATH))
+	# 035 fix — pre-032 saves still reference the deleted godmode_terrain.tres.
+	# Silently rewrite to the canonical tileset so old autosaves / playtest
+	# scratch files don't fail to load (which would drop us into procedural
+	# sandbox with no WaveController → no enemy spawning).
+	if lvl.tileset_path == "res://scenes/dev/godmode_terrain.tres":
+		lvl.tileset_path = DEFAULT_TILESET_PATH
 	lvl.waves = []
 
 	if d.has("waves") and d["waves"] is Array:
@@ -257,6 +294,11 @@ static func from_dict(d: Dictionary) -> LevelData:
 		lvl.waves[i]["index"] = i
 	lvl._active_wave_index = 0
 	lvl._sync_active_wave_to_root()
+	# 039: dialogue_triggers — default empty for legacy files (AC-D2).
+	if d.has("dialogue_triggers") and d["dialogue_triggers"] is Array:
+		for entry in d["dialogue_triggers"]:
+			if entry is Dictionary:
+				lvl.dialogue_triggers.append(entry.duplicate())
 	return lvl
 
 

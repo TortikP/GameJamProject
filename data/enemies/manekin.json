@@ -10,5 +10,5 @@
     "paper_jam"
   ],
   "behavior_id": "default_melee",
-  "fallback_skill_id": ""
+  "fallback_skill_id": "paper_jam"
 }

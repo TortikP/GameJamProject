@@ -30,6 +30,14 @@ signal upgrade_chosen(modifier_id: StringName)
 signal wave_started(index: int, is_special: bool)
 signal wave_cleared(index: int, unused_turns: int)
 signal level_completed(total_score: int)
+# 039: synthesized event — emitted by WaveController one frame before
+# _apply_wave_snapshot on wave N>0. Allows triggers to react "before the
+# new wave content is live". arg index = the incoming wave index.
+signal wave_about_to_start(index: int)
+# 039: emitted by godmode_setup after LevelData is fully applied (floor +
+# objects + player spawned). Director caches the level ref here, then wires
+# its event handlers when battle_started fires.
+signal level_loaded(level: LevelData)
 # 024: emitted when a deferred spawner-placeholder instantiates a real actor.
 # Listeners (e.g. AI planner, HUD) can react to the new actor entering play.
 signal actor_spawned(actor_id: StringName)
@@ -101,3 +109,23 @@ signal pause_toggled(paused: bool)
 # is a Dictionary[StringName, int] over MoodTracker.MOODS_SKILL; dominant
 # is one of MOODS_SKILL ∪ {chimera}.
 signal player_mood_changed(counts: Dictionary, dominant: StringName)
+
+# Campaign / game flow (035-game-editor)
+# scene_ready: emitted as the LAST line of a scene's _ready() after all its
+# own initialisation. Read-only notification — listeners must not mutate world
+# state, only react (e.g. CampaignController plays intro cutscene hook or
+# fade-in transition).
+signal scene_ready(scene_kind: StringName)
+# upgrade_choice_requested: emitted by CampaignController when a level ends
+# inside an active game. Listener owns the upgrade screen (real impl in a
+# separate spec; 035 ships a dummy stub). Listener MUST eventually call
+# on_done.call() — CampaignController times out after
+# [meta]/upgrade_choice_timeout_sec and proceeds anyway.
+signal upgrade_choice_requested(level_score: int, on_done: Callable)
+# campaign_cutscene_requested: emitted by CampaignController on scene_ready
+# of a level that has cutscene_id != &"" (or is_intro=true with non-empty id).
+# Same callback contract as upgrade_choice_requested.
+signal campaign_cutscene_requested(cutscene_id: StringName, on_done: Callable)
+# campaign_level_started / campaign_finished: read-only notifications.
+signal campaign_level_started(index: int, map_path: String)
+signal campaign_finished(total_score: int)

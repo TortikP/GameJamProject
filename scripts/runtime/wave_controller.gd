@@ -96,6 +96,8 @@ func start_level(level: LevelData) -> void:
 	_current_wave_index = -1
 	_turns_into_wave = 0
 	_resolve_actors_node()
+	# 039: signal that the battle is now beginning (Director connects handlers).
+	EventBus.battle_started.emit(StringName(level.name))
 	_advance_wave()
 
 
@@ -115,12 +117,17 @@ func _advance_wave() -> void:
 		_current_wave_index = prev   # park; do not roll over
 		GameLogger.info("WaveController", "level_completed (score=%d)" % RunScore.total)
 		EventBus.level_completed.emit(RunScore.total)
+		EventBus.battle_ended.emit(true)  # 039: clean teardown for Director
 		return
 
 	# T53e — gate input across the snapshot apply + visual settle window.
 	# Owners (godmode_controller) read is_transitioning() in their input
 	# handlers to drop player events during this period.
 	_is_transitioning = true
+	# 039: synthesized event — fires BEFORE snapshot so triggers can react
+	# to "wave N is about to begin" while the previous wave content is still live.
+	if _current_wave_index > 0:
+		EventBus.wave_about_to_start.emit(_current_wave_index)
 	_apply_wave_snapshot(_current_wave_index)
 	_turns_into_wave = 0
 	var w: Dictionary = _level.waves[_current_wave_index]

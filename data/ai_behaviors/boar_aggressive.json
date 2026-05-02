@@ -1,0 +1,83 @@
+{
+  "id": "boar_aggressive",
+  "rules": [
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 1
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "melee",
+        "damage"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 3
+          },
+          {
+            "kind": "unclaimed_hex_exists_near_enemy",
+            "distance": 2
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "player_escape_hex"
+      },
+      "tag_priority": [
+        "ranged",
+        "debuff"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 3
+          },
+          {
+            "kind": "unclaimed_hex_exists_near_enemy",
+            "distance": 1
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "unclaimed_hex_near_enemy"
+      },
+      "tag_priority": [
+        "ranged",
+        "debuff"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 4
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "ranged",
+        "debuff"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy_unclaimed"
+  },
+  "fallback_skill_id": "mushroom_boar_tusk_attack"
+}

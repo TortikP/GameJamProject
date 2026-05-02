@@ -9,7 +9,7 @@
     "summon"
   ],
   "mood": [
-    "tranquility"
+    "ascended"
   ],
   "level": 0,
   "abilities": [
@@ -29,7 +29,7 @@
       },
       "effects": [
         {
-          "entity_id": "bee(3)"
+          "entity_id": "bee(-1)"
         }
       ]
     }

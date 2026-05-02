@@ -9,7 +9,7 @@
     "summon"
   ],
   "mood": [
-    "burnout"
+    "tranquility"
   ],
   "level": 0,
   "abilities": [
@@ -27,7 +27,11 @@
         "kind": "chain",
         "max_chain_length": 1
       },
-      "effects": []
+      "effects": [
+        {
+          "entity_id": "bear(-1)"
+        }
+      ]
     }
   ]
 }

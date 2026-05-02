@@ -184,7 +184,7 @@ func refresh_intent_tooltip(hovered_id: StringName) -> void:
 	var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
 	if skill == null:
 		return
-	var title: String = "%s → %s" % [String(actor.actor_id), String(skill.id)]
+	var title: String = "%s → %s" % [String(actor.actor_id), Localization.t(String(skill.name), String(skill.id))]
 	var body: String = SkillFormatter.format_skill(skill)
 	if tooltip.has_method("show_tooltip"):
 		# anchor=null → tooltip places itself near the mouse pointer (see

@@ -69,6 +69,10 @@ const HP_BG      := Color("1a1d24")
 const HP_LOW_THRESHOLD  := 0.30
 const HP_CRIT_THRESHOLD := 0.15
 
+# 039-dialogue-triggers: WaveTimeline marker for dialogue trigger anchors (EDIT mode).
+const DIALOGUE_TRIGGER_MARKER_COLOR  := Color("a78bfa")   # soft violet
+const DIALOGUE_TRIGGER_MARKER_RADIUS := 5.0
+
 # ── Spacing scale (px) ───────────────────────────────────────
 const SP_1 := 4
 const SP_2 := 8

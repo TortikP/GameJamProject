@@ -1,0 +1,18 @@
+{
+	"name": "Sample Campaign",
+	"version": 1,
+	"levels": [
+		{
+			"map_path": "res://data/maps/sample.json",
+			"display_name": "Awakening",
+			"cutscene_id": "intro_awakening",
+			"is_intro": true
+		},
+		{
+			"map_path": "res://data/maps/sample_waves.json",
+			"display_name": "The Trial",
+			"cutscene_id": "",
+			"is_intro": false
+		}
+	]
+}

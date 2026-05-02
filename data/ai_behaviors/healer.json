@@ -1,0 +1,60 @@
+{
+  "id": "healer",
+  "rules": [
+    {
+      "condition": {
+        "kind": "self_hp_below",
+        "pct": 40
+      },
+      "target_selector": {
+        "kind": "self"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "ally_exists"
+          },
+          {
+            "kind": "ally_hp_below",
+            "pct": 60,
+            "distance": 3
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "hex_with_most_wounded_allies"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 3
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "support_kite",
+    "ally_hp_threshold": 0.4,
+    "heal_range": 2,
+    "safe_ally_range": 3
+  },
+  "fallback_skill_id": ""
+}

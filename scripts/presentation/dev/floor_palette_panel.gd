@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Floor"
+	header.text = Localization.t("Floor", "Floor")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
 	_install_drag(header)
@@ -78,7 +78,7 @@ func _build_ui() -> void:
 	# TILESETS gains entries.
 	_tileset_dropdown = OptionButton.new()
 	for i in TILESETS.size():
-		_tileset_dropdown.add_item(TILESETS[i].label, i)
+		_tileset_dropdown.add_item(Localization.t(TILESETS[i].label, TILESETS[i].label), i)
 	_tileset_dropdown.item_selected.connect(_on_tileset_selected)
 	UiTheme.apply_button_styling(_tileset_dropdown)
 	_tileset_dropdown.visible = TILESETS.size() > 1
@@ -86,7 +86,7 @@ func _build_ui() -> void:
 
 	# Erase button
 	_erase_btn = Button.new()
-	_erase_btn.text = "Erase"
+	_erase_btn.text = Localization.t("Erase", "Erase")
 	_erase_btn.toggle_mode = true
 	_erase_btn.pressed.connect(_on_erase_pressed)
 	UiTheme.apply_button_styling(_erase_btn)

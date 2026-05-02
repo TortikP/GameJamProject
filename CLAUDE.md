@@ -43,7 +43,7 @@ Concrete:
 4. Cross-system communication goes through EventBus signals, not direct references.
 5. UI colors and spacing — only via `UiTheme.X`. No `Color(...)` inline in `scripts/presentation/`. New stylebox? `UiTheme.make_*_stylebox()`. New label kind? Extend `UiTheme.apply_label_kind`.
 6. Hex polygon geometry — via `HexGeometry.flat_top_polygon(layer.tile_set.tile_size)` (preload `scripts/infrastructure/hex_geometry.gd`). No hardcoded `RADIUS = 60.0` in overlays — `tile_size` in the .tres is the single source of truth, polygons inscribe into the tile bbox at draw time. See spec 022.
-7. **One TileSet — `scenes/arena/tilesets/hex_terrain.tres`** (`tile_shape = HEXAGON`, `tile_size = Vector2i(128, 80)`). Source 0 = `godmode_atlas.png` (Katya's hand-drawn grass tile at 128×80 — the default visible floor everywhere). Source 1 = `hex_atlas.png` (placeholder palette: grass/wall/swamp/acid/fountain at 64×56 source-region size, rendered into 128×80 cells — used in editor for marking tile_kind variations). All scenes (godmode procedural sandbox, map editor, every loaded level) reference this single file. Per 032: `scenes/dev/godmode_terrain.tres` was deleted in the consolidation PR — adding a second tileset re-introduces shape-mismatch bugs (B-003 origin) and divergent neighbour topology (`*_SIDE` enums). Don't.
+7. **One TileSet — `scenes/arena/tilesets/hex_terrain.tres`** (`tile_shape = HEXAGON`, `tile_size = Vector2i(128, 80)`). Source 0 = `godmode_atlas.png` (Katya's hand-drawn green grass tile at 128×80 — the default visible floor everywhere; tagged `tile_kind = &"forest"` for legacy reasons). Source 1 = `hex_atlas.png` — 8 painterly variant tiles at 128×80 stitched horizontally: 2× `forest`, 3× `heaven`, 2× `lava` (effect_id `damage_zone`), 1× `ice`. Used in editor for marking tile_kind variations and for visually mixing biomes. All scenes (godmode procedural sandbox, map editor, every loaded level) reference this single .tres file. Per 032: `scenes/dev/godmode_terrain.tres` was deleted in the consolidation PR — adding a second tileset re-introduces shape-mismatch bugs (B-003 origin) and divergent neighbour topology (`*_SIDE` enums). Don't.
 
 ### Timing
 5. NO hardcoded timer values. Use `GameSpeed.wait(section, key)` or read
@@ -122,6 +122,7 @@ Append yourself when you start a feature.
 | 032-controller-refactor (godmode_controller split into 8 modules, tileset consolidation) | Andrey |
 | 038-mood-counter (player narrative tracker driven by equipped skills, JSON mood vocab rename) | Egor |
 | 041-effect-create-entity (CreateEffect impl: object/actor summon + summoned status) | Egor |
+| 039-dialogue-triggers (LevelData triggers, LevelDialogueDirector, WaveTimeline markers, DialogueTriggerPanel editor) | Andrey |
 
 ## Git workflow
 

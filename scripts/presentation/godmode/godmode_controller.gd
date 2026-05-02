@@ -57,6 +57,10 @@ func _ready() -> void:
 	_resolve_modules()
 	if setup != null:
 		setup.run()
+	# 035-game-editor: notify CampaignController (and any future scene-aware
+	# listener) that this scene's init is complete. Read-only signal — no
+	# listener may mutate world state from here.
+	EventBus.scene_ready.emit(&"godmode")
 
 
 # 032 — populate module accessors. Children exist in the scene tree (added in

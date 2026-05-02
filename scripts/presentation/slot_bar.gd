@@ -107,7 +107,9 @@ func set_slot(index: int, ability) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
 	_slots[index] = ability
-	var label_id := "—" if ability == null else String(ability.id)
+	var label_id := "—"
+	if ability != null:
+		label_id = Localization.t(String(ability.name), String(ability.id)) if "name" in ability else String(ability.id)
 	_buttons[index].text = "%s\n%s" % [SLOT_LABELS[index], label_id]
 	_refresh_visual(index)
 

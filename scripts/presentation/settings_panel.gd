@@ -14,6 +14,10 @@ extends CanvasLayer
 
 const UiHelpers = preload("res://scripts/presentation/ui_signal_helpers.gd")
 const MODAL_ID: StringName = &"settings_panel"
+const LANGUAGE_OPTIONS: Array[Dictionary] = [
+	{"locale": "en", "label": "English"},
+	{"locale": "ru", "label": "Russian"},
+]
 
 @onready var _panel: PanelContainer = $Center/Panel
 @onready var _title: Label = $Center/Panel/VBox/Title
@@ -25,6 +29,8 @@ const MODAL_ID: StringName = &"settings_panel"
 @onready var _sfx_value: Label = $Center/Panel/VBox/SfxRow/SfxValue
 @onready var _gs_slider: HSlider = $Center/Panel/VBox/GameSpeedRow/GameSpeedSlider
 @onready var _gs_value: Label = $Center/Panel/VBox/GameSpeedRow/GameSpeedValue
+@onready var _language_label: Label = $Center/Panel/VBox/LanguageRow/LanguageLabel
+@onready var _language_option: OptionButton = $Center/Panel/VBox/LanguageRow/LanguageOption
 @onready var _keybinds_title: Label = $Center/Panel/VBox/KeybindsTitle
 @onready var _keybinds_body: Label = $Center/Panel/VBox/KeybindsBody
 @onready var _close_btn: Button = $Center/Panel/VBox/ButtonRow/CloseButton
@@ -32,6 +38,7 @@ const MODAL_ID: StringName = &"settings_panel"
 var _master_idx: int = -1
 var _music_idx: int = -1
 var _sfx_idx: int = -1
+var _refreshing_language_options: bool = false
 
 
 func _ready() -> void:
@@ -43,6 +50,9 @@ func _ready() -> void:
 	_music_slider.value_changed.connect(_on_music_changed)
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
 	_gs_slider.value_changed.connect(_on_game_speed_changed)
+	_language_option.item_selected.connect(_on_language_selected)
+	Localization.locale_changed.connect(_on_locale_changed)
+	_refresh_language_options()
 	_close_btn.pressed.connect(close)
 
 
@@ -61,8 +71,10 @@ func _apply_theme() -> void:
 		[_sfx_value, "num_small"],
 		[$Center/Panel/VBox/GameSpeedRow/GameSpeedLabel, "body"],
 		[_gs_value, "num_small"],
+		[_language_label, "body"],
 	]:
 		UiTheme.apply_label_kind(r[0], r[1])
+	UiTheme.apply_button_styling(_language_option)
 	UiTheme.apply_button_styling(_close_btn)
 
 
@@ -110,6 +122,34 @@ func _on_game_speed_changed(v: float) -> void:
 	_gs_value.text = "%.2fx" % v
 	# Engine.time_scale globally affects Tween, Timer, _physics_process delta.
 	Engine.time_scale = v
+
+
+func _refresh_language_options() -> void:
+	if _language_option == null:
+		return
+	_refreshing_language_options = true
+	var current := Localization.current_locale()
+	_language_option.clear()
+	for i in LANGUAGE_OPTIONS.size():
+		var option := LANGUAGE_OPTIONS[i]
+		var label := String(option["label"])
+		var locale := String(option["locale"])
+		_language_option.add_item(Localization.t(label, label), i)
+		_language_option.set_item_metadata(i, locale)
+		if locale == current:
+			_language_option.select(i)
+	_refreshing_language_options = false
+
+
+func _on_language_selected(index: int) -> void:
+	if _refreshing_language_options:
+		return
+	var locale := String(_language_option.get_item_metadata(index))
+	Localization.set_locale(locale)
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_language_options()
 
 
 func _apply_bus_volume(bus_idx: int, linear_value: float) -> void:

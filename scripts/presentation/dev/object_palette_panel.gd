@@ -64,26 +64,26 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Objects"
+	header.text = Localization.t("Objects", "Objects")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
 	_install_drag(header)
 
 	_tab_bar = TabBar.new()
 	_tab_bar.clip_tabs = false  # show all 3 tabs always; no scroll arrows
-	_tab_bar.add_tab("Spawners")
-	_tab_bar.add_tab("Obstacles")
-	_tab_bar.add_tab("Interactive")
+	_tab_bar.add_tab(Localization.t("Spawners", "Spawners"))
+	_tab_bar.add_tab(Localization.t("Obstacles", "Obstacles"))
+	_tab_bar.add_tab(Localization.t("Interactive", "Interactive"))
 	_tab_bar.tab_changed.connect(_on_tab_changed)
 	vbox.add_child(_tab_bar)
 
 	# Filter row (visibility toggled per tab)
 	_filter_row = HBoxContainer.new()
 	_filter_row.add_theme_constant_override("separation", 4)
-	_filter_large = _make_filter("Large", true)
-	_filter_small = _make_filter("Small", true)
-	_filter_elev = _make_filter("Elev", true)
-	_filter_has_effect = _make_filter("Effect", false)
+	_filter_large = _make_filter(Localization.t("Large", "Large"), true)
+	_filter_small = _make_filter(Localization.t("Small", "Small"), true)
+	_filter_elev = _make_filter(Localization.t("Elev", "Elev"), true)
+	_filter_has_effect = _make_filter(Localization.t("Effect", "Effect"), false)
 	_filter_row.add_child(_filter_large)
 	_filter_row.add_child(_filter_small)
 	_filter_row.add_child(_filter_elev)
@@ -142,7 +142,7 @@ func _rebuild_for_tab(tab: int) -> void:
 
 func _build_spawner_buttons() -> void:
 	# Player first (always)
-	_content.add_child(_make_spawner_button("Player Spawn", &"player", &""))
+	_content.add_child(_make_spawner_button(Localization.t("Player Spawn", "Player Spawn"), &"player", &""))
 	# Enemies from data/enemies/*.json
 	var dir := DirAccess.open(ENEMIES_DIR)
 	if dir == null:
@@ -153,7 +153,8 @@ func _build_spawner_buttons() -> void:
 	while fname != "":
 		if not dir.current_is_dir() and fname.ends_with(".json"):
 			var enemy_id := fname.get_basename()
-			var label := "Spawn: %s" % enemy_id
+			var enemy_name := Localization.t("%s_name" % enemy_id, enemy_id.capitalize())
+			var label := Localization.tf("Spawn: %s", [enemy_name], "Spawn: %s")
 			_content.add_child(_make_spawner_button(label, &"enemy", StringName(enemy_id)))
 		fname = dir.get_next()
 	dir.list_dir_end()
@@ -180,7 +181,7 @@ func _on_spawner_pressed(kind: StringName, ref: StringName, btn: Button) -> void
 func _build_object_buttons(want_interactive: bool) -> void:
 	if _registry == null:
 		var lbl := Label.new()
-		lbl.text = "(registry not loaded)"
+		lbl.text = Localization.t("(registry not loaded)", "(registry not loaded)")
 		_content.add_child(lbl)
 		return
 	for obj_id in _registry.get_all_ids():
@@ -219,7 +220,7 @@ func _make_object_button(obj: TileObject) -> Button:
 		TileObject.Level.LARGE: tag = "L"
 		TileObject.Level.SMALL: tag = "S"
 		TileObject.Level.ELEVATION: tag = "E"
-	btn.text = "[%s] %s" % [tag, obj.id]
+	btn.text = "[%s] %s" % [tag, Localization.t("tile_objects.%s.name" % String(obj.id), String(obj.id))]
 	btn.toggle_mode = true
 	# Tooltip — quick at-a-glance summary
 	var lines: PackedStringArray = []

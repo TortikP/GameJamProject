@@ -1,0 +1,69 @@
+{
+  "id": "buffer",
+  "rules": [
+    {
+      "condition": {
+        "kind": "self_hp_below",
+        "pct": 40
+      },
+      "target_selector": {
+        "kind": "self"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "ally_exists"
+          },
+          {
+            "kind": "ally_hp_below",
+            "pct": 50,
+            "distance": 2
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "lowest_hp_ally"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "ally_exists"
+      },
+      "target_selector": {
+        "kind": "highest_hp_ally"
+      },
+      "tag_priority": [
+        "buff"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 4
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy"
+  },
+  "fallback_skill_id": ""
+}

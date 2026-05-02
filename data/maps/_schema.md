@@ -147,3 +147,34 @@ The map editor writes two transient files that are gitignored:
 
 - `__autosave__.json` — debounced editor autosave (every 1.5s of activity). Lives between sessions if the editor was closed without explicit save; you'll be offered "Restore?" on next open.
 - `__playtest__.json` — written when the editor's **Playtest** button is used. Read by the battle scene through the `ActiveLevel` autoload, then ignored. Don't manually save a real map under either name — the editor will refuse the filename.
+
+## dialogue_triggers (added in 039)
+
+Optional. Array of trigger dictionaries. Defaults to `[]` for legacy files.
+
+```json
+{
+  "id": "lvl2_intro",
+  "event": "level_started",
+  "dialogue_id": "boss_intro",
+  "play_mode": "play",
+  "conditions": {
+    "wave_index": 0,
+    "absolute_turn": 40,
+    "cleared_in_turns_lt": 4,
+    "mood_required": ["burnout"],
+    "chance": 1.0,
+    "once_per_run": true,
+    "once_per_session": false
+  }
+}
+```
+
+All conditions are optional and AND-combined. Curated events:
+`level_started`, `wave_about_to_start`, `wave_started`, `wave_cleared`,
+`world_turn_ended`, `skill_offer_about_to_open`, `skill_offer_closed`,
+`level_completed`. Open vocabulary — any `EventBus.<signal_name>` is accepted
+at runtime (warn-once if signal not found, remaining triggers still work).
+
+`play_mode`: `"play"` forces a specific dialogue id; `"request"` runs the
+selector in DialogueManager (picks by tag/conditions/played-set).

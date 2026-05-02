@@ -61,7 +61,8 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_state = State.IDLE   # reset before setup
 	_auto_timer = null
 
-	_name_lbl.text = speaker_data.get("display_name", str(line.speaker))
+	var speaker_fallback := String(speaker_data.get("display_name", str(line.speaker)))
+	_name_lbl.text = Localization.t("dialogues._speakers.%s.display_name" % str(line.speaker), speaker_fallback)
 	_portrait.texture = _resolve_portrait(line, speaker_data)
 
 	if line.image != "":
@@ -79,7 +80,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_choices.hide()
 
 	_text_lbl.bbcode_enabled = true
-	_text_lbl.text = line.text
+	_text_lbl.text = Localization.t("dialogues.%s.text" % str(line.id), line.text)
 	# visible_ratio (0..1) handles bbcode correctly — tags are not counted.
 	# visible_characters tweening would also need visible_characters_behavior tuning;
 	# ratio sidesteps that entirely.
@@ -90,7 +91,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	# so a [b]bold[/b] line gets the right duration regardless of tag overhead.
 	var visible_chars: int = _text_lbl.get_total_character_count()
 	if visible_chars <= 0:
-		visible_chars = line.text.length()  # fallback for empty / pre-layout cases
+		visible_chars = _text_lbl.text.length()  # fallback for empty / pre-layout cases
 	var duration: float = float(visible_chars) / max(chars_per_sec, 1.0)
 
 	if _tween != null:
@@ -123,7 +124,8 @@ func _on_auto_advance() -> void:
 func _show_choices(choices: Array) -> void:
 	for i in choices.size():
 		var btn := Button.new()
-		btn.text = choices[i].get("label", "...")
+		var label := String(choices[i].get("label", "..."))
+		btn.text = Localization.t(label, label)
 		UiTheme.apply_button_styling(btn)
 		var idx := i
 		btn.pressed.connect(func(): _on_choice(idx))
