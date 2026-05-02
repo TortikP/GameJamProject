@@ -1,0 +1,38 @@
+{
+  "id": "monkey_business",
+  "name": "monkey_business_name",
+  "tooltip": "monkey_business_tooltip",
+  "desc": "monkey_business_desc",
+  "icon": "icons/skills/monkey_business.png",
+  "cooldown": 1,
+  "behaviour_tags": [
+    "melee",
+    "damage"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "monkey_business_damage",
+      "sound_start": "monkey_business_damage/monkey_business_damage_start.wav",
+      "collision_effect": "monkey_business_damage/monkey_business_damage_collision.prefab",
+      "sound_end": "monkey_business_damage/monkey_business_damage_end.wav",
+      "animation": "monkey_business_damage/monkey_business_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 20
+        }
+      ]
+    }
+  ]
+}

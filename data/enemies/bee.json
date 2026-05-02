@@ -7,10 +7,10 @@
   "team": "enemy",
   "speed": 3,
   "skills": [
-    "sting",
-    "honey_cold",
-    "summon_bee"
+    "bee_sting",
+    "bee_honey_cold",
+    "bee_summon_bee"
   ],
   "behavior_id": "default_melee",
-  "fallback_skill_id": "sting"
+  "fallback_skill_id": "bee_sting"
 }

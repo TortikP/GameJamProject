@@ -22,8 +22,8 @@ extends Node2D
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const LevelHistory = preload("res://scripts/presentation/dev/level_history.gd")
-const GODMODE_TERRAIN: TileSet = preload("res://scenes/dev/godmode_terrain.tres")
-const GODMODE_TERRAIN_PATH: String = "res://scenes/dev/godmode_terrain.tres"
+const HEX_TERRAIN: TileSet = preload("res://scenes/arena/tilesets/hex_terrain.tres")
+const HEX_TERRAIN_PATH: String = "res://scenes/arena/tilesets/hex_terrain.tres"
 
 const INITIAL_SOURCE_ID: int = 0
 const INITIAL_ATLAS_COORD: Vector2i = Vector2i(0, 0)
@@ -145,19 +145,14 @@ func _ready() -> void:
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
-	# Using the placeholder tileset (matches FloorPalette's default dropdown
-	# selection) so the user's first paint actually lands on existing atlas
-	# coords. If we used GODMODE_TERRAIN here while palette shows Placeholder,
-	# clicking sand/stone/water etc. would call set_cell with atlas coords
-	# the godmode tileset doesn't have — Godot silently paints an empty cell
-	# (black square).
-	# Default canvas — godmode_terrain (single grass atlas tile). Per Andrey:
-	# editor only ships with godmode now; placeholder_terrain.tres / hex_terrain.tres
-	# dropped from the palette, so new levels start on the only available tileset.
-	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
+	# Default canvas: hex_terrain.tres source 0 atlas (0,0) = grass tile
+	# (walkable=true, move_cost=1). Per 032-controller-refactor: this is the
+	# only tileset shipped — godmode_terrain.tres was deleted in the same PR,
+	# floor palette now shows hex_terrain only.
+	grid.tile_map_layer.tile_set = HEX_TERRAIN
 	if grid.vfx_overlay != null:
-		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
-	_level.tileset_path = GODMODE_TERRAIN_PATH
+		grid.vfx_overlay.tile_set = HEX_TERRAIN
+	_level.tileset_path = HEX_TERRAIN_PATH
 	for row in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
 		for col in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
 			grid.tile_map_layer.set_cell(

@@ -1,7 +1,7 @@
 # 032-controller-refactor — spec
 
-**Owner:** TBD (Andrey to claim or delegate).
-**Status:** Spec-only. Plan + tasks deferred to next chat — this file just frames the problem and proposes the split.
+**Owner:** Andrey.
+**Status:** In-PR — implementation on `andrey/controller-refactor`. Manual editor validation (T29) pending Andrey before merge.
 
 ## Problem
 
@@ -98,6 +98,6 @@ After migration: `godmode_terrain.tres` is deleted. `_paint_grid` uses `hex_terr
 
 ## Bugs noticed in passing (track here, fix during refactor or separately)
 
-- **B-001:** `_run_enemy_turn` Phase 2 loop iterates `enemies` array containing instances that may have been freed during Phase 1 (multi-step movement through damaging tile effect → actor death → `queue_free` → Phase 2 hits `actor is Actor` on a freed instance). Stack trace seen 2026-05-02 in Andrey's session. Fix: either re-query `registry.all()` between phases, or filter by `is_instance_valid(actor) and (actor as Actor).is_alive()` at top of Phase 2 loop.
-- **B-002:** Console warns `GDScript::reload: The function "apply_label_kind()" is a static function but was called from an instance.` Origin: somewhere a consumer calls `UiTheme.apply_label_kind(...)` where `UiTheme` is the autoload INSTANCE rather than the script type. With autoload, both work but Godot 4.6 warns. Cosmetic; address by switching consumer to `const UiTheme = preload(...)` pattern (see CLAUDE.md trap on Logger).
-- **B-003:** Move-range overlay sometimes doesn't render (Andrey screenshot 2026-05-02). Suspected cause: tileset shape mismatch (see Tileset consolidation section). Verify after consolidation; if still broken, separate root-cause investigation.
+- **B-001 (CLOSED):** `_run_enemy_turn` Phase 2 loop iterated `enemies` array containing freed instances during multi-step movement through damaging tile effects. Already fixed in 029 (commit `749a954`) by `is_instance_valid(actor)` guards in both Phase 1 and Phase 2 loops. Verified to survive the refactor in T15 — guards present in `ai_driver.gd::_run_enemy_turn`.
+- **B-002 (OPEN, deferred):** Console warns `GDScript::reload: The function "apply_label_kind()" is a static function but was called from an instance.` Origin: somewhere a consumer calls `UiTheme.apply_label_kind(...)` where `UiTheme` is the autoload INSTANCE rather than the script type. With autoload, both work but Godot 4.6 warns. Cosmetic; address by switching consumer to `const UiTheme = preload(...)` pattern (see CLAUDE.md trap on Logger). Out of scope for 032; track as separate cleanup.
+- **B-003 (LIKELY CLOSED, pending validation):** Move-range overlay sometimes doesn't render. The 029 commit `749a954` rewrote `_draw_zone_outline` in `move_range_overlay.gd` to use geometric edge detection (probe `local_to_map(midpoint × 1.4)` instead of the `*_SIDE` enum table), making it shape-agnostic. With 032's tileset consolidation aligning everything on HEXAGON shape, both layers now agree on neighbour topology too. T29 validation in editor confirms — TBD by Andrey.

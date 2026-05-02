@@ -1,0 +1,39 @@
+{
+  "id": "bee_honey_cold",
+  "name": "bee_honey_cold_name",
+  "tooltip": "bee_honey_cold_tooltip",
+  "desc": "bee_honey_cold_desc",
+  "icon": "icons/skills/bee_honey_cold.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "heal",
+    "debuff"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bee_honey_cold_target_heal",
+      "sound_start": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_start.wav",
+      "collision_effect": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_collision.prefab",
+      "sound_end": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_end.wav",
+      "animation": "bee_honey_cold_target_heal/bee_honey_cold_target_heal.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "heal": 18,
+          "status_id": "slowed(3)"
+        }
+      ]
+    }
+  ]
+}

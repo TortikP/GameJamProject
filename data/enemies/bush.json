@@ -7,10 +7,10 @@
   "team": "enemy",
   "speed": 0,
   "skills": [
-    "curse",
-    "berry_throw",
-    "nice_smell"
+    "bush_curse",
+    "bush_berry_throw",
+    "bush_nice_smell"
   ],
   "behavior_id": "default_caster",
-  "fallback_skill_id": "berry_throw"
+  "fallback_skill_id": "bush_berry_throw"
 }

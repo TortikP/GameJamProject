@@ -29,8 +29,9 @@ class_name LevelData
 
 const SCHEMA_VERSION: int = 2  # 024: bump from 1 (added waves[]).
 
-# Defaults match godmode_terrain.tres (single grass tile, source 0 atlas (0,0)).
-const DEFAULT_TILESET_PATH: String = "res://scenes/dev/godmode_terrain.tres"
+# Defaults match hex_terrain.tres source 0 atlas (0,0) = grass tile (post-032
+# tileset consolidation; godmode_terrain.tres deleted).
+const DEFAULT_TILESET_PATH: String = "res://scenes/arena/tilesets/hex_terrain.tres"
 
 # Per-wave defaults used when synthesizing new waves (e.g. legacy migration,
 # editor "+ Wave"). DEFAULT_TURNS_TO_NEXT only applies to non-final waves.

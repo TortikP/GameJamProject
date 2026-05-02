@@ -1,0 +1,38 @@
+{
+  "id": "bush_curse",
+  "name": "bush_curse_name",
+  "tooltip": "bush_curse_tooltip",
+  "desc": "bush_curse_desc",
+  "icon": "icons/skills/bush_curse.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "debuff"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bush_curse_slow_single",
+      "sound_start": "bush_curse_slow_single/bush_curse_slow_single_start.wav",
+      "collision_effect": "bush_curse_slow_single/bush_curse_slow_single_collision.prefab",
+      "sound_end": "bush_curse_slow_single/bush_curse_slow_single_end.wav",
+      "animation": "bush_curse_slow_single/bush_curse_slow_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "status_id": "slowed(3)"
+        }
+      ]
+    }
+  ]
+}
