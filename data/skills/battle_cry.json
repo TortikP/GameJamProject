@@ -1,0 +1,55 @@
+{
+  "id": "battle_cry",
+  "name": "battle_cry_name",
+  "tooltip": "battle_cry_tooltip",
+  "desc": "battle_cry_desc",
+  "icon": "assets/sprites/icons/skills/battle_cry.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "melee"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "self_enrage",
+      "sound_start": "assets/audio/skills/self_enrage/start.wav",
+      "collision_effect": "assets/vfx/status/enraged/apply_self.prefab",
+      "sound_end": "assets/audio/status/enraged/end.wav",
+      "animation": "assets/animations/status/self_enrage.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "enraged (2)"
+        }
+      ]
+    },
+    {
+      "id": "apply_fear_area",
+      "sound_start": "assets/audio/skills/apply_fear_area/start.wav",
+      "collision_effect": "assets/vfx/status/feared/apply_area.prefab",
+      "sound_end": "assets/audio/status/feared/end.wav",
+      "animation": "assets/animations/status/apply_fear_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "feared (2)"
+        }
+      ]
+    }
+  ]
+}
