@@ -51,7 +51,7 @@
       "effects": [
         {
           "damage": 3,
-          "status_id": "poisoned (3)"
+          "status_id": "poisoned(3)"
         }
       ]
     }
