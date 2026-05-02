@@ -11,5 +11,5 @@
     "fire_slime_firey_touch"
   ],
   "behavior_id": "default_melee",
-  "fallback_skill_id": "fire_slime_magma_spit"
+  "fallback_skill_id": "fire_slime_firey_touch"
 }
