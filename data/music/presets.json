@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "presets": {
+    "calm_dungeon": {
+      "bpm": 84,
+      "base_state": "calm",
+      "lead_density_calm": 0.25,
+      "pad_gain_db": -2,
+      "drums_gain_db": -6
+    },
+    "tense_arena": {
+      "bpm": 100,
+      "base_state": "battle",
+      "lead_density_battle": 0.6,
+      "pad_gain_db": -1,
+      "drums_gain_db": 0
+    },
+    "boss_finale": {
+      "bpm": 124,
+      "base_state": "battle",
+      "lead_density_battle": 0.85,
+      "pad_gain_db": -3,
+      "drums_gain_db": 2
+    },
+    "menu_quiet": {
+      "bpm": 72,
+      "base_state": "calm",
+      "lead_density_calm": 0.15,
+      "pad_gain_db": 0,
+      "drums_gain_db": -24
+    }
+  }
+}

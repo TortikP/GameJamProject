@@ -18,6 +18,7 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 [autoload]
 
 EventBus="*res://scripts/infrastructure/event_bus.gd"
+MusicDirector="*res://scripts/audio/music/music_director.gd"
 RunScore="*res://scripts/infrastructure/run_score.gd"
 GameSpeed="*res://scripts/infrastructure/game_speed.gd"
 UiTheme="*res://scripts/presentation/ui_theme.gd"

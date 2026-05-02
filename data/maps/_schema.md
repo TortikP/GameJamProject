@@ -178,3 +178,33 @@ at runtime (warn-once if signal not found, remaining triggers still work).
 
 `play_mode`: `"play"` forces a specific dialogue id; `"request"` runs the
 selector in DialogueManager (picks by tag/conditions/played-set).
+
+---
+
+## `music_config` (042 — proc-music, optional)
+
+Per-level procedural music configuration. All fields optional. Absent = defaults.
+
+```json
+{
+  "music_config": {
+    "preset":     "tense_arena",   // StringName — id from data/music/presets.json. Fields below override.
+    "seed":       1234,            // int. Default = hash(level.name) & 0x7fffffff
+    "bpm":        96,              // float, 40..200. Default 96.
+    "base_state": "calm",          // "calm" | "battle". Default "calm".
+    "stings": {                    // Override sting id per event.
+      "wave_clear": "blip_up",
+      "victory":    "fanfare",
+      "defeat":     "descending"
+    },
+    "lead_density_calm":   0.3,    // float 0..1. Default 0.3.
+    "lead_density_battle": 0.7,    // float 0..1. Default 0.7.
+    "pad_gain_db":   0,            // float. Default 0.
+    "drums_gain_db": 0,            // float. Default 0.
+    "muted": false                 // bool. Silences music for this level. Default false.
+  }
+}
+```
+
+Resolution order: hardcoded defaults → preset → explicit fields.
+See `data/music/presets.json` for named presets. Use Music Lab (`scenes/dev/music_lab.tscn`, F6) for A/B tuning + Copy JSON.
