@@ -2,7 +2,7 @@
   "id": "enraged",
   "rules": [
     {
-      "condition": {"kind": "always"},
+      "condition": {"kind": "enemy_in_range", "distance": 1},
       "target_selector": {"kind": "specific_actor"},
       "tag_priority": ["damage"],
       "min_skill_count": 1

@@ -74,6 +74,29 @@ Manual via godmode (no automated tests in repo).
   PR body: link spec.md, list the verified ACs, note that 027 §"Open
   after playtest" #7 (slowed 1-tick lag) is collapsed by this fix.
 
+## Followup tasks (post-playtest 02.05)
+
+- [x] **F1** — `scripts/core/ai/behavior_database.gd:_build_scenario`:
+  drop the empty-rules rejection. Continue parsing if `rules: []`. Only
+  reject if rules were declared but every one failed to parse.
+- [x] **F2** — `data/ai_behaviors/enraged.json`: change rule condition
+  from `{"kind": "always"}` to
+  `{"kind": "enemy_in_range", "distance": 1}`. Forces enraged to close
+  to melee before swinging, even with a ranged skill in kit.
+- [x] **F3** — `scripts/core/actors/actor.gd:tick_statuses_with_ctx`:
+  emit `statuses_changed` at end of tick if any decrement happened AND
+  `to_remove.is_empty()`. Avoids double-emit on expire turns. Forces
+  pill-strip rebuild on plain decrement.
+
+## Followup verification (Egor)
+
+- [ ] **F4** — AC-F1 (feared kites away, no attack).
+- [ ] **F5** — AC-F2a (enraged with range-3 skill approaches before
+  casting; first cast lands only when adjacent).
+- [ ] **F6** — AC-F2b (enraged adjacent → casts immediately).
+- [ ] **F7** — AC-F3a/b/c (duration display shows every intermediate
+  value; slowed-only stale bug gone).
+
 ## Out
 
 - No automated test files (repo has none).
@@ -82,3 +105,4 @@ Manual via godmode (no automated tests in repo).
 - No `actor_status_removed` signal.
 - No `on_apply` for stunned/rooted/feared/enraged (replan + existing
   swap/early-return covers them).
+- No new `condition_specific_actor_in_range` (post-jam — see spec F2 caveat).

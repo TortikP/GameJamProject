@@ -298,6 +298,7 @@ func tick_statuses_with_ctx(ctx: Dictionary) -> void:
 	# themselves or set duration=0 for next sweep).
 	var ids: Array = _statuses.keys()
 	var to_remove: Array[StringName] = []
+	var any_decremented: bool = false
 	for id_v in ids:
 		if not _statuses.has(id_v):
 			continue   # cascaded-removed (e.g. by mutual exclusivity earlier)
@@ -308,7 +309,18 @@ func tick_statuses_with_ctx(ctx: Dictionary) -> void:
 		if _dead:
 			return   # DoT killed us; remaining statuses won't tick this turn
 		inst.duration -= 1
+		any_decremented = true
 		if inst.duration <= 0:
 			to_remove.append(inst.status_id)
 	for id in to_remove:
 		remove_status(id)   # fires on_remove (e.g. behavior_id restore for feared/enraged)
+	# 034: pure-decrement turns (no status expired) still need a UI rebuild —
+	# StatusIconStrip listens to statuses_changed to refresh duration digits.
+	# Without this emit, durations only redrew when something actually
+	# expired, so players saw "3 → 1" with the "2" frame missing, and any
+	# enemy carrying a single non-expiring status (e.g. slowed mid-flight)
+	# kept its initial duration onscreen indefinitely. remove_status above
+	# already emits per-removal — skip here to avoid double-emit on
+	# expire-only turns.
+	if any_decremented and to_remove.is_empty():
+		statuses_changed.emit(actor_id)

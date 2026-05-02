@@ -216,3 +216,89 @@ PR.
   Still, guard avoids the redundant replan. If the guard ever silently
   flips false during world processing, replan storms become possible.
   Single owner of the flag (godmode_controller), low risk.
+
+## Followup fixes (post-playtest 02.05)
+
+First playtest of the replan-on-status-add fix surfaced three more bugs
+that were latent before 034 (or before, but masked). Fixed in the same PR.
+
+### F1 — feared scenario silently degraded to default_melee
+
+**Symptom:** feared enemy chases and attacks the source instead of fleeing.
+
+**Cause:** `BehaviorDatabase._build_scenario` rejected scenarios with empty
+`rules` arrays (`"rules" must be non-empty array`). `feared.json` is
+empty-rules-by-design (027 spec: feared не атакует). Loader returns null →
+`EnemyAIPlanner.plan` falls back to `default_melee` → enemy approaches and
+attacks. 027 AC-X8 was specced but never functional.
+
+**Fix:** allow empty rules. Only reject if rules were *declared* but every
+one failed to parse. `scripts/core/ai/behavior_database.gd:_build_scenario`.
+
+**Touches:** `scripts/core/ai/behavior_database.gd`.
+
+### F2 — enraged enemy uses ranged attack from distance
+
+**Symptom:** enraged manekin (only skill: paper_jam, range 3) fires
+paper_jam at the source from up to 3 hexes away, instead of charging in
+to melee.
+
+**Cause:** `data/ai_behaviors/enraged.json` rule has
+`condition: {"kind": "always"}`. The rule fires regardless of distance;
+`_target_in_skill_range` then accepts any skill whose range covers the
+source, including ranged ones. No distance gate.
+
+**Fix (option A from chat):** change condition to
+`{"kind": "enemy_in_range", "distance": 1}`. Rule only fires when an
+opposing actor is at distance 1; movement_policy `approach_specific_actor`
+closes the distance until the gate opens. **Caveat:** the condition
+checks any opposing-team actor at d=1, not specifically the source. If a
+non-player neutral is at d=1 but the source player isn't, the rule still
+fires and casts at the player from distance via the `specific_actor`
+selector. Acceptable for jam scope (no neutrals on current maps); the
+strict fix would be a `condition_specific_actor_in_range` class — out
+of scope here, noted for post-jam.
+
+**Touches:** `data/ai_behaviors/enraged.json`.
+
+### F3 — duration display jumps 3 → 1, statuses with no expire never redraw
+
+**Symptom (from screenshots 02.05):** paper_jam applies rooted(2) +
+slowed(3); on the next world turn the slowed pill still shows "3", on
+the turn after it jumps straight to "1". Enemies that received only
+slowed (radius-2 ring, no rooted) keep showing "3" the whole time.
+
+**Cause:** `Actor.tick_statuses_with_ctx` decrements `inst.duration` but
+only calls `remove_status` (which emits `statuses_changed`) when a status
+expires. Plain decrement → no signal → `StatusIconStrip` rebuild never
+fires → display is stuck at the value from the last `add_status` /
+`remove_status` event.
+
+**Fix:** at end of `tick_statuses_with_ctx`, emit `statuses_changed` once
+if any decrement happened AND no `to_remove` covered it (avoid
+double-emit on expire turns). UI now refreshes every tick.
+
+**Touches:** `scripts/core/actors/actor.gd`.
+
+### Followup-fix acceptance
+
+- **AC-F1**: Apply `feared(d=3)` to a manekin adjacent to the player
+  (using `test_status_fear`). On next world turn the manekin steps AWAY
+  from the player; no cast intent, no telegraph. Repeats until expire,
+  then default behavior resumes. (Was: chased + attacked.)
+- **AC-F2a**: Apply `enraged(d=3)` to a manekin at distance 3 from
+  player (only skill: paper_jam, range 3). Manekin steps toward player
+  on next world turn; does not cast paper_jam. Continues approaching
+  each turn until adjacent, then casts paper_jam. (Was: cast paper_jam
+  immediately from d=3.)
+- **AC-F2b**: Apply `enraged(d=3)` to a manekin adjacent to player.
+  Manekin casts paper_jam on next world turn. (Sanity-check: gate still
+  opens at d=1.)
+- **AC-F3a**: Cast `paper_jam` (rooted(2) + slowed(3) AoE). On the next
+  world turn each affected enemy shows duration `1` for rooted and `2`
+  for slowed (intermediate value visible). Turn after: rooted gone,
+  slowed shows `1`.
+- **AC-F3b**: Slowed-only enemy (outside root radius) shows `3 → 2 → 1`
+  across consecutive world turns, then disappears.
+- **AC-F3c**: No double-rebuild of pill strip on expire turns (manual:
+  inspect logs / expect no flicker).
