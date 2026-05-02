@@ -1,0 +1,23 @@
+{
+  "id": "melee_fighter",
+  "rules": [
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 1
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "knockback"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy_unclaimed"
+  },
+  "fallback_skill_id": ""
+}

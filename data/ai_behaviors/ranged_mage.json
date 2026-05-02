@@ -1,0 +1,60 @@
+{
+  "id": "ranged_mage",
+  "rules": [
+    {
+      "condition": {
+        "kind": "no_enemy_in_range",
+        "distance": 2
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "damage_aoe"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 2
+          },
+          {
+            "kind": "unclaimed_hex_exists_near_enemy",
+            "distance": 1
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "unclaimed_hex_near_enemy"
+      },
+      "tag_priority": [
+        "damage_aoe",
+        "damage"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 2
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "damage_aoe"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "kite_from_nearest_enemy"
+  },
+  "fallback_skill_id": ""
+}

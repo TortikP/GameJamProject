@@ -1,0 +1,48 @@
+{
+  "id": "healer",
+  "rules": [
+    {
+      "condition": {
+        "kind": "self_hp_below",
+        "pct": 40
+      },
+      "target_selector": {
+        "kind": "self"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "ally_hp_below",
+        "pct": 60,
+        "distance": 3
+      },
+      "target_selector": {
+        "kind": "lowest_hp_ally"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "always"
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "follow_lowest_hp_ally"
+  },
+  "fallback_skill_id": ""
+}
