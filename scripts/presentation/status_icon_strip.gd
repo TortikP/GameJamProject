@@ -32,16 +32,48 @@ func _ready() -> void:
 	EventBus.ui_theme_reloaded.connect(_on_theme_reloaded)
 
 
-## Bind to an actor. Until 007 ships statuses_changed signal, this just stores
-## the ref — caller still has to push updates via set_statuses().
+## Bind to an actor. 027: connects to actor.statuses_changed and rebuilds
+## the pill list whenever statuses mutate. Idempotent — re-binding the same
+## actor is a no-op; binding a different actor disconnects the old signal.
 func bind_actor(actor: Actor) -> void:
+	if _bound_actor == actor:
+		return
+	if _bound_actor != null and _bound_actor.statuses_changed.is_connected(_on_statuses_changed):
+		_bound_actor.statuses_changed.disconnect(_on_statuses_changed)
 	_bound_actor = actor
-	# When 007 lands, connect to actor.statuses_changed here.
+	if actor != null:
+		actor.statuses_changed.connect(_on_statuses_changed)
+		_rebuild()
 
 
 func unbind() -> void:
+	if _bound_actor != null and _bound_actor.statuses_changed.is_connected(_on_statuses_changed):
+		_bound_actor.statuses_changed.disconnect(_on_statuses_changed)
 	_bound_actor = null
 	clear()
+
+
+func _on_statuses_changed(_actor_id: StringName) -> void:
+	_rebuild()
+
+
+# 027: pull current StatusInstance list from actor, map via StatusRegistry.family_of,
+# pass to the pre-existing set_statuses(entries) renderer.
+func _rebuild() -> void:
+	if _bound_actor == null:
+		clear()
+		return
+	var entries: Array = []
+	for inst_v in _bound_actor.get_statuses():
+		var inst := inst_v as StatusInstance
+		if inst == null:
+			continue
+		entries.append({
+			"id":       inst.status_id,
+			"family":   StatusRegistry.family_of(inst.status_id),
+			"duration": inst.duration,
+		})
+	set_statuses(entries)
 
 
 ## Replace the pill list with `entries`. Each entry: { id, family, duration }.

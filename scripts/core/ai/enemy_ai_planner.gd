@@ -28,7 +28,41 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 	if not actor.is_alive():
 		return
 
-	# Resolve scenario (with default fallback).
+	# 027 / AC-RT-stunned: stunned actors skip planning entirely.
+	if actor.is_stunned():
+		return
+
+	# 027 / AC-AI3: enrich ctx with behavior_target_id from active feared/enraged.
+	# Mutual exclusivity (AC-RA3) means at most one is active. Enraged checked
+	# first — but in practice add_status enforces only-one, so order is moot.
+	var bid: StringName = &""
+	var enr: StatusInstance = actor.get_status(&"enraged")
+	if enr != null:
+		bid = enr.source_id
+	else:
+		var fer: StatusInstance = actor.get_status(&"feared")
+		if fer != null:
+			bid = fer.source_id
+	if bid != &"":
+		ctx["behavior_target_id"] = bid
+
+	# 027: status-driven movement override (slowed flip-flop / rooted hold).
+	# Computed before scenario logic so we can suppress movement_policy.pick_step
+	# if any active status returns the (-2,-2) hold sentinel. Cast-intent still
+	# gets a chance — slowed/rooted don't block casting.
+	var hold_movement: bool = false
+	for inst_v in actor.get_statuses():
+		var inst := inst_v as StatusInstance
+		var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+		if rt == null:
+			continue
+		var ov: Vector2i = rt.override_movement(actor, inst, ctx)
+		if ov == Vector2i(-2, -2):
+			hold_movement = true
+			break
+
+	# Resolve scenario (with default fallback). 027: feared/enraged AI gets
+	# its swapped behavior_id here, so the dedicated scenario is loaded.
 	var scenario: BehaviorScenario = BehaviorDatabase.get_scenario(actor.behavior_id)
 	if scenario == null:
 		scenario = BehaviorDatabase.get_scenario(DEFAULT_BEHAVIOR)
@@ -48,8 +82,8 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 		if _try_rule(actor, rule, ctx):
 			return  # cast_intent set, planning done
 
-	# Fallback: movement.
-	if scenario.movement_policy != null:
+	# Fallback: movement. 027: suppress if any status held movement.
+	if scenario.movement_policy != null and not hold_movement:
 		actor.move_intent_coord = scenario.movement_policy.pick_step(actor, ctx)
 
 	# Last-ditch: scenario.fallback_skill_id if defined and movement gave no anchor.
@@ -142,6 +176,19 @@ func _build_target_candidates(actor: Actor, selector: TargetSelector, ctx: Dicti
 	var actors: Array = ctx.get("all_actors", [])
 	if selector is SelectorSelf:
 		return [actor]
+	# 027 / AC-AI4: SelectorSpecificActor reads behavior_target_id, ignores
+	# team filter. Singleton list (or empty if source is gone).
+	if selector is SelectorSpecificActor:
+		var bid: StringName = ctx.get("behavior_target_id", &"")
+		if bid == &"":
+			return []
+		var registry: ActorRegistry = ctx.get("registry") as ActorRegistry
+		if registry == null:
+			return []
+		var src: Actor = registry.get_actor(bid)
+		if src == null or not src.is_alive():
+			return []
+		return [src]
 	var want_allies: bool = selector is SelectorLowestHpAlly
 	var result: Array = []
 	for other_v in actors:

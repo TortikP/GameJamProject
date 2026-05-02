@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://manekin_001"]
+[gd_scene load_steps=5 format=3 uid="uid://manekin_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/godmode/manekin_view.gd" id="1_manekin"]
 [ext_resource type="Script" path="res://scripts/presentation/health_bar.gd" id="2_hpbar"]
 [ext_resource type="Texture2D" path="res://assets/sprites/manekin.png" id="3_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/ui/status_icon_strip.tscn" id="4_strip"]
 
 [node name="Manekin" type="Node2D"]
 script = ExtResource("1_manekin")
@@ -18,3 +19,7 @@ z_index = 4
 script = ExtResource("2_hpbar")
 y_offset = -48.0
 z_index = 6
+
+[node name="StatusIconStrip" parent="." instance=ExtResource("4_strip")]
+position = Vector2(-32, -70)
+z_index = 8
