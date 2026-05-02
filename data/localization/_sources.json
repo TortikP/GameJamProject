@@ -623,6 +623,12 @@
                                                     "note":  "literal data string"
                                                 }
                                             ],
+    "English":  [
+                    {
+                        "source":  "preserved from existing en.json",
+                        "note":  "manual or stale key"
+                    }
+                ],
     "fire_slime_desc":  [
                             {
                                 "source":  "data/enemies/fire_slime.json:desc",
@@ -707,6 +713,12 @@
                                    "note":  "existing localization key in data"
                                }
                            ],
+    "Language":  [
+                     {
+                         "source":  "preserved from existing en.json",
+                         "note":  "manual or stale key"
+                     }
+                 ],
     "lavender_lion_bite_desc":  [
                                     {
                                         "source":  "data/skills/lavender_lion_bite.json:desc",
@@ -785,6 +797,18 @@
                              "note":  "existing localization key in data"
                          }
                      ],
+    "maps.__autosave__.name":  [
+                                   {
+                                       "source":  "data/maps/__autosave__.json:name",
+                                       "note":  "literal data string"
+                                   }
+                               ],
+    "maps.__playtest__.name":  [
+                                   {
+                                       "source":  "data/maps/__playtest__.json:name",
+                                       "note":  "literal data string"
+                                   }
+                               ],
     "maps.sample.name":  [
                              {
                                  "source":  "data/maps/sample.json:name",
@@ -965,6 +989,12 @@
                                  "note":  "existing localization key in data"
                              }
                          ],
+    "Russian":  [
+                    {
+                        "source":  "preserved from existing en.json",
+                        "note":  "manual or stale key"
+                    }
+                ],
     "skill.test_combo_multikey_effect.desc":  [
                                                   {
                                                       "source":  "data/skills/test_combo_multikey_effect.json:desc",
@@ -2279,7 +2309,7 @@
                                    ],
     "ui.settings_panel.closebutton.text":  [
                                                {
-                                                   "source":  "scenes/ui/settings_panel.tscn:118",
+                                                   "source":  "scenes/ui/settings_panel.tscn:128",
                                                    "note":  "scene property"
                                                }
                                            ],
@@ -2297,7 +2327,13 @@
                                               ],
     "ui.settings_panel.keybindstitle.text":  [
                                                  {
-                                                     "source":  "scenes/ui/settings_panel.tscn:108",
+                                                     "source":  "scenes/ui/settings_panel.tscn:118",
+                                                     "note":  "scene property"
+                                                 }
+                                             ],
+    "ui.settings_panel.languagelabel.text":  [
+                                                 {
+                                                     "source":  "scenes/ui/settings_panel.tscn:112",
                                                      "note":  "scene property"
                                                  }
                                              ],
