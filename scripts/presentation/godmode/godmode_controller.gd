@@ -725,6 +725,11 @@ func _commit_cast() -> void:
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
 	_refresh_overlay()
 	if did_cast:
+		# 031 phase 11: deselect the active slot after a successful cast so
+		# the next click is a plain move, not an immediate re-cast attempt
+		# on the (now greyed) cooled-down slot.
+		if _slot_bar_node != null:
+			_slot_bar_node.set_active(-1)
 		await GameSpeed.wait("godmode", "ability_cast_delay")
 		TurnManager.advance()
 

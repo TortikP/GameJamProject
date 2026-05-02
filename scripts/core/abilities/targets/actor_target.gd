@@ -56,10 +56,13 @@ func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
 		return grid.get_all_walkable_coords()
 	if range == 0:
 		return [caster_coord]
-	# BFS up to range steps from caster (include occupied hexes for overlay)
+	# 035 cont.: include caster_coord. Without it, the FSM click validator
+	# (godmode_controller._handle_cast_lmb) rejects clicks on self before
+	# resolve() ever runs — so the resolve-side self fix in 035 was masked.
+	# BFS still walks neighbours; we just seed the result with caster.
 	var visited: Dictionary = {caster_coord: true}
 	var frontier: Array[Vector2i] = [caster_coord]
-	var result: Array[Vector2i] = []
+	var result: Array[Vector2i] = [caster_coord]
 	for _step in range:
 		var next: Array[Vector2i] = []
 		for coord in frontier:
