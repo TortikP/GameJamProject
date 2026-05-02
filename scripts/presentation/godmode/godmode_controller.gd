@@ -233,6 +233,8 @@ func _get_or_clone_player_skill(skill_id: StringName) -> Skill:
 # AiDriver._tick_all_skills via Actor.tick_skills) reaches the same instances
 # that the player actually casts. De-duped — same skill in two slots ticks once.
 # Public so GodmodeSetup can call it after _seed_slots.
+# 038: also drives MoodTracker — same deduped list, single recompute per
+# slot mutation. Future single-instance-per-slot model makes the dedup a noop.
 func sync_player_skills_from_slots() -> void:
 	if player == null or slot_bar == null:
 		return
@@ -242,6 +244,7 @@ func sync_player_skills_from_slots() -> void:
 		if sk != null and not skills.has(sk):
 			skills.append(sk)
 	player.set_skills(skills)
+	MoodTracker.recompute_from_skills(skills)
 
 
 ## 016/F-034 — resolves PlayerStatusPanel via @export NodePath, with fallback

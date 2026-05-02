@@ -61,14 +61,18 @@ const MOODS_SKILL: Array[StringName] = [&"neutral", &"tranquility", &"burnout", 
 const MOOD_CHIMERA: StringName = &"chimera"
 
 var _counts: Dictionary = {}      # StringName -> int, keys = MOODS_SKILL
+var _prev_counts: Dictionary = {} # snapshot before last recompute, for delta logging
+var _prev_dominant: StringName = &""
 var _warned_unknown: Dictionary = {}   # StringName -> true, warn-once dedup
 
 
 func _ready() -> void:
     _zero_counts()
+    _prev_counts = _counts.duplicate()
 
 
 func recompute_from_skills(skills: Array) -> void:
+    _prev_counts = _counts.duplicate()
     _zero_counts()
     for s in skills:
         var sk: Skill = s as Skill
@@ -85,7 +89,8 @@ func recompute_from_skills(skills: Array) -> void:
             else:
                 _warn_unknown(sk.id, key)
     var dom: StringName = get_dominant()
-    GameLogger.info("MoodTracker", "counts=%s dominant=%s" % [_counts, dom])
+    _log_change(dom)
+    _prev_dominant = dom
     EventBus.player_mood_changed.emit(get_counts(), dom)
 
 
@@ -113,6 +118,26 @@ func get_dominant() -> StringName:
 func _zero_counts() -> void:
     for m in MOODS_SKILL:
         _counts[m] = 0
+
+
+func _log_change(dom: StringName) -> void:
+    # Compact one-liner: counts in canonical order, delta on changed channels,
+    # explicit dominant transition. Goes through GameLogger.info → print →
+    # Godot output console. WARN-level on dominant flip so it stands out
+    # in a noisy combat log.
+    var parts: Array[String] = []
+    for m in MOODS_SKILL:
+        var cur: int = _counts[m]
+        var prev: int = int(_prev_counts.get(m, 0))
+        if cur == prev:
+            parts.append("%s=%d" % [m, cur])
+        else:
+            parts.append("%s=%d(%+d)" % [m, cur, cur - prev])
+    var line: String = "%s | dominant=%s" % [", ".join(parts), dom]
+    if _prev_dominant != &"" and _prev_dominant != dom:
+        GameLogger.warn("MoodTracker", "DOMINANT %s → %s | %s" % [_prev_dominant, dom, line])
+    else:
+        GameLogger.info("MoodTracker", line)
 
 
 func _warn_unknown(skill_id: StringName, mood: StringName) -> void:

@@ -90,3 +90,10 @@ signal ui_modal_closed(id: StringName)
 signal main_menu_entered
 signal run_started_requested
 signal pause_toggled(paused: bool)
+
+# 038: narrative mood tracker — emitted by MoodTracker on every recompute
+# (driven from godmode_controller.sync_player_skills_from_slots after
+# player.set_skills). Consumer: future DialogueManager line picker. Counts
+# is a Dictionary[StringName, int] over MoodTracker.MOODS_SKILL; dominant
+# is one of MOODS_SKILL ∪ {chimera}.
+signal player_mood_changed(counts: Dictionary, dominant: StringName)
