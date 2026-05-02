@@ -274,6 +274,11 @@ func _seed_slots() -> void:
 		if sk != null:
 			ids.append_array(sk.get_ability_ids())
 	player.set_abilities(ids)
+	# 031 phase 2: also push the actual Skill resources onto Actor._skills so
+	# _tick_all_skills can decrement their cooldowns. Without this, slot-bound
+	# skills cast fine but never come off cooldown for the player (enemies
+	# work because enemy_data_loader sets _skills directly).
+	_sync_player_skills_from_slots()
 
 
 func _emit_initial_turn() -> void:
@@ -1216,7 +1221,25 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 		return
 	if _slot_bar_node != null:
 		_slot_bar_node.set_slot(_picker_target_slot, skill)
+	# 031 phase 2: rebuild player._skills so the new slot's cooldown ticks.
+	_sync_player_skills_from_slots()
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
+
+
+# 031 phase 2: rebuild Actor._skills from the current slot bar contents.
+# Slot bar holds the canonical Skill resources for the player; this just
+# mirrors them onto the Actor so the cooldown tick (driven from
+# _tick_all_skills via Actor.tick_skills) reaches the same instances that
+# the player actually casts. De-duped — same skill in two slots ticks once.
+func _sync_player_skills_from_slots() -> void:
+	if player == null or _slot_bar_node == null:
+		return
+	var skills: Array = []
+	for i in 4:
+		var sk: Skill = _slot_bar_node.get_slot(i) as Skill
+		if sk != null and not skills.has(sk):
+			skills.append(sk)
+	player.set_skills(skills)
 
 
 # ── 007 skill dev smoke test ──────────────────────────────────────────────

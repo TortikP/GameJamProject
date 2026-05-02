@@ -45,3 +45,34 @@ round for all live actors at start of `_on_world_turn_ended`.
   its own hook).
 - Cooldown reset semantics (death, scene reload, meta-screens) — not part
   of this bug.
+
+## Phase 2 — playtest follow-up: player cooldowns also broken
+
+After phase-1 merge, playtest showed enemy cooldowns ticking but the
+player's never decrementing. Same root cause shape, different surface:
+
+- Enemies get their `_skills` populated by `enemy_data_loader.gd:65`
+  (`actor.set_skills(skills)`).
+- The player gets skills via the slot bar (`_seed_slots` for initial
+  Q/W/E/R, `_on_ability_picker_selected` for RMB reassignment). Both
+  paths put the Skill resource into `_slot_bar_node._slots` only —
+  `player._skills` stays empty.
+- `_tick_all_skills` calls `player.tick_skills(1)` → iterates an empty
+  `_skills` Array → no-op. The Skill resource that the player actually
+  casts (held by slot bar) never gets ticked.
+
+### Phase 2 fix
+
+New helper `_sync_player_skills_from_slots()` in `godmode_controller.gd`:
+walks the slot bar, dedupes, calls `player.set_skills(...)`. Invoked
+after both seed and RMB assignment. Slot bar remains the UI source of
+truth; `Actor._skills` mirrors it for the tick path.
+
+### Phase 2 acceptance
+
+- AC5: after RMB-assigning a `cooldown>0` skill to a slot, casting and
+  waiting `cooldown` rounds re-enables the slot.
+- AC6: same skill in two slots ticks once (deduped), not twice.
+- AC7: removing a skill from a slot (RMB → reassign to something else)
+  drops it from `player._skills` — no zombie cooldowns ticking on
+  resources nobody can cast.
