@@ -48,15 +48,19 @@ func resolve(actor: Actor, candidates: Array, ctx: Dictionary) -> Variant:
 	if target_coord == Vector2i(-1, -1):
 		return null
 
-	# 3. Claimed coords from same-team allies that have already planned.
+	# 3. Claimed coords + ally positions (friendly-fire filter).
 	var all_actors: Array = ctx.get("all_actors", [])
-	var claimed: Array = []   # plain Array
+	var claimed: Array = []
+	var ally_coords: Array = []
 	for other_v in all_actors:
 		if not (other_v is Actor):
 			continue
 		var other: Actor = other_v
 		if other == actor or not other.is_alive() or other.team != actor.team:
 			continue
+		var ac: Vector2i = grid.get_coord(other.actor_id)
+		if ac != Vector2i(-1, -1):
+			ally_coords.append(ac)
 		if other.cast_intent != null and other.cast_intent.is_valid():
 			claimed.append(other.cast_intent.target_coord)
 
@@ -64,11 +68,13 @@ func resolve(actor: Actor, candidates: Array, ctx: Dictionary) -> Variant:
 	var hexes: Array = grid.get_walkable_neighbours(target_coord)
 	hexes.append(target_coord)
 
-	# 5. Pick unclaimed hex with best hit-count tiebreak.
+	# 5. Skip claimed and friendly-fire hexes; best enemy hit-count tiebreak.
 	var best_hex: Vector2i = Vector2i(-1, -1)
 	var best_hits: int = -1
 	for hex in hexes:
 		if hex in claimed:
+			continue
+		if _hits_ally(hex, ab, my_coord, ally_coords, grid):
 			continue
 		var hits: int = _count_hits(hex, ab, my_coord, enemy_coords, grid)
 		if hits > best_hits:
@@ -90,3 +96,15 @@ func _count_hits(hex: Vector2i, ab: Ability, caster_coord: Vector2i,
 				n += 1
 		return n
 	return 1   # no area — counts as 1 (the hex itself)
+
+
+func _hits_ally(hex: Vector2i, ab: Ability, caster_coord: Vector2i,
+			ally_coords: Array, grid: HexGrid) -> bool:
+	## Returns true if the skill's area fired at hex would cover any ally position.
+	if ab.area == null:
+		return hex in ally_coords
+	var affected: Array = ab.area.get_affected_hexes(caster_coord, hex, grid)
+	for h in affected:
+		if h in ally_coords:
+			return true
+	return false

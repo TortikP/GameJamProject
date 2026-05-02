@@ -91,12 +91,26 @@ func resolve(actor: Actor, candidates: Array, ctx: Dictionary) -> Variant:
 		if other.cast_intent != null and other.cast_intent.is_valid():
 			claimed.append(other.cast_intent.target_coord)
 
+	# Collect ally positions for friendly-fire check.
+	var ally_coords: Array = []
+	for other_v2 in all_actors:
+		if not (other_v2 is Actor):
+			continue
+		var other2: Actor = other_v2
+		if other2 == actor or not other2.is_alive() or other2.team != actor.team:
+			continue
+		var ally_c: Vector2i = grid.get_coord(other2.actor_id)
+		if ally_c != Vector2i(-1, -1):
+			ally_coords.append(ally_c)
+
 	var uncovered: Array = []
 	for hex in escape_hexes:
 		if hex in claimed:
 			continue
 		if skill_range >= 0 and grid.hex_distance(my_coord, hex) > skill_range:
 			continue
+		if _hits_ally(hex, ab, my_coord, ally_coords, grid):
+			continue   # would damage a same-team unit
 		uncovered.append(hex)
 
 	if uncovered.is_empty():
@@ -127,3 +141,14 @@ func _count_hits(hex: Vector2i, ab: Ability, caster_coord: Vector2i,
 				n += 1
 		return n
 	return 1
+
+
+func _hits_ally(hex: Vector2i, ab: Ability, caster_coord: Vector2i,
+			ally_coords: Array, grid: HexGrid) -> bool:
+	if ab.area == null:
+		return hex in ally_coords
+	var affected: Array = ab.area.get_affected_hexes(caster_coord, hex, grid)
+	for h in affected:
+		if h in ally_coords:
+			return true
+	return false
