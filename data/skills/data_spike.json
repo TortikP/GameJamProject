@@ -1,0 +1,59 @@
+{
+  "id": "data_spike",
+  "name": "data_spike_name",
+  "tooltip": "data_spike_tooltip",
+  "desc": "data_spike_desc",
+  "icon": "assets/sprites/icons/skills/data_spike.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 3,
+  "abilities": [
+    {
+      "id": "heavy_ranged_damage",
+      "sound_start": "assets/audio/skills/heavy_ranged_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/heavy_ranged_damage/projectile_hit.prefab",
+      "sound_end": "assets/audio/skills/heavy_ranged_damage/end.wav",
+      "animation": "assets/animations/skills/heavy_ranged_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 13
+        }
+      ]
+    },
+    {
+      "id": "apply_glitch_single",
+      "sound_start": "assets/audio/skills/apply_glitch_single/start.wav",
+      "collision_effect": "assets/vfx/status/glitched/apply_single.prefab",
+      "sound_end": "assets/audio/status/glitched/end.wav",
+      "animation": "assets/animations/status/apply_glitch_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 5,
+          "status_id": "glitched (2)"
+        }
+      ]
+    }
+  ]
+}
