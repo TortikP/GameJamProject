@@ -1,0 +1,59 @@
+{
+  "id": "corrupted_sector",
+  "name": "corrupted_sector_name",
+  "tooltip": "corrupted_sector_tooltip",
+  "desc": "corrupted_sector_desc",
+  "icon": "assets/sprites/icons/skills/corrupted_sector.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 3,
+  "abilities": [
+    {
+      "id": "area_damage_medium",
+      "sound_start": "assets/audio/skills/area_damage_medium/start.wav",
+      "collision_effect": "assets/vfx/skills/area_damage_medium/area_impact.prefab",
+      "sound_end": "assets/audio/skills/area_damage_medium/end.wav",
+      "animation": "assets/animations/skills/area_damage_medium.anim",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "damage": 12
+        }
+      ]
+    },
+    {
+      "id": "apply_glitch_area",
+      "sound_start": "assets/audio/skills/apply_glitch_area/start.wav",
+      "collision_effect": "assets/vfx/status/glitched/apply_area.prefab",
+      "sound_end": "assets/audio/status/glitched/end.wav",
+      "animation": "assets/animations/status/apply_glitch_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "damage": 8,
+          "status_id": "glitched (2)"
+        }
+      ]
+    }
+  ]
+}
