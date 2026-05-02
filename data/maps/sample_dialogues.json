@@ -102,7 +102,7 @@
     {
       "index": 1,
       "is_special": false,
-      "turns_to_next": 0,
+      "turns_to_next": 6,
       "floor": [
         {
           "coord": [
