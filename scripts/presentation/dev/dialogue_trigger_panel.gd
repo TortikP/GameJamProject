@@ -49,6 +49,7 @@ var _collapsed: bool = false
 var _count_label: Label
 var _collapse_btn: Button
 var _title_label: Label   # drag handle
+var _btn_row: Control     # Add/Edit/Dupe/Delete row
 var _list: ItemList
 var _btn_edit: Button
 var _btn_dupe: Button
@@ -136,6 +137,7 @@ func _build_ui() -> void:
 
 	# Button row
 	var btn_row := HBoxContainer.new()
+	_btn_row = btn_row
 	vbox.add_child(btn_row)
 	var btn_add := Button.new()
 	UiTheme.apply_button_styling(btn_add)
@@ -417,7 +419,10 @@ func _validate_form(d: Dictionary) -> String:
 func _on_collapse_toggled() -> void:
 	_collapsed = not _collapsed
 	_list.visible = not _collapsed
-	_form_container.visible = _form_container.visible and not _collapsed
+	if _btn_row != null:
+		_btn_row.visible = not _collapsed
+	_form_container.visible = false  # always close form on collapse
+	_form_error_label.visible = false
 	_collapse_btn.text = "v" if not _collapsed else ">"
 
 

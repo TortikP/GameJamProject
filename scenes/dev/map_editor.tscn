@@ -18,7 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="16_wt"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_diff_overlay.gd" id="18_wdo"]
-[ext_resource type="PackedScene" path="res://scenes/dev/dialogue_trigger_panel.tscn" id="19_dtp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/dialogue_trigger_panel.gd" id="19_dtp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -163,7 +163,8 @@ grow_vertical = 2
 
 [node name="ConfirmModal" parent="HUD" instance=ExtResource("9_modal")]
 
-[node name="DialogueTriggerPanel" parent="HUD" instance=ExtResource("19_dtp")]
+[node name="DialogueTriggerPanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("19_dtp")
 anchors_preset = 6
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -171,7 +172,6 @@ offset_left = 16.0
 offset_top = -230.0
 offset_right = 246.0
 offset_bottom = -8.0
-grow_horizontal = 2
 grow_vertical = 0
 
 [node name="HotkeyOverlay" type="Control" parent="HUD"]
