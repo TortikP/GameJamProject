@@ -71,16 +71,24 @@ func _on_campaign_level_started(index: int, _map_path: String) -> void:
 # ── level_completed flow ────────────────────────────────────────────────────
 
 func _on_level_completed(total_score: int) -> void:
+	# 035 — Diagnostic. If this fires but transition doesn't follow, the next
+	# log line tells us whether it's a campaign-aware test or a single-map
+	# playtest (Map Editor Playtest, Load Custom Level).
+	GameLogger.info("CampaignController", "level_completed received: total_score=%d, has_active_game=%s" % [
+		total_score, str(ActiveGame.has_active_game())
+	])
 	if not ActiveGame.has_active_game():
-		# No campaign in progress — let downstream listeners (or none) handle
-		# the standalone-map case. We do nothing.
+		# No campaign in progress — this is a Map Editor single-map playtest
+		# or a Load Custom Level run. The score sits, the player can Esc to
+		# main menu manually. No-op for CampaignController.
+		GameLogger.info("CampaignController", "no active game → skipping transition (use Game Editor → Playtest or Load Game for campaign mode)")
 		return
 	# Accumulate before any awaits — total_score arg is RunScore.total at the
 	# moment WaveController declared the level done, which is the canonical
 	# per-level value (stub upgrade bonuses applied AFTER this don't count
 	# towards campaign cumulative — they're per-level visual only).
 	_running_total += total_score
-	GameLogger.info("CampaignController", "level_completed (level_score=%d, campaign_total=%d, level %d/%d)" % [
+	GameLogger.info("CampaignController", "campaign level_completed: level_score=%d, campaign_total=%d, level %d/%d" % [
 		total_score, _running_total, ActiveGame.current_index, ActiveGame.total_levels() - 1
 	])
 	_run_post_level_flow(total_score)
@@ -88,24 +96,32 @@ func _on_level_completed(total_score: int) -> void:
 
 func _run_post_level_flow(total_score: int) -> void:
 	# 1. Upgrade screen (or stub).
+	GameLogger.info("CampaignController", "post-level flow: awaiting upgrade")
 	await _await_upgrade(total_score)
+	GameLogger.info("CampaignController", "upgrade done — playing transition out")
 
 	# 2. Transition out — but only if we're still in a scene that has a tree
 	#    (the upgrade screen could in principle have changed scenes; we don't,
 	#    but be defensive).
 	if not is_inside_tree():
+		GameLogger.warn("CampaignController", "not in tree after upgrade — aborting flow")
 		return
 	await _play_transition_out()
+	GameLogger.info("CampaignController", "transition out done — branching")
 
 	# 3. Branch on last level vs next.
 	if ActiveGame.is_last_level():
 		last_campaign_total = _running_total
+		GameLogger.info("CampaignController", "last level → campaign_finished(score=%d) → campaign_end" % last_campaign_total)
 		EventBus.campaign_finished.emit(last_campaign_total)
 		ActiveGame.clear()
 		get_tree().change_scene_to_file(CAMPAIGN_END_SCENE)
 	else:
 		ActiveGame.advance()
 		_pending_fade_in = true
+		GameLogger.info("CampaignController", "advanced to level %d (%s) → reload godmode" % [
+			ActiveGame.current_index, ActiveGame.current_map_path()
+		])
 		get_tree().change_scene_to_file(GODMODE_SCENE)
 
 
@@ -184,23 +200,29 @@ func _on_upgrade_done() -> void:
 
 
 func _play_transition_out() -> void:
-	var overlay: Node = TRANSITION_SCENE.instantiate()
+	var overlay := TRANSITION_SCENE.instantiate() as LevelTransition
+	if overlay == null:
+		GameLogger.error("CampaignController", "transition scene instantiate failed or wrong type")
+		return
 	var current_scene: Node = get_tree().current_scene
 	if current_scene == null:
+		GameLogger.warn("CampaignController", "current_scene null — cannot mount transition")
 		return
 	current_scene.add_child(overlay)
-	if overlay.has_method("play_out"):
-		await overlay.play_out()
+	GameLogger.info("CampaignController", "transition overlay mounted; running play_out")
+	await overlay.play_out()
+	GameLogger.info("CampaignController", "play_out returned")
 	# Overlay is owned by current_scene which is about to be freed by
 	# change_scene_to_file — no manual queue_free needed.
 
 
 func _play_transition_in() -> void:
-	var overlay: Node = TRANSITION_SCENE.instantiate()
+	var overlay := TRANSITION_SCENE.instantiate() as LevelTransition
+	if overlay == null:
+		return
 	var current_scene: Node = get_tree().current_scene
 	if current_scene == null:
 		return
 	current_scene.add_child(overlay)
-	if overlay.has_method("play_in"):
-		# Fire-and-forget: scene is already up, fade-in just decorates it.
-		overlay.play_in()
+	# Fire-and-forget: scene is already up, fade-in just decorates it.
+	overlay.play_in()

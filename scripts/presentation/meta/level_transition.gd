@@ -1,4 +1,5 @@
 extends CanvasLayer
+class_name LevelTransition
 ## level_transition — metamorphosis overlay between levels (035-game-editor).
 ##
 ## Lifecycle:
