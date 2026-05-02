@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://skill_offer_modal_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/ui/skill_offer_modal.gd" id="1_modal"]
+
+[node name="SkillOfferModal" type="CanvasLayer"]
+layer = 25
+script = ExtResource("1_modal")

@@ -133,6 +133,20 @@ static func first_empty_slot() -> int:
 	return -1
 
 
+## Returns the Skill currently in slot `idx` (0..3), or null. Used by the
+## replace-slot sub-screen for "REPLACE Q (currently: ball_throw)" labels.
+static func peek_slot(idx: int):
+	if idx < 0 or idx >= SLOT_COUNT:
+		return null
+	var ctrl: Node = _controller()
+	if ctrl == null:
+		return null
+	var bar: Node = _slot_bar(ctrl)
+	if bar == null or not bar.has_method("get_slot"):
+		return null
+	return bar.get_slot(idx)
+
+
 # ── Write API ───────────────────────────────────────────────────────────────
 
 ## Add a fresh clone of `id` into the first empty slot. Returns true on

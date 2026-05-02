@@ -73,6 +73,14 @@ const HP_CRIT_THRESHOLD := 0.15
 const DIALOGUE_TRIGGER_MARKER_COLOR  := Color("a78bfa")   # soft violet
 const DIALOGUE_TRIGGER_MARKER_RADIUS := 5.0
 
+# 040-wave-skill-choice: WaveTimeline marker for skill offer anchors (EDIT + RUNTIME).
+# Visible in both modes — players plan around offers, designers see them while editing.
+# Colour distinct from dialogue triggers (violet) and special-wave focus (yellow); pick
+# a teal/cyan that reads on the dark trough without competing with the cursor pointer.
+const SKILL_OFFER_MARKER_COLOR  := Color("4dd6c1")        # mint-teal
+const SKILL_OFFER_MARKER_RADIUS := 6.0
+const SKILL_OFFER_MARKER_GLYPH  := "★"                     # rendered next to the disc
+
 # ── Spacing scale (px) ───────────────────────────────────────
 const SP_1 := 4
 const SP_2 := 8

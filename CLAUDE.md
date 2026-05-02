@@ -123,6 +123,7 @@ Append yourself when you start a feature.
 | 038-mood-counter (player narrative tracker driven by equipped skills, JSON mood vocab rename) | Egor |
 | 041-effect-create-entity (CreateEffect impl: object/actor summon + summoned status) | Egor |
 | 039-dialogue-triggers (LevelData triggers, LevelDialogueDirector, WaveTimeline markers, DialogueTriggerPanel editor) | Andrey |
+| 040-wave-skill-choice (per-wave skill_offer schema, SkillOfferController autoload, modal + card UI, WavePanel section, WaveTimeline markers) | Andrey |
 
 ## Git workflow
 
