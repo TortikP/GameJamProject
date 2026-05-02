@@ -155,16 +155,14 @@ func play_sting(name: StringName) -> void:
 func _on_level_loaded(level: LevelData) -> void:
 	_loading_level = false
 	var raw: Dictionary = {}
-	if level != null and level.has_method("get") and \
-			"music_config" in level and level.music_config is Dictionary:
+	if level != null:
 		raw = level.music_config
-	elif level != null:
-		raw = {}
 
 	var cfg: Dictionary = _PresetResolver.resolve(raw)
 
+	var level_name: String = level.name if level != null else "default"
 	var seed_v: int = int(cfg.get("seed",
-			_hash_str(level.name if level != null else "default") & 0x7fffffff))
+			_hash_str(level_name) & 0x7fffffff))
 	var bpm: float        = float(cfg.get("bpm", 96.0))
 	var base_state: StringName = StringName(cfg.get("base_state", "calm"))
 	var muted: bool       = bool(cfg.get("muted", false))

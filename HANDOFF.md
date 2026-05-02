@@ -287,6 +287,20 @@ func debug(tag: String, msg: String) -> void: log(Level.DEBUG, tag, msg)
 
 Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями, поддержка эскалации SFX → AI → human.
 
+### `MusicDirector` (`scripts/audio/music/music_director.gd`) — добавлен в 042
+
+Процедурный музыкальный движок. Real-time PCM через `AudioStreamGenerator`, без аудиоассетов в сорсе. Два состояния (`calm`/`battle`), JSON-конфигурируемые стинги (заменяемые на OGG без правки кода). Подписан на EventBus: `level_loaded`, `wave_started`, `wave_cleared`, `level_completed`, `run_ended`, `main_menu_entered`, `run_started_requested`.
+
+Архитектура (low→high): `Wavetables` → `ADSR` → `VoicePool` → `Conductor` + `Harmony` + `StateMixer` → `BassGen`/`PadGen`/`LeadGen`/`DrumsGen` → `MusicDirector` → `StingPlayer`.
+
+Per-level конфиг в `LevelData.music_config` (опциональный, `{}`=дефолты). Меню-конфиг в `data/music/main_menu.json`. Стинги в `data/music/stings.json` (swap OGG: `"kind":"stream","path":"res://..."` в одной строке JSON). Пресеты в `data/music/presets.json`.
+
+**Публичный API** (Music Lab и `_on_level_loaded`): `set_bpm`, `set_state`, `set_seed`, `set_layer_db(layer, db)`, `set_lead_density(calm, battle)`, `play_sting(name)`.
+
+**Music Lab**: `scenes/dev/music_lab.tscn` — F6 для запуска. Слайдеры (BPM, lead density, gain), A/B слоты, стинг-кнопки, «Copy JSON» в clipboard (готово к вставке в level.json). Что слышишь в лабе = что услышишь в игре с тем же конфигом.
+
+Полная архитектура: `specs/042-proc-music/`.
+
 ---
 
 ## 7. CLAUDE.md для новой репы

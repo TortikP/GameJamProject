@@ -73,10 +73,8 @@ func tick() -> float:
 			_level = sustain_level
 
 		Phase.RELEASE:
-			var start: float = _level if _counter == 0 else _level
-			# Linear from current _level at gate_off moment → 0
+			# Snapshot release start level on first tick.
 			if _counter == 0:
-				# Snapshot level once
 				_release_start = _level
 			var t: float = float(_counter) / float(release_samples)
 			_level = lerp(_release_start, 0.0, t)

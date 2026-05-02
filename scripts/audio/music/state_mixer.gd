@@ -92,7 +92,4 @@ func get_layer_gain(layer: StringName) -> float:
 
 func _db_to_linear(layer: StringName) -> float:
 	var db: float = float(_layer_db.get(layer, 0.0))
-	return db_to_linear(db)  # Godot global
-
-func db_to_linear(db: float) -> float:
 	return pow(10.0, db / 20.0)
