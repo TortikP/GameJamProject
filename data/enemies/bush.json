@@ -11,6 +11,6 @@
     "bush_berry_throw",
     "bush_nice_smell"
   ],
-  "behavior_id": "default_caster",
+  "behavior_id": "bush_aggressive",
   "fallback_skill_id": "bush_berry_throw"
 }

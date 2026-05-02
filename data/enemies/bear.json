@@ -11,6 +11,6 @@
     "bear_paw_suck",
     "bear_hallo"
   ],
-  "behavior_id": "default_ranged",
+  "behavior_id": "bear_aggressive",
   "fallback_skill_id": "bear_ball_throw"
 }

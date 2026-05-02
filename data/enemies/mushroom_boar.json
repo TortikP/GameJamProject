@@ -11,6 +11,6 @@
     "mushroom_boar_spores",
     "mushroom_boar_weaken"
   ],
-  "behavior_id": "default_melee",
+  "behavior_id": "boar_aggressive",
   "fallback_skill_id": "mushroom_boar_tusk_attack"
 }
