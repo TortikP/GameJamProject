@@ -6,11 +6,16 @@ extends AbilityTarget
 ## JSON kind: "actor" (was "entity").
 ##
 ## @export range:
-##   -1  = unrestricted (any alive actor)
+##   -1  = unrestricted (any alive actor, including caster)
 ##    0  = self only
-##    1+ = within N path-steps of caster (adjacency: range=1)
+##    1+ = within N path-steps of caster (adjacency: range=1, includes caster)
 ##
-## Returns the Actor or null (never returns caster, never returns dead actors).
+## 035: caster IS now a valid pick — the previous `if actor == caster: return null`
+## contradicted the documented `range=0 = self only` semantic and made
+## target=actor heals/buffs unable to land on the caster. Designers control
+## self-targetability via `range` and behaviour_tags.
+##
+## Returns the Actor or null. Never returns dead actors.
 
 @export var range: int = -1
 
@@ -25,8 +30,11 @@ func resolve(caster: Actor, ctx: Dictionary) -> Variant:
 	var actor: Actor = registry.get_actor(id)
 	if actor == null or not actor.is_alive():
 		return null
+	# 035: self-target shortcut. Skip the path/range walk — distance to
+	# self is always 0, which satisfies any range >= 0. find_path(c, c)
+	# is implementation-defined and we don't want to depend on it.
 	if actor == caster:
-		return null
+		return actor
 	if range >= 0:
 		var grid: HexGrid = ctx.get("grid")
 		if grid == null:
