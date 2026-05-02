@@ -20,5 +20,5 @@ z_index = 5
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("3_hpbar")
-y_offset = -52.0
+y_offset = -67.0
 z_index = 7

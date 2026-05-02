@@ -129,15 +129,40 @@
 - [x] **T-32.** `data/enemies/archer.json` — аналогично, ranged-stub если schema это позволяет, иначе minimal copy.
   - Сейчас только `default_melee` behavior существует — archer тоже melee. Стасян/Алексей перенастроят, когда появится ranged behavior.
 
-- [ ] **T-33.** Запустить редактор, убедиться что 3 новых объекта рендерятся силуэтами и 3 новых врага появились в палитре спаунеров. Acceptance #5, #6, #7, #8 (см. spec.md).
+- [x] **T-33.** Запустить редактор, убедиться что 3 новых объекта рендерятся силуэтами и 3 новых врага появились в палитре спаунеров. Acceptance #5, #6, #7, #8 (см. spec.md).
   - Зависит от: T-26, T-27..T-32.
-  - **Не делалось из контейнера** — нужен Godot, проверка вручную перед PR.
+  - Проверено Andrey'ем в плейтесте. Stub-враги (skeleton/slime/archer) удалены т.к. без ranged behavior'a выглядели сломанными — оставлен только manekin, потом добавлен `bush` из ассетов Кати.
+
+---
+
+## Post-spec polish (вне основного списка, выкатывали по фидбеку Andrey)
+
+- [x] **PP-01.** Перетаскиваемые панели (immediate fix перед спекой).
+- [x] **PP-02.** Безграничный paint canvas с cap'ом 500×500. `coord_under_mouse_raw()` в HexGrid, не зависит от `_tiles.has`.
+- [x] **PP-03.** Camera-stable undo — `_apply_level(level, recenter=false)` для undo/redo.
+- [x] **PP-04.** Программный placeholder tileset (`scenes/dev/placeholder_terrain.tres`, 6 тайлов через Pillow-генератор `scripts/tools/gen_placeholder_atlas.py`).
+- [x] **PP-05.** Dark editor background через `BackgroundLayer` CanvasLayer (layer=-100) + ColorRect BG_SCREEN. Заменяет дефолтный серый фон Godot.
+- [x] **PP-06.** Initial 25×25 paint центрирован на (0,0), camera zoom = 0.5 по умолчанию (видно весь canvas), `zoom_min` 0.5 → 0.2 для большего zoom-out range.
+- [x] **PP-07.** ToolPanel слева — Brush / Rect mode, brush size SpinBox 1-9 (hex disk через `get_surrounding_cells` BFS).
+- [x] **PP-08.** Rect-mode click-drag-release fill, preview через `paint_preview.gd` (FOCUS-tinted hex outlines).
+- [x] **PP-09.** Erase-mode залип fix — `set_pressed_no_signal(false)` в `_on_tile_pressed` / `_untoggle_others` / `_on_mode_pressed`.
+- [x] **PP-10.** SpinBox +/- стрелки fix — width 64 → 120, drop `update_on_text_changed`.
+- [x] **PP-11.** Pathfinder negative-id crash на origin-centered canvas — fixed-offset encoding `(y+250)*501 + (x+250)` в `hex_pathfinder.gd`.
+- [x] **PP-12.** Чёрные гексы fix — стартую editor на `PLACEHOLDER_TERRAIN` (matches FloorPalette default), не GODMODE_TERRAIN.
+- [x] **PP-13.** Интеграция первого asset drop'a от Кати: char.png (player), object_tree.png + tree.json sprite_path, object_column.png + column.json (новый ELEVATION-объект), tile_forest_1.png (godmode_atlas обновлён), enemy_bush.png (новый враг через bush.json + bush.tscn + level_loader регистрация). Project-wide texture_filter = NEAREST для pixel-art crispness.
+- [x] **PP-14.** Hex tile LINEAR filter — мягкие диагональные грани без потери pixel-art спрайтов (override на TileMapLayer'ax).
+- [x] **PP-15.** Tile object рендеринг в playtest — `ObjectsOverlay` добавлен в godmode.tscn, `godmode_controller` после `LevelLoader.apply_to` зовёт `set_object` для каждого `level.objects`.
+- [x] **PP-16.** ObjectsOverlay z_index=10 в godmode (объекты над актёрами), `sprite_y_offset` для лифта спрайтов к ногам героини.
+- [x] **PP-17.** ObjectsOverlay y_sort_enabled — детерминированная стопка (ближний к низу экрана сверху, не зависит от paint order).
+- [x] **PP-18.** Player/Bush HP-бары: реальный 15px gap до sprite top (раньше `y_offset` ошибочно считался как нижний край, был 0px gap).
+- [x] **PP-19.** ObjectPalette: ширина 264 → 320 + `clip_tabs = false` — все 3 таба видны без scroll-кнопок.
+- [x] **PP-20.** Hex-border preview style → перекинут в spec 025 (Pillar 3 фидбек) для combat hover/ability area.
 
 ---
 
 ## Sanity-чек перед PR
 
-- [ ] **S-01.** Все P1 acceptance criteria (#1-#4) проходят руками.
-- [ ] **S-02.** Все P2 acceptance criteria (#5-#8) проходят руками.
+- [x] **S-01.** Все P1 acceptance criteria (#1-#4) проходят руками. Andrey тестировал интерактивно по ходу разработки.
+- [x] **S-02.** Все P2 acceptance criteria (#5-#8) проходят руками.
 - [x] **S-03.** `git push` в `andrey/023-editor-ux-polish` (та же ветка, что immediate fix).
-- [ ] **S-04.** PR в staging — Андрей жмёт «Create PR» по URL.
+- [ ] **S-04.** PR в staging — Andrey жмёт «Create PR» по URL.

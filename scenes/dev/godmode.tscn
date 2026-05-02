@@ -38,6 +38,7 @@ grid = NodePath("..")
 
 [node name="ObjectsOverlay" type="Node2D" parent="HexGrid"]
 script = ExtResource("19_oo")
+z_index = 10
 
 [node name="MoveRangeOverlay" type="Node2D" parent="HexGrid"]
 script = ExtResource("8_overlay")
