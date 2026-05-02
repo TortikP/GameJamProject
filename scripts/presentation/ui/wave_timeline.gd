@@ -38,11 +38,15 @@ signal add_wave_pressed
 signal special_toggled(wave_index: int)
 
 # Visual layout constants.
-const PADDING_LEFT: float = 32.0     # space before wave 0 anchor
+const PADDING_LEFT: float = 24.0     # space before wave 0 anchor
 const PADDING_RIGHT: float = 32.0    # space after last anchor (before "+ Wave")
-const PIXELS_PER_TURN: float = 1.0   # spec: 1 turn = 1 px
-const BAR_Y: float = 24.0            # vertical center of the bar within widget
-const NUMBER_OFFSET_Y: float = -22.0 # number drawn above the bar between anchors
+# Spec called for "1 turn = 1 px"; that's mathematically tidy but visually
+# unreadable at jam-scale ttn values (5–6 turns = anchors overlap, numbers
+# illegible). Bumped to 24 px/turn so anchors of radius 10 don't collide
+# at the minimum legal ttn=1 and the inter-anchor number has room to read.
+const PIXELS_PER_TURN: float = 24.0
+const BAR_Y: float = 28.0            # vertical center of the bar within widget
+const NUMBER_OFFSET_Y: float = -28.0 # number drawn above the bar between anchors
 const PLUS_BUTTON_OFFSET_X: float = 24.0  # gap between last anchor and + button
 
 var _level: LevelData = null
@@ -60,6 +64,13 @@ var _bar_end_x: float = 0.0
 # T72c — wave_index → Label/LineEdit currently rendering its turns_to_next.
 # Used to pulse the current wave's number on each world_turn_ended tick.
 var _turns_widgets: Dictionary = {}  # int wave_idx → Control
+
+# Bug-fix guard: bind_level → _rebuild can be triggered from inside a
+# child LineEdit's focus_exited signal (commit-on-blur). Godot 4 then
+# rejects add_child with "Parent node is busy setting up children". We
+# defer the actual rebuild via call_deferred and coalesce repeated
+# requests in the same frame.
+var _rebuild_pending: bool = false
 
 
 func _ready() -> void:
@@ -104,7 +115,18 @@ func set_runtime_state(current_wave: int, turns_into_wave: int) -> void:
 
 # ── Rebuild ─────────────────────────────────────────────────────────────────
 
+## Public-facing rebuild — coalesces and defers to dodge "Parent busy
+## setting up children" when triggered from inside a child Control's
+## signal handler.
 func _rebuild() -> void:
+	if _rebuild_pending:
+		return
+	_rebuild_pending = true
+	_do_rebuild.call_deferred()
+
+
+func _do_rebuild() -> void:
+	_rebuild_pending = false
 	# Drop existing dynamic children (LineEdits, +button). Keep persistent
 	# nodes (none currently — all dynamic).
 	for child in get_children():

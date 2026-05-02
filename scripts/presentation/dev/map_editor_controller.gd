@@ -1169,8 +1169,11 @@ func _on_wave_turns_changed(idx: int, new_value: int) -> void:
 	# Last wave's turns_to_next must be 0 — enforce.
 	if idx == _level.waves.size() - 1:
 		_level.waves[idx]["turns_to_next"] = 0
+	# _mark_dirty re-binds the wave panel + diff overlay; doing it again
+	# via _refresh_wave_panel triggered re-entrancy through the LineEdit's
+	# focus_exited handler (Godot 4: "Parent node is busy setting up
+	# children" when add_child fires while a child's signal is mid-resolve).
 	_mark_dirty()
-	_refresh_wave_panel()
 
 
 func _on_wave_add() -> void:

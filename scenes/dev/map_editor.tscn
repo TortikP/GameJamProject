@@ -84,7 +84,10 @@ grow_horizontal = 2
 [node name="HBox" type="HBoxContainer" parent="HUD/WavePanel"]
 
 [node name="Timeline" parent="HUD/WavePanel/HBox" instance=ExtResource("16_wt")]
-custom_minimum_size = Vector2(420, 56)
+
+[node name="Spacer" type="Control" parent="HUD/WavePanel/HBox"]
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="CopyBtn" type="Button" parent="HUD/WavePanel/HBox"]
 text = "Copy from prev"

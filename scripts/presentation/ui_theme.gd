@@ -116,12 +116,12 @@ const WAVE_ANCHOR_FILL              := Color("dceaff")  # default anchor disc
 const WAVE_ANCHOR_PASSED            := Color("4a5870")  # waves before current
 const WAVE_ANCHOR_CURRENT           := Color("f5d97a")  # active wave (FOCUS yellow)
 const WAVE_ANCHOR_OUTLINE           := Color("0c0e12")  # 1px ring around every disc
-const WAVE_ANCHOR_RADIUS            := 7.0              # px radius for normal anchor
+const WAVE_ANCHOR_RADIUS            := 10.0             # px radius for normal anchor
 const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
-const WAVE_NUMBER_FONT_SIZE         := 14
+const WAVE_NUMBER_FONT_SIZE         := 18
 const WAVE_NUMBER_COLOR             := Color("e8ecf3")  # turns_to_next digit
 const WAVE_CURSOR_COLOR             := Color("f5d97a")  # runtime "now" pointer
-const WAVE_CURSOR_HEIGHT            := 18.0             # px tall
+const WAVE_CURSOR_HEIGHT            := 22.0             # px tall
 
 # 024 / T83 — wave-diff highlight (new-this-wave overlay in editor).
 # Subtle — designer should be able to ignore it during normal editing.
