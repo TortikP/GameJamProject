@@ -21,6 +21,7 @@ extends Node2D
 ##       └── ConfirmModal (instance)
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const LevelHistory = preload("res://scripts/presentation/dev/level_history.gd")
 const GODMODE_TERRAIN: TileSet = preload("res://scenes/dev/godmode_terrain.tres")
 const HEX_TERRAIN: TileSet = preload("res://scenes/arena/tilesets/hex_terrain.tres")
 
@@ -81,6 +82,10 @@ var _last_paint_coord: Vector2i = Vector2i(-1, -1)
 # Silent-reject occupied-toast debounce (T-04): suppress spam during drag-paint
 var _occupied_toast_until_msec: int = 0
 
+# Undo/redo (T-07): snapshot stack across LMB-drag transactions and one-shot
+# mutations (RMB delete, replace_all, load, tileset switch).
+var _history: LevelHistory = LevelHistory.new()
+
 
 func _ready() -> void:
 	# 1. Resolve nodes
@@ -134,7 +139,7 @@ func _ready() -> void:
 
 	# 6. Initial level baseline
 	_rebuild_level_floor_from_canvas()
-	_dirty = false  # initial paint isn't a user edit
+	_set_clean()  # initial paint isn't a user edit
 
 	# 7. If we arrived here from a Back-to-Editor / queued path, load that
 	# level on top of the initial canvas. Skip autosave recovery in this
@@ -145,7 +150,7 @@ func _ready() -> void:
 		var loaded: LevelData = LevelSerializer.load_from(queued_path)
 		if loaded != null:
 			_apply_level(loaded)
-			_dirty = false  # just-loaded state isn't yet a user edit
+			_set_clean()  # just-loaded state isn't yet a user edit
 			GameLogger.info("MapEditor", "Resumed queued level: %s" % queued_path)
 	else:
 		_check_autosave_recovery.call_deferred()
@@ -247,6 +252,9 @@ func get_level() -> LevelData:
 # ── Input ───────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		_handle_key_event(event as InputEventKey)
+		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
@@ -254,6 +262,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if mb.pressed:
 				_lmb_held = true
 				_last_paint_coord = Vector2i(-1, -1)
+				_history.begin_transaction(_level)
 				if coord != Vector2i(-1, -1):
 					_handle_lmb(coord)
 					_last_paint_coord = coord
@@ -261,6 +270,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				if _lmb_held:
 					_lmb_held = false
+					_history.end_transaction(_level)
 					_last_paint_coord = Vector2i(-1, -1)
 		elif mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
 			if coord == Vector2i(-1, -1):
@@ -288,6 +298,51 @@ func _is_drag_paint_mode() -> bool:
 			return _placing_spawner_kind != &"player"
 		_:
 			return false
+
+
+## Editor shortcuts. Captured here (not via Input map) because they're
+## editor-scoped — godmode arena defines its own bindings and we don't want
+## a global conflict.
+func _handle_key_event(event: InputEventKey) -> void:
+	if not event.pressed or event.echo:
+		return
+	# Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z — undo/redo (T-10)
+	if event.ctrl_pressed and event.keycode == KEY_Z:
+		if event.shift_pressed:
+			_perform_redo()
+		else:
+			_perform_undo()
+		get_viewport().set_input_as_handled()
+		return
+	if event.ctrl_pressed and event.keycode == KEY_Y:
+		_perform_redo()
+		get_viewport().set_input_as_handled()
+		return
+	# Ctrl+S — save (T-11)
+	if event.ctrl_pressed and event.keycode == KEY_S:
+		_on_save_requested()
+		get_viewport().set_input_as_handled()
+		return
+
+
+func _perform_undo() -> void:
+	if not _history.can_undo():
+		EventBus.ui_toast_requested.emit("Нечего отменять", 1.0, &"info")
+		return
+	var restored: LevelData = _history.undo(_level)
+	_apply_level(restored)
+	_mark_dirty()
+	EventBus.ui_toast_requested.emit("Undo", 0.6, &"info")
+
+
+func _perform_redo() -> void:
+	if not _history.can_redo():
+		EventBus.ui_toast_requested.emit("Нечего повторять", 1.0, &"info")
+		return
+	var restored: LevelData = _history.redo(_level)
+	_apply_level(restored)
+	_mark_dirty()
+	EventBus.ui_toast_requested.emit("Redo", 0.6, &"info")
 
 
 # ── LMB — placement table ───────────────────────────────────────────────────
@@ -405,6 +460,7 @@ func _handle_rmb(coord: Vector2i) -> void:
 
 func _execute_delete(coord: Vector2i) -> void:
 	# Priority: spawner > object > floor (matches plan.md RMB table)
+	_history.push(_level)
 	if _has_spawner_at(coord):
 		_remove_spawner_at(coord)
 	elif _has_object_at(coord):
@@ -484,8 +540,18 @@ func _emit_occupied_toast(text: String) -> void:
 
 func _mark_dirty() -> void:
 	_dirty = true
+	if _meta_panel != null and _meta_panel.has_method("set_dirty"):
+		_meta_panel.set_dirty(true)
 	if _autosave_timer != null:
 		_autosave_timer.start()  # restart debounce countdown
+
+
+## Counterpart to _mark_dirty — clear dirty state and update meta panel.
+## Called after successful Save and just-loaded levels (both = on-disk = clean).
+func _set_clean() -> void:
+	_dirty = false
+	if _meta_panel != null and _meta_panel.has_method("set_dirty"):
+		_meta_panel.set_dirty(false)
 
 
 func _do_autosave() -> void:
@@ -511,7 +577,7 @@ func _check_autosave_recovery() -> void:
 		var loaded: LevelData = LevelSerializer.load_from(AUTOSAVE_PATH)
 		if loaded != null:
 			_apply_level(loaded)
-			_dirty = true  # restored — needs re-saving
+			_mark_dirty()  # restored — needs re-saving
 			EventBus.ui_toast_requested.emit("Восстановлено", 1.5, &"success")
 	else:
 		DirAccess.remove_absolute(AUTOSAVE_PATH)
@@ -610,6 +676,7 @@ func _on_tileset_changed(tileset_path: String) -> void:
 	if ts == null:
 		EventBus.ui_toast_requested.emit("Tileset не найден: %s" % tileset_path, 2.0, &"error")
 		return
+	_history.push(_level)
 	grid.tile_map_layer.tile_set = ts
 	if grid.vfx_overlay != null:
 		grid.vfx_overlay.tile_set = ts
@@ -625,18 +692,22 @@ func _on_replace_all_requested(from_source: int, from_atlas: Vector2i,
 ## Public — used by FloorPalette's replace-all flow.
 func apply_replace_all(from_source: int, from_atlas: Vector2i,
 		to_source: int, to_atlas: Vector2i) -> void:
+	# Pre-count so we don't push a no-op snapshot to the undo stack.
 	var count: int = 0
+	for entry in _level.floor_cells:
+		if entry.source_id == from_source and entry.atlas_coord == from_atlas:
+			count += 1
+	if count == 0:
+		EventBus.ui_toast_requested.emit("Нечего заменять", 1.5, &"info")
+		return
+	_history.push(_level)
 	for entry in _level.floor_cells:
 		if entry.source_id == from_source and entry.atlas_coord == from_atlas:
 			entry.source_id = to_source
 			entry.atlas_coord = to_atlas
 			grid.tile_map_layer.set_cell(entry.coord, to_source, to_atlas)
-			count += 1
-	if count > 0:
-		EventBus.ui_toast_requested.emit("Заменено %d тайлов" % count, 2.0, &"success")
-		_mark_dirty()
-	else:
-		EventBus.ui_toast_requested.emit("Нечего заменять", 1.5, &"info")
+	EventBus.ui_toast_requested.emit("Заменено %d тайлов" % count, 2.0, &"success")
+	_mark_dirty()
 
 
 func _on_object_picked(object_id: StringName) -> void:
@@ -672,7 +743,7 @@ func _on_save_requested() -> void:
 		if not ok:
 			return
 	if LevelSerializer.save(_level, path):
-		_dirty = false
+		_set_clean()
 		EventBus.ui_toast_requested.emit("Сохранено: %s" % (sanitized + ".json"), 2.0, &"success")
 	else:
 		EventBus.ui_toast_requested.emit("Ошибка сохранения", 2.0, &"error")
@@ -692,8 +763,9 @@ func _on_load_requested(path: String) -> void:
 	if loaded == null:
 		EventBus.ui_toast_requested.emit("Ошибка загрузки", 2.0, &"error")
 		return
+	_history.push(_level)
 	_apply_level(loaded)
-	_dirty = false
+	_set_clean()
 	EventBus.ui_toast_requested.emit("Загружено: %s" % path.get_file(), 2.0, &"success")
 
 

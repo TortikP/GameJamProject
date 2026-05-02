@@ -28,6 +28,7 @@ signal name_changed(new_name: String)
 var _controller: Node = null
 
 var _name_edit: LineEdit
+var _dirty_marker: Label
 var _save_btn: Button
 var _load_btn: Button
 var _playtest_btn: Button
@@ -50,6 +51,12 @@ func setup(controller: Node) -> void:
 func set_level_name(new_name: String) -> void:
 	if _name_edit != null:
 		_name_edit.text = new_name
+
+
+## Toggle the unsaved-changes asterisk next to the name field.
+func set_dirty(dirty: bool) -> void:
+	if _dirty_marker != null:
+		_dirty_marker.visible = dirty
 
 
 func _apply_theme() -> void:
@@ -77,6 +84,14 @@ func _build_ui() -> void:
 	_name_edit.custom_minimum_size = Vector2(180, 0)
 	_name_edit.text_changed.connect(_on_name_changed)
 	name_row.add_child(_name_edit)
+	# Dirty marker (T-12) — separate label so we don't mangle the LineEdit
+	# text on every edit / undo / save event.
+	_dirty_marker = Label.new()
+	_dirty_marker.text = "*"
+	_dirty_marker.visible = false
+	UiTheme.apply_label_kind(_dirty_marker, "header")
+	_dirty_marker.modulate = UiTheme.SEM_DEBUFF  # warm orange — "attention, unsaved"
+	name_row.add_child(_dirty_marker)
 	vbox.add_child(name_row)
 
 	# Buttons
