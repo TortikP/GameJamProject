@@ -14,8 +14,11 @@ extends Resource
 ## now inferred from key-presence in the effect dict (e.g. `damage` →
 ## DamageEffect). Multiple keys → fan-out into N typed instances in
 ## EFFECT_KEY_ORDER (damage → heal → status → move → create).
+## 027: `duration` is removed from the base. Status-effect duration is
+## encoded inline in the JSON status string (`"id(d, ...)"`); other effect
+## kinds (damage/heal/move/create) were never DoT/HoT in practice — the
+## TODO scaffolds in subclasses are dropped.
 
-@export var duration: int = 0
 @export var requires_alive_target: bool = true
 
 
@@ -24,7 +27,7 @@ func apply(_caster: Actor, _target: Variant, _ctx: Dictionary) -> void:
 
 
 ## 021: skill-level scaling hook. Default no-op; subclasses with `damage`,
-## `heal`, or scaling `duration` override per spec §"Уровень навыка".
+## `heal`, or scaling parameters override per spec §"Уровень навыка".
 ## Called on a duplicate before apply(), so the base resource stays untouched.
 ## level=0 is the safe identity (overrides should early-out).
 func apply_level(_level: int) -> void:

@@ -3,7 +3,7 @@ extends AbilityEffect
 ## Flat damage. `damage` field set from JSON via AbilityDatabase.
 ## target is Variant — cast to Actor; silent no-op if cast fails.
 ##
-## DoT (duration > 0): # TODO 007 DoT scaffold — not implemented, works as instant.
+## 027: was a DoT scaffold via base.duration; unused. Removed with base field.
 
 @export var damage: int = 1
 

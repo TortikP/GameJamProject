@@ -230,20 +230,32 @@ func _make_area(data: Dictionary) -> AbilityArea:
 func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[AbilityEffect]:
 	# 026: discriminator is key-presence, not a `kind` field. Fan out into
 	# one typed AbilityEffect per recognised key, in EFFECT_KEY_ORDER.
+	# 027: `status` value is a string `"id(d, a1, a2, ...)"` parsed inline;
+	# `duration` at effect-object level is legacy (was on AbilityEffect base) —
+	# soft-shim with info log.
 	if data.has("kind"):
 		GameLogger.warn("AbilityDatabase", "%s: legacy 'kind' key in effect dict — ignoring (026 schema)" % ability_id)
+	if data.has("duration"):
+		GameLogger.info("AbilityDatabase", "%s: legacy 'duration' key in effect dict — ignoring (027 schema; duration lives in status string)" % ability_id)
 	var out: Array[AbilityEffect] = []
 	for key in EFFECT_KEY_ORDER:
 		if not data.has(key):
+			continue
+		if key == "status":
+			# 027: special parser for "id(args)" inline encoding.
+			var eff := _make_status_effect(data[key], ability_id)
+			if eff != null:
+				out.append(eff)
 			continue
 		# Defensive type pattern (CLAUDE.md trap #6): Variant→Object→cast.
 		var script_v: Variant = EFFECT_KIND_BY_KEY[key]
 		var inst: Object = (script_v as GDScript).new()
 		# Broadcast all keys via Object.set(): non-matching properties no-op,
-		# so DamageEffect picks up `damage`+`duration`, MoveEffect picks up
-		# `move_type`+`move_distance`+`duration`, etc.
+		# so DamageEffect picks up `damage`, MoveEffect picks up
+		# `move_type`+`move_distance`, etc. `duration` and `status` are
+		# skipped explicitly (status is handled above; duration is gone).
 		for k in data.keys():
-			if k == "kind":
+			if k == "kind" or k == "status" or k == "duration":
 				continue
 			inst.set(k, data[k])
 		var eff := inst as AbilityEffect
@@ -252,6 +264,59 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 	if out.is_empty():
 		GameLogger.info("AbilityDatabase", "%s: effect dict has no recognised keys — skipping" % ability_id)
 	return out
+
+
+# 027: parse `"id(d, a1, a2, ...)"` into a StatusEffect. Returns null on any
+# malformed input (bad shape, unknown id, arity mismatch) — callers append
+# only when non-null.
+func _make_status_effect(value: Variant, ability_id: String) -> StatusEffect:
+	if not (value is String):
+		GameLogger.warn("AbilityDatabase", "%s: status value must be string, got %s" % [ability_id, type_string(typeof(value))])
+		return null
+	var parsed: Dictionary = _parse_status_string(value as String)
+	if parsed.is_empty():
+		GameLogger.warn("AbilityDatabase", "%s: malformed status string '%s' (expected 'id(n0, n1, ...)')" % [ability_id, value])
+		return null
+	var id: StringName = parsed["id"]
+	var args: Array[int] = parsed["args"]
+	# Arity check via StatusRegistry (returns 0 for unknown id, which we treat as reject).
+	var expected: int = StatusRegistry.arity_of(id)
+	if expected == 0:
+		GameLogger.warn("AbilityDatabase", "%s: unknown status_id '%s'" % [ability_id, id])
+		return null
+	if args.size() != expected:
+		GameLogger.warn("AbilityDatabase", "%s: status '%s' arity mismatch — expected %d args, got %d" % [ability_id, id, expected, args.size()])
+		return null
+	var eff := StatusEffect.new()
+	eff.status_id = id
+	eff.args = args
+	return eff
+
+
+# Strict parser for the inline encoding. Returns {} on any malformed input.
+# Whitespace around commas and inside parens is tolerated.
+#   "burning(2, 3, 1)" → {id: &"burning", args: [2, 3, 1]}
+#   "stunned(2)"       → {id: &"stunned", args: [2]}
+#   "feared()"         → {} (need at least duration)
+func _parse_status_string(s: String) -> Dictionary:
+	var open: int = s.find("(")
+	var close: int = s.rfind(")")
+	if open <= 0 or close < 0 or close <= open:
+		return {}
+	var id_str: String = s.substr(0, open).strip_edges()
+	if id_str.is_empty():
+		return {}
+	var argstr: String = s.substr(open + 1, close - open - 1).strip_edges()
+	var args: Array[int] = []
+	if argstr != "":
+		for piece in argstr.split(","):
+			var trimmed: String = piece.strip_edges()
+			if not trimmed.is_valid_int():
+				return {}
+			args.append(trimmed.to_int())
+	if args.is_empty():
+		return {}
+	return {"id": StringName(id_str), "args": args}
 
 
 func _make_modifier(data: Dictionary) -> ParameterModifier:
