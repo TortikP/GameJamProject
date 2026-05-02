@@ -63,6 +63,16 @@ JSON shape:
     "seed": 1234,                       // optional int. Default = hash(level.name) & 0x7fffffff
     "bpm": 96,                          // optional float, 40..200. Default 96.
     "base_state": "calm",               // optional, "calm" | "battle". Default "calm".
+    "progression": "am_f_c_g",          // optional. id из data/music/progressions.json. Default "am_f_c_g".
+    "scale": "natural_minor",           // optional. natural_minor | dorian | phrygian | harmonic_minor | pentatonic_minor.
+    "bars_per_chord": 1,                // optional. 1, 2, 4, or 8 — как долго держится каждый аккорд.
+    "drum_pattern": "march",            // optional. march | drive | halftime | tribal.
+    "bass_pattern": "root_fifth",       // optional. root | root_fifth | walking | syncopated.
+    "pad_voicing": "triad",             // optional. triad | sus2 | sus4 | seven.
+    "lead_density_calm":   0.3,         // optional. 0..1 probability per beat в calm.
+    "lead_density_battle": 0.7,         // optional. 0..1 probability per beat в battle.
+    "pad_gain_db":   0,                 // optional. dB offset для pad layer.
+    "drums_gain_db": 0,                 // optional. dB offset для drums layer.
     "stings": {                         // optional. Override sting id per event.
       "wave_clear": "blip_up",
       "victory":    "fanfare",
@@ -81,6 +91,26 @@ JSON shape:
 3. Явные поля в `music_config` (если есть, override).
 
 Editor panel в `LevelMetaPanel` **не делается** в этом спеке. Designers/Andrey редактируют JSON напрямую (есть Music Lab — см. §7 — как «лаборатория тюнинга», там же кнопка `Copy JSON`). Если потом захочется in-editor панель в LevelMetaPanel — отдельный спек.
+
+### 3.5 Расширенные подсистемы (post-v1, добавлено в этом же спеке)
+
+Базовая v1 была «одна прогрессия Am-F-C-G + один scale natural_minor + один drum-паттерн». После имплемента это явно мало для 4 уровней + меню + боссы. Расширил по 4 осям без увеличения тяжести синта (всё табличные lookup'ы, никакого нового DSP):
+
+**Прогрессии аккордов** — `data/music/progressions.json`. 6 штук v2: `am_f_c_g` (классика), `am_dm_e_am` (драматичная harmonic minor cadence), `am_g_f_g` (тёмная нисходящая), `am_e_am_e` (средневековая, контрастная), `am_bb_f_e` (восточный phrygian flavor), `am_c_g_em` (эпичная модальная). Контент — JSON, добавлять/править без кода (Stasyan/Andrey).
+
+**Scales (лады)** — хардкод в `harmony.gd` (математика, не контент). 5 штук: `natural_minor`, `dorian` (минор с мажорной 6-й), `phrygian` (минор с пониженной 2-й, восточный), `harmonic_minor` (минор с повышенной 7-й, драматичный), `pentatonic_minor` (5-нотный, азиатский/блюзовый). Влияет на lead-генератор (на слабых долях lead играет ноты из scale).
+
+**Bars per chord** — `1` (default, аккорд каждый бар) / `2` / `4` / `8`. Медленные смены = более «meditative» / атмосферное звучание; быстрые = напряжение. Поле `bars_per_chord` в music_config.
+
+**Drum patterns** — `scripts/audio/music/drum_patterns.gd` (статический словарь). 4 штуки: `march` (текущий: kick 1,3 / hat 2,4), `drive` (kick на каждой доле, snare на 2,4 — driving), `halftime` (kick 1, snare 3 — медленно, тяжело), `tribal` (синкопированный с kick на 1,4 + scattered hat/snare). Pattern содержит Dictionary `{beat_in_bar: [hit_type,...]}`. Hit types: `kick` / `snare` / `hat`. Snare добавлен как отдельный voice (noise-burst, длиннее hat). Поле `drum_pattern`.
+
+**Bass patterns** — `scripts/audio/music/bass_patterns.gd` (статический словарь). 4 штуки: `root` (тоника на каждой доле — driving simple), `root_fifth` (root/fifth alternating — текущий v1), `walking` (root → 3rd → 5th → octave — джазово-восходящий), `syncopated` (root → rest → fifth → octave — sparse, tense). Pattern = `Array[4]` of semitone offset, `BassPatterns.REST` (sentinel) = пропуск доли. Поле `bass_pattern`.
+
+**Pad voicings** — словарь VOICINGS в `pad_gen.gd`. 4 штуки: `triad` (3rd+5th — текущий, минорный), `sus2` (2nd+5th — открытый, воздушный), `sus4` (4th+5th — suspended, неразрешённый), `seven` (3rd+5th+♭7 — джазовый/тёмный). Поле `pad_voicing`.
+
+**Производительность** — все эти оси не добавляют новых голосов: `bass_pattern` влияет на ОДНУ note_on per beat (как раньше), `drum_pattern` максимум 2 hits per beat, `pad_voicing` 2-3 голоса (как было), `progression`/`scale` это просто другие числа в существующей таблице. Те же 6 голосов pool'а, та же сложность mix-loop'а.
+
+**Pattern scope** — все паттерны attached на один и тот же 4/4 bar (4 beats). 8th note grid (pattern из 8 элементов вместо 4) — out of scope этого расширения. Если понадобится — простой extend существующих таблиц в follow-up.
 
 ### 4. Stings — JSON-driven, заменимые
 
@@ -212,6 +242,8 @@ UI (один экран, всё видно сразу):
 - **AC-12 (no jam-rule violation):** код не загружает ни одного аудио-файла из `assets/audio/music/` если `stings.json` весь procedural. Проверка — search по `load(.*\.ogg)` в коде модуля = 0 хитов кроме stream-стингов.
 - **AC-13 (Music Lab functional):** открыть `scenes/dev/music_lab.tscn` через F6 в Godot editor → музыка играет, слайдеры реально влияют на звук в реальном времени, кнопка «Copy JSON» кладёт валидный JSON-сниппет в clipboard, который при вставке в level.json даёт идентичный звук.
 - **AC-14 (presets resolve):** уровень с `music_config: {"preset": "tense_arena"}` звучит как preset; `music_config: {"preset": "tense_arena", "bpm": 130}` использует BPM из override, остальные поля — из пресета. Невалидный preset id → warn-once, дефолты, музыка играет.
+- **AC-15 (expanded axes audible):** четыре «структурных» оси из §3.5 реально влияют на звук в Music Lab: смена прогрессии меняет последовательность аккордов, смена scale меняет ноты lead'а на слабых долях, смена `bars_per_chord` 1→4 слышимо замедляет смену гармонии, смена drum/bass паттерна меняет ритмический рисунок, смена pad_voicing меняет аккордовое наполнение. Каждое — без правки кода, только dropdown.
+- **AC-16 (12 presets contrast):** 12 пресетов в `data/music/presets.json` дают 12 различимо-разных «настроений». Smoke: применить каждый в Music Lab по очереди, услышать что они не сливаются в одно. Если 2+ пресета звучат идентично — переcмотреть параметры или удалить duplicate.
 
 ## Risks
 

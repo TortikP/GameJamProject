@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "stings": {
+    "wave_clear":  { "kind": "procedural", "preset": "blip_up" },
+    "victory":     { "kind": "procedural", "preset": "fanfare" },
+    "defeat":      { "kind": "procedural", "preset": "descending" },
+    "pickup":      { "kind": "procedural", "preset": "ping" }
+  }
+}

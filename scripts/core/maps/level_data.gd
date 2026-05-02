@@ -68,6 +68,10 @@ var spawners: Array[Dictionary] = []
 # DialogueTrigger objects) so LevelSerializer can round-trip JSON directly.
 var dialogue_triggers: Array[Dictionary] = []
 
+## 042: per-level procedural music config. Optional — empty dict → defaults.
+## Schema: see data/maps/_schema.md §music_config and specs/042-proc-music/spec.md §3.
+var music_config: Dictionary = {}
+
 var waves: Array[Dictionary] = [{
 	"index": 0,
 	"is_special": false,
@@ -218,6 +222,12 @@ func validate() -> Array[String]:
 			# Use has_method check to be safe.
 			pass  # Actual check done in LevelDialogueDirector at runtime.
 
+	# 042: music_config soft validation (warn-only, doesn't block save).
+	if music_config.has("bpm"):
+		var bpm: float = float(music_config["bpm"])
+		if bpm < 40.0 or bpm > 200.0:
+			errors.append("WARN: music_config.bpm %.1f out of [40, 200] — will be clamped" % bpm)
+
 	return errors
 
 
@@ -246,6 +256,7 @@ func to_dict() -> Dictionary:
 		"tileset_path": tileset_path,
 		"waves": waves_out,
 		"dialogue_triggers": dialogue_triggers.duplicate(true),
+		"music_config": music_config.duplicate(true),
 	}
 
 
@@ -299,6 +310,9 @@ static func from_dict(d: Dictionary) -> LevelData:
 		for entry in d["dialogue_triggers"]:
 			if entry is Dictionary:
 				lvl.dialogue_triggers.append(entry.duplicate())
+	# 042: music_config — optional, default empty.
+	if d.has("music_config") and d["music_config"] is Dictionary:
+		lvl.music_config = (d["music_config"] as Dictionary).duplicate(true)
 	return lvl
 
 
