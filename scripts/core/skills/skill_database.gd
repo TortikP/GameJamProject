@@ -75,9 +75,6 @@ func _build_skill(data: Dictionary) -> Skill:
 	skill.tooltip = String(data.get("tooltip", ""))
 	skill.desc = String(data.get("desc", ""))
 
-	# 026: icon — id for future IconDB (storage only, no dispatch).
-	skill.icon = StringName(data.get("icon", ""))
-
 	# 021: skill level. Default 0 → no scaling (identity).
 	skill.level = int(data.get("level", 0))
 

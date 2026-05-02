@@ -108,28 +108,6 @@ const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 # the foreground without competing with it.
 const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
 
-# ── 024-wave-editor — wave timeline visuals ──────────────────
-# Used by scenes/ui/wave_timeline.tscn in both EDIT and RUNTIME modes.
-const WAVE_BAR_BG                   := Color("16202c")  # bar trough
-const WAVE_BAR_HEIGHT               := 6.0              # px (drawn line thickness)
-const WAVE_ANCHOR_FILL              := Color("dceaff")  # default anchor disc
-const WAVE_ANCHOR_PASSED            := Color("4a5870")  # waves before current
-const WAVE_ANCHOR_CURRENT           := Color("f5d97a")  # active wave (FOCUS yellow)
-const WAVE_ANCHOR_OUTLINE           := Color("0c0e12")  # 1px ring around every disc
-const WAVE_ANCHOR_RADIUS            := 10.0             # px radius for normal anchor
-const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
-const WAVE_NUMBER_FONT_SIZE         := 18
-const WAVE_NUMBER_COLOR             := Color("e8ecf3")  # turns_to_next digit
-const WAVE_CURSOR_COLOR             := Color("f5d97a")  # runtime "now" pointer
-const WAVE_CURSOR_HEIGHT            := 22.0             # px tall
-
-# 024 / T83 — wave-diff highlight (new-this-wave overlay in editor).
-# Subtle — designer should be able to ignore it during normal editing.
-# Applied to floor cells / objects / spawners that exist in waves[active]
-# but not in waves[active-1] at the same coord. Wave 0 → highlight off.
-const WAVE_DIFF_FILL                := Color(0.34, 0.78, 0.55, 0.18)  # green-ish fill
-const WAVE_DIFF_OUTLINE             := Color(0.34, 0.78, 0.55, 0.85)  # ring
-
 # ── Lookups ──────────────────────────────────────────────────
 
 ## Returns hp fill color by ratio (0..1).
@@ -178,22 +156,15 @@ static func semantic_color(tag: StringName) -> Color:
 static func make_panel_stylebox(elevated: bool = false) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BG_ELEVATED if elevated else BG_PANEL
-	# Slightly stronger border on the left edge — visual "spine" without
-	# being heavy on every side. Other sides keep the muted BORDER.
 	sb.border_color = BORDER
-	sb.border_width_left   = 2
+	sb.border_width_left   = 1
 	sb.border_width_right  = 1
 	sb.border_width_top    = 1
 	sb.border_width_bottom = 1
-	sb.corner_radius_top_left     = 6
-	sb.corner_radius_top_right    = 6
-	sb.corner_radius_bottom_left  = 6
-	sb.corner_radius_bottom_right = 6
-	# Soft drop-shadow — lifts the panel off the dark canvas without
-	# competing with the content. Cheap (no blur), Godot stretches the box.
-	sb.shadow_color = Color(0, 0, 0, 0.35)
-	sb.shadow_size = 4
-	sb.shadow_offset = Vector2(0, 2)
+	sb.corner_radius_top_left     = 4
+	sb.corner_radius_top_right    = 4
+	sb.corner_radius_bottom_left  = 4
+	sb.corner_radius_bottom_right = 4
 	sb.content_margin_left   = SP_3
 	sb.content_margin_right  = SP_3
 	sb.content_margin_top    = SP_2

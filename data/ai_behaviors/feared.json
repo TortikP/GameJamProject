@@ -1,6 +1,0 @@
-{
-  "id": "feared",
-  "rules": [],
-  "movement_policy": {"kind": "kite_specific_actor"},
-  "fallback_skill_id": ""
-}

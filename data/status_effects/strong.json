@@ -1,9 +1,0 @@
-{
-  "id": "strong",
-  "family": "buff",
-  "icon": "",
-  "arity": 3,
-  "param_names": ["duration", "n_attack_buff", "lvl_up_bonus"],
-  "loc_name": "status.strong.name",
-  "loc_desc": "status.strong.desc"
-}

@@ -16,11 +16,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var move_distance: int = 1
 
 
-## 027: nothing scales. `move_distance` is a designed value, not a power
-## axis; `duration` was carried by the old AbilityEffect base and unused
-## in practice — gone with the base field.
-func apply_level(_level: int) -> void:
-	pass
+## 021 scaling: only `duration` scales (per spec table).
+## `move_distance` intentionally unscaled — knockback radius is a designed value,
+## not a power axis.
+func apply_level(level: int) -> void:
+	if level <= 0 or duration <= 1:
+		return
+	duration += level
 
 
 func apply(caster: Actor, target: Variant, ctx: Dictionary) -> void:

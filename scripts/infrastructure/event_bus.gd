@@ -24,16 +24,6 @@ signal portal_opened
 signal upgrade_offered(options: Array)
 signal upgrade_chosen(modifier_id: StringName)
 
-# Waves (024-wave-editor) — runtime wave lifecycle, separate from legacy
-# `wave_spawned` (which still exists for the future roguelike loop's spawn
-# announcements). 024's WaveController emits these.
-signal wave_started(index: int, is_special: bool)
-signal wave_cleared(index: int, unused_turns: int)
-signal level_completed(total_score: int)
-# 024: emitted when a deferred spawner-placeholder instantiates a real actor.
-# Listeners (e.g. AI planner, HUD) can react to the new actor entering play.
-signal actor_spawned(actor_id: StringName)
-
 # Run cycle
 signal run_started
 signal run_ended(reason: String)
@@ -66,11 +56,6 @@ signal world_turn_ended(turn: int)
 signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: Array)
 signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
 signal actor_died(id: StringName)
-# 034: emitted by Actor.add_status after on_apply + statuses_changed.
-# godmode_controller listens to replan affected enemy + refresh telegraphs
-# so a freshly-applied control status takes effect on the very next
-# world_turn_ended (not the one after).
-signal actor_status_added(actor_id: StringName, status_id: StringName)
 
 # Combat feedback (013-refactor-wave-1, F-002/F-003)
 # Emitted by Actor.take_damage / Actor.heal. Listeners: floating_number_layer

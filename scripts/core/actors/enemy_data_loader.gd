@@ -52,16 +52,14 @@ static func apply_to_actor(actor: Actor, enemy_id: StringName) -> bool:
 		actor.behavior_id = StringName(data["behavior_id"])
 
 	# Skills: list of skill_ids → resolve via SkillDatabase, attach via set_skills.
-	# 034: clone_for_owner — each enemy gets its own Skill copy so cooldowns
-	# don't leak between two instances of the same enemy type.
 	var skill_ids: Variant = data.get("skills", [])
 	if typeof(skill_ids) == TYPE_ARRAY:
 		var skills: Array = []
 		for sid_v in skill_ids:
 			var sid: StringName = StringName(sid_v)
-			var src: Skill = SkillDatabase.get_skill(sid)
-			if src != null:
-				skills.append(src.clone_for_owner())
+			var skill: Skill = SkillDatabase.get_skill(sid)
+			if skill != null:
+				skills.append(skill)
 			else:
 				GameLogger.warn("EnemyDataLoader", "%s: unknown skill_id '%s' — skipped" % [enemy_id, sid])
 		actor.set_skills(skills)

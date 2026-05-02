@@ -6,16 +6,11 @@ extends AbilityTarget
 ## JSON kind: "actor" (was "entity").
 ##
 ## @export range:
-##   -1  = unrestricted (any alive actor, including caster)
+##   -1  = unrestricted (any alive actor)
 ##    0  = self only
-##    1+ = within N path-steps of caster (adjacency: range=1, includes caster)
+##    1+ = within N path-steps of caster (adjacency: range=1)
 ##
-## 035: caster IS now a valid pick — the previous `if actor == caster: return null`
-## contradicted the documented `range=0 = self only` semantic and made
-## target=actor heals/buffs unable to land on the caster. Designers control
-## self-targetability via `range` and behaviour_tags.
-##
-## Returns the Actor or null. Never returns dead actors.
+## Returns the Actor or null (never returns caster, never returns dead actors).
 
 @export var range: int = -1
 
@@ -30,11 +25,8 @@ func resolve(caster: Actor, ctx: Dictionary) -> Variant:
 	var actor: Actor = registry.get_actor(id)
 	if actor == null or not actor.is_alive():
 		return null
-	# 035: self-target shortcut. Skip the path/range walk — distance to
-	# self is always 0, which satisfies any range >= 0. find_path(c, c)
-	# is implementation-defined and we don't want to depend on it.
 	if actor == caster:
-		return actor
+		return null
 	if range >= 0:
 		var grid: HexGrid = ctx.get("grid")
 		if grid == null:
@@ -56,13 +48,10 @@ func get_range_hexes(caster_coord: Vector2i, grid: HexGrid) -> Array[Vector2i]:
 		return grid.get_all_walkable_coords()
 	if range == 0:
 		return [caster_coord]
-	# 035 cont.: include caster_coord. Without it, the FSM click validator
-	# (godmode_controller._handle_cast_lmb) rejects clicks on self before
-	# resolve() ever runs — so the resolve-side self fix in 035 was masked.
-	# BFS still walks neighbours; we just seed the result with caster.
+	# BFS up to range steps from caster (include occupied hexes for overlay)
 	var visited: Dictionary = {caster_coord: true}
 	var frontier: Array[Vector2i] = [caster_coord]
-	var result: Array[Vector2i] = [caster_coord]
+	var result: Array[Vector2i] = []
 	for _step in range:
 		var next: Array[Vector2i] = []
 		for coord in frontier:

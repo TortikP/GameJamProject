@@ -5,16 +5,8 @@ extends Resource
 ## cast() executes abilities in array order. Each ability resolves its own targets
 ## at execution time (not at skill-start) — enabling multi-ability combos like vampirism.
 ##
-## tick_cooldown(n) is called once per round by
-## godmode_controller._tick_all_skills (driven from _on_world_turn_ended)
-## for every live Actor. See spec 031-skill-cooldown-fix.
-##
-## 031 phase 4 — first-tick absorption: world_turn_ended fires in the
-## same TurnManager.advance() that caps off the cast turn, so the very
-## next tick after cast() lands inside the *cast turn itself* and would
-## erase one round of cooldown. _skip_next_tick=true on cast absorbs
-## exactly that tick, so cooldown=N means N rounds of being unavailable
-## (the design intent in JSON), not N-1.
+## tick_cooldown(n) is called by TurnManager each turn. Cooldown ticks at
+## "end of caster's turn" by convention — clarified once TurnManager integrates.
 ##
 ## 021 additions (021-skill-system-v2):
 ##  - name / tooltip / desc — localization keys (raw strings; resolution out of scope).
@@ -23,13 +15,6 @@ extends Resource
 ##  - level — power axis. Propagated into Ability.cast and predicted_damage_to.
 ##    Components (target/area/effect) self-react via apply_level(level) on a duplicate
 ##    before resolve/apply — base resource stays untouched.
-##
-## 026 additions (026-skill-system-v3):
-##  - icon — StringName id for future IconDB. Stored, not dispatched.
-##  - cast(caster, ctxs: Array[Dictionary]) — per-ability ctx. ctxs.size() must
-##    equal abilities.size(); abilities[i] gets ctxs[i]. Caller (godmode_controller
-##    for player, _resolve_cast_intent for AI) is responsible for collecting
-##    targets per ability before calling cast.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -37,7 +22,6 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var name: String = ""
 @export var tooltip: String = ""
 @export var desc: String = ""
-@export var icon: StringName = &""                   # 026: future IconDB lookup
 @export var cooldown: int = 0
 @export var behaviour_tags: Array[StringName] = []   # was: tags (renamed in 021)
 @export var mood: Array[StringName] = []
@@ -45,25 +29,15 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var abilities: Array[Ability] = []
 
 var _cd_remaining: int = 0
-# 031 phase 4 — true between cast() and the very next tick_cooldown call,
-# which fires inside the same world_turn_ended as the cast itself. Set on
-# cast (cooldown>0), cleared by the absorbing tick.
-var _skip_next_tick: bool = false
 
 
 func is_ready() -> bool:
 	return _cd_remaining <= 0
 
 
-## Pre-check for UI slot greying. Castable iff (a) skill is off cooldown
-## and (b) the first ability accepts the current ctx. Without the
-## is_ready guard, slot bar wouldn't grey out on cooldown (and the
-## set_castable early-return short-circuits cd label refreshes — see
-## spec 031 phase 3). Spec 031 phase 3.
+## Pre-check for UI slot greying. Delegates to first ability.
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 	if abilities.is_empty():
-		return false
-	if not is_ready():
 		return false
 	return (abilities[0] as Ability).can_apply(caster, ctx)
 
@@ -85,63 +59,34 @@ func get_ability_ids() -> Array[StringName]:
 	return ids
 
 
-func cast(caster: Actor, ctxs: Array[Dictionary]) -> bool:
+func cast(caster: Actor, ctx: Dictionary) -> bool:
 	if not is_ready():
 		GameLogger.info("Skill", "%s on cooldown (%d remaining)" % [id, _cd_remaining])
-		return false
-
-	# 026: ctxs is one Dictionary per ability — caller collects targets in phase 1.
-	if ctxs.size() != abilities.size():
-		GameLogger.error("Skill", "%s: ctxs.size()=%d != abilities.size()=%d" % [id, ctxs.size(), abilities.size()])
 		return false
 
 	var any_resolved: bool = false
 	var all_target_ids: Array = []
 
-	for i in abilities.size():
+	for ab in abilities:
 		# 021: pass this skill's level into each ability so per-component
 		# apply_level(level) hooks fire on duplicates inside Ability.cast.
-		# 026: each ability gets its own ctx from ctxs[i].
-		var resolved: bool = abilities[i].cast(caster, ctxs[i], level)
+		var resolved: bool = ab.cast(caster, ctx, level)
 		if resolved:
 			any_resolved = true
 			# 015 / F-014: aggregate per-ability target_ids into skill-level emit.
 			# Read last_target_ids immediately after cast() — see Ability docstring.
-			for tid in abilities[i].last_target_ids:
+			for tid in ab.last_target_ids:
 				if not all_target_ids.has(tid):
 					all_target_ids.append(tid)
 
 	if any_resolved:
 		_cd_remaining = cooldown
-		# 031 phase 4: world_turn_ended fires later in the same advance() that
-		# closes this turn → tick_cooldown lands inside the cast turn. Skip it
-		# once so 'cooldown=N' means N rounds of skip, not N-1.
-		if cooldown > 0:
-			_skip_next_tick = true
 		EventBus.skill_cast.emit(caster.actor_id, id, all_target_ids)
 		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster.actor_id, _cd_remaining])
 
 	return any_resolved
 
 
-## Reduce remaining cooldown by `by` turns. Called from
-## godmode_controller._tick_all_skills once per round per live actor.
+## Reduce remaining cooldown by `by` turns. Called from TurnManager.
 func tick_cooldown(by: int = 1) -> void:
-	# 031 phase 4: absorb the very first tick after a cast (see cast() above).
-	if _skip_next_tick:
-		_skip_next_tick = false
-		return
 	_cd_remaining = maxi(0, _cd_remaining - by)
-
-
-## 034: returns a fresh copy with its own cooldown state — call this when
-## an Actor takes ownership of a skill resource so cooldowns don't leak
-## between owners (Skill is a Resource → SkillDatabase.get_skill returns
-## a single shared instance). `abilities` array stays shared (Ability has
-## no per-cast persistent state — last_target_ids is read immediately
-## after cast(), no race in single-threaded execution).
-func clone_for_owner() -> Skill:
-	var copy: Skill = self.duplicate()   # shallow — abilities[] shared
-	copy._cd_remaining = 0
-	copy._skip_next_tick = false
-	return copy

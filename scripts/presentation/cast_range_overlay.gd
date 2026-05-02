@@ -3,14 +3,9 @@ extends Node2D
 ## valid target hexes for the active ability of the active caster — no
 ## reachable-walk hexes, no self-position marker.
 ##
-## 029 / req-4: visualization style switched from filled hexes (per-hex
-## Polygon2D + Line2D nodes) to per-hex THIN OUTLINES drawn in a single
-## _draw() pass, mirroring scripts/presentation/dev/paint_preview.gd. This
-## reads cleanly without obscuring tile content underneath, and matches the
-## editor's brush preview for visual continuity (UI-kit cohesion).
-##
 ## Use case: while a slot is active (player has Q/W/E/R selected), this
-## overlay paints the outlines of all hexes that ability could land on.
+## overlay paints all hexes that ability could land on. Color uses the
+## ability's primary tag if available (post-007), else SEM_DEBUFF.
 ##
 ## Wiring: parent it to the same HexGrid node as MoveRangeOverlay. The host
 ## controller calls show_range(caster, ability_id) when cast_mode enters
@@ -18,15 +13,10 @@ extends Node2D
 ##
 ## Z-index 4 — below cursor (z=7), above terrain, above move overlay (z=2).
 
-## Hex polygon dimensions come from the live tileset's tile_size — see
-## scripts/infrastructure/hex_geometry.gd. tile_size in the .tres is the
-## single source of truth.
-const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
+const RADIUS: float = 60.0   # match MoveRangeOverlay / godmode_terrain.tres
 
 var _grid: Node = null  # HexGrid
-var _coords: Array[Vector2i] = []
-var _color: Color = Color.WHITE
-var _self_coord: Vector2i = Vector2i(-1, -1)  # special-case highlight (self-confirm step)
+var _polys: Array[Node2D] = []
 
 
 func setup(grid: Node) -> void:
@@ -34,9 +24,6 @@ func setup(grid: Node) -> void:
 
 
 func _ready() -> void:
-	# Match scene z_index but assert here too in case future scene rewrites
-	# omit it. Cursor (z=7) stays on top, MoveRangeOverlay (z=2) underneath.
-	z_index = 4
 	EventBus.ui_theme_reloaded.connect(_on_theme_reloaded)
 
 
@@ -54,95 +41,65 @@ func show_range(caster: Actor, skill_or_id) -> void:
 	# Collect target hexes from one or many abilities.
 	var hexes: Dictionary = {}  # Vector2i → true (dedup across abilities)
 	if "abilities" in skill_or_id:
+		# Skill — iterate contained abilities.
 		for ab in skill_or_id.abilities:
 			if ab == null or ab.target == null:
 				continue
 			for c in ab.target.get_range_hexes(caster_coord, _grid):
 				hexes[c] = true
 	else:
+		# Treated as ability id (StringName / String).
 		var ability: Ability = AbilityDatabase.get_ability(StringName(str(skill_or_id)))
 		if ability == null or ability.target == null:
 			return
 		for c in ability.target.get_range_hexes(caster_coord, _grid):
 			hexes[c] = true
-	_coords = []
+
+	# Color: tag-driven once 007/008 ship ability.primary_tag; for now SEM_DEBUFF
+	# (visually distinct from move-range team color).
+	var base: Color = UiTheme.SEM_DEBUFF
+	var fill := Color(base.r, base.g, base.b, 0.32)
+	var outline := Color(base.r, base.g, base.b, 0.78)
 	for c in hexes.keys():
-		_coords.append(c)
-	_color = UiTheme.SEM_DEBUFF
-	queue_redraw()
-
-
-## 026: per-ability range — used by godmode_controller's multi-step cast FSM
-## to highlight only the hexes valid for `ability` (not the whole skill).
-func show_range_for_ability(caster: Actor, ability: Ability) -> void:
-	hide_range()
-	if _grid == null or caster == null or ability == null or ability.target == null:
-		return
-	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
-	if caster_coord == Vector2i(-1, -1):
-		return
-	_coords = ability.target.get_range_hexes(caster_coord, _grid)
-	_color = UiTheme.SEM_DEBUFF
-	queue_redraw()
-
-
-## 026: highlight caster's hex for a self-target step. LMB anywhere on
-## screen confirms (handled by godmode_controller — this is just the visual).
-## Color uses SEM_HEAL to distinguish from offensive range. Drawn with a
-## bolder outline + faint fill so the single hex reads unambiguously as a
-## confirm target (vs a field of thin outlines for a multi-hex range).
-func show_self_confirm(coord: Vector2i) -> void:
-	hide_range()
-	if _grid == null:
-		return
-	_self_coord = coord
-	_color = UiTheme.SEM_HEAL
-	queue_redraw()
+		_add_hex(c, fill, outline)
 
 
 func hide_range() -> void:
-	if _coords.is_empty() and _self_coord == Vector2i(-1, -1):
-		return
-	_coords = []
-	_self_coord = Vector2i(-1, -1)
-	queue_redraw()
+	for p in _polys:
+		if is_instance_valid(p):
+			p.queue_free()
+	_polys.clear()
 
 
 func _on_theme_reloaded() -> void:
-	# Color was captured at show-time from UiTheme; rebuild on hot-reload so a
-	# styling iteration is reflected without re-entering the cast FSM.
-	if _self_coord != Vector2i(-1, -1):
-		_color = UiTheme.SEM_HEAL
-	else:
-		_color = UiTheme.SEM_DEBUFF
-	queue_redraw()
+	# Overlay holds no current state across reloads (controller re-pushes on
+	# cast_mode events). No-op.
+	pass
 
 
-func _draw() -> void:
+func _add_hex(coord: Vector2i, fill: Color, outline: Color) -> void:
 	if _grid == null:
 		return
-	var layer: TileMapLayer = _grid.tile_map_layer
-	if layer == null or layer.tile_set == null:
-		return
-	var corners: PackedVector2Array = HexGeometry.flat_top_polygon(Vector2(layer.tile_set.tile_size))
-	if corners.is_empty():
-		return
-	# 029 / req-4: paint_preview-style thin outlines per hex (no fill).
-	# alpha 0.55 is visible against grid lines without competing with the
-	# cursor (z=7) on top.
-	var line_color: Color = Color(_color.r, _color.g, _color.b, 0.55)
-	for c in _coords:
-		var center: Vector2 = layer.map_to_local(c)
-		for i in 6:
-			draw_line(center + corners[i], center + corners[(i + 1) % 6],
-					line_color, 1.5, true)
-	# Self-confirm: bolder closed-loop outline + faint fill on the single hex.
-	if _self_coord != Vector2i(-1, -1):
-		var center: Vector2 = layer.map_to_local(_self_coord)
-		var pts := PackedVector2Array()
-		for i in 6:
-			pts.append(center + corners[i])
-		draw_colored_polygon(pts, Color(_color.r, _color.g, _color.b, 0.30))
-		for i in 6:
-			draw_line(pts[i], pts[(i + 1) % 6],
-					Color(_color.r, _color.g, _color.b, 0.85), 2.5, true)
+	var poly: Node2D = Node2D.new()
+	poly.position = _grid.tile_map_layer.map_to_local(coord)
+	poly.z_index = 4
+	_grid.add_child(poly)
+	_polys.append(poly)
+
+	var pts: PackedVector2Array = []
+	for i in 6:
+		var a: float = deg_to_rad(60.0 * i)
+		pts.append(Vector2(cos(a) * RADIUS, sin(a) * RADIUS))
+	var pgon := Polygon2D.new()
+	pgon.polygon = pts
+	pgon.color = fill
+	poly.add_child(pgon)
+	var line := Line2D.new()
+	var line_pts := PackedVector2Array()
+	for p in pts:
+		line_pts.append(p)
+	line_pts.append(pts[0])
+	line.points = line_pts
+	line.default_color = outline
+	line.width = 1.5
+	poly.add_child(line)
