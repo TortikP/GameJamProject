@@ -1,8 +1,8 @@
 {
   "id": "test_status_multi",
-  "name": "skill.test_status_multi.name",
-  "tooltip": "skill.test_status_multi.tooltip",
-  "desc": "skill.test_status_multi.desc",
+  "name": "skill_test_status_multi_name",
+  "tooltip": "skill_test_status_multi_tooltip",
+  "desc": "skill_test_status_multi_desc",
   "icon": "",
   "cooldown": 0,
   "behaviour_tags": ["debuff"],

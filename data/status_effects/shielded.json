@@ -8,6 +8,6 @@
     "n_block",
     "lvl_bonus"
   ],
-  "loc_name": "status.shielded.name",
-  "loc_desc": "status.shielded.desc"
+  "loc_name": "status_shielded_name",
+  "loc_desc": "status_shielded_desc"
 }

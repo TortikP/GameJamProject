@@ -8,6 +8,6 @@
     "damage",
     "lvl_bonus"
   ],
-  "loc_name": "status.burning.name",
-  "loc_desc": "status.burning.desc"
+  "loc_name": "status_burning_name",
+  "loc_desc": "status_burning_desc"
 }

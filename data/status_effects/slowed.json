@@ -6,6 +6,6 @@
   "param_names": [
     "duration"
   ],
-  "loc_name": "status.slowed.name",
-  "loc_desc": "status.slowed.desc"
+  "loc_name": "status_slowed_name",
+  "loc_desc": "status_slowed_desc"
 }

@@ -42,7 +42,7 @@ func _build_tag_filter() -> void:
 			continue
 		for t in line.tags:
 			tags[str(t)] = true
-	_tag_filter.add_item("(все теги)", 0)
+	_tag_filter.add_item(Localization.t("ui_dialogue_preview_all_tags", "(all tags)"), 0)
 	var sorted_tags := tags.keys()
 	sorted_tags.sort()
 	for t in sorted_tags:
@@ -91,14 +91,14 @@ func _on_item_selected(index: int) -> void:
 	_selected_id = StringName(_list.get_item_text(index))
 	var line = DialogueDB.get_line(_selected_id)
 	if line == null:
-		_info.text = "[color=#ff4444]not found[/color]"
+		_info.text = "[color=#ff4444]%s[/color]" % Localization.t("ui_dialogue_preview_not_found", "not found")
 		return
 
 	_play_btn.disabled = false
 
 	var b := ""
-	b += "[b]" + str(line.id) + "[/b]   speaker: " + str(line.speaker) + "\n"
-	b += "priority: " + str(line.priority) + "   "
+	b += "[b]" + str(line.id) + "[/b]   " + Localization.t("ui_dialogue_preview_speaker_label", "speaker:") + " " + str(line.speaker) + "\n"
+	b += Localization.t("ui_dialogue_preview_priority_label", "priority:") + " " + str(line.priority) + "   "
 	if line.once_per_session:
 		b += "[color=#ffcc00]once_per_session[/color]   "
 	if line.once_per_run:
@@ -109,7 +109,7 @@ func _on_item_selected(index: int) -> void:
 		var tag_strs: Array = []
 		for t in line.tags:
 			tag_strs.append(str(t))
-		b += "[color=#88ffcc]tags:[/color] " + ", ".join(PackedStringArray(tag_strs)) + "\n"
+		b += "[color=#88ffcc]" + Localization.t("ui_dialogue_preview_tags_label", "tags:") + "[/color] " + ", ".join(PackedStringArray(tag_strs)) + "\n"
 		_request_btn.disabled = false
 		_tag_lbl.text = "-> request(" + str(line.tags[0]) + ")"
 	else:
@@ -118,10 +118,11 @@ func _on_item_selected(index: int) -> void:
 
 	var cond: Dictionary = line.conditions
 	if cond.get("min_run", 0) != 0 or cond.get("max_run", 999) != 999:
-		b += "[color=#888888]conditions: run " + str(cond.get("min_run", 0)) + "-" + str(cond.get("max_run", 999)) + "[/color]\n"
+		b += "[color=#888888]" + Localization.tf("ui_dialogue_preview_conditions_run", [int(cond.get("min_run", 0)), int(cond.get("max_run", 999))], "conditions: run %d-%d") + "[/color]\n"
 
-	b += "\n[color=#cccccc]" + line.text + "[/color]\n"
-	b += "\n[color=#888888]-- chain --[/color]\n"
+	var text_key := "dialogues_%s_text" % str(line.id)
+	b += "\n[color=#cccccc]" + Localization.t(text_key, line.text) + "[/color]\n"
+	b += "\n[color=#888888]" + Localization.t("ui_dialogue_preview_chain_title", "-- chain --") + "[/color]\n"
 	b += _build_chain(line.id, {}, 0)
 
 	_info.bbcode_enabled = true
@@ -133,31 +134,33 @@ func _build_chain(id: StringName, visited: Dictionary, depth: int) -> String:
 		return "  ...\n"
 	var indent := "  ".repeat(depth)
 	if visited.has(id):
-		return indent + "[color=#ff4444](cycle: " + str(id) + ")[/color]\n"
+		return indent + "[color=#ff4444]" + Localization.tf("ui_dialogue_preview_cycle", [str(id)], "(cycle: %s)") + "[/color]\n"
 
 	var line = DialogueDB.get_line(id)
 	if line == null:
-		return indent + "[color=#ff4444](missing: " + str(id) + ")[/color]\n"
+		return indent + "[color=#ff4444]" + Localization.tf("ui_dialogue_preview_missing", [str(id)], "(missing: %s)") + "[/color]\n"
 
 	var vis2 := visited.duplicate()
 	vis2[id] = true
 
-	var short_text: String = line.text.left(50) + ("..." if line.text.length() > 50 else "")
+	var localized_text := Localization.t("dialogues_%s_text" % str(line.id), line.text)
+	var short_text: String = localized_text.left(50) + ("..." if localized_text.length() > 50 else "")
 	var out := indent + "[color=#88ffcc]" + str(id) + "[/color] (" + str(line.speaker) + ") " + short_text + "\n"
 
 	if line.choices.size() > 0:
-		for ch in line.choices:
-			var lbl: String = ch.get("label", "?")
+		for i in line.choices.size():
+			var ch: Dictionary = line.choices[i]
+			var lbl: String = Localization.t("dialogues_%s_choices_%d_label" % [str(line.id), i], ch.get("label", "?"))
 			var nxt: StringName = ch.get("next", &"")
 			if nxt == &"":
-				out += indent + "  [color=#ffcc00]> " + lbl + "[/color] -> (end)\n"
+				out += indent + "  [color=#ffcc00]> " + lbl + "[/color] -> " + Localization.t("ui_dialogue_preview_end", "(end)") + "\n"
 			else:
 				out += indent + "  [color=#ffcc00]> " + lbl + "[/color] ->\n"
 				out += _build_chain(nxt, vis2, depth + 2)
 	elif line.next != &"":
 		out += _build_chain(line.next, vis2, depth + 1)
 	else:
-		out += indent + "  (end)\n"
+		out += indent + "  " + Localization.t("ui_dialogue_preview_end", "(end)") + "\n"
 
 	return out
 

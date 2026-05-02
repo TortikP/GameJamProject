@@ -21,7 +21,7 @@ func _ready() -> void:
 	# reflects only the LAST level. CampaignController accumulates across all
 	# levels in a campaign and parks the final value in last_campaign_total
 	# right before change_scene_to_file(this scene).
-	_score_label.text = "Total score: %d" % CampaignController.last_campaign_total
+	_score_label.text = Localization.tf("ui_campaign_end_total_score", [CampaignController.last_campaign_total], "Total score: %d")
 	_menu_btn.pressed.connect(_on_main_menu)
 	_menu_btn.grab_focus()
 	# 035 — emit scene_ready so any future fade-in / cutscene listener can

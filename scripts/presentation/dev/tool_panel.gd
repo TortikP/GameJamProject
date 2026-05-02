@@ -57,7 +57,7 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = Localization.t("Tools", "Tools")
+	header.text = Localization.t("ui_tool_panel_title", "Tools")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
 	_install_drag(header)
@@ -65,8 +65,8 @@ func _build_ui() -> void:
 	# Mode toggle row
 	var mode_row := HBoxContainer.new()
 	mode_row.add_theme_constant_override("separation", UiTheme.SP_1)
-	_brush_btn = _make_mode_btn(Localization.t("Brush", "Brush"), TOOL_BRUSH, true)
-	_rect_btn = _make_mode_btn(Localization.t("Rect", "Rect"),  TOOL_RECT,  false)
+	_brush_btn = _make_mode_btn(Localization.t("ui_tool_panel_brush", "Brush"), TOOL_BRUSH, true)
+	_rect_btn = _make_mode_btn(Localization.t("ui_tool_panel_rect", "Rect"),  TOOL_RECT,  false)
 	mode_row.add_child(_brush_btn)
 	mode_row.add_child(_rect_btn)
 	vbox.add_child(mode_row)
@@ -75,7 +75,7 @@ func _build_ui() -> void:
 	var size_row := HBoxContainer.new()
 	size_row.add_theme_constant_override("separation", UiTheme.SP_1)
 	_size_label = Label.new()
-	_size_label.text = Localization.t("Size:", "Size:")
+	_size_label.text = Localization.t("ui_tool_panel_size", "Size:")
 	size_row.add_child(_size_label)
 	_size_spin = SpinBox.new()
 	_size_spin.min_value = MIN_SIZE
@@ -142,9 +142,9 @@ func _update_hint() -> void:
 		return
 	match _current_tool:
 		TOOL_BRUSH:
-			_hint.text = Localization.t("LMB drag to paint. Size 2 = 7 hexes, size 3 = 19, etc.", "LMB drag to paint. Size 2 = 7 hexes, size 3 = 19, etc.")
+			_hint.text = Localization.t("ui_tool_panel_brush_hint", "LMB drag to paint. Size 2 = 7 hexes, size 3 = 19, etc.")
 		TOOL_RECT:
-			_hint.text = Localization.t("Press LMB at corner A, release at corner B. Fills axis-aligned rect.", "Press LMB at corner A, release at corner B. Fills axis-aligned rect.")
+			_hint.text = Localization.t("ui_tool_panel_rect_hint", "Press LMB at corner A, release at corner B. Fills axis-aligned rect.")
 
 
 func _install_drag(handle: Control) -> void:

@@ -38,23 +38,23 @@ func to_dict() -> Dictionary:
 func validate() -> Array[String]:
 	var errs: Array[String] = []
 	if id == &"":
-		errs.append("trigger id must not be empty")
+		errs.append(Localization.t("ui_dialogue_validate_id_empty", "trigger id must not be empty"))
 	if event == &"":
-		errs.append("trigger '%s': event must not be empty" % id)
+		errs.append(Localization.tf("ui_dialogue_validate_event_empty", [str(id)], "trigger '%s': event must not be empty"))
 	if play_mode not in VALID_PLAY_MODES:
-		errs.append("trigger '%s': play_mode \'%s\' invalid (expected request|play)" % [id, play_mode])
+		errs.append(Localization.tf("ui_dialogue_validate_play_mode_invalid", [str(id), play_mode], "trigger '%s': play_mode '%s' invalid (expected request|play)"))
 	var c: Dictionary = conditions
 	if c.has("chance"):
 		var ch: float = float(c["chance"])
 		if ch < 0.0 or ch > 1.0:
-			errs.append("trigger '%s': chance %f out of [0.0, 1.0]" % [id, ch])
+			errs.append(Localization.tf("ui_dialogue_validate_chance_range", [str(id), ch], "trigger '%s': chance %f out of [0.0, 1.0]"))
 	if c.has("absolute_turn"):
 		if int(c["absolute_turn"]) < 0:
-			errs.append("trigger '%s': absolute_turn must be >= 0" % id)
+			errs.append(Localization.tf("ui_dialogue_validate_absolute_turn", [str(id)], "trigger '%s': absolute_turn must be >= 0"))
 	# Condition applicability warnings
 	if c.has("cleared_in_turns_lt") and event != &"wave_cleared":
-		errs.append("WARN: trigger '%s': cleared_in_turns_lt only applies to wave_cleared event" % id)
+		errs.append("WARN: " + Localization.tf("ui_dialogue_validate_cleared_turns_event", [str(id)], "trigger '%s': cleared_in_turns_lt only applies to wave_cleared event"))
 	if c.has("absolute_turn") and event != &"world_turn_ended":
-		errs.append("WARN: trigger '%s': absolute_turn only applies to world_turn_ended event" % id)
+		errs.append("WARN: " + Localization.tf("ui_dialogue_validate_absolute_turn_event", [str(id)], "trigger '%s': absolute_turn only applies to world_turn_ended event"))
 	# dialogue_id existence validated at LevelData level (needs DialogueDB access)
 	return errs

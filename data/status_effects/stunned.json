@@ -6,6 +6,6 @@
   "param_names": [
     "duration"
   ],
-  "loc_name": "status.stunned.name",
-  "loc_desc": "status.stunned.desc"
+  "loc_name": "status_stunned_name",
+  "loc_desc": "status_stunned_desc"
 }

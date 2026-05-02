@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 )
 
@@ -56,15 +56,22 @@ function Test-LocKey([string]$Value) {
 }
 
 function ConvertTo-Slug([string]$Value) {
-    $slug = ($Value.Trim() -replace '[^A-Za-z0-9]+', '_').Trim('_').ToLowerInvariant()
+    $normalized = $Value.Trim() `
+        -creplace '([a-z0-9])([A-Z])', '$1_$2' `
+        -creplace '([A-Z]+)([A-Z][a-z])', '$1_$2'
+    $slug = ($normalized -replace '[^A-Za-z0-9]+', '_').Trim('_').ToLowerInvariant()
     if ([string]::IsNullOrWhiteSpace($slug)) {
         return "item"
     }
     return $slug
 }
 
+function ConvertTo-LocKey([string]$Value) {
+    return ConvertTo-Slug $Value
+}
+
 function ConvertFrom-LocKeyToText([string]$Key, [string]$FieldName) {
-    $base = ($Key -split '\.')[-1]
+    $base = ($Key -split '[\._-]')[-1]
     foreach ($suffix in @("_display_name", "_name", "_title", "_subtitle", "_desc", "_description", "_tooltip", "_text")) {
         if ($base.EndsWith($suffix)) {
             $base = $base.Substring(0, $base.Length - $suffix.Length)
@@ -84,6 +91,7 @@ function ConvertFrom-LocKeyToText([string]$Key, [string]$FieldName) {
 }
 
 function Add-Entry([string]$Key, [string]$Value, [string]$Source, [string]$Note) {
+    $Key = ConvertTo-LocKey $Key
     if ([string]::IsNullOrWhiteSpace($Key)) {
         return
     }
@@ -101,14 +109,32 @@ function Add-Entry([string]$Key, [string]$Value, [string]$Source, [string]$Note)
     }
 }
 
+function Get-LineNumberFromIndex([string]$Text, [int]$Index) {
+    return (($Text.Substring(0, $Index) -split "`n").Count)
+}
+
+function Add-ExplicitLocalizationCalls([string]$Text, [string]$Path) {
+    $relative = Get-RelativePath $Path
+    foreach ($match in [regex]::Matches($Text, 'Localization\.t\(\s*"(?<key>(?:\\.|[^"\\])*)"\s*,\s*"(?<fallback>(?:\\.|[^"\\])*)"')) {
+        $key = [regex]::Unescape($match.Groups["key"].Value)
+        $fallback = [regex]::Unescape($match.Groups["fallback"].Value)
+        Add-Entry $key $fallback "${relative}:$(Get-LineNumberFromIndex $Text $match.Index)" "explicit Localization.t fallback"
+    }
+    foreach ($match in [regex]::Matches($Text, 'Localization\.tf\(\s*"(?<key>(?:\\.|[^"\\])*)"\s*,[\s\S]*?\]\s*,\s*"(?<fallback>(?:\\.|[^"\\])*)"')) {
+        $key = [regex]::Unescape($match.Groups["key"].Value)
+        $fallback = [regex]::Unescape($match.Groups["fallback"].Value)
+        Add-Entry $key $fallback "${relative}:$(Get-LineNumberFromIndex $Text $match.Index)" "explicit Localization.tf fallback"
+    }
+}
+
 function Get-JsonPrefix([string]$Path, [string]$ObjectId) {
     $relative = Get-RelativePath ([System.IO.Path]::ChangeExtension($Path, $null))
     $parts = $relative -split '[\\/]'
     if ($parts.Count -ge 3 -and $parts[0] -eq "data") {
-        $category = $parts[1].Replace("_", ".")
-        return "$category.$ObjectId"
+        $category = ConvertTo-Slug $parts[1]
+        return "$category`_$(ConvertTo-Slug $ObjectId)"
     }
-    return (($parts | ForEach-Object { ConvertTo-Slug $_ }) -join ".")
+    return (($parts | ForEach-Object { ConvertTo-Slug $_ }) -join "_")
 }
 
 function Read-JsonNode($Node, [string]$Path, [string]$ObjectId, [string[]]$Trail) {
@@ -123,21 +149,23 @@ function Read-JsonNode($Node, [string]$Path, [string]$ObjectId, [string[]]$Trail
     }
     if ($Node -is [System.Management.Automation.PSCustomObject]) {
         $localId = $ObjectId
+        $nodeHasId = $false
         if ($Node.PSObject.Properties.Name -contains "id") {
             $localId = [string]$Node.id
+            $nodeHasId = $true
         }
         foreach ($prop in $Node.PSObject.Properties) {
             $field = $prop.Name
             $value = $prop.Value
-            $nextTrail = $Trail + $field
+            $nextTrail = if ($nodeHasId) { @($field) } else { $Trail + $field }
             if ($JsonFields -contains $field -and $value -is [string] -and -not (Test-PathLike $value)) {
                 if (Test-LocKey $value) {
-                    $key = $value
+                    $key = ConvertTo-LocKey $value
                     $text = ConvertFrom-LocKeyToText $value $field
                     $note = "existing localization key in data"
                 } else {
                     $prefix = Get-JsonPrefix $Path $localId
-                    $key = "$prefix.$(($nextTrail | ForEach-Object { ConvertTo-Slug $_ }) -join '.')"
+                    $key = "$prefix`_$(($nextTrail | ForEach-Object { ConvertTo-Slug $_ }) -join '_')"
                     $text = $value
                     $note = "literal data string"
                 }
@@ -199,7 +227,7 @@ function Read-SceneFiles {
             if ([string]::IsNullOrWhiteSpace($value) -or (Test-PathLike $value)) {
                 return
             }
-            $key = "ui.$sceneStem.$(ConvertTo-Slug $currentNode).$(ConvertTo-Slug $prop)"
+            $key = "ui_$(ConvertTo-Slug $sceneStem)_$(ConvertTo-Slug $currentNode)_$(ConvertTo-Slug $prop)"
             Add-Entry $key $value "$(Get-RelativePath $path):$lineNo" "scene property"
         }
     }
@@ -240,13 +268,15 @@ function Read-GdScriptFiles {
     foreach ($file in @(Get-ChildItem $scriptsDir -Recurse -Filter "*.gd" | Sort-Object FullName)) {
         $path = $file.FullName
         $relativeForFilter = (Get-RelativePath $path)
+        $rawScript = Get-Content $path -Raw -Encoding UTF8
+        Add-ExplicitLocalizationCalls $rawScript $path
         if (-not $relativeForFilter.StartsWith("scripts/presentation/")) {
             continue
         }
         $scriptsUri = [System.Uri](([System.IO.Path]::GetFullPath($scriptsDir).TrimEnd('\') + '\'))
         $pathUri = [System.Uri]([System.IO.Path]::GetFullPath($path))
         $scriptRel = [System.Uri]::UnescapeDataString($scriptsUri.MakeRelativeUri($pathUri).ToString())
-        $scriptKey = [System.IO.Path]::ChangeExtension($scriptRel, $null).Replace("\", ".").Replace("/", ".").Trim(".")
+        $scriptKey = ConvertTo-Slug ([System.IO.Path]::ChangeExtension($scriptRel, $null).Replace("\", "_").Replace("/", "_").Trim("_"))
         $lineNo = 0
         foreach ($line in @(Get-Content $path -Encoding UTF8)) {
             $lineNo += 1
@@ -257,12 +287,15 @@ function Read-GdScriptFiles {
             if ($line -notmatch '\.text\s*=|\.title\s*=|\.tooltip_text\s*=|\.placeholder_text\s*=|ui_toast_requested|_make_[A-Za-z0-9_]*\(|add_tab\(|add_item\(|ask\(|Localization\.t\(|Localization\.tf\(') {
                 continue
             }
+            if ($line -match 'Localization\.t\(|Localization\.tf\(') {
+                continue
+            }
             foreach ($match in [regex]::Matches($line, '"((?:\\.|[^"\\])*)"')) {
                 $value = [regex]::Unescape($match.Groups[1].Value)
                 if (-not (Test-UserFacingCodeString $value)) {
                     continue
                 }
-                $key = "ui.code.$scriptKey.$lineNo"
+                $key = "ui_code_$scriptKey`_$lineNo"
                 Add-Entry $key $value "$(Get-RelativePath $path):$lineNo" "probable UI string in GDScript"
             }
         }
@@ -277,24 +310,12 @@ function Write-Outputs {
     $existingRu = @{}
     if (Test-Path $existingEnPath) {
         (Get-Content $existingEnPath -Raw -Encoding UTF8 | ConvertFrom-Json).PSObject.Properties | ForEach-Object {
-            $existingEn[$_.Name] = [string]$_.Value
+            $existingEn[(ConvertTo-LocKey $_.Name)] = [string]$_.Value
         }
     }
     if (Test-Path $existingRuPath) {
         (Get-Content $existingRuPath -Raw -Encoding UTF8 | ConvertFrom-Json).PSObject.Properties | ForEach-Object {
-            $existingRu[$_.Name] = [string]$_.Value
-        }
-    }
-    foreach ($key in $existingEn.Keys) {
-        if (-not $Entries.Contains($key)) {
-            $Entries[$key] = $existingEn[$key]
-            $Sources[$key] = @([ordered]@{ source = "preserved from existing en.json"; note = "manual or stale key" })
-        }
-    }
-    foreach ($key in $existingRu.Keys) {
-        if (-not $Entries.Contains($key)) {
-            $Entries[$key] = ""
-            $Sources[$key] = @([ordered]@{ source = "preserved from existing ru.json"; note = "manual or stale key" })
+            $existingRu[(ConvertTo-LocKey $_.Name)] = [string]$_.Value
         }
     }
     $sortedKeys = @($Entries.Keys | Sort-Object)
@@ -310,6 +331,71 @@ function Write-Outputs {
     [System.IO.File]::WriteAllText((Join-Path $OutDir "en.json"), (($en | ConvertTo-Json -Depth 20) + "`n"), $utf8NoBom)
     [System.IO.File]::WriteAllText((Join-Path $OutDir "ru.json"), (($ru | ConvertTo-Json -Depth 20) + "`n"), $utf8NoBom)
     [System.IO.File]::WriteAllText((Join-Path $OutDir "_sources.json"), (($src | ConvertTo-Json -Depth 20) + "`n"), $utf8NoBom)
+
+    function Escape-MarkdownCell([string]$Value) {
+        if ($null -eq $Value) {
+            return ""
+        }
+        return $Value.Replace("|", "\|").Replace("`r", "").Replace("`n", "<br>")
+    }
+
+    function Get-LocalizationHelpNote([string]$Key, $SourceItems) {
+        $source = ""
+        if ($SourceItems -ne $null -and $SourceItems.Count -gt 0) {
+            $source = [string]$SourceItems[0].source
+        }
+        if ($Key.StartsWith("dialogues_speakers_")) {
+            return "Имя говорящего в диалогах. Переводить коротко, как имя/титул персонажа."
+        }
+        if ($Key.StartsWith("dialogues_")) {
+            return "Текст диалога или вариант ответа. Сохранять смысл, тон и плейсхолдеры/BBCode, если есть."
+        }
+        if ($Key.StartsWith("skill_") -or $Key.StartsWith("skills_")) {
+            return "Название, описание или подсказка навыка. Держать формулировку понятной игроку; сохранять числа и плейсхолдеры."
+        }
+        if ($Key.StartsWith("status_")) {
+            return "Название или описание статуса. Переводить кратко, в стиле игровых эффектов."
+        }
+        if ($Key.StartsWith("enemy_") -or $Key.StartsWith("enemies_")) {
+            return "Название или описание врага. Переводить как игровой термин/имя существа."
+        }
+        if ($Key.StartsWith("tile_objects_")) {
+            return "Название объекта карты в редакторе. Лучше коротко, чтобы помещалось в панели."
+        }
+        if ($Key.StartsWith("maps_")) {
+            return "Название/описание карты или уровня. Можно переводить более художественно, но без потери смысла."
+        }
+        if ($Key.StartsWith("ui_dev_") -or $source.Contains("/dev/")) {
+            return "Текст интерфейса редактора/отладки. Переводить функционально и коротко."
+        }
+        if ($Key.StartsWith("ui_")) {
+            return "Текст игрового интерфейса. Переводить лаконично; обязательно сохранить `%s`, `%d`, переносы и порядок параметров."
+        }
+        return "Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку."
+    }
+
+    $helpLines = @(
+        "# Localization Help",
+        "",
+        "Краткий справочник по всем дефам строк. Перед переводом важно сохранять плейсхолдеры вроде ``%s``/``%d``, переносы строк, BBCode-теги ``[color]``/``[b]`` и служебные символы.",
+        "",
+        "| Def | EN/source | Где используется и как переводить |",
+        "| --- | --- | --- |"
+    )
+    foreach ($key in $sortedKeys) {
+        $value = [string]$en[$key]
+        $note = Get-LocalizationHelpNote $key $src[$key]
+        $source = ""
+        if ($src[$key] -ne $null -and $src[$key].Count -gt 0) {
+            $source = [string]$src[$key][0].source
+        }
+        $context = $note
+        if ($source -ne "") {
+            $context = "$context Источник: ``$source``."
+        }
+        $helpLines += "| ``$(Escape-MarkdownCell $key)`` | $(Escape-MarkdownCell $value) | $(Escape-MarkdownCell $context) |"
+    }
+    [System.IO.File]::WriteAllText((Join-Path $OutDir "HELP.md"), (($helpLines -join "`n") + "`n"), $utf8NoBom)
 
     $filled = @($sortedKeys | Where-Object { -not [string]::IsNullOrEmpty([string]$Entries[$_]) }).Count
     $missing = $sortedKeys.Count - $filled

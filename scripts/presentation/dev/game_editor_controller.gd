@@ -165,7 +165,7 @@ func _on_row_removed(row: PanelContainer) -> void:
 	if idx < 0:
 		return
 	if _game.levels.size() <= 1:
-		_toast("Cannot remove the only level", &"warn")
+		_toast(Localization.t("ui_game_editor_only_level_blocked", "Cannot remove the only level"), &"warn")
 		return
 	_game.remove_at(idx)
 	_rebuild_rows()
@@ -199,10 +199,10 @@ func _on_row_edit_requested(row: PanelContainer) -> void:
 	var entry: Dictionary = _game.levels[idx]
 	var map_path: String = String(entry.get("map_path", ""))
 	if map_path == "":
-		_toast("Pick a map first", &"warn")
+		_toast(Localization.t("ui_game_editor_pick_map_first", "Pick a map first"), &"warn")
 		return
 	if not FileAccess.file_exists(map_path):
-		_toast("Map file missing: %s" % map_path.get_file(), &"error")
+		_toast(Localization.tf("ui_game_editor_map_file_missing", [map_path.get_file()], "Map file missing: %s"), &"error")
 		return
 	# Persist current state so we can restore it on return. If the user has
 	# never saved the game, this writes to the autosave path — load on return
@@ -211,7 +211,7 @@ func _on_row_edit_requested(row: PanelContainer) -> void:
 	if save_path == "":
 		save_path = AUTOSAVE_PATH
 	if not GameSerializer.save(_game, save_path):
-		_toast("Save failed; aborting navigation", &"error")
+		_toast(Localization.t("ui_game_editor_save_navigation_failed", "Save failed; aborting navigation"), &"error")
 		return
 	_dirty = false
 	# Order matters: queue map first (Map Editor's _ready reads ActiveLevel),
@@ -285,26 +285,30 @@ func _on_save_file_selected(path: String) -> void:
 	# Overwrite confirm
 	if FileAccess.file_exists(path):
 		var ok: bool = await _confirm_modal.ask(
-			"Overwrite?",
-			"%s already exists.\n\nReplace it?" % path.get_file(),
-			"Overwrite", "Cancel", true
+			Localization.t("ui_game_editor_overwrite_title", "Overwrite?"),
+			Localization.tf("ui_game_editor_overwrite_body", [path.get_file()], "%s already exists.\n\nReplace it?"),
+			Localization.t("ui_game_editor_overwrite_confirm", "Overwrite"),
+			Localization.t("ui_common_cancel", "Cancel"),
+			true
 		)
 		if not ok:
 			return
 	if GameSerializer.save(_game, path):
 		_current_path = path
 		_dirty = false
-		_toast("Saved: %s" % path.get_file(), &"success")
+		_toast(Localization.tf("ui_game_editor_saved", [path.get_file()], "Saved: %s"), &"success")
 	else:
-		_toast("Save failed (see log)", &"error")
+		_toast(Localization.t("ui_game_editor_save_failed", "Save failed (see log)"), &"error")
 
 
 func _on_load() -> void:
 	if _dirty:
 		var ok: bool = await _confirm_modal.ask(
-			"Unsaved changes",
-			"You have unsaved changes. Load another game and lose them?",
-			"Discard & Load", "Cancel", true
+			Localization.t("ui_game_editor_unsaved_title", "Unsaved changes"),
+			Localization.t("ui_game_editor_load_unsaved_body", "You have unsaved changes. Load another game and lose them?"),
+			Localization.t("ui_game_editor_load_discard_confirm", "Discard & Load"),
+			Localization.t("ui_common_cancel", "Cancel"),
+			true
 		)
 		if not ok:
 			return
@@ -315,14 +319,14 @@ func _on_load() -> void:
 func _on_load_file_selected(path: String) -> void:
 	var loaded: GameData = GameSerializer.load_from(path)
 	if loaded == null:
-		_toast("Load failed (see log)", &"error")
+		_toast(Localization.t("ui_game_editor_load_failed", "Load failed (see log)"), &"error")
 		return
 	_game = loaded
 	_current_path = path
 	_dirty = false
 	_name_input.text = _game.name
 	_rebuild_rows()
-	_toast("Loaded: %s" % path.get_file(), &"success")
+	_toast(Localization.tf("ui_game_editor_loaded", [path.get_file()], "Loaded: %s"), &"success")
 
 
 func _on_playtest() -> void:
@@ -335,10 +339,10 @@ func _on_playtest() -> void:
 	# Write a scratch playtest file (autosave path doesn't survive across
 	# scene changes cleanly; explicit file is robust).
 	if not GameSerializer.save(_game, PLAYTEST_PATH):
-		_toast("Playtest write failed", &"error")
+		_toast(Localization.t("ui_game_editor_playtest_write_failed", "Playtest write failed"), &"error")
 		return
 	if not ActiveGame.load_game(PLAYTEST_PATH):
-		_toast("ActiveGame.load_game refused playtest file", &"error")
+		_toast(Localization.t("ui_game_editor_playtest_load_refused", "ActiveGame.load_game refused playtest file"), &"error")
 		return
 	get_tree().change_scene_to_file("res://scenes/dev/godmode.tscn")
 
@@ -346,9 +350,11 @@ func _on_playtest() -> void:
 func _on_exit() -> void:
 	if _dirty:
 		var ok: bool = await _confirm_modal.ask(
-			"Unsaved changes",
-			"Exit Game Editor and lose unsaved changes?",
-			"Exit", "Cancel", true
+			Localization.t("ui_game_editor_unsaved_title", "Unsaved changes"),
+			Localization.t("ui_game_editor_exit_unsaved_body", "Exit Game Editor and lose unsaved changes?"),
+			Localization.t("ui_common_exit", "Exit"),
+			Localization.t("ui_common_cancel", "Cancel"),
+			true
 		)
 		if not ok:
 			return
@@ -387,9 +393,11 @@ func _try_restore_autosave() -> bool:
 	# Wait one frame for the modal to be ready.
 	await get_tree().process_frame
 	var ok: bool = await _confirm_modal.ask(
-		"Restore session?",
-		"An autosave from a previous Game Editor session was found.\nRestore it?",
-		"Restore", "Discard", false
+		Localization.t("ui_game_editor_restore_title", "Restore session?"),
+		Localization.t("ui_game_editor_restore_body", "An autosave from a previous Game Editor session was found.\nRestore it?"),
+		Localization.t("ui_game_editor_restore_confirm", "Restore"),
+		Localization.t("ui_game_editor_restore_discard", "Discard"),
+		false
 	)
 	if not ok:
 		# User declined → delete autosave so it doesn't pester next time.
@@ -397,7 +405,7 @@ func _try_restore_autosave() -> bool:
 		return false
 	var loaded: GameData = GameSerializer.load_from(AUTOSAVE_PATH)
 	if loaded == null:
-		_toast("Autosave file corrupt; ignoring", &"error")
+		_toast(Localization.t("ui_game_editor_autosave_corrupt", "Autosave file corrupt; ignoring"), &"error")
 		return false
 	_game = loaded
 	return true

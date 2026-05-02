@@ -102,7 +102,7 @@ func _refresh_header() -> void:
 			tag += "  ★ special"
 		if is_last:
 			tag += "  ⏹ final"
-		_status_label.text = Localization.tf("Wave %d of %d%s", [active + 1, total, tag], "Wave %d of %d%s")
+		_status_label.text = Localization.tf("ui_wave_panel_status", [active + 1, total, tag], "Wave %d of %d%s")
 
 	# Copy from prev — disabled on wave 0 (nothing to copy from).
 	if _copy_btn != null:
@@ -110,7 +110,7 @@ func _refresh_header() -> void:
 
 	# Special — text reflects current state.
 	if _special_btn != null:
-		_special_btn.text = Localization.t("★ Special (on)", "★ Special (on)") if is_special else Localization.t("Make Special", "Make Special")
+		_special_btn.text = Localization.t("ui_wave_panel_special_on", "★ Special (on)") if is_special else Localization.t("ui_wave_panel_make_special", "Make Special")
 
 	# Delete — disabled on wave 0 (Wave 0 must always exist; player spawner
 	# lives there). Single-wave levels also can't delete (would leave none).
