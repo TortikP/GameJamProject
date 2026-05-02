@@ -587,6 +587,12 @@ func _request_cast_active() -> void:
 		var skill := _slot_bar_node.get_slot(active_idx) as Skill
 		if skill != null and skill.can_apply(player, ctx):
 			_cast_slot(active_idx)
+			# 026 fix: the entry LMB also acts as the commit click for step 0.
+			# Without this, the player would have to click twice (once to enter
+			# FSM, once to commit). _handle_cast_lmb is safe to call when FSM
+			# isn't active (early-returns).
+			if _cast_in_progress:
+				_handle_cast_lmb()
 		# Skill slot active → never inspect/deselect on a failed cast.
 		return
 	# No active skill: inspect hovered actor or hex
@@ -636,6 +642,11 @@ func _cast_slot(slot_index: int) -> void:
 	_cast_step = 0
 	_cast_ctxs = []
 	_cast_in_progress = true
+	# 026 fix: hide MoveRangeOverlay's slot-activation attack-range paint
+	# so CastRangeOverlay's per-step paint doesn't render on top of it.
+	# Restored on FSM exit via _refresh_overlay (in _commit_cast/_cancel_cast).
+	if _overlay != null and _overlay.has_method("clear"):
+		_overlay.clear()
 	_begin_step()
 
 
@@ -675,6 +686,8 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _cast_ctxs
 	_reset_cast_state()
 	var did_cast: bool = skill.cast(player, ctxs)
+	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
+	_refresh_overlay()
 	if did_cast:
 		await GameSpeed.wait("godmode", "ability_cast_delay")
 		TurnManager.advance()
@@ -684,6 +697,8 @@ func _cancel_cast() -> void:
 	if _cast_overlay != null and _cast_overlay.has_method("hide_range"):
 		_cast_overlay.hide_range()
 	_reset_cast_state()
+	# 026 fix: restore MoveRangeOverlay slot paint after FSM cancels.
+	_refresh_overlay()
 	# no cooldown, no commit, no turn advance
 
 
