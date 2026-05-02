@@ -123,6 +123,27 @@ func _spawn_actor(coord: Vector2i, caster: Actor, ctx: Dictionary) -> void:
 	if caster != null:
 		spawned.team = caster.team
 
+	# 044: strip summon-tagged skills from the spawned actor. Without this,
+	# `bee` (skills include `bee_summon_bee`) summons more bees on its turn,
+	# each of which summons more, etc. — exponential under cooldown=4. Per
+	# Egor's call (chain-summon was accepted as feature in 041 but rejected
+	# in playtest reasoning): cap at one generation. Filter compares by tag,
+	# not by skill id, so any future summon-skill is covered automatically.
+	var kept: Array = []
+	var stripped_ids: Array = []
+	for s_v in spawned.get_skills():
+		var s: Skill = s_v as Skill
+		if s == null:
+			continue
+		if &"summon" in s.behaviour_tags:
+			stripped_ids.append(s.id)
+			continue
+		kept.append(s)
+	if not stripped_ids.is_empty():
+		spawned.set_skills(kept)
+		GameLogger.info("CreateEffect", "stripped %d summon-tagged skill(s) from '%s': %s" %
+				[stripped_ids.size(), spawned.actor_id, str(stripped_ids)])
+
 	# Apply summoned status (drives lifetime via SummonedRuntime.on_remove).
 	var inst := StatusInstance.new()
 	inst.status_id = &"summoned"

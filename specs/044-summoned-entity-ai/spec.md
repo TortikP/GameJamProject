@@ -29,7 +29,7 @@
 
 - **`default_caster.json`** — отсутствует на staging (bush, teapot ссылаются), но не саммонеры → не моя зона. Стасян / Андрей.
 - **Различение визуала телеграфов player-team vs enemy-team** — цвета по тегу скилла одинаковые. Player-bee'ин «damage»-телеграф выглядит как enemy-bee'ин. Допустимо для джема (актёр на origin-хексе + наведение раскроют принадлежность). Если позже окажется проблемой — отдельный спек, возможно через расширение `UiTheme.semantic_color`.
-- **Цепные саммоны / экспоненциал** — `bee(-1)` + cooldown=4 на `bee_summon_bee` → каждые 4 хода каждый bee саммонит. Принято фичей в 041 §"Out of scope". Балансировка через cooldown / `ally_count_below(N)` condition — Стасяна, отдельным PR при необходимости.
+- **Цепные саммоны / экспоненциал** — добавлено по правке после первого implement'а: при actor-spawn'е в `CreateEffect._spawn_actor` фильтруем `spawned._skills`, удаляя любой skill с `&"summon"` в `behaviour_tags`. Призванный bee теряет `bee_summon_bee` → не саммонит further. Cap = 1 поколение. Фильтр по тегу, не по id — любой будущий summon-скилл покрывается автоматом. Реализация: 1 блок ~14 строк в `create_effect.gd:_spawn_actor` после team override, перед apply summoned status.
 - **Новый dedicated `summoner_*` сценарий** — обсуждалось в clarify-round, отказались: rules внутри `default_melee` / `default_ranged` достаточно. Не множим scenario-инвентарь.
 - **Ally-aware саммон-таргетинг** (выбирать hex который ещё и блокирует наступление врага / прикрывает союзника / etc.) — overengineering на этом этапе. Селектор только «empty + closest to enemy».
 - **`replan_all_and_refresh`** при появлении player-summoned (после `summon_bee` каста) — текущий поток уже вызывает планнер на следующем `world_turn_ended` перед фазой PLAN. Один ход задержки до первого действия призванного — приемлемо, даёт игроку «чтение интента» как у обычных enemy.
@@ -89,6 +89,13 @@
 - **AC-J3**: Никаких изменений в `data/enemies/*.json` — они уже ссылаются на `"default_ranged"` (это и был драйвер ренейма). После rename'а bear / angel / burning_bear перестают фолбечиться на `default_melee`.
 
 - **AC-J4**: `data/ai_behaviors/default_range.json` после операции отсутствует. Никаких stale-ссылок на `"default_range"` в `data/enemies/*.json` (проверено grep'ом).
+
+### Strip-on-spawn (защита от chain-summon)
+
+- **AC-X1**: В `CreateEffect._spawn_actor` после `spawned.team = caster.team` и перед `add_status(summoned)` проходим по `spawned.get_skills()`, удаляем те где `&"summon"` ∈ `s.behaviour_tags`. Применяем результат через `spawned.set_skills(kept)`.
+- **AC-X2**: При непустом списке стрипнутых ID — info-лог `stripped N summon-tagged skill(s) from <actor_id>: [...]`.
+- **AC-X3**: Фильтр по тегу, не по skill id — будущие саммон-скиллы покрываются без правки кода.
+- **AC-X4**: Если `fallback_skill_id` юнита указывает на удалённый summon-skill — `actor.get_skill_by_id(fallback_skill_id)` вернёт null, fallback no-op. Не крашит. Edge case на staging: bee/burning_bear имеют non-summon fallback — безопасно.
 
 ### Поведенческие AC (smoke)
 
