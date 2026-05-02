@@ -19,8 +19,9 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
-	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
-	{"label": "Hex Terrain",     "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
+	{"label": "Placeholder (6 tiles)", "path": "res://scenes/dev/placeholder_terrain.tres"},
+	{"label": "Godmode Terrain",       "path": "res://scenes/dev/godmode_terrain.tres"},
+	{"label": "Hex Terrain",           "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
 ]
 
 const ICON_SIZE: Vector2 = Vector2(48, 48)

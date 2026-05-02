@@ -26,6 +26,7 @@ const GODMODE_TERRAIN: TileSet = preload("res://scenes/dev/godmode_terrain.tres"
 
 const INITIAL_SOURCE_ID: int = 0
 const INITIAL_ATLAS_COORD: Vector2i = Vector2i(0, 0)
+const INITIAL_CANVAS_HALF: int = 12  # ⇒ 25×25 default paint, centered at origin
 
 const MAPS_DIR: String = "res://data/maps/"
 const AUTOSAVE_PATH: String = "res://data/maps/__autosave__.json"
@@ -111,12 +112,23 @@ func _ready() -> void:
 	_confirm_modal = _resolve(confirm_modal_path, "HUD/ConfirmModal")
 	_hotkey_overlay = _resolve(hotkey_overlay_path, "HUD/HotkeyOverlay") as Control
 
-	# 2. Init grid against an EMPTY canvas. The user paints the map; map
-	# size is whatever they paint (capped at 500×500 via HexGrid.MAP_HALF_LIMIT).
+	# 2. Paint a default 25×25 canvas centered at origin so the user has a
+	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
 	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
 	if grid.vfx_overlay != null:
 		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
+	for row in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
+		for col in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
+			grid.tile_map_layer.set_cell(
+				Vector2i(col, row), INITIAL_SOURCE_ID, INITIAL_ATLAS_COORD)
 	grid.initialize()
+	# Mirror the painted cells into _level so Save reflects the default canvas.
+	for cell: Vector2i in grid.tile_map_layer.get_used_cells():
+		_level.floor_cells.append({
+			"coord": cell,
+			"source_id": grid.tile_map_layer.get_cell_source_id(cell),
+			"atlas_coord": grid.tile_map_layer.get_cell_atlas_coords(cell),
+		})
 
 	# 3. Bind overlays
 	if _objects_overlay != null and _objects_overlay.has_method("bind_registry"):

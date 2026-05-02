@@ -26,6 +26,16 @@ meta_panel_path = NodePath("HUD/LevelMetaPanel")
 confirm_modal_path = NodePath("HUD/ConfirmModal")
 hotkey_overlay_path = NodePath("HUD/HotkeyOverlay")
 
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -100
+
+[node name="Background" type="ColorRect" parent="BackgroundLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.047, 0.055, 0.071, 1)
+mouse_filter = 2
+
 [node name="EditorCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
 position_smoothing_enabled = true
