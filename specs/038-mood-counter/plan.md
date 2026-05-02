@@ -74,10 +74,14 @@ func recompute_from_skills(skills: Array) -> void:
         var sk: Skill = s as Skill
         if sk == null:
             continue
+        # 038: вес = 1 + max(0, level). На текущих JSON'ах (level=0) = 1.
+        # В будущей модели single-instance-per-slot level растёт на каждом
+        # повторном пикапе — вклад скилла в mood масштабируется 1:1.
+        var weight: int = 1 + maxi(0, sk.level)
         for m in sk.mood:
             var key: StringName = m
             if MOODS_SKILL.has(key):
-                _counts[key] = (_counts[key] as int) + 1
+                _counts[key] = (_counts[key] as int) + weight
             else:
                 _warn_unknown(sk.id, key)
     var dom: StringName = get_dominant()

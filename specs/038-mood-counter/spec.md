@@ -63,10 +63,14 @@ signal player_mood_changed(counts: Dictionary, dominant: StringName)
 
 ## Правила подсчёта
 
-1. Вход `recompute_from_skills(skills)` — массив `Skill` (не `slot_bar`). Контроллер уже зовёт его deduped через `sync_player_skills_from_slots` — **дубликаты одного и того же Skill instance считаются один раз**. Если Никита захочет per-slot подсчёт — это 2 строчки в контроллере (передавать non-deduped массив), не блокер.
-2. Skill с `mood: ["tranquility", "burnout"]` → `+1` к каждому из двух (без 1/N).
-3. Mood вне канона на скилле → skip + warn-once.
-4. Skill без `mood` (пустой массив) → не вкладывает в счётчик ничего (его «mood-вклад» = 0). Не считается за `neutral`.
+1. Вход `recompute_from_skills(skills)` — массив `Skill`. Контроллер передаёт deduped массив через `sync_player_skills_from_slots`. В **будущей модели** один skill = один слот гарантированно (новые пикапы повышают `level` существующего, не плодят копии) → дедуп станет автоматическим инвариантом. Пока ставим дедуп на стороне контроллера, в трекере не предполагаем.
+2. **Вес скилла** в каждый свой mood-канал = `1 + max(0, skill.level)`.
+   - Текущий мир (`level = 0` у всех JSON'ов) → вес = 1, поведение как «один скилл = +1 в каждый его mood».
+   - Будущий мир: 2-й пикап → `level = 1` → вес = 2; 3-й → `level = 2` → вес = 3. «Сила влияния» скилла растёт 1:1 с уровнем.
+   - `max(0, level)` — defensive, на случай если кто-то JSON'ом выставит отрицательный level.
+3. Skill с `mood: ["tranquility", "burnout"]` и `level=2` → `+3` в `tranquility` **и** `+3` в `burnout` (без 1/N деления между mood'ами в массиве — сила ровно одна и та же для каждого mood'а скилла).
+4. Mood вне канона на скилле → skip + warn-once (вес не списывается, канал не растёт).
+5. Skill без `mood` (пустой массив) → не вкладывает в счётчик ничего, level безразличен. Не считается за `neutral`.
 
 ## `get_dominant()` — алгоритм
 
@@ -106,7 +110,8 @@ MoodTracker.recompute_from_skills(skills)
 - **AC-5**: RMB-замена скилла в слоте триггерит `EventBus.player_mood_changed` ровно один раз с обновлёнными counts.
 - **AC-6**: Все слоты пустые → `get_counts() = {neutral:0, tranquility:0, burnout:0, ascended:0}`, `get_dominant() == &"neutral"`.
 - **AC-7**: Tie между двумя не-нулевыми → `get_dominant() == &"chimera"`. Один лидер с положительным count → этот лидер.
-- **AC-8**: Один и тот же `Skill` instance в двух слотах считается один раз (deduped contract).
+- **AC-8**: Один и тот же `Skill` instance в двух слотах считается один раз (deduped contract на стороне контроллера). После прихода single-instance-per-slot модели — становится тривиально-автоматическим.
+- **AC-9**: Skill с `level=N` контрибьютит `1 + max(0, N)` в каждый свой mood-канал. На фреш-старте (все скиллы level=0) вес каждого = 1 → совпадает с naive +1-моделью; AC-4 не нарушается.
 
 ## Out of scope
 

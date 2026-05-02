@@ -37,8 +37,9 @@
 - [ ] **T060** [P1] Запуск godmode сцены: на старте `MoodTracker.get_counts()` ненулевой (по 4 default-скиллам), `EventBus.player_mood_changed` отстрелил один раз с правильным dominant.
 - [ ] **T061** [P1] RMB-замена скилла в слоте → recompute, новый emit. Старого warn'а нет.
 - [ ] **T062** [P2] Очистить все 4 слота (RMB → null или эквивалент) → counts all-zero, dominant = `neutral`.
-- [ ] **T063** [P2] Поставить два скилла с непересекающимся mood и одинаковыми вкладами в счётчик → dominant = `chimera`.
-- [ ] **T064** [P3] В `_VALID_MOODS` временно поломать (убрать `tranquility`) → загрузка логает warn для всех скиллов с `tranquility`. Откатить.
+- [ ] **T063** [P2] Поставить два скилла с непересекающимся mood и одинаковыми суммарными вкладами в счётчик → dominant = `chimera`.
+- [ ] **T064** [P2] Level-scaling: вручную (debug-консоль или временный `data/skills/test_mood_level.json` с `level: 2`) — скилл с `level=N` накручивает `1+N` в свой mood-канал. Откатить временные правки до коммита.
+- [ ] **T065** [P3] В `_VALID_MOODS` (skill_database.gd) временно поломать — загрузка логает warn для всех скиллов с этим mood. Откатить.
 
 ## Группа G — Bookkeeping
 
@@ -53,5 +54,5 @@
 
 1. T011 грепы проходят.
 2. T012 — Godot не выдаёт parse error в `--check-only` или при запуске.
-3. T060–T063 smoke — глазами.
+3. T060–T064 smoke — глазами.
 4. `git status` чистый кроме коммита фичи.
