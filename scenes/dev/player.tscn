@@ -11,6 +11,7 @@ actor_id = &"player"
 max_hp = 50
 team = &"player"
 speed = 2
+status_immunities = Array[StringName]([&"stunned"])
 
 [node name="Body" type="Sprite2D" parent="."]
 texture_filter = 1
