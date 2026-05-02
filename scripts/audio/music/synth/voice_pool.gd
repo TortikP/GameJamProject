@@ -15,7 +15,7 @@ const OSC_SQUARE:   int = 2
 const OSC_NOISE:    int = 3
 
 const POOL_SIZE: int = 6
-const MIX_RATE:  int = 22050
+const MIX_RATE:  int = 11025
 
 ## External reference set by MusicDirector.
 var state_mixer: StateMixer = null

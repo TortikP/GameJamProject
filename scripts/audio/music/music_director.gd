@@ -11,9 +11,9 @@
 
 extends Node
 
-const MIX_RATE:        int = 22050
-const BUFFER_LEN_SEC:  float = 0.1
-const CHUNK_SIZE:      int = 512
+const MIX_RATE:        int = 11025   # 22050 too heavy for GDScript per-sample DSP
+const BUFFER_LEN_SEC:  float = 0.2   # larger buffer = fewer underruns at lower rate
+const CHUNK_SIZE:      int = 256     # smaller chunks, same CPU budget
 const MASTER_GAIN:     float = 0.35   # prevents summed voices from clipping
 
 # Preloads — explicit paths, no class_name registry issues.
@@ -92,8 +92,10 @@ func _ready() -> void:
 	_player.play()
 	_playback = _player.get_stream_playback()
 
-	# Reusable render buffer (CHUNK_SIZE is max; resize below is safe).
+	# Reusable render buffer — allocated once, never resized.
 	_buf.resize(CHUNK_SIZE)
+	for i in CHUNK_SIZE:
+		_buf[i] = Vector2.ZERO
 
 	# EventBus subscriptions.
 	EventBus.level_loaded.connect(_on_level_loaded)
@@ -110,10 +112,9 @@ func _ready() -> void:
 
 # ── _process (hot path) ───────────────────────────────────────────────────────
 
-func _process(delta: float) -> void:
-	# Stop timer countdown.
+func _process(_delta: float) -> void:
 	if _stop_timer_remaining > 0.0:
-		_stop_timer_remaining -= delta
+		_stop_timer_remaining -= _delta
 		if _stop_timer_remaining <= 0.0:
 			_stop()
 			return
@@ -123,10 +124,8 @@ func _process(delta: float) -> void:
 
 	var available: int = _playback.get_frames_available()
 	while available >= CHUNK_SIZE:
-		_render_chunk(CHUNK_SIZE)
+		_render_chunk()
 		available -= CHUNK_SIZE
-	if available > 0:
-		_render_chunk(available)
 
 # ── Public API (T046) ─────────────────────────────────────────────────────────
 
@@ -251,16 +250,12 @@ func _on_dialogue_finished(_id: StringName) -> void:
 
 # ── Render ────────────────────────────────────────────────────────────────────
 
-func _render_chunk(n: int) -> void:
-	if n <= 0:
-		return
-	_buf.resize(n)
-	# Zero fill.
-	for i in n:
+func _render_chunk() -> void:
+	# Zero fill — reuse fixed CHUNK_SIZE buffer.
+	for i in CHUNK_SIZE:
 		_buf[i] = Vector2.ZERO
 
-	# Advance conductor; process events.
-	var events: Array = _conductor.advance(n)
+	var events: Array = _conductor.advance(CHUNK_SIZE)
 	for ev in events:
 		var kind: StringName = ev[0]
 		var idx: int         = ev[1]
@@ -281,9 +276,9 @@ func _render_chunk(n: int) -> void:
 				_lead_gen.tick_beat(beat_in_bar, _harmony, _voice_pool, _rng)
 				_drums_gen.tick_beat(beat_in_bar, _harmony, _voice_pool, _noise_rng)
 
-	_voice_pool.mix(_buf, n)
+	_voice_pool.mix(_buf, CHUNK_SIZE)
 	# Scale by master gain to prevent inter-voice clipping.
-	for i in n:
+	for i in CHUNK_SIZE:
 		_buf[i] *= MASTER_GAIN
 	_playback.push_buffer(_buf)
 

@@ -7,7 +7,7 @@
 
 class_name Conductor
 
-const MIX_RATE: int = 22050
+const MIX_RATE: int = 11025
 const BEATS_PER_BAR: int = 4
 
 var bpm: float = 96.0

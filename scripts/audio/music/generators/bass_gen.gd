@@ -5,10 +5,10 @@
 class_name BassGen
 
 # ADSR in samples @ 22050 Hz
-const A: int   = 441    # 20 ms
-const D: int   = 2205   # 100 ms
+const A: int   = 220
+const D: int   = 1102
 const S: float = 0.6
-const R: int   = 4410   # 200 ms
+const R: int   = 2205
 const GAIN: float = 0.5
 const OCTAVE_OFFSET: int = -12  # one octave below chord root
 

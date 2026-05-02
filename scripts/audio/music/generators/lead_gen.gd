@@ -5,10 +5,10 @@
 class_name LeadGen
 
 # ADSR in samples @ 22050 Hz
-const A: int   = 220    # 10 ms
-const D: int   = 1764   # 80 ms
+const A: int   = 110
+const D: int   = 882
 const S: float = 0.4
-const R: int   = 3307   # 150 ms
+const R: int   = 1653
 const GAIN: float = 0.35
 const OCTAVE_OFFSET: int = 12   # one octave above chord root
 

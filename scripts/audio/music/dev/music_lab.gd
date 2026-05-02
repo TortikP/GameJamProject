@@ -1,264 +1,205 @@
-## MusicLab — dev scene controller. F6 to run standalone.
-## All sliders write through MusicDirector's public API — guaranteed identical
-## to what the game hears at runtime with the same config.
+## MusicLab — dev scene. Запускай через Project → Run Specific Scene.
+## UI строится кодом в _ready — никаких @onready, никакого зависания редактора.
 
 extends Control
 
 const _PresetResolver = preload("res://scripts/audio/music/preset_resolver.gd")
 const STINGS_PATH: String = "res://data/music/stings.json"
 
-# Node refs (resolved in _ready)
-var _director: Node = null   # MusicDirector autoload
-
-@onready var _params_left:     VBoxContainer   = $Margin/VBox/ParamsHBox/ParamsLeft
-@onready var _params_right:    VBoxContainer   = $Margin/VBox/ParamsHBox/ParamsRight
-@onready var _state_dropdown:  OptionButton    = $Margin/VBox/StateRow/StateDropdown
-@onready var _seed_spin:       SpinBox         = $Margin/VBox/StateRow/SeedSpin
-@onready var _reroll_btn:      Button          = $Margin/VBox/StateRow/ReRollBtn
-@onready var _preset_dropdown: OptionButton    = $Margin/VBox/PresetRow/PresetDropdown
-@onready var _load_preset_btn: Button          = $Margin/VBox/PresetRow/LoadPresetBtn
-@onready var _save_a_btn:      Button          = $Margin/VBox/PresetRow/SaveABtn
-@onready var _save_b_btn:      Button          = $Margin/VBox/PresetRow/SaveBBtn
-@onready var _switch_ab_btn:   Button          = $Margin/VBox/PresetRow/SwitchABBtn
-@onready var _stings_hbox:     HFlowContainer  = $Margin/VBox/StingsHBox
-@onready var _copy_json_btn:   Button          = $Margin/VBox/ExportRow/CopyJsonBtn
-@onready var _stop_btn:        Button          = $Margin/VBox/ExportRow/StopBtn
-@onready var _start_btn:       Button          = $Margin/VBox/ExportRow/StartBtn
-
-# Parameter storage — slider rows keyed by param name.
-var _sliders: Dictionary = {}   # {param_name: HSlider}
-var _value_labels: Dictionary = {}  # {param_name: Label}
-
-# A/B memory slots.
+var _director: Node = null
+var _sliders: Dictionary = {}
+var _value_labels: Dictionary = {}
 var _slot_a: Dictionary = {}
 var _slot_b: Dictionary = {}
-var _current_ab: StringName = &"none"   # &"A" or &"B"
-
-# ── Lifecycle ─────────────────────────────────────────────────────────────────
+var _current_ab: StringName = &"none"
+var _state_dropdown: OptionButton = null
+var _seed_spin: SpinBox = null
+var _preset_dropdown: OptionButton = null
+var _stings_hbox: HFlowContainer = null
 
 func _ready() -> void:
-	if not is_node_ready():
-		await ready
-
 	_director = get_node_or_null("/root/MusicDirector")
 	if _director == null:
-		push_error("[MusicLab] MusicDirector autoload not found — run from project root")
+		push_error("[MusicLab] MusicDirector not found")
 		return
-
-	_build_sliders()
-	_build_state_dropdown()
-	_build_preset_dropdown()
-	_build_sting_buttons()
-	_connect_buttons()
-
-	# Start calm.
+	_build_ui()
 	_director.set_state(&"calm")
 	_director._ensure_playing()
 
-# ── Sliders ───────────────────────────────────────────────────────────────────
+func _build_ui() -> void:
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["left","top","right","bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 16)
+	add_child(margin)
 
-func _build_sliders() -> void:
-	var left_params: Array = [
-		["bpm",              40.0, 200.0, 96.0],
-		["lead_density_calm",   0.0,  1.0, 0.3],
-		["lead_density_battle", 0.0,  1.0, 0.7],
-	]
-	var right_params: Array = [
-		["pad_gain_db",    -24.0, 6.0, 0.0],
-		["drums_gain_db",  -24.0, 6.0, 0.0],
-		["master_gain_db", -24.0, 6.0, 0.0],
-	]
-	for p in left_params:
-		_make_slider_row(_params_left, p[0], p[1], p[2], p[3])
-	for p in right_params:
-		_make_slider_row(_params_right, p[0], p[1], p[2], p[3])
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
 
-func _make_slider_row(parent: VBoxContainer, param: String,
-		min_v: float, max_v: float, default_v: float) -> void:
-	var row: HBoxContainer = HBoxContainer.new()
-	parent.add_child(row)
+	var header := Label.new()
+	header.text = "Music Lab — тюнинг музыки"
+	vbox.add_child(header)
 
-	var lbl: Label = Label.new()
-	lbl.text = param
-	lbl.custom_minimum_size = Vector2(200, 0)
-	row.add_child(lbl)
+	var params_hbox := HBoxContainer.new()
+	params_hbox.add_theme_constant_override("separation", 24)
+	vbox.add_child(params_hbox)
 
-	var slider: HSlider = HSlider.new()
-	slider.min_value = min_v
-	slider.max_value = max_v
-	slider.value     = default_v
-	slider.step      = 0.01
-	slider.custom_minimum_size = Vector2(200, 0)
-	row.add_child(slider)
+	var left := VBoxContainer.new()
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	params_hbox.add_child(left)
 
-	var val_lbl: Label = Label.new()
-	val_lbl.text = "%.2f" % default_v
-	val_lbl.custom_minimum_size = Vector2(60, 0)
-	row.add_child(val_lbl)
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	params_hbox.add_child(right)
 
-	_sliders[param]      = slider
-	_value_labels[param] = val_lbl
+	_make_slider(left,  "bpm",                40.0, 200.0, 72.0)
+	_make_slider(left,  "lead_density_calm",   0.0,   1.0, 0.2)
+	_make_slider(left,  "lead_density_battle", 0.0,   1.0, 0.5)
+	_make_slider(right, "pad_gain_db",       -24.0,   6.0, 0.0)
+	_make_slider(right, "drums_gain_db",     -24.0,   6.0, 0.0)
+	_make_slider(right, "master_gain_db",    -24.0,   6.0, 0.0)
 
-	slider.value_changed.connect(_on_slider_changed.bind(param))
+	var state_row := HBoxContainer.new()
+	vbox.add_child(state_row)
+	_lbl(state_row, "State: ")
 
-func _on_slider_changed(value: float, param: String) -> void:
-	if _value_labels.has(param):
-		_value_labels[param].text = "%.2f" % value
-	_push_param(param, value)
-
-func _push_param(param: String, value: float) -> void:
-	if _director == null:
-		return
-	match param:
-		"bpm":
-			_director.set_bpm(value)
-		"lead_density_calm", "lead_density_battle":
-			var calm: float   = _sliders["lead_density_calm"].value
-			var battle: float = _sliders["lead_density_battle"].value
-			_director.set_lead_density(calm, battle)
-		"pad_gain_db":
-			_director.set_layer_db(&"pad", value)
-		"drums_gain_db":
-			_director.set_layer_db(&"drums", value)
-		"master_gain_db":
-			var bus_idx: int = AudioServer.get_bus_index("Music")
-			if bus_idx >= 0:
-				AudioServer.set_bus_volume_db(bus_idx, value)
-
-# ── State dropdown ────────────────────────────────────────────────────────────
-
-func _build_state_dropdown() -> void:
+	_state_dropdown = OptionButton.new()
 	for s in ["calm", "battle", "menu"]:
 		_state_dropdown.add_item(s)
-	_state_dropdown.selected = 0
-	_state_dropdown.item_selected.connect(_on_state_selected)
+	_state_dropdown.item_selected.connect(_on_state)
+	state_row.add_child(_state_dropdown)
 
-func _on_state_selected(idx: int) -> void:
-	var states: Array = [&"calm", &"battle", &"menu"]
-	if _director != null:
-		_director.set_state(states[idx])
-		# Force immediate apply (bar boundary normally; in lab apply now).
-		_director._pending_state = &""
-		_director._apply_state(states[idx])
+	_seed_spin = SpinBox.new()
+	_seed_spin.min_value = 0
+	_seed_spin.max_value = 2147483647
+	_seed_spin.value = 42
+	_seed_spin.value_changed.connect(func(v): _director.set_seed(int(v)))
+	state_row.add_child(_seed_spin)
 
-# ── Preset dropdown ───────────────────────────────────────────────────────────
+	var reroll := Button.new()
+	reroll.text = "Reroll seed"
+	reroll.pressed.connect(func():
+		var s := randi() & 0x7fffffff
+		_seed_spin.value = float(s)
+		_director.set_seed(s))
+	state_row.add_child(reroll)
 
-func _build_preset_dropdown() -> void:
-	var ids: Array = _PresetResolver.list_preset_ids()
-	for id in ids:
+	var preset_row := HBoxContainer.new()
+	vbox.add_child(preset_row)
+	_lbl(preset_row, "Preset: ")
+
+	_preset_dropdown = OptionButton.new()
+	for id in _PresetResolver.list_preset_ids():
 		_preset_dropdown.add_item(id)
-	_load_preset_btn.pressed.connect(_on_apply_preset)
+	preset_row.add_child(_preset_dropdown)
 
-func _on_apply_preset() -> void:
-	if _preset_dropdown.item_count == 0:
-		return
-	var id: String = _preset_dropdown.get_item_text(_preset_dropdown.selected)
-	var cfg: Dictionary = _PresetResolver.resolve({"preset": id})
-	_apply_params(cfg)
+	var apply_btn := Button.new()
+	apply_btn.text = "Apply"
+	apply_btn.pressed.connect(_on_apply_preset)
+	preset_row.add_child(apply_btn)
 
-# ── Sting buttons ─────────────────────────────────────────────────────────────
+	var save_a := Button.new(); save_a.text = "Save A"
+	save_a.pressed.connect(func(): _slot_a = _gather(); _current_ab = &"A")
+	preset_row.add_child(save_a)
 
-func _build_sting_buttons() -> void:
-	if not FileAccess.file_exists(STINGS_PATH):
-		return
-	var f: FileAccess = FileAccess.open(STINGS_PATH, FileAccess.READ)
+	var save_b := Button.new(); save_b.text = "Save B"
+	save_b.pressed.connect(func(): _slot_b = _gather(); _current_ab = &"B")
+	preset_row.add_child(save_b)
+
+	var sw := Button.new(); sw.text = "Switch A<>B"
+	sw.pressed.connect(_on_switch)
+	preset_row.add_child(sw)
+
+	_lbl(vbox, "Стинги:")
+	_stings_hbox = HFlowContainer.new()
+	vbox.add_child(_stings_hbox)
+	_build_stings()
+
+	var export_row := HBoxContainer.new()
+	vbox.add_child(export_row)
+
+	var copy_btn := Button.new(); copy_btn.text = "Copy JSON"
+	copy_btn.pressed.connect(func():
+		DisplayServer.clipboard_set(JSON.stringify({"music_config": _gather()}, "  "))
+		EventBus.ui_toast_requested.emit("Copied!", 2.0, &"info"))
+	export_row.add_child(copy_btn)
+
+	var stop_btn := Button.new(); stop_btn.text = "Stop"
+	stop_btn.pressed.connect(func(): _director._stop())
+	export_row.add_child(stop_btn)
+
+	var start_btn := Button.new(); start_btn.text = "Start"
+	start_btn.pressed.connect(func(): _director._ensure_playing())
+	export_row.add_child(start_btn)
+
+func _lbl(parent: Node, text: String) -> void:
+	var l := Label.new(); l.text = text; parent.add_child(l)
+
+func _make_slider(parent: VBoxContainer, param: String,
+		mn: float, mx: float, def: float) -> void:
+	var row := HBoxContainer.new(); parent.add_child(row)
+	var lbl := Label.new(); lbl.text = param
+	lbl.custom_minimum_size = Vector2(190, 0); row.add_child(lbl)
+	var sl := HSlider.new()
+	sl.min_value = mn; sl.max_value = mx; sl.value = def; sl.step = 0.01
+	sl.custom_minimum_size = Vector2(160, 0); row.add_child(sl)
+	var vl := Label.new(); vl.text = "%.2f" % def
+	vl.custom_minimum_size = Vector2(50, 0); row.add_child(vl)
+	_sliders[param] = sl; _value_labels[param] = vl
+	sl.value_changed.connect(_on_slider.bind(param))
+
+func _build_stings() -> void:
+	if not FileAccess.file_exists(STINGS_PATH): return
+	var f := FileAccess.open(STINGS_PATH, FileAccess.READ)
 	var d: Variant = JSON.parse_string(f.get_as_text())
-	if not d is Dictionary:
-		return
-	var stings: Dictionary = d.get("stings", {})
-	for name in stings.keys():
-		var btn: Button = Button.new()
-		btn.text = "▶ %s (%s)" % [name, String(stings[name].get("kind", "?"))]
-		btn.pressed.connect(_on_sting_pressed.bind(StringName(name)))
+	if not d is Dictionary: return
+	for name in d.get("stings", {}).keys():
+		var btn := Button.new(); btn.text = name
+		btn.pressed.connect(func(): _director.play_sting(StringName(name)))
 		_stings_hbox.add_child(btn)
 
-func _on_sting_pressed(name: StringName) -> void:
-	if _director != null:
-		_director.play_sting(name)
+func _on_slider(value: float, param: String) -> void:
+	if _value_labels.has(param):
+		_value_labels[param].text = "%.2f" % value
+	if _director == null: return
+	match param:
+		"bpm": _director.set_bpm(value)
+		"lead_density_calm", "lead_density_battle":
+			_director.set_lead_density(
+				_sliders["lead_density_calm"].value,
+				_sliders["lead_density_battle"].value)
+		"pad_gain_db":   _director.set_layer_db(&"pad", value)
+		"drums_gain_db": _director.set_layer_db(&"drums", value)
+		"master_gain_db":
+			var bus := AudioServer.get_bus_index("Music")
+			if bus >= 0: AudioServer.set_bus_volume_db(bus, value)
 
-# ── A/B slots ─────────────────────────────────────────────────────────────────
+func _on_state(idx: int) -> void:
+	var states := [&"calm", &"battle", &"menu"]
+	if _director != null: _director._apply_state(states[idx])
 
-func _connect_buttons() -> void:
-	_reroll_btn.pressed.connect(_on_reroll)
-	_seed_spin.value_changed.connect(_on_seed_changed)
-	_save_a_btn.pressed.connect(_on_save_a)
-	_save_b_btn.pressed.connect(_on_save_b)
-	_switch_ab_btn.pressed.connect(_on_switch_ab)
-	_copy_json_btn.pressed.connect(_on_copy_json)
-	_stop_btn.pressed.connect(_on_stop)
-	_start_btn.pressed.connect(_on_start)
+func _on_apply_preset() -> void:
+	if _preset_dropdown.item_count == 0: return
+	_apply(_PresetResolver.resolve({"preset": _preset_dropdown.get_item_text(_preset_dropdown.selected)}))
 
-func _on_reroll() -> void:
-	var seed: int = randi() & 0x7fffffff
-	_seed_spin.value = float(seed)
-	if _director != null:
-		_director.set_seed(seed)
-
-func _on_seed_changed(value: float) -> void:
-	if _director != null:
-		_director.set_seed(int(value))
-
-func _on_save_a() -> void:
-	_slot_a = _gather_current_params()
-	_current_ab = &"A"
-	push_warning("[MusicLab] Saved to slot A")
-
-func _on_save_b() -> void:
-	_slot_b = _gather_current_params()
-	_current_ab = &"B"
-	push_warning("[MusicLab] Saved to slot B")
-
-func _on_switch_ab() -> void:
+func _on_switch() -> void:
 	if _current_ab == &"A" and not _slot_b.is_empty():
-		_apply_params(_slot_b)
-		_current_ab = &"B"
+		_apply(_slot_b); _current_ab = &"B"
 	elif _current_ab == &"B" and not _slot_a.is_empty():
-		_apply_params(_slot_a)
-		_current_ab = &"A"
-	else:
-		push_warning("[MusicLab] No slot saved to switch to — use Save A / Save B first")
+		_apply(_slot_a); _current_ab = &"A"
 
-# ── Export ────────────────────────────────────────────────────────────────────
-
-func _on_copy_json() -> void:
-	var snippet: Dictionary = {"music_config": _gather_current_params()}
-	DisplayServer.clipboard_set(JSON.stringify(snippet, "  "))
-	# Toast via EventBus if available.
-	if EventBus.has_signal("ui_toast_requested"):
-		EventBus.ui_toast_requested.emit("Copied to clipboard", 2.0, &"info")
-	else:
-		push_warning("[MusicLab] Copied JSON to clipboard")
-
-func _on_stop() -> void:
-	if _director != null:
-		_director._stop()
-
-func _on_start() -> void:
-	if _director != null:
-		_director._ensure_playing()
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-func _gather_current_params() -> Dictionary:
-	var out: Dictionary = {}
-	for param in _sliders.keys():
-		out[param] = _sliders[param].value
-	out["seed"]       = int(_seed_spin.value)
+func _gather() -> Dictionary:
+	var out := {}
+	for p in _sliders: out[p] = _sliders[p].value
+	out["seed"] = int(_seed_spin.value)
 	out["base_state"] = _state_dropdown.get_item_text(_state_dropdown.selected)
 	return out
 
-func _apply_params(params: Dictionary) -> void:
-	for param in _sliders.keys():
-		if params.has(param):
-			_sliders[param].value = float(params[param])
-			# slider.value_changed fires automatically → _on_slider_changed → _push_param
-	if params.has("seed"):
-		_seed_spin.value = float(int(params["seed"]))
+func _apply(params: Dictionary) -> void:
+	for p in _sliders:
+		if params.has(p): _sliders[p].value = float(params[p])
+	if params.has("seed"): _seed_spin.value = float(int(params["seed"]))
 	if params.has("base_state"):
-		var states: Array = ["calm", "battle", "menu"]
-		var idx: int = states.find(String(params["base_state"]))
-		if idx >= 0:
-			_state_dropdown.selected = idx
-			_on_state_selected(idx)
-	if params.has("bpm") and _director != null:
-		_director.set_bpm(float(params["bpm"]))
+		var idx := ["calm","battle","menu"].find(String(params["base_state"]))
+		if idx >= 0: _state_dropdown.selected = idx; _on_state(idx)

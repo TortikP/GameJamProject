@@ -6,17 +6,17 @@ class_name DrumsGen
 
 # Kick: sine 60 Hz, sharp decay
 const KICK_FREQ: float = 60.0
-const KICK_A: int   = 44     # 2 ms
-const KICK_D: int   = 1764   # 80 ms
+const KICK_A: int   = 22
+const KICK_D: int   = 882
 const KICK_S: float = 0.0
-const KICK_R: int   = 44
+const KICK_R: int   = 55
 const KICK_GAIN: float = 0.7
 
 # Hat: noise, very short
-const HAT_A: int   = 22     # 1 ms
-const HAT_D: int   = 661    # 30 ms
+const HAT_A: int   = 11
+const HAT_D: int   = 330
 const HAT_S: float = 0.0
-const HAT_R: int   = 22
+const HAT_R: int   = 55
 const HAT_GAIN: float = 0.2
 
 var _enabled: bool = false
