@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://space_background_029"]
+
+[ext_resource type="Shader" path="res://scripts/presentation/space_background.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_space"]
+shader = ExtResource("1_shader")
+
+[node name="SpaceBackground" type="CanvasLayer"]
+layer = -10
+
+[node name="Screen" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_space")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

@@ -35,6 +35,8 @@ func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
 		if c != Vector2i(-1, -1):
 			blocked.append(c)
 	var path: Array = grid.find_path_around(my_coord, src_coord, blocked)
-	if path.size() < 2:
+	# 029 / req-5: full-speed walk, never step onto source's own hex.
+	var max_steps: int = mini(actor.effective_speed(), path.size() - 2)
+	if max_steps <= 0:
 		return Vector2i(-1, -1)
-	return path[1]
+	return path[max_steps]
