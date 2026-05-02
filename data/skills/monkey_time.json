@@ -10,7 +10,7 @@
     "self"
   ],
   "mood": [
-    "tranquility"
+    "neutral"
   ],
   "level": 0,
   "abilities": [
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(2,10,5), shielded(2,1,2)"
+          "status_id": "strong(2,10,5); shielded(2,1,2)"
         }
       ]
     }
