@@ -8,9 +8,12 @@ extends Resource
 ##
 ## 007: added duration, requires_alive_target; target → Variant.
 ## 021: added apply_level virtual.
-## 021 (post-merge): removed `id` and `type` fields — `kind` from JSON is the
-## sole discriminator (resolved at parse-time via AbilityDatabase.EFFECT_KINDS).
-## No runtime code reads `effect.id` or `effect.type`; they were dead weight.
+## 021 (post-merge): removed `id` and `type` fields — `kind` from JSON was the
+## sole discriminator (resolved at parse-time via AbilityDatabase).
+## 026: `kind` itself is removed from the JSON schema. The effect class is
+## now inferred from key-presence in the effect dict (e.g. `damage` →
+## DamageEffect). Multiple keys → fan-out into N typed instances in
+## EFFECT_KEY_ORDER (damage → heal → status → move → create).
 
 @export var duration: int = 0
 @export var requires_alive_target: bool = true

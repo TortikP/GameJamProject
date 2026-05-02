@@ -10,11 +10,10 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 3
+        "area_radius": 3
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 10
         }

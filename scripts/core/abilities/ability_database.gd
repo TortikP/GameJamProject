@@ -4,16 +4,31 @@ extends Node
 ## 021-skill-system-v2: target kind "entity" → "actor"; ability gets sound/animation
 ## fields (stored, not dispatched yet).
 ##
-## JSON format:
+## 026-skill-system-v3:
+##   - Ability: `sound` → `sound_start`; new `sound_end`, `collision_effect`.
+##   - Effects: `kind` discriminator removed. Effect class is inferred from
+##     key presence (`damage` → DamageEffect, `heal` → HealEffect, `status` →
+##     StatusEffect, `move_type` → MoveEffect, `entity_id` → CreateEffect).
+##     One JSON dict can carry multiple effect-keys → parser fans out into
+##     N typed AbilityEffect instances in registry-order:
+##       damage → heal → status → move → create.
+##     Common fields (`duration`, `requires_alive_target`) are broadcast to all
+##     instances via Object.set() (silent no-op on non-matching properties).
+##   - Areas: JSON keys `radius` / `max_chain_length` on `chain` & `zone_circle`
+##     are renamed to `area_radius` / `area_max_chain_length`. Script field
+##     names stay the same — remap lives in `_make_area`.
+##
+## JSON format (026):
 ##   {
 ##     "id": "fireball",
-##     "sound": "snd_fire",         // 021 — optional
-##     "animation": "anim_blast",   // 021 — optional
-##     "target": {"kind": "hex"},
-##     "area":   {"kind": "zone_circle", "radius": 2},
+##     "sound_start": "snd_fire_start",
+##     "sound_end":   "snd_fire_hit",
+##     "collision_effect": "vfx_fire_burst",
+##     "animation": "anim_blast",
+##     "target": {"kind": "hex", "range": 4},
+##     "area":   {"kind": "zone_circle", "area_radius": 2},
 ##     "effects": [
-##       {"kind": "damage", "duration": 0, "damage": 15},
-##       {"kind": "status", "duration": 3, "status": "burning"}
+##       {"duration": 0, "damage": 15, "status": "burning"}
 ##     ],
 ##     "modifiers": [
 ##       {"kind": "parameter", "id": "fb_extra", "target_param": "damage", "op": "add", "value": 5}
@@ -40,13 +55,34 @@ const AREA_KINDS: Dictionary = {
 	"zone_arc":    preload("res://scripts/core/abilities/areas/zone_arc_area.gd"),
 }
 
-const EFFECT_KINDS: Dictionary = {
-	"damage": preload("res://scripts/core/abilities/effects/damage_effect.gd"),
-	"heal":   preload("res://scripts/core/abilities/effects/heal_effect.gd"),
-	"status": preload("res://scripts/core/abilities/effects/status_effect.gd"),
-	"move":   preload("res://scripts/core/abilities/effects/move_effect.gd"),
-	"create": preload("res://scripts/core/abilities/effects/create_effect.gd"),
+# 026: JSON-key remap for area-blocks. Script field names stay the same
+# (no touch to chain_area.gd / zone_circle_area.gd) — only the JSON key
+# is renamed at parse time. Reason: the `area_` prefix in JSON is grep-
+# friendly when scanning content, but inside the gd files the prefix
+# would be redundant (they already live in *_area.gd).
+const AREA_KEY_REMAP: Dictionary = {
+	"chain": {
+		"area_max_chain_length": "max_chain_length",
+		"area_radius":            "radius",
+	},
+	"zone_circle": {
+		"area_radius": "radius",
+	},
 }
+
+const EFFECT_KIND_BY_KEY: Dictionary = {
+	"damage":    preload("res://scripts/core/abilities/effects/damage_effect.gd"),
+	"heal":      preload("res://scripts/core/abilities/effects/heal_effect.gd"),
+	"status":    preload("res://scripts/core/abilities/effects/status_effect.gd"),
+	"move_type": preload("res://scripts/core/abilities/effects/move_effect.gd"),
+	"entity_id": preload("res://scripts/core/abilities/effects/create_effect.gd"),
+}
+
+# 026: deterministic fan-out order when an effect dict carries multiple keys.
+# Decision is provisional — see 026 spec §"Open after playtest" (1).
+# Keys are plain String to match JSON.parse_string output (Dictionary won't
+# auto-convert String↔StringName for lookups).
+const EFFECT_KEY_ORDER: Array[String] = ["damage", "heal", "status", "move_type", "entity_id"]
 
 const MODIFIER_KINDS: Dictionary = {
 	"parameter": preload("res://scripts/core/abilities/parameter_modifier.gd"),
@@ -133,8 +169,8 @@ func build_ability_from_dict(data: Dictionary) -> Ability:
 
 	var effects: Array[AbilityEffect] = []
 	for eff_data in data.get("effects", []):
-		var e := _make_effect(eff_data)
-		if e != null:
+		# 026: one JSON dict → N typed effects in registry-order.
+		for e in _make_effects_from_dict(eff_data, id):
 			effects.append(e)
 	if effects.is_empty():
 		GameLogger.warn("AbilityDatabase", "%s: no valid effects" % id)
@@ -148,9 +184,13 @@ func build_ability_from_dict(data: Dictionary) -> Ability:
 
 	var ability: Ability = ABILITY_SCRIPT.new()
 	ability.id = StringName(id)
-	# 021: presentation hooks. Stored on resource, dispatch in future audio/anim systems.
-	ability.sound = StringName(data.get("sound", ""))
-	ability.animation = StringName(data.get("animation", ""))
+	# 021/026: presentation hooks. Stored on resource, dispatch in future
+	# audio/anim/VFX systems. 026 split sound → sound_start + sound_end and
+	# added collision_effect (impact VFX, distinct from animation = caster pose).
+	ability.sound_start      = StringName(data.get("sound_start", ""))
+	ability.sound_end        = StringName(data.get("sound_end", ""))
+	ability.collision_effect = StringName(data.get("collision_effect", ""))
+	ability.animation        = StringName(data.get("animation", ""))
 	ability.target = tgt
 	ability.area = area
 	ability.effects = effects
@@ -176,19 +216,42 @@ func _make_area(data: Dictionary) -> AbilityArea:
 		GameLogger.warn("AbilityDatabase", "unknown area kind: '%s'" % kind)
 		return null
 	var inst: Object = script.new()
-	_apply_params(inst, data)
+	# 026: per-kind JSON→script key remap (e.g. `area_radius` → `radius`).
+	# Unknown JSON keys pass through unchanged.
+	var remap: Dictionary = AREA_KEY_REMAP.get(kind, {})
+	for key in data.keys():
+		if key == "kind":
+			continue
+		var script_key: String = remap.get(key, key)
+		inst.set(script_key, data[key])
 	return inst as AbilityArea
 
 
-func _make_effect(data: Dictionary) -> AbilityEffect:
-	var kind: String = data.get("kind", "")
-	var script: Variant = EFFECT_KINDS.get(kind)
-	if script == null:
-		GameLogger.warn("AbilityDatabase", "unknown effect kind: '%s'" % kind)
-		return null
-	var inst: Object = script.new()
-	_apply_params(inst, data)
-	return inst as AbilityEffect
+func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[AbilityEffect]:
+	# 026: discriminator is key-presence, not a `kind` field. Fan out into
+	# one typed AbilityEffect per recognised key, in EFFECT_KEY_ORDER.
+	if data.has("kind"):
+		GameLogger.warn("AbilityDatabase", "%s: legacy 'kind' key in effect dict — ignoring (026 schema)" % ability_id)
+	var out: Array[AbilityEffect] = []
+	for key in EFFECT_KEY_ORDER:
+		if not data.has(key):
+			continue
+		# Defensive type pattern (CLAUDE.md trap #6): Variant→Object→cast.
+		var script_v: Variant = EFFECT_KIND_BY_KEY[key]
+		var inst: Object = (script_v as GDScript).new()
+		# Broadcast all keys via Object.set(): non-matching properties no-op,
+		# so DamageEffect picks up `damage`+`duration`, MoveEffect picks up
+		# `move_type`+`move_distance`+`duration`, etc.
+		for k in data.keys():
+			if k == "kind":
+				continue
+			inst.set(k, data[k])
+		var eff := inst as AbilityEffect
+		if eff != null:
+			out.append(eff)
+	if out.is_empty():
+		GameLogger.info("AbilityDatabase", "%s: effect dict has no recognised keys — skipping" % ability_id)
+	return out
 
 
 func _make_modifier(data: Dictionary) -> ParameterModifier:

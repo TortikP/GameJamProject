@@ -14,16 +14,14 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1
+        "area_max_chain_length": 1
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 4
         },
         {
-          "kind": "move",
           "duration": 0,
           "move_type": "push",
           "move_distance": 2

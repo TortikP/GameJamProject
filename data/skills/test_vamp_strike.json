@@ -10,11 +10,10 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1
+        "area_max_chain_length": 1
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 100
         }
@@ -31,7 +30,6 @@
       },
       "effects": [
         {
-          "kind": "heal",
           "duration": 0,
           "heal": 50
         }

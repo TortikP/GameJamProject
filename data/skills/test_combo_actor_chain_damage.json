@@ -12,7 +12,6 @@
   "abilities": [
     {
       "id": "tcacd_chain",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "actor",
@@ -20,17 +19,17 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 2,
-        "radius": 1
+        "area_max_chain_length": 2,
+        "area_radius": 1
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 10
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     }
   ]
 }

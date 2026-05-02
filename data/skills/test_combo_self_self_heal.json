@@ -12,7 +12,6 @@
   "abilities": [
     {
       "id": "tcssh_mend",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "self"
@@ -22,12 +21,12 @@
       },
       "effects": [
         {
-          "kind": "heal",
           "duration": 0,
           "heal": 20
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     }
   ]
 }
