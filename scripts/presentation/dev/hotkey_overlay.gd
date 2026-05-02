@@ -11,12 +11,13 @@ const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 
 const HOTKEYS: Array[Array] = [
 	["LMB",            "paint / place"],
-	["LMB drag",       "paint / place serially"],
+	["LMB drag",       "paint serially (Brush) or define rect (Rect)"],
 	["RMB / RMB",      "delete (2-click confirm)"],
 	["Alt + LMB",      "eyedropper — pick under cursor"],
 	["Ctrl + Z / Y",   "undo / redo"],
 	["Ctrl + S",       "save"],
 	["1–9",            "quick palette select"],
+	["Tools panel",    "Brush + size, or Rect (left side)"],
 	["H",              "toggle this overlay"],
 ]
 

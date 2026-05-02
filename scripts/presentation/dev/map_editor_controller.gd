@@ -281,6 +281,13 @@ func _unhandled_input(event: InputEvent) -> void:
 						_eyedropper(coord)
 					get_viewport().set_input_as_handled()
 					return
+				if _paint_tool == TOOL_RECT:
+					# Rect mode: anchor at press, fill at release.
+					_rect_anchor = coord
+					_update_paint_preview()
+					get_viewport().set_input_as_handled()
+					return
+				# Brush mode (default): drag-paint with disk.
 				_lmb_held = true
 				_last_paint_coord = Vector2i(-1, -1)
 				_history.begin_transaction(_level)
@@ -289,6 +296,14 @@ func _unhandled_input(event: InputEvent) -> void:
 					_last_paint_coord = coord
 				get_viewport().set_input_as_handled()
 			else:
+				if _paint_tool == TOOL_RECT and _rect_anchor != Vector2i(-1, -1):
+					# Rect release: fill all cells from anchor to release coord.
+					# Use _last_cursor_coord if release happened off-canvas
+					# (mouse went past MAP_HALF_LIMIT) so user gets partial
+					# rect they intended, not a silent miss.
+					var release: Vector2i = coord if coord != Vector2i(-1, -1) else _last_cursor_coord
+					_finish_rect(release)
+					return
 				if _lmb_held:
 					_lmb_held = false
 					_history.end_transaction(_level)
@@ -497,10 +512,48 @@ func _update_paint_preview() -> void:
 	_paint_preview.set_coords(cells)
 
 
-## Placeholder for commit 3. For now returns just the anchor + cursor — the
-## proper axis-aligned hex rect lands with the rect-mode click-and-drag.
-func _rect_cells(_a: Vector2i, _b: Vector2i) -> Array[Vector2i]:
-	return []
+## Axis-aligned hex rect: every coord (x, y) with x in [min, max] and
+## y in [min, max] inclusive. Visually this draws a parallelogram on
+## offset-hex layouts, but the editor user thinks in tile coords and that's
+## the natural rectangle. Capped at MAP_HALF_LIMIT.
+func _rect_cells(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if a == Vector2i(-1, -1) or b == Vector2i(-1, -1):
+		return result
+	var x_min: int = mini(a.x, b.x)
+	var x_max: int = maxi(a.x, b.x)
+	var y_min: int = mini(a.y, b.y)
+	var y_max: int = maxi(a.y, b.y)
+	# Clamp to bounds — rect should never extend past the editable region.
+	x_min = clampi(x_min, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
+	x_max = clampi(x_max, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
+	y_min = clampi(y_min, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
+	y_max = clampi(y_max, -HexGrid.MAP_HALF_LIMIT, HexGrid.MAP_HALF_LIMIT)
+	for y in range(y_min, y_max + 1):
+		for x in range(x_min, x_max + 1):
+			result.append(Vector2i(x, y))
+	return result
+
+
+## Rect-tool LMB-release: fill every cell in the rect through _paint_one
+## under one undo transaction.
+func _finish_rect(release_coord: Vector2i) -> void:
+	var anchor := _rect_anchor
+	_rect_anchor = Vector2i(-1, -1)
+	if anchor == Vector2i(-1, -1) or release_coord == Vector2i(-1, -1):
+		_update_paint_preview()
+		return
+	_clear_pending_delete()
+	var cells := _rect_cells(anchor, release_coord)
+	if cells.is_empty():
+		_update_paint_preview()
+		return
+	_history.begin_transaction(_level)
+	for c in cells:
+		_paint_one(c)
+	_history.end_transaction(_level)
+	_update_paint_preview()
+	get_viewport().set_input_as_handled()
 
 
 func _place_floor(coord: Vector2i, source_id: int, atlas: Vector2i) -> void:
