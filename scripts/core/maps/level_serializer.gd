@@ -20,8 +20,9 @@ static func save(level: LevelData, path: String) -> bool:
 		return false
 	f.store_string(JSON.stringify(level.to_dict(), "\t"))
 	f.close()
-	GameLogger.info("LevelSerializer", "Saved %s (%d floor / %d objects / %d spawners)" % [
-		path, level.floor_cells.size(), level.objects.size(), level.spawners.size()
+	GameLogger.info("LevelSerializer", "Saved %s (%d waves, %d/%d/%d active floor/obj/spawn)" % [
+		path, level.waves.size(),
+		level.floor_cells.size(), level.objects.size(), level.spawners.size()
 	])
 	return true
 
@@ -49,7 +50,8 @@ static func load_from(path: String) -> LevelData:
 	if level == null:
 		GameLogger.error("LevelSerializer", "from_dict returned null for %s" % path)
 		return null
-	GameLogger.info("LevelSerializer", "Loaded %s (%d floor / %d objects / %d spawners)" % [
-		path, level.floor_cells.size(), level.objects.size(), level.spawners.size()
+	GameLogger.info("LevelSerializer", "Loaded %s (%d waves, %d/%d/%d active floor/obj/spawn)" % [
+		path, level.waves.size(),
+		level.floor_cells.size(), level.objects.size(), level.spawners.size()
 	])
 	return level

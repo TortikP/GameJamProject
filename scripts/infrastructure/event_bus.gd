@@ -24,6 +24,16 @@ signal portal_opened
 signal upgrade_offered(options: Array)
 signal upgrade_chosen(modifier_id: StringName)
 
+# Waves (024-wave-editor) — runtime wave lifecycle, separate from legacy
+# `wave_spawned` (which still exists for the future roguelike loop's spawn
+# announcements). 024's WaveController emits these.
+signal wave_started(index: int, is_special: bool)
+signal wave_cleared(index: int, unused_turns: int)
+signal level_completed(total_score: int)
+# 024: emitted when a deferred spawner-placeholder instantiates a real actor.
+# Listeners (e.g. AI planner, HUD) can react to the new actor entering play.
+signal actor_spawned(actor_id: StringName)
+
 # Run cycle
 signal run_started
 signal run_ended(reason: String)
