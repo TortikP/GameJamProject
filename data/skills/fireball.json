@@ -51,7 +51,7 @@
       "effects": [
         {
           "damage": 4,
-          "status_id": "burning (2)"
+          "status_id": "burning(2)"
         }
       ]
     }
