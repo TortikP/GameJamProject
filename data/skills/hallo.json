@@ -1,0 +1,36 @@
+{
+  "id": "hallo",
+  "name": "hallo_name",
+  "tooltip": "hallo_tooltip",
+  "desc": "hallo_desc",
+  "icon": "icons/skills/hallo.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "buff",
+    "self"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "buff_attack_self",
+      "sound_start": "buff_attack_self/buff_attack_self_start.wav",
+      "collision_effect": "buff_attack_self/buff_attack_self_collision.prefab",
+      "sound_end": "buff_attack_self/buff_attack_self_end.wav",
+      "animation": "buff_attack_self/buff_attack_self.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "strong(3,10,5)"
+        }
+      ]
+    }
+  ]
+}

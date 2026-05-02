@@ -1,0 +1,38 @@
+{
+  "id": "angel_scorching_ray",
+  "name": "angel_scorching_ray_name",
+  "tooltip": "angel_scorching_ray_tooltip",
+  "desc": "angel_scorching_ray_desc",
+  "icon": "icons/skills/angel_scorching_ray.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "angel_scorching_ray_scorching",
+      "sound_start": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_start.wav",
+      "collision_effect": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_collision.prefab",
+      "sound_end": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_end.wav",
+      "animation": "angel_scorching_ray_scorching/angel_scorching_ray_scorching.anim",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 2
+      },
+      "effects": [
+        {
+          "status_id": "burning(2,10,5)"
+        }
+      ]
+    }
+  ]
+}

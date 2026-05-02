@@ -1,0 +1,36 @@
+{
+  "id": "paw_suck",
+  "name": "paw_suck_name",
+  "tooltip": "paw_suck_tooltip",
+  "desc": "paw_suck_desc",
+  "icon": "icons/skills/paw_suck.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "heal",
+    "self"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "self_heal_medium",
+      "sound_start": "self_heal_medium/self_heal_medium_start.wav",
+      "collision_effect": "self_heal_medium/self_heal_medium_collision.prefab",
+      "sound_end": "self_heal_medium/self_heal_medium_end.wav",
+      "animation": "self_heal_medium/self_heal_medium.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "heal": 14
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "monkey_time",
+  "name": "monkey_time_name",
+  "tooltip": "monkey_time_tooltip",
+  "desc": "monkey_time_desc",
+  "icon": "icons/skills/monkey_time.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "buff",
+    "self"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "monkey_time_buff",
+      "sound_start": "monkey_time_buff/monkey_time_buff_start.wav",
+      "collision_effect": "monkey_time_buff/monkey_time_buff_collision.prefab",
+      "sound_end": "monkey_time_buff/monkey_time_buff_end.wav",
+      "animation": "monkey_time_buff/monkey_time_buff.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "strong(2,10,5), shielded(2,1,2)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
 	"name": "Sample",
 	"version": 1,
-	"tileset_path": "res://scenes/dev/godmode_terrain.tres",
+	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"floor": [
 		{
 			"coord": [

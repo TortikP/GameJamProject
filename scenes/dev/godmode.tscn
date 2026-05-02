@@ -1,7 +1,15 @@
-[gd_scene load_steps=19 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=31 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_setup.gd" id="23_setup"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_input.gd" id="24_input"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/cast_fsm.gd" id="25_castfsm"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/ai_driver.gd" id="26_ai"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/telegraph_renderer.gd" id="27_telegraph"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/hover_dispatcher.gd" id="28_hover"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/manekin_spawner.gd" id="29_manekin"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/step_animator.gd" id="30_step"]
 [ext_resource type="Script" path="res://scripts/core/actors/actor_registry.gd" id="3_registry"]
 [ext_resource type="PackedScene" path="res://scenes/ui/top_hud_bar.tscn" id="4_tophud"]
 [ext_resource type="Script" path="res://scripts/presentation/slot_bar.gd" id="5_slotbar"]
@@ -18,8 +26,14 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/toast_layer.tscn" id="16_tl"]
 [ext_resource type="PackedScene" path="res://scenes/ui/keybind_overlay.tscn" id="17_kb"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_log.tscn" id="18_cl"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/objects_overlay.gd" id="19_oo"]
+[ext_resource type="PackedScene" path="res://scenes/ui/score_corner.tscn" id="20_score"]
+[ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="21_wt"]
+[ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="22_space"]
 
 [node name="Godmode" type="Node2D"]
+
+[node name="SpaceBackground" parent="." instance=ExtResource("22_space")]
 
 [node name="GodmodeCamera" type="Camera2D" parent="."]
 script = ExtResource("7_camera")
@@ -34,6 +48,10 @@ position = Vector2(160, 90)
 [node name="HexCursor" type="Node2D" parent="HexGrid"]
 script = ExtResource("6_hexcursor")
 grid = NodePath("..")
+
+[node name="ObjectsOverlay" type="Node2D" parent="HexGrid"]
+script = ExtResource("19_oo")
+z_index = 10
 
 [node name="MoveRangeOverlay" type="Node2D" parent="HexGrid"]
 script = ExtResource("8_overlay")
@@ -50,10 +68,34 @@ script = ExtResource("3_registry")
 script = ExtResource("2_controller")
 grid = NodePath("../HexGrid")
 registry = NodePath("../ActorRegistry")
-slot_bar = NodePath("../HUD/SlotBar")
+slot_bar_path = NodePath("../HUD/SlotBar")
 inspector_path = NodePath("../HUD/ActorInspector")
 overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 player_status_panel_path = NodePath("../HUD/PlayerStatusPanel")
+
+[node name="GodmodeSetup" type="Node" parent="GodmodeController"]
+script = ExtResource("23_setup")
+
+[node name="GodmodeInput" type="Node" parent="GodmodeController"]
+script = ExtResource("24_input")
+
+[node name="CastFsm" type="Node" parent="GodmodeController"]
+script = ExtResource("25_castfsm")
+
+[node name="AiDriver" type="Node" parent="GodmodeController"]
+script = ExtResource("26_ai")
+
+[node name="TelegraphRenderer" type="Node" parent="GodmodeController"]
+script = ExtResource("27_telegraph")
+
+[node name="HoverDispatcher" type="Node" parent="GodmodeController"]
+script = ExtResource("28_hover")
+
+[node name="ManekinSpawner" type="Node" parent="GodmodeController"]
+script = ExtResource("29_manekin")
+
+[node name="StepAnimator" type="Node" parent="GodmodeController"]
+script = ExtResource("30_step")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -90,6 +132,15 @@ alignment = 1
 [node name="TooltipPanel" parent="HUD" instance=ExtResource("13_tt")]
 
 [node name="CombatLog" parent="HUD" instance=ExtResource("18_cl")]
+
+[node name="ScoreCorner" parent="HUD" instance=ExtResource("20_score")]
+
+[node name="WaveTimeline" parent="HUD" instance=ExtResource("21_wt")]
+mode = 1
+offset_left = 16.0
+offset_top = 96.0
+offset_right = 480.0
+offset_bottom = 168.0
 
 [node name="ToastLayer" parent="." instance=ExtResource("16_tl")]
 

@@ -25,41 +25,64 @@ uniform float bezel_softness : hint_range(0.0, 0.2) = 0.025;
 // Pitch in PHYSICAL pixels — locked to FRAGCOORD.y so we don't beat against
 // the actual viewport resolution and produce macro-arcs. 3.0 = "every 3rd
 // physical row is a dark line" → classic CRT density without going eye-stabby.
+//
+// 029 / req-9: dampened (0.30 → 0.15) along with the rest of the effects so
+// only curvature + the (now horizontal) aperture mask remain prominent.
 uniform float scanline_pitch_px : hint_range(1.5, 8.0) = 3.0;
-uniform float scanline_strength : hint_range(0.0, 1.0) = 0.30;
+uniform float scanline_strength : hint_range(0.0, 1.0) = 0.15;
 
 // --- Aperture mask (RGB triplets) -------------------------------------------
-uniform float aperture_strength : hint_range(0.0, 1.0) = 0.15;
+// 029 / req-9: dampened (0.15 → 0.06). The mask is also rotated 90° in the
+// fragment shader (mod(FRAGCOORD.y) instead of .x) so the RGB-tinted bands
+// run HORIZONTALLY rather than vertically — Andrey's complaint was that the
+// vertical ones read as artificial stripes; horizontal ones blend with the
+// scanlines into "this is a CRT" rather than "this is a barcode".
+uniform float aperture_strength : hint_range(0.0, 1.0) = 0.06;
 
 // --- Chromatic aberration ---------------------------------------------------
-// Pixel offset between R and B channels. Strongest at edges, zero at center.
-uniform float chroma_strength : hint_range(0.0, 6.0) = 1.6;
+// 029 / req-9: dampened (1.6 → 0.6). At 1.6 the channel split was visible
+// even on small text mid-screen; 0.6 gives a faint edge-only fringe.
+uniform float chroma_strength : hint_range(0.0, 6.0) = 0.6;
 
-// --- Warm tone grade --------------------------------------------------------
-uniform float warm_strength : hint_range(0.0, 1.0) = 0.28;
-uniform vec3  warm_tint : source_color = vec3(1.18, 1.04, 0.78);
-// Phosphor never fully rests — even "black" carries faint warm glow.
-uniform vec3  phosphor_glow : source_color = vec3(0.030, 0.018, 0.008);
+// --- Tone grade -------------------------------------------------------------
+// 029 / req-9: tint flipped from warm (orange phosphor) to cool blue. Variable
+// names kept (`warm_*`) to avoid touching set_param call-sites; the comments
+// and defaults are what shifted. New reading: think "blue CRT tube" instead of
+// "old amber terminal".
+uniform float warm_strength : hint_range(0.0, 1.0) = 0.18;
+uniform vec3  warm_tint : source_color = vec3(0.85, 0.95, 1.15);
+// Phosphor never fully rests — even "black" carries faint blue glow.
+uniform vec3  phosphor_glow : source_color = vec3(0.008, 0.018, 0.030);
 
 // --- Bloom-ish glow ---------------------------------------------------------
-uniform float bloom_strength : hint_range(0.0, 1.5) = 0.55;
+// 029 / req-9: dampened (0.55 → 0.20) — bloom was washing out highlights.
+uniform float bloom_strength : hint_range(0.0, 1.5) = 0.20;
 uniform float bloom_threshold : hint_range(0.0, 1.0) = 0.45;
 
 // --- Vignette ---------------------------------------------------------------
-uniform float vignette_strength : hint_range(0.0, 2.0) = 0.42;
+// 029 / req-9: dampened (0.42 → 0.20). Curvature still implies CRT; the heavy
+// vignette on top was darkening the playfield edges where wave timeline UI sits.
+uniform float vignette_strength : hint_range(0.0, 2.0) = 0.20;
 
 // --- Brightness recovery + tone shaping -------------------------------------
 // scanline × aperture × vignette × gamma combined dim the image to ~60% of
 // source. `boost` is a multiplicative lift applied AFTER all dimming.
 // `contrast` is a classic pivot-at-0.5 contrast curve, applied right after
 // boost — pushes blacks darker and whites whiter without touching mid greys.
-uniform float boost : hint_range(0.5, 2.5) = 1.5;
+//
+// 029 / req-9: boost 1.5 → 1.1 because the rest of the chain dims less now;
+// at 1.5 the image was clipping to white in mid-bright regions. Contrast
+// untouched.
+uniform float boost : hint_range(0.5, 2.5) = 1.1;
 uniform float contrast : hint_range(0.5, 2.0) = 1.12;
 
 // --- Optional 50 Hz hum (slow vertical brightness roll, on by default now) --
 // hum_bands = how many sinusoidal bands are visible across screen height at
 // any instant. 2.0 reads more "real CRT mains hum" than a single full cycle.
-uniform float hum_strength : hint_range(0.0, 0.2) = 0.04;
+//
+// 029 / req-9: dampened (0.04 → 0.015) — roll was visible even with the rest
+// of the effects toned down.
+uniform float hum_strength : hint_range(0.0, 0.2) = 0.015;
 uniform float hum_speed = 0.30;
 uniform float hum_bands = 2.0;
 
@@ -151,25 +174,32 @@ void fragment() {
 	float scan = 0.5 + 0.5 * cos(FRAGCOORD.y * TWO_PI / scanline_pitch_px);
 	col *= mix(1.0 - scanline_strength, 1.0, scan);
 
-	// Aperture mask: per-physical-pixel RGB triplets. mod(FRAGCOORD.x, 3).
-	float fx = mod(FRAGCOORD.x, 3.0);
+	// Aperture mask: per-physical-pixel RGB triplets.
+	// 029 / req-9: indexed off FRAGCOORD.y (was .x) so the RGB-tinted bands
+	// run HORIZONTALLY across the screen — Andrey's complaint was that the
+	// vertical bands read as a deliberate stripe pattern (barcode-like) and
+	// fought with the gameplay grid. Horizontal bands sit cleanly with the
+	// scanlines (which are also horizontal) and read as one cohesive CRT
+	// texture instead of two competing patterns.
+	float fy = mod(FRAGCOORD.y, 3.0);
 	float dim = 1.0 - aperture_strength;
 	vec3 mask;
-	if (fx < 1.0) {
+	if (fy < 1.0) {
 		mask = vec3(1.0, dim, dim);
-	} else if (fx < 2.0) {
+	} else if (fy < 2.0) {
 		mask = vec3(dim, 1.0, dim);
 	} else {
 		mask = vec3(dim, dim, 1.0);
 	}
 	col *= mask;
 
-	// Warm grade: nudge toward amber, very slight gamma lift to warm shadows.
+	// Tone grade — nudge toward the cool tint, very slight gamma lift to lift
+	// shadows. (029: tint default flipped warm→cool; uniform names retained.)
 	col = mix(col, col * warm_tint, warm_strength);
 	col = pow(max(col, vec3(0.0)), vec3(0.96));
 
-	// Phosphor never rests — add tiny warm ambient inside the screen so true
-	// blacks read as "tube glow", not "void".
+	// Phosphor never rests — add tiny ambient inside the screen so true
+	// blacks read as "tube glow", not "void". (029: blue tilt now.)
 	col += phosphor_glow * screen_mask;
 
 	// Vignette in UV space — `length(from_center)` directly. On a 16:9 screen

@@ -1,0 +1,16 @@
+{
+  "id": "bush",
+  "name": "bush_name",
+  "desc": "bush_desc",
+  "sprite": "assets/sprites/enemies/bush.png",
+  "max_hp": 20,
+  "team": "enemy",
+  "speed": 0,
+  "skills": [
+    "bush_curse",
+    "bush_berry_throw",
+    "bush_nice_smell"
+  ],
+  "behavior_id": "default_caster",
+  "fallback_skill_id": "bush_berry_throw"
+}

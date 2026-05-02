@@ -1,0 +1,13 @@
+{
+  "id": "shielded",
+  "family": "shield",
+  "icon": "",
+  "arity": 3,
+  "param_names": [
+    "duration",
+    "n_block",
+    "lvl_bonus"
+  ],
+  "loc_name": "status.shielded.name",
+  "loc_desc": "status.shielded.desc"
+}

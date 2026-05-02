@@ -1,0 +1,38 @@
+{
+  "id": "teapot_tea_gathering",
+  "name": "teapot_tea_gathering_name",
+  "tooltip": "teapot_tea_gathering_tooltip",
+  "desc": "teapot_tea_gathering_desc",
+  "icon": "icons/skills/teapot_tea_gathering.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "move",
+    "ranged"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "teapot_tea_gathering_black_hole",
+      "sound_start": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_start.wav",
+      "collision_effect": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_collision.prefab",
+      "sound_end": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_end.wav",
+      "animation": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole.anim",
+      "target": {
+        "kind": "hex",
+        "range": 5
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "move_type": "pull"
+        }
+      ]
+    }
+  ]
+}

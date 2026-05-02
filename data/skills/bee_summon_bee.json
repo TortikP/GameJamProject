@@ -1,0 +1,37 @@
+{
+  "id": "bee_summon_bee",
+  "name": "bee_summon_bee_name",
+  "tooltip": "bee_summon_bee_tooltip",
+  "desc": "bee_summon_bee_desc",
+  "icon": "icons/skills/bee_summon_bee.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "summon"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bee_summon_bee_summon_bee",
+      "sound_start": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee_start.wav",
+      "collision_effect": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee_collision.prefab",
+      "sound_end": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee_end.wav",
+      "animation": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "entity_id": "bee"
+        }
+      ]
+    }
+  ]
+}

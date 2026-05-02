@@ -1,0 +1,33 @@
+{
+  "id": "burning_bear_summon_bear",
+  "name": "burning_bear_summon_bear_name",
+  "tooltip": "burning_bear_summon_bear_tooltip",
+  "desc": "burning_bear_summon_bear_desc",
+  "icon": "icons/skills/burning_bear_summon_bear.png",
+  "cooldown": 5,
+  "behaviour_tags": [
+    "summon"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "burning_bear_summon_bear_summon_bear",
+      "sound_start": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_start.wav",
+      "collision_effect": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_collision.prefab",
+      "sound_end": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_end.wav",
+      "animation": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear.anim",
+      "target": {
+        "kind": "hex",
+        "range": -1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": []
+    }
+  ]
+}

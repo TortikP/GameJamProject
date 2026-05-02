@@ -11,6 +11,7 @@ extends Node
 ##   4. _place_player()
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const ActorMotion = preload("res://scripts/infrastructure/actor_motion.gd")
 const PLAYER_ID: StringName = &"player"
 
 @export var grid: HexGrid
@@ -141,6 +142,8 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
 	create_tween().tween_property(actor_node, "position", pos, duration)
+	# 029 / req-7: subtle sway on the actor's "Body" sprite during the step.
+	ActorMotion.apply_step_sway(actor_node, duration)
 
 
 func _on_step_finished(actor_id: StringName, coord: Vector2i) -> void:
