@@ -41,7 +41,7 @@ func spawn() -> void:
 	# without having to end their turn first. Re-plans ALL enemies because
 	# adding a new one can block existing pathing. Telegraphs refreshed inside
 	# replan_all_and_refresh on the AiDriver.
-	_ctrl._replan_all_and_refresh()
+	_ctrl.ai.replan_all_and_refresh()
 	_ctrl.refresh_overlay()
 
 
