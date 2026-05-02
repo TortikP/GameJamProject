@@ -1,6 +1,12 @@
 {
-  "id": "default_range",
+  "id": "default_ranged",
   "rules": [
+    {
+      "condition": { "kind": "always" },
+      "target_selector": { "kind": "nearest_empty_hex_to_enemy" },
+      "tag_priority": ["summon"],
+      "min_skill_count": 1
+    },
     {
       "condition": {
         "kind": "all_of",

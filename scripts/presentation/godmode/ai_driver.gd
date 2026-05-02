@@ -40,17 +40,20 @@ func world_ctx() -> Dictionary:
 	}
 
 
-## Re-plan ALL live enemies and refresh the telegraph layer. Used by
-## ManekinSpawner.spawn() so a freshly-added dummy's intent is visible
+## Re-plan ALL live AI-controlled actors and refresh the telegraph layer. Used
+## by ManekinSpawner.spawn() so a freshly-added dummy's intent is visible
 ## immediately, without the player having to end their turn first.
+## 044: filter is now `actor != _ctrl.player` (was `team == &"enemy"`) so
+## player-side summoned actors (CreateEffect with caster.team = &"player")
+## also get planned. Pillar 2 / симметрия.
 func replan_all_and_refresh() -> void:
 	var registry: ActorRegistry = _ctrl.registry
-	var enemies: Array = []
+	var ai_actors: Array = []
 	for actor in registry.all():
-		if actor is Actor and (actor as Actor).team == &"enemy":
-			enemies.append(actor)
+		if actor is Actor and (actor as Actor) != _ctrl.player:
+			ai_actors.append(actor)
 	var ctx: Dictionary = world_ctx()
-	for actor in enemies:
+	for actor in ai_actors:
 		if actor is Actor and (actor as Actor).is_alive():
 			EnemyAIPlanner.plan(actor as Actor, ctx)
 	_ctrl.telegraphs.refresh()
@@ -116,11 +119,18 @@ func _tick_all_skills() -> void:
 
 
 func _run_enemy_turn() -> void:
+	# 044: name retained for diff minimisation, but the loop now drives ALL
+	# AI-controlled actors (= everyone except _ctrl.player), including
+	# player-team summoned creatures (041 CreateEffect copies caster.team).
+	# Pillar 2 / симметрия: same Phase 1 RESOLVE / Phase 2 PLAN cycle for
+	# every world actor, single sequential pass — spec 030 intent-awareness
+	# (claimed-coords filter for allies) automatically extends to the new
+	# team boundaries without code changes here.
 	var registry: ActorRegistry = _ctrl.registry
-	var enemies: Array = []
+	var ai_actors: Array = []
 	for actor in registry.all():
-		if actor is Actor and (actor as Actor).team == &"enemy":
-			enemies.append(actor)
+		if actor is Actor and (actor as Actor) != _ctrl.player:
+			ai_actors.append(actor)
 	_ctrl.telegraphs.clear()
 
 	# Phase 1: RESOLVE — execute everyone's planned move, then planned cast.
@@ -128,7 +138,7 @@ func _run_enemy_turn() -> void:
 	# 029 / B-001: defensive is_instance_valid — same reasoning as Phase 2,
 	# an enemy can die from another enemy's cast (AoE friendly fire) earlier
 	# in this loop's iteration.
-	for actor in enemies:
+	for actor in ai_actors:
 		if not is_instance_valid(actor):
 			continue
 		if not (actor is Actor):
@@ -149,7 +159,7 @@ func _run_enemy_turn() -> void:
 	# on a freed instance throws "Left operand of 'is' is a previously freed
 	# instance". Filter via is_instance_valid BEFORE any other check.
 	var ctx: Dictionary = world_ctx()
-	for actor in enemies:
+	for actor in ai_actors:
 		if not is_instance_valid(actor):
 			continue
 		if not (actor is Actor):
