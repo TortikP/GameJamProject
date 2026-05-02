@@ -1,0 +1,36 @@
+{
+  "id": "teapot_low_possibility",
+  "name": "teapot_low_possibility_name",
+  "tooltip": "teapot_low_possibility_tooltip",
+  "desc": "teapot_low_possibility_desc",
+  "icon": "icons/skills/teapot_low_possibility.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "buff",
+    "self"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "teapot_low_possibility_invisibility",
+      "sound_start": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_start.wav",
+      "collision_effect": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_collision.prefab",
+      "sound_end": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_end.wav",
+      "animation": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "invisible(3)"
+        }
+      ]
+    }
+  ]
+}
