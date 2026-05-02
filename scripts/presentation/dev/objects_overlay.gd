@@ -36,6 +36,11 @@ var _registry: TileObjectRegistry  # resolved from grid in _ready
 func _ready() -> void:
 	if grid == null:
 		grid = get_parent() as HexGrid
+	# Y-sort children so closer-to-viewer (higher y) sprites always draw on
+	# top, regardless of the order the user painted them. Doesn't fix the
+	# adjacent-canopy overlap problem (sprites taller than hex spacing will
+	# always overlap by some amount), but makes the stacking deterministic.
+	y_sort_enabled = true
 
 
 ## Late-binding registry hook — controller calls this AFTER grid.initialize()
