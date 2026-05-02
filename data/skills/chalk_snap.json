@@ -1,0 +1,38 @@
+{
+  "id": "chalk_snap",
+  "name": "chalk_snap_name",
+  "tooltip": "chalk_snap_tooltip",
+  "desc": "chalk_snap_desc",
+  "icon": "assets/sprites/icons/skills/chalk_snap.png",
+  "cooldown": 1,
+  "behaviour_tags": [
+    "melee",
+    "damage"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "heavy_melee_damage",
+      "sound_start": "assets/audio/skills/heavy_melee_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/heavy_melee_damage/impact.prefab",
+      "sound_end": "assets/audio/skills/heavy_melee_damage/end.wav",
+      "animation": "assets/animations/skills/heavy_melee_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 13
+        }
+      ]
+    }
+  ]
+}
