@@ -166,7 +166,8 @@ func run() -> void:
 
 func _paint_grid() -> void:
 	# Procedural godmode sandbox: all grass, no walls. Source 0 atlas (0,0)
-	# in hex_terrain.tres is the grass tile (walkable=true, move_cost=1).
+	# in hex_terrain.tres is Katya's hand-drawn grass tile (godmode_atlas,
+	# 128×80, walkable=true, move_cost=1).
 	for row in GRID_H:
 		for col in GRID_W:
 			_ctrl.grid.tile_map_layer.set_cell(Vector2i(col, row), 0, Vector2i(0, 0))

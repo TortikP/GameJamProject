@@ -20,9 +20,10 @@ const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.g
 
 const TILESETS: Array[Dictionary] = [
 	# Per 032-controller-refactor: single tileset post-refactor — hex_terrain.tres
-	# (HEXAGON shape, 128×80 cells, multi-atlas: hex_atlas grass/wall/swamp/acid/
-	# fountain at source 0, godmode_atlas forest at source 1). Old levels referencing
-	# godmode_terrain.tres won't load anymore — that file was deleted in the same PR.
+	# (HEXAGON shape, 128×80 cells). Source 0 = godmode_atlas (Katya's grass tile,
+	# the default everywhere). Source 1 = hex_atlas (placeholder palette:
+	# grass/wall/swamp/acid/fountain). Old levels referencing godmode_terrain.tres
+	# won't load anymore — that file was deleted in the same PR.
 	{"label": "Hex Terrain", "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
 ]
 

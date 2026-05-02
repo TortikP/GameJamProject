@@ -42,7 +42,7 @@ The editor always writes `v2`. Hand-edited `v1` files keep working.
 ```
 
 - `coord` — `[col, row]` in TileMapLayer cell space. `Vector2i` serialized as 2-element array.
-- `source_id` — TileSet source index. For `hex_terrain.tres`: `0` (hex_atlas: grass/wall/swamp/acid/fountain) or `1` (godmode_atlas: forest tile). It's the only tileset shipped post-032.
+- `source_id` — TileSet source index. For `hex_terrain.tres`: `0` (godmode_atlas: Katya's grass tile, the default) or `1` (hex_atlas placeholder palette: grass/wall/swamp/acid/fountain). It's the only tileset shipped post-032.
 - `atlas_coord` — `[ax, ay]` within the TileSetAtlasSource. Picks which tile graphic.
 
 ## `objects[]` entry (per wave)

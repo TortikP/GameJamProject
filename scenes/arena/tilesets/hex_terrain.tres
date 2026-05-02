@@ -52,5 +52,5 @@ custom_data_layer_3/name = "effect_id"
 custom_data_layer_3/type = 21
 custom_data_layer_4/name = "object_id"
 custom_data_layer_4/type = 21
-sources/0 = SubResource("TileSetAtlasSource_001")
-sources/1 = SubResource("TileSetAtlasSource_002")
+sources/0 = SubResource("TileSetAtlasSource_002")
+sources/1 = SubResource("TileSetAtlasSource_001")
