@@ -27,7 +27,7 @@
       },
       "effects": [
         {
-          "status_id": "enraged (2)"
+          "status_id": "enraged(2)"
         }
       ]
     },
@@ -47,7 +47,7 @@
       },
       "effects": [
         {
-          "status_id": "feared (2)"
+          "status_id": "feared(2)"
         }
       ]
     }
