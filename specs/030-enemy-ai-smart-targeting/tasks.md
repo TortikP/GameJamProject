@@ -10,7 +10,7 @@
 
 ## Группа A — Новые TacticCondition (parallel)
 
-- [ ] **T001** [P1] [P] `scripts/core/ai/conditions/condition_unclaimed_hex_exists_near_enemy.gd`
+- [x] **T001** [P1] [P] `scripts/core/ai/conditions/condition_unclaimed_hex_exists_near_enemy.gd`
   `class_name ConditionUnclaimedHexExistsNearEnemy extends TacticCondition`.
   `@export var distance: int = 1`.
   Алгоритм: найти ближайшего живого противника (opposite team), собрать `claimed` coords из
@@ -19,7 +19,7 @@
   один не в `claimed`. `claimed` — plain `Array` (не Array[Vector2i], CLAUDE.md trap §typed-arrays).
   AC-C10.
 
-- [ ] **T002** [P1] [P] `scripts/core/ai/conditions/condition_ally_count_below.gd`
+- [x] **T002** [P1] [P] `scripts/core/ai/conditions/condition_ally_count_below.gd`
   `class_name ConditionAllyCountBelow extends TacticCondition`.
   `@export var count: int = 2`.
   evaluate: считает живых союзников (same team, != actor) в `ctx.all_actors`, возвращает `< count`.
@@ -27,13 +27,13 @@
 
 ## Группа B — Новые TargetSelector (parallel)
 
-- [ ] **T010** [P1] [P] `scripts/core/ai/selectors/selector_highest_hp_ally.gd`
+- [x] **T010** [P1] [P] `scripts/core/ai/selectors/selector_highest_hp_ally.gd`
   `class_name SelectorHighestHpAlly extends TargetSelector`.
   resolve: из кандидатов (союзники, alive, != actor, max_hp > 0) выбрать с максимальным
   `hp / max_hp` ratio. Вернуть Actor или null. Зеркало SelectorLowestHpAlly.
   AC-T9.
 
-- [ ] **T011** [P1] [P] `scripts/core/ai/selectors/selector_unclaimed_hex_near_enemy.gd`
+- [x] **T011** [P1] [P] `scripts/core/ai/selectors/selector_unclaimed_hex_near_enemy.gd`
   `class_name SelectorUnclaimedHexNearEnemy extends TargetSelector`. Возвращает `Vector2i`.
   Шаги (см. plan.md §selector_unclaimed_hex_near_enemy):
   1. Проверить `candidate_skill.abilities[0].target is HexTarget` → если нет return null.
@@ -44,7 +44,7 @@
   6. Вернуть hex с max hits; если все заняты → null.
   AC-T8.
 
-- [ ] **T012** [P1] [P] `scripts/core/ai/selectors/selector_target_without_status.gd`
+- [x] **T012** [P1] [P] `scripts/core/ai/selectors/selector_target_without_status.gd`
   `class_name SelectorTargetWithoutStatus extends TargetSelector`.
   `@export var status_id: StringName = &""`.
   resolve: если `status_id == &""` → return null. Перебрать кандидатов (враги, alive),
@@ -54,7 +54,7 @@
 
 ## Группа C — Новая MovementPolicy
 
-- [ ] **T020** [P1] `scripts/core/ai/policies/policy_approach_nearest_enemy_unclaimed.gd`
+- [x] **T020** [P1] `scripts/core/ai/policies/policy_approach_nearest_enemy_unclaimed.gd`
   `class_name PolicyApproachNearestEnemyUnclaimed extends MovementPolicy`.
   Копировать логику `policy_approach_nearest_enemy.gd` полностью (find nearest enemy, build blocked,
   find_path_around). После получения `path`: собрать `taken` (plain Array) из `move_intent_coord`
@@ -64,7 +64,7 @@
 
 ## Группа D — EnemyAIPlanner патч (независима от A/B/C)
 
-- [ ] **T030** [P1] `scripts/core/ai/enemy_ai_planner.gd` — str_replace одной строки:
+- [x] **T030** [P1] `scripts/core/ai/enemy_ai_planner.gd` — str_replace одной строки:
   Было:   `var want_allies: bool = selector is SelectorLowestHpAlly`
   Стало:  `var want_allies: bool = selector is SelectorLowestHpAlly or selector is SelectorHighestHpAlly`
   Ничего кроме этой строки не трогать. AC-PL1.
@@ -72,7 +72,7 @@
 
 ## Группа E — BehaviorDatabase парсер (после A/B/C)
 
-- [ ] **T040** [P1] `scripts/core/ai/behavior_database.gd` — `_build_condition` match:
+- [x] **T040** [P1] `scripts/core/ai/behavior_database.gd` — `_build_condition` match:
   Добавить два case перед `_:` дефолтом:
   ```
   "unclaimed_hex_exists_near_enemy":
@@ -86,7 +86,7 @@
   ```
   (depends T001, T002)
 
-- [ ] **T041** [P1] `scripts/core/ai/behavior_database.gd` — `_build_selector` match:
+- [x] **T041** [P1] `scripts/core/ai/behavior_database.gd` — `_build_selector` match:
   Добавить три case перед `_:` дефолтом:
   ```
   "unclaimed_hex_near_enemy": return SelectorUnclaimedHexNearEnemy.new()
@@ -98,7 +98,7 @@
   ```
   (depends T010, T011, T012)
 
-- [ ] **T042** [P1] `scripts/core/ai/behavior_database.gd` — `_build_policy` match:
+- [x] **T042** [P1] `scripts/core/ai/behavior_database.gd` — `_build_policy` match:
   Добавить один case перед `_:` дефолтом:
   ```
   "approach_nearest_enemy_unclaimed": return PolicyApproachNearestEnemyUnclaimed.new()
@@ -107,25 +107,25 @@
 
 ## Группа F — JSON архетипы (после Группы E)
 
-- [ ] **T050** [P1] [P] `data/ai_behaviors/melee_fighter.json`
+- [x] **T050** [P1] [P] `data/ai_behaviors/melee_fighter.json`
   id: melee_fighter. Одно правило: enemy_in_range(1) → nearest_enemy → [damage, knockback].
   movement_policy: approach_nearest_enemy_unclaimed. fallback_skill_id: "".
   Числовые placeholder — Стасян правит позже. Точная схема в plan.md.
   (depends T040, T041, T042)
 
-- [ ] **T051** [P1] [P] `data/ai_behaviors/ranged_mage.json`
+- [x] **T051** [P1] [P] `data/ai_behaviors/ranged_mage.json`
   id: ranged_mage. Три правила: no_enemy_in_range(2)/nearest_enemy/[damage,damage_aoe],
   all_of([enemy_in_range(2), unclaimed_hex_exists_near_enemy(1)])/unclaimed_hex_near_enemy/[damage_aoe,damage],
   enemy_in_range(2)/nearest_enemy/[damage,damage_aoe].
   movement_policy: kite_from_nearest_enemy. Точная схема в plan.md.
   (depends T040, T041, T042)
 
-- [ ] **T052** [P1] [P] `data/ai_behaviors/healer.json`
+- [x] **T052** [P1] [P] `data/ai_behaviors/healer.json`
   id: healer. Три правила: self_hp_below(40)/self/[heal], ally_hp_below(60,3)/lowest_hp_ally/[heal],
   always/nearest_enemy/[damage]. movement_policy: follow_lowest_hp_ally. Схема в plan.md.
   (depends T040, T041, T042)
 
-- [ ] **T053** [P2] [P] `data/ai_behaviors/buffer.json`
+- [x] **T053** [P2] [P] `data/ai_behaviors/buffer.json`
   id: buffer. Четыре правила: self_hp_below(40)/self/[heal], ally_hp_below(50,2)/lowest_hp_ally/[heal],
   always/highest_hp_ally/[buff], always/nearest_enemy/[damage].
   movement_policy: approach_nearest_enemy. Схема в plan.md.
@@ -133,7 +133,7 @@
 
 ## Группа G — Smoke (ручной в Godot, на Alexey/Egor)
 
-- [ ] **T060** [P1] Создать `specs/030-enemy-ai-smart-targeting/SMOKE.md` с шаблоном.
+- [x] **T060** [P1] Создать `specs/030-enemy-ai-smart-targeting/SMOKE.md` с шаблоном.
   (depends T053)
 
 - [ ] **T061** [P1] Smoke #1 — Backward-compat: default_melee.json, enraged.json, feared.json
