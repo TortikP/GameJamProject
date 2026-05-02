@@ -56,8 +56,11 @@ func clear_all() -> void:
 	var grid: HexGrid = _ctrl.grid
 	var registry: ActorRegistry = _ctrl.registry
 	var to_remove: Array = []
+	# 044: was filtering team == &"enemy". Now wipes any non-player actor so
+	# F2 also clears player-side summoned creatures (else they pile up forever
+	# in the sandbox between resets). Symmetric with ai_driver's filter switch.
 	for actor in registry.all():
-		if actor is Actor and (actor as Actor).team == &"enemy":
+		if actor is Actor and (actor as Actor) != _ctrl.player:
 			to_remove.append(actor)
 	for actor in to_remove:
 		var a: Actor = actor

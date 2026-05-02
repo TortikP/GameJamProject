@@ -4,8 +4,8 @@
 
 ## T1 — Selector
 
-- [ ] T1.1: Создать `scripts/core/ai/selectors/selector_nearest_empty_hex_to_enemy.gd` по шаблону из plan.md §1. AC-S1..S7.
-- [ ] T1.2: Добавить регистрацию в `scripts/core/ai/behavior_database.gd` `_build_selector` (после `unclaimed_hex_near_enemy`):
+- [x] T1.1: Создать `scripts/core/ai/selectors/selector_nearest_empty_hex_to_enemy.gd` по шаблону из plan.md §1. AC-S1..S7.
+- [x] T1.2: Добавить регистрацию в `scripts/core/ai/behavior_database.gd` `_build_selector` (после `unclaimed_hex_near_enemy`):
       ```
       "nearest_empty_hex_to_enemy": return SelectorNearestEmptyHexToEnemy.new()
       ```
@@ -13,22 +13,22 @@
 
 ## T2 — JSON content
 
-- [ ] T2.1: Edit `data/ai_behaviors/default_melee.json` — prepend summon-rule (plan.md §3). AC-J1.
-- [ ] T2.2: Создать `data/ai_behaviors/default_ranged.json` (plan.md §3). AC-J2.
-- [ ] T2.3: `git rm data/ai_behaviors/default_range.json`. AC-J4.
-- [ ] T2.4: Grep `git grep '"default_range"'` — должно быть пусто. Если что-то всплыло на staging — обработать в этом же PR (вряд ли, проверка-в-страховку).
+- [x] T2.1: Edit `data/ai_behaviors/default_melee.json` — prepend summon-rule (plan.md §3). AC-J1.
+- [x] T2.2: Создать `data/ai_behaviors/default_ranged.json` (plan.md §3). AC-J2.
+- [x] T2.3: `git rm data/ai_behaviors/default_range.json`. AC-J4.
+- [x] T2.4: Grep `git grep '"default_range"'` — пусто (только spec/tasks references).
 - [ ] T2.5: Запустить Godot godmode-сцену → BehaviorDatabase логирует `default_melee`, `default_ranged` загружены, нет warn'ов «scenario missing 'id'» / «unknown target_selector kind».
 
 ## T3 — Driver filter
 
-- [ ] T3.1: Edit `scripts/presentation/godmode/ai_driver.gd` `replan_all_and_refresh()` — заменить team-фильтр на `actor != _ctrl.player`. AC-D1/D2.
-- [ ] T3.2: Edit `_run_enemy_turn()` — то же самое. AC-D1.
-- [ ] T3.3: Обновить doc-комментарии метода (упоминание «enemies» → «AI-controlled world actors» где уместно). Метод-имя оставить (AC-D3).
+- [x] T3.1: Edit `scripts/presentation/godmode/ai_driver.gd` `replan_all_and_refresh()` — заменить team-фильтр на `actor != _ctrl.player`. AC-D1/D2.
+- [x] T3.2: Edit `_run_enemy_turn()` — то же самое. AC-D1.
+- [x] T3.3: Обновить doc-комментарии метода (упоминание «enemies» → «AI-controlled world actors» где уместно). Метод-имя оставить (AC-D3).
 - [ ] T3.4: Smoke 1 — godmode без player-summon'ов: запустить, заспавнить manekin'ов, провернуть 5 ходов. Поведение enemies должно быть идентично pre-PR (детерминистика scenario'ев + порядок registry.all() сохранён). AC-D5.
 
 ## T4 — Telegraph filter
 
-- [ ] T4.1: Edit `scripts/presentation/godmode/telegraph_renderer.gd` `refresh()` — заменить team-фильтр на `actor == _ctrl.player`. AC-T1.
+- [x] T4.1: Edit `scripts/presentation/godmode/telegraph_renderer.gd` `refresh()` — заменить team-фильтр на `actor == _ctrl.player`. AC-T1.
 - [ ] T4.2: Smoke 2 — повторить smoke 1, проверить что telegraph для enemies рендерятся как раньше. AC-T2.
 
 ## T5 — Smoke: player-side summon

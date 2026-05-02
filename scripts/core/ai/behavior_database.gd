@@ -226,6 +226,8 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		"unclaimed_hex_near_enemy": return SelectorUnclaimedHexNearEnemy.new()
 		"highest_hp_ally":          return SelectorHighestHpAlly.new()
 		"player_escape_hex":        return SelectorPlayerEscapeHex.new()
+		# 044: summon-priority rule selector — empty hex closest to nearest enemy.
+		"nearest_empty_hex_to_enemy": return SelectorNearestEmptyHexToEnemy.new()
 		"hex_with_most_wounded_allies":
 			var s_hw := SelectorHexWithMostWoundedAllies.new()
 			s_hw.wounded_threshold = float(data.get("wounded_threshold", 0.7))

@@ -71,7 +71,12 @@ func refresh() -> void:
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
-		if enemy.team != &"enemy" or not enemy.is_alive():
+		# 044: render telegraphs for any AI-controlled actor, not only enemies —
+		# player-side summoned creatures (spec 041 + 044) need their cast/move
+		# intents visible to the player too. Pillar 1 / full information.
+		# Variable name `enemy` retained for diff minimisation; semantically
+		# now means "AI-controlled world actor".
+		if enemy == _ctrl.player or not enemy.is_alive():
 			continue
 
 		# Cast telegraph: hex + color from primary tag, damage number for damage-class only.
