@@ -3,8 +3,17 @@
   "rules": [
     {
       "condition": {
-        "kind": "enemy_in_range",
-        "distance": 1
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 1
+          },
+          {
+            "kind": "aoe_net_positive",
+            "check_radius": 1
+          }
+        ]
       },
       "target_selector": {
         "kind": "nearest_enemy"
@@ -17,7 +26,8 @@
     }
   ],
   "movement_policy": {
-    "kind": "approach_nearest_enemy_unclaimed"
+    "kind": "spread_from_allies",
+    "crowd_radius": 1
   },
   "fallback_skill_id": ""
 }

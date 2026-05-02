@@ -3,8 +3,17 @@
   "rules": [
     {
       "condition": {
-        "kind": "enemy_in_range",
-        "distance": 4
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 4
+          },
+          {
+            "kind": "aoe_net_positive",
+            "check_radius": 1
+          }
+        ]
       },
       "target_selector": {
         "kind": "nearest_enemy"

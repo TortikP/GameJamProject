@@ -191,6 +191,10 @@ func _build_condition(data: Variant, scenario_id: String, composers_allowed: boo
 			return n
 		# 030 additions
 		"ally_exists": return ConditionAllyExists.new()
+		"aoe_net_positive":
+			var cn := ConditionAoeNetPositive.new()
+			cn.check_radius = int(data.get("check_radius", 1))
+			return cn
 		"unclaimed_hex_exists_near_enemy":
 			var c10 := ConditionUnclaimedHexExistsNearEnemy.new()
 			c10.distance = int(data.get("distance", 1))
@@ -259,6 +263,10 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 			p_sk.heal_range = int(data.get("heal_range", 2))
 			p_sk.safe_ally_range = int(data.get("safe_ally_range", 3))
 			return p_sk
+		"spread_from_allies":
+			var p_sf := PolicySpreadFromAllies.new()
+			p_sf.crowd_radius = int(data.get("crowd_radius", 1))
+			return p_sf
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()
