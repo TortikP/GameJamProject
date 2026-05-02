@@ -61,13 +61,17 @@ func _on_level_loaded(level: LevelData) -> void:
 		"level_loaded: %d triggers registered for '%s'" % [_triggers.size(), level.name])
 
 
-func _on_battle_started(_arena_id: StringName) -> void:
+func _on_battle_started(arena_id: StringName) -> void:
 	# Re-entry guard: disconnect previous battle's handlers first.
 	_disconnect_all()
 	if _level == null:
 		GameLogger.warn("LevelDialogueDirector", "battle_started but no level loaded — no triggers will fire")
 		return
 	_connect_for_events()
+	# Special case: level_started triggers must fire NOW because their
+	# underlying signal (battle_started) already fired — we're inside it.
+	# Connecting to it again would wait for the NEXT battle.
+	_on_event_fired(&"level_started", [arena_id, null, null])
 
 
 func _on_battle_ended(_victory: bool) -> void:
@@ -98,6 +102,10 @@ func _connect_for_events() -> void:
 			unique[String(dt.event)] = true
 
 	for ev_curated in unique.keys():
+		# level_started is fired directly in _on_battle_started (race-safe).
+		# Connecting here would only catch the NEXT battle_started.
+		if ev_curated == "level_started":
+			continue
 		# Translate curated UI name → actual EventBus signal name.
 		var ev_signal: String = _curated_to_signal(ev_curated)
 		if not EventBus.has_signal(ev_signal):
