@@ -90,24 +90,35 @@ func _build_triggers(raw: Array) -> Array:
 
 
 func _connect_for_events() -> void:
-	# Gather unique event names.
+	# Gather unique curated event names.
 	var unique: Dictionary = {}
 	for t in _triggers:
 		var dt: DialogueTrigger = t as DialogueTrigger
 		if dt != null:
 			unique[String(dt.event)] = true
 
-	for ev_str in unique.keys():
-		if not EventBus.has_signal(ev_str):
-			if not _warned_missing_signal.has(ev_str):
-				_warned_missing_signal[ev_str] = true
+	for ev_curated in unique.keys():
+		# Translate curated UI name → actual EventBus signal name.
+		var ev_signal: String = _curated_to_signal(ev_curated)
+		if not EventBus.has_signal(ev_signal):
+			if not _warned_missing_signal.has(ev_signal):
+				_warned_missing_signal[ev_signal] = true
 				GameLogger.warn("LevelDialogueDirector",
-					"EventBus has no signal '%s' — triggers using it are dead" % ev_str)
+					"EventBus has no signal '%s' (for event '%s') — triggers using it are dead" % [ev_signal, ev_curated])
 			continue
-		var ev_sn: StringName = StringName(ev_str)
-		var cb: Callable = _make_handler(ev_sn)
-		EventBus.connect(ev_str, cb)
-		_connected_signals.append({"event": ev_str, "callable": cb})
+		# Handler fires with the curated name so _on_event_fired matches trigger.event.
+		var cb: Callable = _make_handler(StringName(ev_curated))
+		EventBus.connect(ev_signal, cb)
+		_connected_signals.append({"event": ev_signal, "callable": cb})
+
+
+## Translate curated editor event names → actual EventBus signal names.
+## "level_started" is the user-facing alias for battle_started(arena_id).
+## All other curated names already match their EventBus signal.
+func _curated_to_signal(ev: String) -> String:
+	match ev:
+		"level_started": return "battle_started"
+		_: return ev
 
 
 func _make_handler(event_name: StringName) -> Callable:
