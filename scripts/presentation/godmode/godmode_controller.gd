@@ -44,6 +44,12 @@ var _world_processing: bool = false  # true while AI takes its turn — locks pl
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
 var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+# 024-wave-editor: present iff a queued LevelData is loaded; null in
+# procedural godmode sandbox.
+var _wave_controller: WaveController = null
+# 024: held only between _try_load_queued_level success and the end of
+# _ready, where WaveController is instantiated and start_level called.
+var _queued_level: LevelData = null
 
 # 026: multi-step cast collection state. Phase-1 (per-ability target picker)
 # lives here; phase-2 is Skill.cast(player, ctxs).
@@ -166,6 +172,19 @@ func _ready() -> void:
 	if psp != null and psp.has_method("bind_player"):
 		psp.bind_player(player)
 
+	# 024-wave-editor: spin up WaveController iff we loaded a custom level.
+	# Procedural godmode sandbox (no queued level) leaves it null — runtime
+	# stays single-wave-implicit and behaves as before.
+	if _queued_level != null:
+		_wave_controller = WaveController.new()
+		_wave_controller.name = "WaveController"
+		_wave_controller.grid = grid
+		_wave_controller.registry = registry
+		add_child(_wave_controller)
+		# Defer start_level so any deferred sibling _ready (HUD wave timeline,
+		# score corner) connects to wave_started before we emit it.
+		_wave_controller.start_level.call_deferred(_queued_level)
+
 
 # ── Setup ────────────────────────────────────────────────────────────────────
 
@@ -179,6 +198,9 @@ func _paint_grid() -> void:
 ## 020 — paint + spawn from a queued LevelData. Returns true on success.
 ## Failure modes (level can't load, no player spawner) → return false and let
 ## the caller fall back to the procedural _paint_grid + _place_player path.
+##
+## 024 — on success, also caches the loaded LevelData in _queued_level so
+## the post-init WaveController setup can pick it up.
 func _try_load_queued_level() -> bool:
 	var queued_path: String = ActiveLevel.consume()
 	var level: LevelData = LevelSerializer.load_from(queued_path)
@@ -203,7 +225,7 @@ func _try_load_queued_level() -> bool:
 	var actors_node: Node = grid.get_node_or_null("Actors")
 	if actors_node == null:
 		actors_node = grid
-	var spawned_player: Actor = LevelLoader.apply_to(grid, registry, level, actors_node)
+	var spawned_player: Actor = LevelLoader.apply_to(grid, registry, level, actors_node, true)
 	if spawned_player != null:
 		player = spawned_player
 	else:
@@ -213,6 +235,11 @@ func _try_load_queued_level() -> bool:
 		# by hand may not have one.
 		GameLogger.warn("Godmode", "Loaded level has no player spawner — placing default")
 		_place_player()
+	# 024: track player in the grid's id→actor lookup so push-out chain
+	# logic (HexGrid.displace_actor recursive case) can resolve occupants
+	# without scene-tree walks.
+	if player != null:
+		grid.registry_lookup[player.actor_id] = player
 	# Render tile-object visuals. LevelLoader writes object_id to HexTile
 	# (logic / pathfinder / resolver), but doesn't paint sprites — that's the
 	# editor's job in editor scenes, godmode's here.
@@ -233,6 +260,7 @@ func _try_load_queued_level() -> bool:
 	if camera != null and camera.has_method("set_follow_target") and player != null:
 		camera.set_follow_target(player)
 	GameLogger.info("Godmode", "Loaded custom level '%s'" % level.name)
+	_queued_level = level
 	return true
 
 

@@ -454,6 +454,22 @@ func rebuild_pathfinder() -> void:
 	_build_pathfinder()
 
 
+## 024-wave-editor: rebuild HexTile dict + pathfinder after a wave-snapshot
+## floor mutation, WITHOUT recreating the TileObject / TileEffect registries.
+## Full initialize() instantiates fresh registries, which breaks any cached
+## refs in TileObjectResolver (019). Wave transitions only mutate cell
+## existence + atlas — registries are stable across waves, so we keep them.
+func reinitialize_tiles_only() -> void:
+	if tile_map_layer == null:
+		GameLogger.warn("HexGrid", "reinitialize_tiles_only: tile_map_layer is null")
+		return
+	# Drop tile dict, rebuild from current TileMapLayer state. Registries
+	# stay attached.
+	_tiles.clear()
+	_build_tile_map()
+	_build_pathfinder()
+
+
 # ── Displacement / push-out (024-wave-editor) ───────────────────────────────
 ##
 ## When a wave snapshot makes a hex impassable while an actor is standing on

@@ -30,11 +30,11 @@
 
 ## P2 — Push-out в HexGrid
 
-- [ ] T40. `HexGrid.find_passable_for_displacement(from, exclude=[]) -> Vector2i`. BFS spiral, deterministic neighbour order, `MAX_DISPLACEMENT_RADIUS = 30`, sentinel `Vector2i.MAX`. (AC-W11)
-- [ ] T41. `HexGrid.displace_actor(actor, exclude=[]) -> bool` — chain-push рекурсивно. No-target → `actor.kill_with_reason("crushed")`. (AC-W11)
-- [ ] T42. `Actor.kill_with_reason(reason: String)` — добавить если нет (можно как алиас на existing `kill()` с logging).
-- [ ] T43. Verify: `move_actor` триггерит TileObjectResolver `on_actor_entered`. Если push-via-displace_actor использует `move_actor` напрямую — должно работать. Иначе — explicit call после displacement. (AC-W11, damage-on-land)
-- [ ] T44. Dev-сцена `scenes/dev/displacement_smoke.tscn` — 3 актёра, кнопка «remove tile under selected» — для ручной верификации.
+- [x] T40. `HexGrid.find_passable_for_displacement(from, exclude=[]) -> Vector2i`. BFS spiral, deterministic neighbour order, `MAX_DISPLACEMENT_RADIUS = 30`, sentinel `Vector2i.MAX`. (AC-W11)
+- [x] T41. `HexGrid.displace_actor(actor, exclude=[]) -> bool` — chain-push рекурсивно. No-target → `actor.kill_with_reason("crushed")`. (AC-W11)
+- [x] T42. `Actor.kill_with_reason(reason: String)` — добавить если нет (можно как алиас на existing `kill()` с logging).
+- [x] T43. Verify: `move_actor` триггерит TileObjectResolver `on_actor_entered`. Если push-via-displace_actor использует `move_actor` напрямую — должно работать. Иначе — explicit call после displacement. (AC-W11, damage-on-land)
+- [ ] T44. Dev-сцена `scenes/dev/displacement_smoke.tscn` — 3 актёра, кнопка «remove tile under selected» — для ручной верификации. *(deferred — manual smoke can use godmode + JSON edits; sample_waves.json in P7 covers the E2E case.)*
 
 **P2 smoke:** см. plan.md → "P2 smoke".
 
