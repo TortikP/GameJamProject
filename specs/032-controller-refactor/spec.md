@@ -85,7 +85,7 @@ After migration: `godmode_terrain.tres` is deleted. `_paint_grid` uses `hex_terr
 
 ## Open questions (resolved 2026-05-02)
 
-- ~~OQ-1: Is map_editor_controller.gd worth refactoring in the same pass?~~ → **No, separate spec 033** (Andrey, 2026-05-02). Same shape, different scope; lands after 032 so it can use the same module split conventions and benefit from the tileset consolidation.
+- ~~OQ-1: Is map_editor_controller.gd worth refactoring in the same pass?~~ → **No** (Andrey, 2026-05-02). Don't refactor what works — jam scope. The editor controller stays a god object for the duration of the jam; revisit post-jam if it actually causes problems.
 - OQ-2: Should the Node-child modules be reusable across godmode AND arena_demo controllers? Probably not — godmode is a superset of arena_demo's needs and reuse would force premature abstraction. Keep godmode-specific for now; revisit if arena_demo gains the same complexity.
 - ~~OQ-3: Tileset migration — atomic single PR, or migrate `_paint_grid` first then delete the old tres in a follow-up?~~ → **Atomic single PR** (Andrey, 2026-05-02). Safer (no half-state where some scenes reference the deleted file). Migration includes: (a) re-save `hex_terrain.tres` with `tile_shape = HEXAGON`, (b) update `_paint_grid` to use it, (c) delete `godmode_terrain.tres` and the orphaned godmode_atlas.png if no other consumers, (d) update CLAUDE.md "Two tilesets exist" rule. All in one PR.
 
