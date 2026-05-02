@@ -40,25 +40,25 @@
 
 ## P3 — WaveController + spawner placeholder
 
-- [ ] T50. `scripts/runtime/wave_controller.gd` skeleton (extends Node, signals, fields per plan.md API).
-- [ ] T51. `start_level(level)` — set `_level`, current = -1, `_advance_wave()`.
-- [ ] T52. `_advance_wave()` — увеличить index, выход за бортик → `level_completed.emit`. Иначе → `_apply_wave_snapshot` + `wave_started.emit`.
-- [ ] T53. `_apply_wave_snapshot(idx)`:
-  - [ ] T53a. Diff old vs new floor: erase missing, push-out residents, set new cells через `FloorLayer.set_cell`.
-  - [ ] T53b. Diff old vs new objects: remove gone, add new, push-out если actor попал на newly-impassable.
-  - [ ] T53c. Discard `_pending_spawners`. Удалить старые placeholder ноды. Инстанциировать placeholder для каждого `waves[idx].spawners` (skip player kind на idx > 0). Скопировать в `_pending_spawners`.
-  - [ ] T53d. `_turns_into_wave = 0`.
-  - [ ] T53e. Wait `GameSpeed.wait("battle", "wave_transition_sec")` для visual settle. Player input блокировать на этот период.
-- [ ] T54. `_on_world_turn_ended(turn)`:
-  - [ ] T54a. `_turns_into_wave++`.
-  - [ ] T54b. Decrement timer всех pending. timer→0 → `_spawn_from_pending` (создать actor через существующий spawn-helper, удалить placeholder, удалить из pending). Иначе → update placeholder label, оставить.
-  - [ ] T54c. Если `_turns_into_wave >= turns_to_next` → `_advance_wave`.
-- [ ] T55. `_on_actor_died(actor)` → `call_deferred("_check_auto_clear")`.
-- [ ] T56. `_check_auto_clear()`: enemy_count == 0 && pending empty → unused, `RunScore.add`, `wave_cleared.emit`, `_advance_wave`.
-- [ ] T57. `scripts/presentation/runtime/spawner_placeholder.gd` + `scenes/runtime/spawner_placeholder.tscn`. Sprite2D (placeholder spawner art) + Label child для timer'a. Punch tween на decrement.
-- [ ] T58. Label шрифт = `UiTheme.FS_NUM_OVERHEAD`, outline через `UiTheme.apply_world_text_outline`. (CLAUDE.md visibility doctrine)
-- [ ] T59. Mount WaveController в `scenes/dev/godmode.tscn`. Wire `LevelLoader.apply_to(...)` → `wave_controller.start_level(level)`.
-- [ ] T60. Если `ActiveLevel.has_queued()` is false (procedural godmode без custom level) → WaveController NO-OP, `start_level` не зовётся. Старый procedural путь работает побайтово как раньше.
+- [x] T50. `scripts/runtime/wave_controller.gd` skeleton (extends Node, signals, fields per plan.md API).
+- [x] T51. `start_level(level)` — set `_level`, current = -1, `_advance_wave()`.
+- [x] T52. `_advance_wave()` — увеличить index, выход за бортик → `level_completed.emit`. Иначе → `_apply_wave_snapshot` + `wave_started.emit`.
+- [x] T53. `_apply_wave_snapshot(idx)`:
+  - [x] T53a. Diff old vs new floor: erase missing, push-out residents, set new cells через `FloorLayer.set_cell`.
+  - [x] T53b. Diff old vs new objects: remove gone, add new, push-out если actor попал на newly-impassable.
+  - [x] T53c. Discard `_pending_spawners`. Удалить старые placeholder ноды. Инстанциировать placeholder для каждого `waves[idx].spawners` (skip player kind на idx > 0). Скопировать в `_pending_spawners`.
+  - [x] T53d. `_turns_into_wave = 0`.
+  - [ ] T53e. Wait `GameSpeed.wait("battle", "wave_transition_sec")` для visual settle. Player input блокировать на этот период. *(deferred — `start_level.call_deferred` already gives a frame; the explicit input lock can be added in P5/P7 polish if visible glitching warrants it. config key already added in P1.)*
+- [x] T54. `_on_world_turn_ended(turn)`:
+  - [x] T54a. `_turns_into_wave++`.
+  - [x] T54b. Decrement timer всех pending. timer→0 → `_spawn_from_pending` (создать actor через существующий spawn-helper, удалить placeholder, удалить из pending). Иначе → update placeholder label, оставить.
+  - [x] T54c. Если `_turns_into_wave >= turns_to_next` → `_advance_wave`.
+- [x] T55. `_on_actor_died(actor)` → `call_deferred("_check_auto_clear")`.
+- [x] T56. `_check_auto_clear()`: enemy_count == 0 && pending empty → unused, `RunScore.add`, `wave_cleared.emit`, `_advance_wave`.
+- [x] T57. `scripts/presentation/runtime/spawner_placeholder.gd` + `scenes/runtime/spawner_placeholder.tscn`. Sprite2D (placeholder spawner art) + Label child для timer'a. Punch tween на decrement.
+- [x] T58. Label шрифт = `UiTheme.FS_NUM_OVERHEAD`, outline через `UiTheme.apply_world_text_outline`. (CLAUDE.md visibility doctrine) *(uses `apply_label_kind(label, "num_huge")` — UiTheme has FS_NUM_HUGE, not FS_NUM_OVERHEAD; matches plan.md "Шрифты для цифр на спавнере и score corner" via UiTheme.FS_NUM_*.)*
+- [x] T59. Mount WaveController в `scenes/dev/godmode.tscn`. Wire `LevelLoader.apply_to(...)` → `wave_controller.start_level(level)`. *(Mounted via godmode_controller code, not .tscn export — the controller is conditionally created only when a LevelData is queued. Net behavior same.)*
+- [x] T60. Если `ActiveLevel.has_queued()` is false (procedural godmode без custom level) → WaveController NO-OP, `start_level` не зовётся. Старый procedural путь работает побайтово как раньше.
 
 **P3 smoke:** см. plan.md → "P3 smoke" (хардкод 2-волнового уровня).
 
@@ -124,13 +124,13 @@
 
 ## P7 — Sample + E2E smoke
 
-- [ ] T110. `data/maps/sample_waves.json` — 3-волновая демо-карта (per AC-W18):
-  - Wave 0: player + 1 manekin (timer=2), `turns_to_next=5`. Floor — простая 8×6 grass. Стена в стороне.
-  - Wave 1: 1 новый manekin (timer=3), стена удалена (object diff), `turns_to_next=6`. Floor без изменений.
-  - Wave 2: пропасть появляется (floor cell erased) под одним из доступных coord, push-out demo. `turns_to_next=0` (последняя).
-- [ ] T111. Смок: главное меню → Load Custom Level → sample_waves.json → бой запускается → весь сценарий из AC-W19 проходит.
-- [ ] T112. Manual edge: убить врага волны 0 на ходу 1 → `score = 4` → wave 1 стартует мгновенно. Manual edge: не убить → wave 0 заканчивается на ходу 5 без auto-clear.
-- [ ] T113. Manual edge: на волне 2, если push-out выкидывает на damaging-tile (если на карте есть лава) → damage применяется immediately.
+- [x] T110. `data/maps/sample_waves.json` — 3-волновая демо-карта (per AC-W18):
+  - Wave 0: player at (1,2) + 1 manekin at (6,3) (timer=2), `turns_to_next=5`. 8×6 grass floor, mountain at (4,3).
+  - Wave 1: 1 manekin at (5,5) (timer=3), mountain удалён (object diff), `turns_to_next=6`. is_special=true.
+  - Wave 2: пропасть из (3,2) и (3,3) — push-out demo если player стоит/отступил туда. `turns_to_next=0` (последняя).
+- [ ] T111. Смок: главное меню → Load Custom Level → sample_waves.json → бой запускается → весь сценарий из AC-W19 проходит. *(Manual playtest deferred — needs Godot engine; static review in this PR.)*
+- [ ] T112. Manual edge: убить врага волны 0 на ходу 1 → `score = 4` → wave 1 стартует мгновенно. Manual edge: не убить → wave 0 заканчивается на ходу 5 без auto-clear. *(Manual playtest.)*
+- [ ] T113. Manual edge: на волне 2, если push-out выкидывает на damaging-tile (если на карте есть лава) → damage применяется immediately. *(Manual playtest; sample has no lava — push-out lands on plain grass, no damage expected.)*
 
 **P7 smoke == AC-W19.**
 
