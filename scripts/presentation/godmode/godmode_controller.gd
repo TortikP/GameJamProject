@@ -19,6 +19,7 @@ extends Node
 ##   godmode_clear        → remove all manekins (no tick)
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const GODMODE_TERRAIN := preload("res://scenes/dev/godmode_terrain.tres")
@@ -44,6 +45,9 @@ var _world_processing: bool = false  # true while AI takes its turn — locks pl
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
 var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+# 029 / req-6: track which enemy is currently under cursor (or &"") so we can
+# show/hide the cast-intent tooltip with no flicker on idle frames.
+var _hover_intent_actor_id: StringName = &""
 # 024-wave-editor: present iff a queued LevelData is loaded; null in
 # procedural godmode sandbox.
 var _wave_controller: WaveController = null
@@ -471,6 +475,51 @@ func _update_castability() -> void:
 					if not zone_hexes.has(c):
 						zone_hexes.append(c)
 		_overlay.show_zone_preview(zone_hexes)
+
+	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
+	# Only fires for enemies that have a non-null cast_intent — moving-only
+	# turns or idle holds get no tooltip (nothing to telegraph). The hex
+	# already shows the intent visually; tooltip adds the "what is this
+	# spell exactly" detail.
+	_refresh_intent_tooltip(target_id)
+
+
+## 029 / req-6: hover-on-enemy → cast-intent tooltip dispatch. State-tracked so
+## moving the cursor between hexes doesn't spam show_tooltip every frame —
+## tooltip only re-renders when the hovered actor id actually changes.
+func _refresh_intent_tooltip(hovered_id: StringName) -> void:
+	# Resolve to "do we have an enemy with a planned cast under cursor?"
+	var new_id: StringName = &""
+	if hovered_id != &"" and registry != null:
+		var hov: Actor = registry.get_actor(hovered_id)
+		if hov != null and hov.team == &"enemy" and hov.is_alive() and hov.cast_intent != null:
+			new_id = hovered_id
+	if new_id == _hover_intent_actor_id:
+		return  # no transition — current tooltip state is correct
+	_hover_intent_actor_id = new_id
+	var tooltip: Node = get_node_or_null("../HUD/TooltipPanel")
+	if tooltip == null:
+		return
+	if new_id == &"":
+		if tooltip.has_method("hide_tooltip"):
+			tooltip.hide_tooltip()
+		return
+	# Render: skill id headline + formatted body. SkillFormatter is the same
+	# helper PSP/inspector use — single source of truth, so a buff/CD note
+	# changes everywhere at once.
+	var actor: Actor = registry.get_actor(new_id)
+	var ci: CastIntent = actor.cast_intent as CastIntent
+	if ci == null:
+		return
+	var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
+	if skill == null:
+		return
+	var title: String = "%s → %s" % [String(actor.actor_id), String(skill.id)]
+	var body: String = SkillFormatter.format_skill(skill)
+	if tooltip.has_method("show_tooltip"):
+		# anchor=null → tooltip places itself near the mouse pointer (see
+		# tooltip_panel.gd::_place_near).
+		tooltip.show_tooltip(null, title, body)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -907,6 +956,10 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
 	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
 	create_tween().tween_property(actor, "position", pos, duration)
+	# 029 / req-7: barely-visible side-to-side sway on the actor's sprite
+	# during the step. Helper finds the conventional "Body" child sprite —
+	# leaves the actor's own position tween (above) and overhead UI alone.
+	ActorMotion.apply_step_sway(actor, duration)
 
 
 # ── AI ───────────────────────────────────────────────────────────────────────
@@ -925,6 +978,7 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
 const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
+const ActorMotion = preload("res://scripts/infrastructure/actor_motion.gd")
 
 var _telegraph_hexes: Dictionary = {}  # Vector2i coord -> TelegraphHex node
 var _intent_arrows: Dictionary = {}    # StringName actor_id -> IntentArrow node
@@ -1136,7 +1190,14 @@ func _refresh_telegraphs() -> void:
 
 	# Aggregate per-coord telegraph state across all enemies' intents.
 	# Each hex tracks (tag, damage). Damage only sums when both intents are damage-class.
+	# 029 / req-6: also collect per-intent area-shape hexes so we can paint
+	# secondary outlines for AoE skills (the affected tiles around the
+	# primary target). entry: {tag, area_hexes: Array[Vector2i]} per coord.
 	var by_coord: Dictionary = {}   # Vector2i -> {tag: StringName, damage: int}
+	# Per-intent area-shape collection. Built separately because area can extend
+	# beyond the primary target_coord and we want to draw secondary outlines on
+	# coords NOT already in by_coord (= primary takes priority over secondary).
+	var area_coords: Dictionary = {}   # Vector2i -> StringName tag (first one wins)
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
@@ -1174,6 +1235,25 @@ func _refresh_telegraphs() -> void:
 							prev.damage += dmg
 					else:
 						by_coord[coord] = {"tag": tag, "damage": dmg}
+					# 029 / req-6: collect AoE-affected hexes for this intent.
+					# Skill.area lives on each Ability; iterate them and ask for
+					# the affected tiles given caster + target. Area can be null
+					# (single-target spells); skip those — primary hex above is
+					# already enough.
+					if skill != null:
+						var caster_coord: Vector2i = grid.get_coord(enemy.actor_id)
+						for ab in skill.abilities:
+							var ability := ab as Ability
+							if ability == null or ability.area == null:
+								continue
+							var anchor: Vector2i = coord
+							if ability.target != null:
+								anchor = ability.target.preview_anchor_coord(caster_coord, coord)
+							var affected: Array[Vector2i] = ability.area.get_affected_hexes(
+									caster_coord, anchor, grid)
+							for ac in affected:
+								if not area_coords.has(ac):
+									area_coords[ac] = tag
 
 		# Movement arrow — one per enemy with a planned move.
 		var mv: Vector2i = enemy.move_intent_coord
@@ -1198,6 +1278,20 @@ func _refresh_telegraphs() -> void:
 		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
+
+	# 029 / req-6: secondary AoE-shape hexes — outline-only so they read as
+	# "the spell will sweep through here" without competing with the primary
+	# damage-bearing hex. Skip coords already painted as primary.
+	for area_coord in area_coords.keys():
+		if _telegraph_hexes.has(area_coord):
+			continue
+		var sec: Node2D = TELEGRAPH_HEX_SCRIPT.new()
+		sec.position = grid.tile_map_layer.map_to_local(area_coord)
+		sec.z_index = 3
+		sec.set("semantic_tag", area_coords[area_coord])
+		sec.set("outline_only", true)
+		grid.add_child(sec)
+		_telegraph_hexes[area_coord] = sec
 
 
 func _clear_all_telegraphs() -> void:
