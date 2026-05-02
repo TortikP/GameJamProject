@@ -43,6 +43,7 @@ mouse_filter = 2
 [node name="EditorCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
 position_smoothing_enabled = true
+zoom = Vector2(0.5, 0.5)
 
 [node name="HexGrid" parent="." instance=ExtResource("2_hexgrid")]
 position = Vector2(640, 360)

@@ -23,6 +23,8 @@ extends Node2D
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const LevelHistory = preload("res://scripts/presentation/dev/level_history.gd")
 const GODMODE_TERRAIN: TileSet = preload("res://scenes/dev/godmode_terrain.tres")
+const PLACEHOLDER_TERRAIN: TileSet = preload("res://scenes/dev/placeholder_terrain.tres")
+const PLACEHOLDER_TERRAIN_PATH: String = "res://scenes/dev/placeholder_terrain.tres"
 
 const INITIAL_SOURCE_ID: int = 0
 const INITIAL_ATLAS_COORD: Vector2i = Vector2i(0, 0)
@@ -135,9 +137,16 @@ func _ready() -> void:
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
-	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
+	# Using the placeholder tileset (matches FloorPalette's default dropdown
+	# selection) so the user's first paint actually lands on existing atlas
+	# coords. If we used GODMODE_TERRAIN here while palette shows Placeholder,
+	# clicking sand/stone/water etc. would call set_cell with atlas coords
+	# the godmode tileset doesn't have — Godot silently paints an empty cell
+	# (black square).
+	grid.tile_map_layer.tile_set = PLACEHOLDER_TERRAIN
 	if grid.vfx_overlay != null:
-		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
+		grid.vfx_overlay.tile_set = PLACEHOLDER_TERRAIN
+	_level.tileset_path = PLACEHOLDER_TERRAIN_PATH
 	for row in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
 		for col in range(-INITIAL_CANVAS_HALF, INITIAL_CANVAS_HALF + 1):
 			grid.tile_map_layer.set_cell(
@@ -155,6 +164,8 @@ func _ready() -> void:
 	if _objects_overlay != null and _objects_overlay.has_method("bind_registry"):
 		_objects_overlay.bind_registry(grid.get_object_registry())
 	# Center camera at origin so the user has a recognizable starting point.
+	# Initial zoom is set on the scene's EditorCamera node (zoom = 0.5) so
+	# camera._ready picks it up before its _zoom_target is captured.
 	if camera != null and grid != null and grid.tile_map_layer != null:
 		camera.position = grid.tile_map_layer.map_to_local(Vector2i.ZERO)
 

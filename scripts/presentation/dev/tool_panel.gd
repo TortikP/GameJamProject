@@ -83,10 +83,10 @@ func _build_ui() -> void:
 	_size_spin.step = 1
 	_size_spin.value = 1
 	_size_spin.editable = true
-	_size_spin.update_on_text_changed = true
-	# 64px was tight — +/- arrows were nearly invisible. ~104 leaves room
-	# for a 2-digit value plus visible arrows even at default theme metrics.
-	_size_spin.custom_minimum_size = Vector2(104, 0)
+	# 120px so the LineEdit and the +/- arrow column don't collide. Center
+	# alignment keeps the value readable; size_flags=EXPAND_FILL grows into
+	# any extra space the panel offers.
+	_size_spin.custom_minimum_size = Vector2(120, 0)
 	_size_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_size_spin.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_size_spin.value_changed.connect(_on_size_changed)
