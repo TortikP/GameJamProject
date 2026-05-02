@@ -50,7 +50,7 @@
       },
       "effects": [
         {
-          "status_id": "stunned (3)"
+          "status_id": "stunned(3)"
         }
       ]
     }
