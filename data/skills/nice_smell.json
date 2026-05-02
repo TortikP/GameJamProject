@@ -1,0 +1,36 @@
+{
+  "id": "nice_smell",
+  "name": "nice_smell_name",
+  "tooltip": "nice_smell_tooltip",
+  "desc": "nice_smell_desc",
+  "icon": "icons/skills/nice_smell.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "move"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "pull_around",
+      "sound_start": "pull_around/pull_around_start.wav",
+      "collision_effect": "pull_around/pull_around_collision.prefab",
+      "sound_end": "pull_around/pull_around_end.wav",
+      "animation": "pull_around/pull_around.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 4
+      },
+      "effects": [
+        {
+          "move_type": "pull"
+        }
+      ]
+    }
+  ]
+}
