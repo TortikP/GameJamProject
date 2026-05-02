@@ -190,6 +190,9 @@ func _request_cast_active() -> void:
 	var ctx: Dictionary = {
 		"registry": registry, "grid": grid,
 		"target_id": target_id, "target_coord": coord,
+		# 041: required by CreateEffect for actor- and object-spawn paths.
+		"actors_node": grid.get_node_or_null("Actors"),
+		"resolver": _ctrl.tile_object_resolver,
 	}
 	var active_idx: int = slot_bar.get_active()
 	# If a spell is selected and can cast → start the FSM

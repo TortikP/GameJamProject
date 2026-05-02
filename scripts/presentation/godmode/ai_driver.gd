@@ -238,6 +238,9 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 	var ctx: Dictionary = {
 		"registry": registry, "grid": grid,
 		"target_id": target_id, "target_coord": target_coord,
+		# 041: required by CreateEffect when an enemy casts a summon skill.
+		"actors_node": grid.get_node_or_null("Actors"),
+		"resolver": _ctrl.tile_object_resolver,
 	}
 	# 026: AI broadcasts a single ctx to all abilities. Per-ability AI targeting
 	# is out of scope — see specs/026-skill-system-v3/spec.md §"Out of scope".

@@ -29,7 +29,7 @@
       },
       "effects": [
         {
-          "entity_id": "lava_pit"
+          "entity_id": "lava_pit(3)"
         }
       ]
     }

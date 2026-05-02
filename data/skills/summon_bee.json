@@ -29,7 +29,7 @@
       },
       "effects": [
         {
-          "entity_id": "bee"
+          "entity_id": "bee(3)"
         }
       ]
     }

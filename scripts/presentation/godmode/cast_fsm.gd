@@ -86,6 +86,9 @@ func start(slot_index: int) -> void:
 	var pre_ctx: Dictionary = {
 		"registry": registry, "grid": grid,
 		"target_id": grid.get_actor_at(coord), "target_coord": coord,
+		# 041: required by CreateEffect for actor- and object-spawn paths.
+		"actors_node": grid.get_node_or_null("Actors"),
+		"resolver": _ctrl.tile_object_resolver,
 	}
 	if not skill.can_apply(player, pre_ctx):
 		return
@@ -132,6 +135,9 @@ func commit_step(coord: Vector2i, target_id: StringName) -> void:
 	var ctx: Dictionary = {
 		"registry": _ctrl.registry, "grid": _ctrl.grid,
 		"target_id": target_id, "target_coord": coord,
+		# 041: required by CreateEffect for actor- and object-spawn paths.
+		"actors_node": _ctrl.grid.get_node_or_null("Actors"),
+		"resolver": _ctrl.tile_object_resolver,
 	}
 	_ctxs.append(ctx)
 	_step += 1

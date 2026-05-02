@@ -121,6 +121,7 @@ Append yourself when you start a feature.
 | 024-wave-editor (LevelData waves, WaveController, WaveTimeline, RunScore, push-out) | Andrey |
 | 032-controller-refactor (godmode_controller split into 8 modules, tileset consolidation) | Andrey |
 | 038-mood-counter (player narrative tracker driven by equipped skills, JSON mood vocab rename) | Egor |
+| 041-effect-create-entity (CreateEffect impl: object/actor summon + summoned status) | Egor |
 
 ## Git workflow
 
