@@ -1,0 +1,53 @@
+{
+  "id": "bookmark_jump",
+  "name": "bookmark_jump_name",
+  "tooltip": "bookmark_jump_tooltip",
+  "desc": "bookmark_jump_desc",
+  "icon": "assets/sprites/icons/skills/bookmark_jump.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 2,
+  "abilities": [
+    {
+      "id": "teleport_self",
+      "sound_start": "assets/audio/skills/teleport_self/start.wav",
+      "collision_effect": "assets/vfx/skills/teleport_self/blink.prefab",
+      "sound_end": "assets/audio/skills/teleport_self/end.wav",
+      "animation": "assets/animations/skills/teleport_self.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "move_type": "teleport"
+        }
+      ]
+    },
+    {
+      "id": "self_enrage",
+      "sound_start": "assets/audio/skills/self_enrage/start.wav",
+      "collision_effect": "assets/vfx/status/enraged/apply_self.prefab",
+      "sound_end": "assets/audio/status/enraged/end.wav",
+      "animation": "assets/animations/status/self_enrage.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "enraged (2)"
+        }
+      ]
+    }
+  ]
+}
