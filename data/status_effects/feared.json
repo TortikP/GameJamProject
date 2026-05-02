@@ -6,6 +6,6 @@
   "param_names": [
     "duration"
   ],
-  "loc_name": "status.feared.name",
-  "loc_desc": "status.feared.desc"
+  "loc_name": "status_feared_name",
+  "loc_desc": "status_feared_desc"
 }

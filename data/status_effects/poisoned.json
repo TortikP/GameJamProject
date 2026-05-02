@@ -8,6 +8,6 @@
     "damage_pct",
     "lvl_bonus_pct"
   ],
-  "loc_name": "status.poisoned.name",
-  "loc_desc": "status.poisoned.desc"
+  "loc_name": "status_poisoned_name",
+  "loc_desc": "status_poisoned_desc"
 }

@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = Localization.t("Floor", "Floor")
+	header.text = Localization.t("ui_floor_palette_title", "Floor")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
 	_install_drag(header)
@@ -78,7 +78,8 @@ func _build_ui() -> void:
 	# TILESETS gains entries.
 	_tileset_dropdown = OptionButton.new()
 	for i in TILESETS.size():
-		_tileset_dropdown.add_item(Localization.t(TILESETS[i].label, TILESETS[i].label), i)
+		var label := String(TILESETS[i].label)
+		_tileset_dropdown.add_item(Localization.t("ui_floor_palette_tileset_%s" % label.to_lower().replace(" ", "_"), label), i)
 	_tileset_dropdown.item_selected.connect(_on_tileset_selected)
 	UiTheme.apply_button_styling(_tileset_dropdown)
 	_tileset_dropdown.visible = TILESETS.size() > 1
@@ -86,7 +87,7 @@ func _build_ui() -> void:
 
 	# Erase button
 	_erase_btn = Button.new()
-	_erase_btn.text = Localization.t("Erase", "Erase")
+	_erase_btn.text = Localization.t("ui_floor_palette_erase", "Erase")
 	_erase_btn.toggle_mode = true
 	_erase_btn.pressed.connect(_on_erase_pressed)
 	UiTheme.apply_button_styling(_erase_btn)
@@ -208,14 +209,14 @@ func _show_replace_menu(target_source: int, target_atlas: Vector2i) -> void:
 		var label: String = _label_for_atlas(f.source_id, f.atlas_coord)
 		seen[key] = [f.source_id, f.atlas_coord, label]
 	if seen.is_empty():
-		EventBus.ui_toast_requested.emit("Нечего заменять — других типов нет", 1.5, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_floor_replace_none", "Nothing to replace — no other types"), 1.5, &"info")
 		return
 	var menu := PopupMenu.new()
 	add_child(menu)
 	var entries: Array = seen.values()
 	for i in entries.size():
 		var entry: Array = entries[i]
-		menu.add_item("Заменить все «%s» на этот" % entry[2], i)
+		menu.add_item(Localization.tf("ui_floor_replace_menu_item", [entry[2]], "Replace all \"%s\" with this"), i)
 	menu.id_pressed.connect(_on_replace_picked.bind(entries, target_source, target_atlas, menu))
 	menu.popup_hide.connect(menu.queue_free)
 	menu.popup(Rect2i(DisplayServer.mouse_get_position(), Vector2i.ZERO))
@@ -241,9 +242,10 @@ func _on_replace_picked(item_id: int, entries: Array, to_source: int,
 			if f.source_id == from_source and f.atlas_coord == from_atlas:
 				count += 1
 		var ok: bool = await confirm.ask(
-			"Заменить тайлы?",
-			"Заменить %d тайлов «%s» на «%s»?" % [count, from_label, to_label],
-			"Заменить", "Отмена", false)
+			Localization.t("ui_floor_replace_confirm_title", "Replace tiles?"),
+			Localization.tf("ui_floor_replace_confirm_body", [count, from_label, to_label], "Replace %d tiles \"%s\" with \"%s\"?"),
+			Localization.t("ui_floor_replace_confirm", "Replace"),
+			Localization.t("ui_common_cancel", "Cancel"), false)
 		if not ok:
 			return
 	replace_all_requested.emit(from_source, from_atlas, to_source, to_atlas)

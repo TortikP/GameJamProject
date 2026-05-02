@@ -15,8 +15,8 @@ extends CanvasLayer
 const UiHelpers = preload("res://scripts/presentation/ui_signal_helpers.gd")
 const MODAL_ID: StringName = &"settings_panel"
 const LANGUAGE_OPTIONS: Array[Dictionary] = [
-	{"locale": "en", "label": "English"},
-	{"locale": "ru", "label": "Russian"},
+	{"locale": "en", "label_key": "ui_settings_language_english", "fallback": "English"},
+	{"locale": "ru", "label_key": "ui_settings_language_russian", "fallback": "Russian"},
 ]
 
 @onready var _panel: PanelContainer = $Center/Panel
@@ -132,9 +132,10 @@ func _refresh_language_options() -> void:
 	_language_option.clear()
 	for i in LANGUAGE_OPTIONS.size():
 		var option := LANGUAGE_OPTIONS[i]
-		var label := String(option["label"])
+		var label_key := String(option["label_key"])
+		var fallback := String(option["fallback"])
 		var locale := String(option["locale"])
-		_language_option.add_item(Localization.t(label, label), i)
+		_language_option.add_item(Localization.t(label_key, fallback), i)
 		_language_option.set_item_metadata(i, locale)
 		if locale == current:
 			_language_option.select(i)

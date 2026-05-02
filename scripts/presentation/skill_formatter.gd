@@ -23,9 +23,9 @@ static func format_skill(skill) -> String:
 	if skill.cooldown > 0:
 		var cd_remaining: int = int(skill.get("_cd_remaining"))
 		if cd_remaining > 0:
-			header += " " + Localization.tf("(CD %d/%d)", [cd_remaining, skill.cooldown], "(CD %d/%d)")
+			header += " " + Localization.tf("ui_skill_cooldown_remaining", [cd_remaining, skill.cooldown], "(CD %d/%d)")
 		else:
-			header += " " + Localization.tf("(CD %d)", [skill.cooldown], "(CD %d)")
+			header += " " + Localization.tf("ui_skill_cooldown", [skill.cooldown], "(CD %d)")
 	lines.append(header)
 	# One block per contained ability — most skills have just 1.
 	for ab in skill.abilities:
@@ -71,7 +71,7 @@ static func format_skill_headline(skill) -> String:
 				_apply_modifiers(eff_dup, ab.modifiers)
 				total_dmg += (eff_dup as DamageEffect).damage
 	if total_dmg > 0:
-		return Localization.tf("%s — %d dmg", [display_name, total_dmg], "%s — %d dmg")
+		return Localization.tf("ui_skill_headline_damage", [display_name, total_dmg], "%s — %d dmg")
 	return display_name
 
 
@@ -111,7 +111,7 @@ static func _describe_effect(eff_final: AbilityEffect, eff_base: AbilityEffect) 
 		var f: int = (eff_final as DamageEffect).damage
 		var b: int = (eff_base as DamageEffect).damage
 		if f != b:
-			return Localization.tf("Damage: %d → %d", [b, f], "Damage: %d → %d")
-		return Localization.tf("Damage: %d", [f], "Damage: %d")
+			return Localization.tf("ui_effect_damage_changed", [b, f], "Damage: %d → %d")
+		return Localization.tf("ui_effect_damage", [f], "Damage: %d")
 	# Generic fallback — class name is informative for unknown effect types.
-	return Localization.tf("Effect: %s", [eff_final.get_class()], "Effect: %s")
+	return Localization.tf("ui_effect_generic", [eff_final.get_class()], "Effect: %s")

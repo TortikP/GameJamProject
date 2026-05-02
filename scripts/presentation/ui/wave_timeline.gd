@@ -10,7 +10,7 @@ extends Control
 ##     discs. Subscribes to EventBus.wave_started / wave_cleared /
 ##     world_turn_ended (for the cursor) and re-renders on each.
 ##   - Mode.EDIT: anchors are clickable (LMB -> switch active wave, RMB ->
-##     context menu), turns_to_next numbers are editable LineEdits, "+ Wave"
+##     context menu), turns_to_next numbers are editable LineEdits, the add-wave
 ##     button at the bar's right end appends. Editor wires up via signals.
 ##
 ## Geometry: bar length = sum of turns_to_next + paddings. Anchor at every
@@ -21,7 +21,7 @@ extends Control
 ## simple. Cheap -- at most a few dozen children.
 ##
 ## Custom drawing: bar trough + anchor discs go through _draw. LineEdits
-## and the "+ Wave" button are real Control children (need event handling).
+## and the add-wave button are real Control children (need event handling).
 
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 
@@ -209,7 +209,7 @@ func _do_rebuild() -> void:
 		x += float(ttn) * PIXELS_PER_TURN
 	_bar_end_x = x
 
-	# "+ Wave" button at the right end (EDIT mode only).
+	# Add-wave button at the right end (EDIT mode only).
 	if mode == Mode.EDIT:
 		_add_plus_wave_button(x + PLUS_BUTTON_OFFSET_X)
 		x += PLUS_BUTTON_OFFSET_X + 80.0  # rough button width
@@ -265,7 +265,7 @@ func _add_turns_label(wave_idx: int, x: float, ttn: int) -> void:
 
 func _add_plus_wave_button(x: float) -> void:
 	var btn := Button.new()
-	btn.text = "+ Wave"
+	btn.text = Localization.t("ui_wave_timeline_add_wave", "+ Wave")
 	btn.position = Vector2(x, BAR_Y - 12)
 	btn.size = Vector2(76, 24)
 	UiThemeScript.apply_button_styling(btn)

@@ -69,7 +69,7 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Level"
+	header.text = Localization.t("ui_level_meta_title", "Level")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
 	_install_drag(header)
@@ -77,10 +77,10 @@ func _build_ui() -> void:
 	# Name input
 	var name_row := HBoxContainer.new()
 	var name_label := Label.new()
-	name_label.text = "Name:"
+	name_label.text = Localization.t("ui_level_meta_name_label", "Name:")
 	name_row.add_child(name_label)
 	_name_edit = LineEdit.new()
-	_name_edit.text = "Untitled"
+	_name_edit.text = Localization.t("ui_level_meta_untitled", "Untitled")
 	_name_edit.custom_minimum_size = Vector2(180, 0)
 	_name_edit.text_changed.connect(_on_name_changed)
 	name_row.add_child(_name_edit)
@@ -97,10 +97,10 @@ func _build_ui() -> void:
 	# Buttons
 	var btn_row := HBoxContainer.new()
 	btn_row.add_theme_constant_override("separation", 4)
-	_save_btn = _make_btn("Save", _on_save)
-	_load_btn = _make_btn("Load", _on_load)
-	_playtest_btn = _make_btn("Playtest", _on_playtest)
-	_exit_btn = _make_btn("Exit", _on_exit)
+	_save_btn = _make_btn(Localization.t("ui_common_save", "Save"), _on_save)
+	_load_btn = _make_btn(Localization.t("ui_common_load", "Load"), _on_load)
+	_playtest_btn = _make_btn(Localization.t("ui_level_meta_playtest", "Playtest"), _on_playtest)
+	_exit_btn = _make_btn(Localization.t("ui_common_exit", "Exit"), _on_exit)
 	btn_row.add_child(_save_btn)
 	btn_row.add_child(_load_btn)
 	btn_row.add_child(_playtest_btn)

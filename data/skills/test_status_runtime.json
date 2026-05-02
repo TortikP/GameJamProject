@@ -1,8 +1,8 @@
 {
   "id": "test_status_runtime",
-  "name": "skill.test_status_runtime.name",
-  "tooltip": "skill.test_status_runtime.tooltip",
-  "desc": "skill.test_status_runtime.desc",
+  "name": "skill_test_status_runtime_name",
+  "tooltip": "skill_test_status_runtime_tooltip",
+  "desc": "skill_test_status_runtime_desc",
   "icon": "",
   "cooldown": 0,
   "behaviour_tags": ["debuff"],

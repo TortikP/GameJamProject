@@ -113,7 +113,7 @@ func _build_ui() -> void:
 	vbox.add_child(header)
 	var title := Label.new()
 	UiTheme.apply_label_kind(title, "header")
-	title.text = "Dialogue Triggers"
+	title.text = Localization.t("ui_dialogue_trigger_title", "Dialogue Triggers")
 	header.add_child(title)
 	_title_label = title
 	var spacer := Control.new()
@@ -141,22 +141,22 @@ func _build_ui() -> void:
 	vbox.add_child(btn_row)
 	var btn_add := Button.new()
 	UiTheme.apply_button_styling(btn_add)
-	btn_add.text = "+ Add"
+	btn_add.text = Localization.t("ui_dialogue_trigger_add", "+ Add")
 	btn_add.pressed.connect(_on_add_pressed)
 	btn_row.add_child(btn_add)
 	_btn_edit = Button.new()
 	UiTheme.apply_button_styling(_btn_edit)
-	_btn_edit.text = "Edit"
+	_btn_edit.text = Localization.t("ui_common_edit", "Edit")
 	_btn_edit.pressed.connect(_on_edit_pressed)
 	btn_row.add_child(_btn_edit)
 	_btn_dupe = Button.new()
 	UiTheme.apply_button_styling(_btn_dupe)
-	_btn_dupe.text = "Dupe"
+	_btn_dupe.text = Localization.t("ui_common_duplicate_short", "Dupe")
 	_btn_dupe.pressed.connect(_on_duplicate_pressed)
 	btn_row.add_child(_btn_dupe)
 	_btn_delete = Button.new()
 	UiTheme.apply_button_styling(_btn_delete)
-	_btn_delete.text = "Delete"
+	_btn_delete.text = Localization.t("ui_common_delete", "Delete")
 	_btn_delete.pressed.connect(_on_delete_pressed)
 	btn_row.add_child(_btn_delete)
 
@@ -181,7 +181,7 @@ func _build_form(parent: Control) -> void:
 	# id row
 	var id_row := HBoxContainer.new()
 	sb.add_child(id_row)
-	var id_lbl := Label.new(); id_lbl.text = "id:"; UiTheme.apply_label_kind(id_lbl, "dim")
+	var id_lbl := Label.new(); id_lbl.text = Localization.t("ui_dialogue_trigger_id", "id:"); UiTheme.apply_label_kind(id_lbl, "dim")
 	id_row.add_child(id_lbl)
 	_form_id = LineEdit.new()
 	_form_id.placeholder_text = "unique_id"
@@ -191,13 +191,13 @@ func _build_form(parent: Control) -> void:
 	# event row
 	var ev_row := HBoxContainer.new()
 	sb.add_child(ev_row)
-	var ev_lbl := Label.new(); ev_lbl.text = "event:"; UiTheme.apply_label_kind(ev_lbl, "dim")
+	var ev_lbl := Label.new(); ev_lbl.text = Localization.t("ui_dialogue_trigger_event", "event:"); UiTheme.apply_label_kind(ev_lbl, "dim")
 	ev_row.add_child(ev_lbl)
 	_form_event_option = OptionButton.new()
 	_form_event_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for e in CURATED_EVENTS:
 		_form_event_option.add_item(e)
-	_form_event_option.add_item("Custom...")
+	_form_event_option.add_item(Localization.t("ui_common_custom", "Custom..."))
 	_form_event_option.item_selected.connect(_on_event_option_selected)
 	ev_row.add_child(_form_event_option)
 	_form_event_custom = LineEdit.new()
@@ -209,10 +209,10 @@ func _build_form(parent: Control) -> void:
 	# dialogue_id row
 	var dlg_row := HBoxContainer.new()
 	sb.add_child(dlg_row)
-	var dlg_lbl := Label.new(); dlg_lbl.text = "dialogue:"; UiTheme.apply_label_kind(dlg_lbl, "dim")
+	var dlg_lbl := Label.new(); dlg_lbl.text = Localization.t("ui_dialogue_trigger_dialogue", "dialogue:"); UiTheme.apply_label_kind(dlg_lbl, "dim")
 	dlg_row.add_child(dlg_lbl)
 	_form_dialogue_filter = LineEdit.new()
-	_form_dialogue_filter.placeholder_text = "filter..."
+	_form_dialogue_filter.placeholder_text = Localization.t("ui_common_filter_placeholder", "filter...")
 	_form_dialogue_filter.custom_minimum_size = Vector2(60, 0)
 	_form_dialogue_filter.text_changed.connect(_on_dialogue_filter_changed)
 	dlg_row.add_child(_form_dialogue_filter)
@@ -224,20 +224,20 @@ func _build_form(parent: Control) -> void:
 	# play_mode row
 	var pm_row := HBoxContainer.new()
 	sb.add_child(pm_row)
-	var pm_lbl := Label.new(); pm_lbl.text = "mode:"; UiTheme.apply_label_kind(pm_lbl, "dim")
+	var pm_lbl := Label.new(); pm_lbl.text = Localization.t("ui_dialogue_trigger_mode", "mode:"); UiTheme.apply_label_kind(pm_lbl, "dim")
 	pm_row.add_child(pm_lbl)
 	_form_playmode_request = CheckBox.new()
-	_form_playmode_request.text = "request"
+	_form_playmode_request.text = Localization.t("ui_dialogue_trigger_mode_request", "request")
 	_form_playmode_request.button_group = ButtonGroup.new()
 	_form_playmode_request.set_pressed_no_signal(true)
 	pm_row.add_child(_form_playmode_request)
 	_form_playmode_play = CheckBox.new()
-	_form_playmode_play.text = "play"
+	_form_playmode_play.text = Localization.t("ui_dialogue_trigger_mode_play", "play")
 	_form_playmode_play.button_group = _form_playmode_request.button_group
 	pm_row.add_child(_form_playmode_play)
 
 	# Conditions section
-	var cond_lbl := Label.new(); cond_lbl.text = "Conditions (opt):"; UiTheme.apply_label_kind(cond_lbl, "dim")
+	var cond_lbl := Label.new(); cond_lbl.text = Localization.t("ui_dialogue_trigger_conditions", "Conditions (opt):"); UiTheme.apply_label_kind(cond_lbl, "dim")
 	sb.add_child(cond_lbl)
 	_form_conditions = VBoxContainer.new()
 	sb.add_child(_form_conditions)
@@ -246,27 +246,27 @@ func _build_form(parent: Control) -> void:
 	# Form buttons
 	var form_btns := HBoxContainer.new()
 	sb.add_child(form_btns)
-	var save_btn := Button.new(); UiTheme.apply_button_styling(save_btn); save_btn.text = "Save"
+	var save_btn := Button.new(); UiTheme.apply_button_styling(save_btn); save_btn.text = Localization.t("ui_common_save", "Save")
 	save_btn.pressed.connect(_on_form_save)
 	form_btns.add_child(save_btn)
-	var cancel_btn := Button.new(); UiTheme.apply_button_styling(cancel_btn); cancel_btn.text = "Cancel"
+	var cancel_btn := Button.new(); UiTheme.apply_button_styling(cancel_btn); cancel_btn.text = Localization.t("ui_common_cancel", "Cancel")
 	cancel_btn.pressed.connect(_on_form_cancel)
 	form_btns.add_child(cancel_btn)
 
 
 func _build_condition_widgets() -> void:
 	var specs: Array[Dictionary] = [
-		{"key": "wave_index",         "label": "wave_index (int)",       "type": "int"},
-		{"key": "absolute_turn",      "label": "absolute_turn (int)",    "type": "int"},
-		{"key": "cleared_in_turns_lt","label": "cleared_in_turns_lt (int)", "type": "int"},
-		{"key": "chance",             "label": "chance 0-1 (float)",     "type": "float"},
-		{"key": "once_per_run",       "label": "once_per_run",           "type": "bool"},
-		{"key": "once_per_session",   "label": "once_per_session",       "type": "bool"},
+		{"key": "wave_index",         "label_key": "ui_dialogue_trigger_cond_wave_index", "fallback": "wave_index (int)",       "type": "int"},
+		{"key": "absolute_turn",      "label_key": "ui_dialogue_trigger_cond_absolute_turn", "fallback": "absolute_turn (int)",    "type": "int"},
+		{"key": "cleared_in_turns_lt","label_key": "ui_dialogue_trigger_cond_cleared_turns", "fallback": "cleared_in_turns_lt (int)", "type": "int"},
+		{"key": "chance",             "label_key": "ui_dialogue_trigger_cond_chance", "fallback": "chance 0-1 (float)",     "type": "float"},
+		{"key": "once_per_run",       "label_key": "ui_dialogue_trigger_cond_once_run", "fallback": "once_per_run",           "type": "bool"},
+		{"key": "once_per_session",   "label_key": "ui_dialogue_trigger_cond_once_session", "fallback": "once_per_session",       "type": "bool"},
 	]
 	for spec in specs:
 		var row := HBoxContainer.new()
 		_form_conditions.add_child(row)
-		var chk := CheckBox.new(); chk.text = spec["label"]
+		var chk := CheckBox.new(); chk.text = Localization.t(String(spec["label_key"]), String(spec["fallback"]))
 		chk.toggled.connect(func(on: bool) -> void: _on_condition_toggled(spec["key"], on))
 		row.add_child(chk)
 		var ed: Control
@@ -292,7 +292,7 @@ func _populate_dialogue_picker(filter: String) -> void:
 		if db != null and db.has_method("get_all_ids"):
 			ids = db.get_all_ids()
 	if ids.is_empty():
-		_form_dialogue_option.add_item("(no dialogues loaded)")
+		_form_dialogue_option.add_item(Localization.t("ui_dialogue_trigger_no_dialogues", "(no dialogues loaded)"))
 		return
 	var lf: String = filter.to_lower()
 	for id_str in ids:
@@ -304,10 +304,10 @@ func _populate_dialogue_picker(filter: String) -> void:
 func _refresh_list() -> void:
 	_list.clear()
 	if _level == null:
-		_count_label.text = "0 triggers"
+		_count_label.text = Localization.t("ui_dialogue_trigger_count_zero", "0 triggers")
 		return
 	var triggers: Array = _level.dialogue_triggers
-	_count_label.text = "%d triggers" % triggers.size()
+	_count_label.text = Localization.tf("ui_dialogue_trigger_count", [triggers.size()], "%d triggers")
 	for d in triggers:
 		var tid: String = str(d.get("id", "?"))
 		var ev: String = str(d.get("event", "?"))
@@ -402,15 +402,15 @@ func _collect_form_data() -> Dictionary:
 func _validate_form(d: Dictionary) -> String:
 	var tid: String = str(d.get("id", ""))
 	if tid == "":
-		return "id must not be empty"
+		return Localization.t("ui_dialogue_trigger_error_id_empty", "id must not be empty")
 	if _level != null:
 		for i in _level.dialogue_triggers.size():
 			if i == _selected_idx and not _editing_new:
 				continue  # same entry, editing -- skip self
 			if str(_level.dialogue_triggers[i].get("id", "")) == tid:
-				return "id '%s' already exists" % tid
+				return Localization.tf("ui_dialogue_trigger_error_id_exists", [tid], "id '%s' already exists")
 	if str(d.get("event", "")) == "":
-		return "event must not be empty"
+		return Localization.t("ui_dialogue_trigger_error_event_empty", "event must not be empty")
 	return ""
 
 

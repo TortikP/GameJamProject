@@ -4,6 +4,6 @@
   "icon": "",
   "arity": 3,
   "param_names": ["duration", "n_attack_debuff", "lvl_up_bonus"],
-  "loc_name": "status.weak.name",
-  "loc_desc": "status.weak.desc"
+  "loc_name": "status_weak_name",
+  "loc_desc": "status_weak_desc"
 }

@@ -10,17 +10,17 @@ const UiHelpers = preload("res://scripts/presentation/ui_signal_helpers.gd")
 const MODAL_ID: StringName = &"keybind_overlay"
 
 const _BINDS: Array = [
-	["QWER / 1234", "Cast slot 1-4"],
-	["LMB",         "Cast at hex (with slot active)"],
-	["RMB",         "Move 1 step"],
-	["SPACE",       "Wait turn"],
-	["ESC",         "Cancel cast / open pause"],
-	["L",           "Toggle combat log"],
-	["?",           "Toggle this overlay"],
-	["F1",          "Spawn dummy (godmode)"],
-	["F2",          "Clear actors (godmode)"],
-	["F5",          "Reload speed config"],
-	["F6",          "Toggle CRT effect"],
+	["QWER / 1234", "ui_keybind_cast_slots", "Cast slot 1-4"],
+	["LMB",         "ui_keybind_cast_hex", "Cast at hex (with slot active)"],
+	["RMB",         "ui_keybind_move_step", "Move 1 step"],
+	["SPACE",       "ui_keybind_wait_turn", "Wait turn"],
+	["ESC",         "ui_keybind_cancel_pause", "Cancel cast / open pause"],
+	["L",           "ui_keybind_toggle_combat_log", "Toggle combat log"],
+	["?",           "ui_keybind_toggle_overlay", "Toggle this overlay"],
+	["F1",          "ui_keybind_spawn_dummy", "Spawn dummy (godmode)"],
+	["F2",          "ui_keybind_clear_actors", "Clear actors (godmode)"],
+	["F5",          "ui_keybind_reload_speed_config", "Reload speed config"],
+	["F6",          "ui_keybind_toggle_crt", "Toggle CRT effect"],
 ]
 
 @onready var _panel: PanelContainer = $Center/Panel
@@ -56,7 +56,7 @@ func _build_grid() -> void:
 		key_lbl.add_theme_color_override("font_color", UiTheme.FOCUS)
 		_grid.add_child(key_lbl)
 		var desc_lbl := Label.new()
-		desc_lbl.text = pair[1]
+		desc_lbl.text = Localization.t(String(pair[1]), String(pair[2]))
 		UiTheme.apply_label_kind(desc_lbl, "body")
 		_grid.add_child(desc_lbl)
 

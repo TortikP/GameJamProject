@@ -1,8 +1,8 @@
 {
   "id": "test_combo_multikey_effect",
-  "name": "skill.test_combo_multikey_effect.name",
-  "tooltip": "skill.test_combo_multikey_effect.tooltip",
-  "desc": "skill.test_combo_multikey_effect.desc",
+  "name": "skill_test_combo_multikey_effect_name",
+  "tooltip": "skill_test_combo_multikey_effect_tooltip",
+  "desc": "skill_test_combo_multikey_effect_desc",
   "icon": "",
   "cooldown": 0,
   "behaviour_tags": [

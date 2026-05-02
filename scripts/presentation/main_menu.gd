@@ -103,7 +103,7 @@ func _on_game_selected(path: String) -> void:
 	# itself, so all we do here is change scene. CampaignController takes
 	# over from scene_ready / level_completed onwards.
 	if not ActiveGame.load_game(path):
-		EventBus.ui_toast_requested.emit("Failed to load game (see log)", 3.0, &"error")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_main_menu_load_game_failed", "Failed to load game (see log)"), 3.0, &"error")
 		return
 	get_tree().change_scene_to_file("res://scenes/dev/godmode.tscn")
 
@@ -124,7 +124,7 @@ func _on_settings() -> void:
 
 
 func _on_credits() -> void:
-	EventBus.ui_toast_requested.emit(Localization.t("Credits scene coming later.", "Credits scene coming later."), 2.0, &"info")
+	EventBus.ui_toast_requested.emit(Localization.t("ui_main_menu_credits_later", "Credits scene coming later."), 2.0, &"info")
 
 
 func _on_quit() -> void:

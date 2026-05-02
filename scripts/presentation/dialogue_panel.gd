@@ -62,7 +62,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_auto_timer = null
 
 	var speaker_fallback := String(speaker_data.get("display_name", str(line.speaker)))
-	_name_lbl.text = Localization.t("dialogues._speakers.%s.display_name" % str(line.speaker), speaker_fallback)
+	_name_lbl.text = Localization.t("dialogues_speakers_%s_display_name" % str(line.speaker), speaker_fallback)
 	_portrait.texture = _resolve_portrait(line, speaker_data)
 
 	if line.image != "":
@@ -80,7 +80,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_choices.hide()
 
 	_text_lbl.bbcode_enabled = true
-	_text_lbl.text = Localization.t("dialogues.%s.text" % str(line.id), line.text)
+	_text_lbl.text = Localization.t("dialogues_%s_text" % str(line.id), line.text)
 	# visible_ratio (0..1) handles bbcode correctly — tags are not counted.
 	# visible_characters tweening would also need visible_characters_behavior tuning;
 	# ratio sidesteps that entirely.
@@ -125,7 +125,8 @@ func _show_choices(choices: Array) -> void:
 	for i in choices.size():
 		var btn := Button.new()
 		var label := String(choices[i].get("label", "..."))
-		btn.text = Localization.t(label, label)
+		var label_key := "dialogues_%s_choices_%d_label" % [str(_current_line.id), i]
+		btn.text = Localization.t(label_key, label)
 		UiTheme.apply_button_styling(btn)
 		var idx := i
 		btn.pressed.connect(func(): _on_choice(idx))

@@ -54,7 +54,7 @@ func validate() -> Array[String]:
 	var msgs: Array[String] = []
 
 	if levels.is_empty():
-		msgs.append("REJECT: game has no levels (need >= 1)")
+		msgs.append(_reject_msg("ui_game_validate_no_levels", [], "game has no levels (need >= 1)"))
 		return msgs  # nothing else to check
 
 	# Drop entries with missing files. Build new array to preserve order.
@@ -63,19 +63,19 @@ func validate() -> Array[String]:
 		var lv: Dictionary = levels[i]
 		var path: String = String(lv.get("map_path", ""))
 		if path == "":
-			msgs.append("WARN: level %d has empty map_path; dropped" % i)
+			msgs.append(_warn_msg("ui_game_validate_empty_map_path", [i], "level %d has empty map_path; dropped"))
 			continue
 		if not path.ends_with(".json"):
-			msgs.append("WARN: level %d map_path %s missing .json suffix; dropped" % [i, path])
+			msgs.append(_warn_msg("ui_game_validate_map_path_suffix", [i, path], "level %d map_path %s missing .json suffix; dropped"))
 			continue
 		if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
-			msgs.append("WARN: level %d map_path %s not found; dropped" % [i, path])
+			msgs.append(_warn_msg("ui_game_validate_map_path_missing", [i, path], "level %d map_path %s not found; dropped"))
 			continue
 		kept.append(lv)
 	levels = kept
 
 	if levels.is_empty():
-		msgs.append("REJECT: all levels dropped during validation")
+		msgs.append(_reject_msg("ui_game_validate_all_levels_dropped", [], "all levels dropped during validation"))
 		return msgs
 
 	# is_intro deduplication: keep first, clear the rest.
@@ -84,7 +84,7 @@ func validate() -> Array[String]:
 		var is_intro: bool = bool(levels[i].get("is_intro", false))
 		if is_intro:
 			if seen_intro:
-				msgs.append("WARN: level %d had is_intro=true (already set on earlier level); cleared" % i)
+				msgs.append(_warn_msg("ui_game_validate_intro_duplicate", [i], "level %d had is_intro=true (already set on earlier level); cleared"))
 				levels[i]["is_intro"] = false
 			else:
 				seen_intro = true
@@ -99,6 +99,14 @@ func is_valid() -> bool:
 		if msg.begins_with("REJECT"):
 			return false
 	return true
+
+
+static func _reject_msg(key: String, args: Array, fallback: String) -> String:
+	return "REJECT: " + Localization.tf(key, args, fallback)
+
+
+static func _warn_msg(key: String, args: Array, fallback: String) -> String:
+	return "WARN: " + Localization.tf(key, args, fallback)
 
 
 # ── Indexing ────────────────────────────────────────────────────────────────

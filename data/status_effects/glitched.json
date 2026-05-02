@@ -6,6 +6,6 @@
   "param_names": [
     "duration"
   ],
-  "loc_name": "status.glitched.name",
-  "loc_desc": "status.glitched.desc"
+  "loc_name": "status_glitched_name",
+  "loc_desc": "status_glitched_desc"
 }

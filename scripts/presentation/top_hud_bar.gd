@@ -41,14 +41,14 @@ func _apply_theme() -> void:
 
 
 func set_turn(n: int) -> void:
-	_turn_label.text = Localization.tf("Turn: %d", [n], "Turn: %d")
+	_turn_label.text = Localization.tf("ui_top_hud_turn", [n], "Turn: %d")
 
 
 func set_wave(current: int, total: int) -> void:
 	if total <= 0:
-		_wave_label.text = Localization.tf("Wave %d", [current], "Wave %d")
+		_wave_label.text = Localization.tf("ui_top_hud_wave", [current], "Wave %d")
 	else:
-		_wave_label.text = Localization.tf("Wave %d/%d", [current, total], "Wave %d/%d")
+		_wave_label.text = Localization.tf("ui_top_hud_wave_total", [current, total], "Wave %d/%d")
 
 
 func set_run_timer(seconds: float) -> void:

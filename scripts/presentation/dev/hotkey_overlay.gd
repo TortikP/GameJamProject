@@ -10,15 +10,15 @@ extends Control
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 
 const HOTKEYS: Array[Array] = [
-	["LMB",            "paint / place"],
-	["LMB drag",       "paint serially (Brush) or define rect (Rect)"],
-	["RMB / RMB",      "delete (2-click confirm)"],
-	["Alt + LMB",      "eyedropper — pick under cursor"],
-	["Ctrl + Z / Y",   "undo / redo"],
-	["Ctrl + S",       "save"],
-	["1–9",            "quick palette select"],
-	["Tools panel",    "Brush + size, or Rect (left side)"],
-	["H",              "toggle this overlay"],
+	["LMB",            "ui_hotkey_paint_place", "paint / place"],
+	["LMB drag",       "ui_hotkey_paint_drag", "paint serially (Brush) or define rect (Rect)"],
+	["RMB / RMB",      "ui_hotkey_delete_confirm", "delete (2-click confirm)"],
+	["Alt + LMB",      "ui_hotkey_eyedropper", "eyedropper — pick under cursor"],
+	["Ctrl + Z / Y",   "ui_hotkey_undo_redo", "undo / redo"],
+	["Ctrl + S",       "ui_hotkey_save", "save"],
+	["1–9",            "ui_hotkey_quick_select", "quick palette select"],
+	["Tools panel",    "ui_hotkey_tools_panel", "Brush + size, or Rect (left side)"],
+	["H",              "ui_hotkey_toggle_overlay", "toggle this overlay"],
 ]
 
 var _bg: ColorRect
@@ -58,7 +58,7 @@ func _build_ui() -> void:
 	_panel.add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Hotkeys"
+	header.text = Localization.t("ui_hotkey_overlay_title", "Hotkeys")
 	UiTheme.apply_label_kind(header, "header")
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(header)
@@ -76,7 +76,7 @@ func _build_ui() -> void:
 		_grid.add_child(key_lbl)
 
 		var desc_lbl := Label.new()
-		desc_lbl.text = String(pair[1])
+		desc_lbl.text = Localization.t(String(pair[1]), String(pair[2]))
 		UiTheme.apply_label_kind(desc_lbl, "body")
 		desc_lbl.modulate = UiTheme.TEXT_DIM
 		_grid.add_child(desc_lbl)

@@ -55,7 +55,7 @@ func bind(map_paths: Array[String], level_entry: Dictionary, index: int) -> void
 
 	_map_option.clear()
 	# Always include a placeholder entry first so empty map_path renders.
-	_map_option.add_item("(select map…)", -1)
+	_map_option.add_item(Localization.t("ui_game_editor_select_map", "(select map...)"), -1)
 	var current_path: String = String(entry.get("map_path", ""))
 	var matched: int = -1
 	for i: int in range(_map_paths.size()):
@@ -71,7 +71,7 @@ func bind(map_paths: Array[String], level_entry: Dictionary, index: int) -> void
 		if current_path != "":
 			# Map file referenced doesn't exist locally any more — show a
 			# warning entry at the end so the user can see what's missing.
-			_map_option.add_item("(missing: %s)" % current_path.get_file(), -2)
+			_map_option.add_item(Localization.tf("ui_game_editor_missing_map", [current_path.get_file()], "(missing: %s)"), -2)
 			_map_option.select(_map_option.item_count - 1)
 			_map_option.set_item_disabled(_map_option.item_count - 1, true)
 

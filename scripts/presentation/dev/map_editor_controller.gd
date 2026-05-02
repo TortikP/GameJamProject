@@ -448,22 +448,22 @@ func _quick_select(idx: int) -> void:
 
 func _perform_undo() -> void:
 	if not _history.can_undo():
-		EventBus.ui_toast_requested.emit("Нечего отменять", 1.0, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_undo_empty", "Nothing to undo"), 1.0, &"info")
 		return
 	var restored: LevelData = _history.undo(_level)
 	_apply_level(restored, false)
 	_mark_dirty()
-	EventBus.ui_toast_requested.emit("Undo", 0.6, &"info")
+	EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_undo_done", "Undo"), 0.6, &"info")
 
 
 func _perform_redo() -> void:
 	if not _history.can_redo():
-		EventBus.ui_toast_requested.emit("Нечего повторять", 1.0, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_redo_empty", "Nothing to redo"), 1.0, &"info")
 		return
 	var restored: LevelData = _history.redo(_level)
 	_apply_level(restored, false)
 	_mark_dirty()
-	EventBus.ui_toast_requested.emit("Redo", 0.6, &"info")
+	EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_redo_done", "Redo"), 0.6, &"info")
 
 
 # -- LMB -- placement table ---------------------------------------------------
@@ -823,15 +823,16 @@ func _check_autosave_recovery() -> void:
 	if _confirm_modal == null or not _confirm_modal.has_method("ask"):
 		return
 	var ok: bool = await _confirm_modal.ask(
-		"Восстановить?",
-		"Найдена несохранённая сессия редактора. Восстановить её?",
-		"Восстановить", "Начать с нуля", false)
+		Localization.t("ui_map_editor_restore_title", "Restore?"),
+		Localization.t("ui_map_editor_restore_body", "Found an unsaved editor session. Restore it?"),
+		Localization.t("ui_map_editor_restore_confirm", "Restore"),
+		Localization.t("ui_map_editor_restore_discard", "Start from scratch"), false)
 	if ok:
 		var loaded: LevelData = LevelSerializer.load_from(AUTOSAVE_PATH)
 		if loaded != null:
 			_apply_level(loaded)
 			_mark_dirty()  # restored -- needs re-saving
-			EventBus.ui_toast_requested.emit("Восстановлено", 1.5, &"success")
+			EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_restore_done", "Restored"), 1.5, &"success")
 	else:
 		DirAccess.remove_absolute(AUTOSAVE_PATH)
 
@@ -968,7 +969,7 @@ func _on_erase_picked() -> void:
 func _on_tileset_changed(tileset_path: String) -> void:
 	var ts: TileSet = load(tileset_path) as TileSet
 	if ts == null:
-		EventBus.ui_toast_requested.emit("Tileset не найден: %s" % tileset_path, 2.0, &"error")
+		EventBus.ui_toast_requested.emit(Localization.tf("ui_map_editor_tileset_missing", [tileset_path], "Tileset not found: %s"), 2.0, &"error")
 		return
 	_history.push(_level)
 	grid.tile_map_layer.tile_set = ts
@@ -992,7 +993,7 @@ func apply_replace_all(from_source: int, from_atlas: Vector2i,
 		if entry.source_id == from_source and entry.atlas_coord == from_atlas:
 			count += 1
 	if count == 0:
-		EventBus.ui_toast_requested.emit("Нечего заменять", 1.5, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_replace_none", "Nothing to replace"), 1.5, &"info")
 		return
 	_history.push(_level)
 	for entry in _level.floor_cells:
@@ -1000,7 +1001,7 @@ func apply_replace_all(from_source: int, from_atlas: Vector2i,
 			entry.source_id = to_source
 			entry.atlas_coord = to_atlas
 			grid.tile_map_layer.set_cell(entry.coord, to_source, to_atlas)
-	EventBus.ui_toast_requested.emit("Заменено %d тайлов" % count, 2.0, &"success")
+	EventBus.ui_toast_requested.emit(Localization.tf("ui_map_editor_replace_done", [count], "Replaced %d tiles"), 2.0, &"success")
 	_mark_dirty()
 
 
@@ -1027,20 +1028,22 @@ func _on_save_requested() -> void:
 		return
 	var sanitized: String = _sanitize_filename(_level.name)
 	if sanitized == "__autosave__" or sanitized == "__playtest__":
-		EventBus.ui_toast_requested.emit("Имя зарезервировано", 2.0, &"warn")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_name_reserved", "Name is reserved"), 2.0, &"warn")
 		return
 	var path: String = MAPS_DIR + sanitized + ".json"
 	if FileAccess.file_exists(path) and _confirm_modal != null:
 		var ok: bool = await _confirm_modal.ask(
-			"Перезаписать?", "Файл %s уже существует." % (sanitized + ".json"),
-			"Перезаписать", "Отмена", true)
+			Localization.t("ui_map_editor_overwrite_title", "Overwrite?"),
+			Localization.tf("ui_map_editor_overwrite_body", [sanitized + ".json"], "File %s already exists."),
+			Localization.t("ui_map_editor_overwrite_confirm", "Overwrite"),
+			Localization.t("ui_common_cancel", "Cancel"), true)
 		if not ok:
 			return
 	if LevelSerializer.save(_level, path):
 		_set_clean()
-		EventBus.ui_toast_requested.emit("Сохранено: %s" % (sanitized + ".json"), 2.0, &"success")
+		EventBus.ui_toast_requested.emit(Localization.tf("ui_map_editor_save_done", [sanitized + ".json"], "Saved: %s"), 2.0, &"success")
 	else:
-		EventBus.ui_toast_requested.emit("Ошибка сохранения", 2.0, &"error")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_save_error", "Save failed"), 2.0, &"error")
 
 
 func _on_load_requested(path: String) -> void:
@@ -1048,19 +1051,20 @@ func _on_load_requested(path: String) -> void:
 		return
 	if _dirty and _confirm_modal != null:
 		var save_first: bool = await _confirm_modal.ask(
-			"Сохранить текущую карту?",
-			"У вас есть несохранённые изменения.",
-			"Сохранить", "Не сохранять", false)
+			Localization.t("ui_map_editor_load_dirty_title", "Save current map?"),
+			Localization.t("ui_map_editor_load_dirty_body", "You have unsaved changes."),
+			Localization.t("ui_common_save", "Save"),
+			Localization.t("ui_map_editor_load_dirty_skip", "Don't save"), false)
 		if save_first:
 			_on_save_requested()
 	var loaded: LevelData = LevelSerializer.load_from(path)
 	if loaded == null:
-		EventBus.ui_toast_requested.emit("Ошибка загрузки", 2.0, &"error")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_load_error", "Load failed"), 2.0, &"error")
 		return
 	_history.push(_level)
 	_apply_level(loaded)
 	_set_clean()
-	EventBus.ui_toast_requested.emit("Загружено: %s" % path.get_file(), 2.0, &"success")
+	EventBus.ui_toast_requested.emit(Localization.tf("ui_map_editor_load_done", [path.get_file()], "Loaded: %s"), 2.0, &"success")
 
 
 func _on_playtest_requested() -> void:
@@ -1069,7 +1073,7 @@ func _on_playtest_requested() -> void:
 		EventBus.ui_toast_requested.emit(errors[0], 2.5, &"warn")
 		return
 	if not LevelSerializer.save(_level, PLAYTEST_PATH):
-		EventBus.ui_toast_requested.emit("Не удалось записать playtest", 2.0, &"error")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_playtest_write_failed", "Failed to write playtest"), 2.0, &"error")
 		return
 	# Mark origin so the playtest scene can offer Back-to-Editor; queue the
 	# same path so godmode loads it on _ready.
@@ -1081,8 +1085,10 @@ func _on_playtest_requested() -> void:
 func _on_exit_requested() -> void:
 	if _dirty and _confirm_modal != null:
 		var leave: bool = await _confirm_modal.ask(
-			"Выйти?", "Есть несохранённые изменения.",
-			"Выйти без сохранения", "Остаться", true)
+			Localization.t("ui_map_editor_exit_title", "Exit?"),
+			Localization.t("ui_map_editor_exit_body", "There are unsaved changes."),
+			Localization.t("ui_map_editor_exit_confirm", "Exit without saving"),
+			Localization.t("ui_map_editor_exit_stay", "Stay"), true)
 		if not leave:
 			return
 	# 035 v1.1 — if we got here from the Game Editor (via a row's "Edit"
@@ -1232,7 +1238,7 @@ func _on_wave_anchor_context(idx: int, _screen_pos: Vector2) -> void:
 	# the most common path -- Delete -- directly via ConfirmModal. Toggle
 	# special is exposed via the dedicated button in WavePanel.
 	if idx <= 0:
-		EventBus.ui_toast_requested.emit("Wave 0 удалить нельзя", 1.5, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_map_editor_wave_zero_delete_blocked", "Wave 0 cannot be deleted"), 1.5, &"info")
 		return
 	_request_delete_wave(idx)
 
@@ -1295,7 +1301,7 @@ func _on_wave_copy_prev() -> void:
 	_apply_level(_level, false)
 	_mark_dirty()
 	_refresh_wave_panel()
-	EventBus.ui_toast_requested.emit("Скопировано из волны %d" % (active - 1), 1.2, &"info")
+	EventBus.ui_toast_requested.emit(Localization.tf("ui_map_editor_wave_copied", [active - 1], "Copied from wave %d"), 1.2, &"info")
 
 
 func _on_wave_toggle_special() -> void:
@@ -1344,12 +1350,13 @@ func _request_delete_wave(idx: int) -> void:
 
 func _request_delete_wave_async(idx: int) -> void:
 	var ok: bool = await _confirm_modal.ask(
-		"Удалить волну %d?" % idx,
-		"Содержимое волны (%d объектов / %d спавнеров) будет потеряно." % [
+		Localization.tf("ui_map_editor_delete_wave_title", [idx], "Delete wave %d?"),
+		Localization.tf("ui_map_editor_delete_wave_body", [
 			_level.waves[idx].get("objects", []).size(),
 			_level.waves[idx].get("spawners", []).size(),
-		],
-		"Удалить", "Отмена", true)
+		], "Wave contents (%d objects / %d spawners) will be lost."),
+		Localization.t("ui_common_delete", "Delete"),
+		Localization.t("ui_common_cancel", "Cancel"), true)
 	if not ok:
 		return
 	_history.push(_level)
