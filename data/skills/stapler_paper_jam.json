@@ -1,0 +1,38 @@
+{
+  "id": "stapler_paper_jam",
+  "name": "stapler_paper_jam_name",
+  "tooltip": "stapler_paper_jam_tooltip",
+  "desc": "stapler_paper_jam_desc",
+  "icon": "icons/skills/stapler_paper_jam.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "stapler_paper_jam_ranged_damage",
+      "sound_start": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_start.wav",
+      "collision_effect": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_collision.prefab",
+      "sound_end": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_end.wav",
+      "animation": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage.anim",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "rooted(1)"
+        }
+      ]
+    }
+  ]
+}
