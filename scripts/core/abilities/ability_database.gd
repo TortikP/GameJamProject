@@ -28,7 +28,7 @@ extends Node
 ##     "target": {"kind": "hex", "range": 4},
 ##     "area":   {"kind": "zone_circle", "area_radius": 2},
 ##     "effects": [
-##       {"duration": 0, "damage": 15, "status": "burning"}
+##       {"damage": 15, "status_id": "burning(3)"}
 ##     ],
 ##     "modifiers": [
 ##       {"kind": "parameter", "id": "fb_extra", "target_param": "damage", "op": "add", "value": 5}
@@ -73,7 +73,7 @@ const AREA_KEY_REMAP: Dictionary = {
 const EFFECT_KIND_BY_KEY: Dictionary = {
 	"damage":    preload("res://scripts/core/abilities/effects/damage_effect.gd"),
 	"heal":      preload("res://scripts/core/abilities/effects/heal_effect.gd"),
-	"status":    preload("res://scripts/core/abilities/effects/status_effect.gd"),
+	"status_id": preload("res://scripts/core/abilities/effects/status_effect.gd"),
 	"move_type": preload("res://scripts/core/abilities/effects/move_effect.gd"),
 	"entity_id": preload("res://scripts/core/abilities/effects/create_effect.gd"),
 }
@@ -82,7 +82,10 @@ const EFFECT_KIND_BY_KEY: Dictionary = {
 # Decision is provisional — see 026 spec §"Open after playtest" (1).
 # Keys are plain String to match JSON.parse_string output (Dictionary won't
 # auto-convert String↔StringName for lookups).
-const EFFECT_KEY_ORDER: Array[String] = ["damage", "heal", "status", "move_type", "entity_id"]
+# 031 phase 9: status → status_id rename to align with shipping skill JSON
+# (data/skills/honey_cold.json etc. use "status_id"). Old "status" key now
+# silently ignored — see _parse_effect_dict warning below.
+const EFFECT_KEY_ORDER: Array[String] = ["damage", "heal", "status_id", "move_type", "entity_id"]
 
 const MODIFIER_KINDS: Dictionary = {
 	"parameter": preload("res://scripts/core/abilities/parameter_modifier.gd"),
@@ -237,12 +240,16 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 		GameLogger.warn("AbilityDatabase", "%s: legacy 'kind' key in effect dict — ignoring (026 schema)" % ability_id)
 	if data.has("duration"):
 		GameLogger.info("AbilityDatabase", "%s: legacy 'duration' key in effect dict — ignoring (027 schema; duration lives in status string)" % ability_id)
+	if data.has("status"):
+		# 031 phase 9: key renamed to "status_id" to match shipping skill JSON.
+		# Old key silently dropped status effects without warning — surface it.
+		GameLogger.warn("AbilityDatabase", "%s: legacy 'status' key in effect dict — rename to 'status_id' (031 phase 9)" % ability_id)
 	var out: Array[AbilityEffect] = []
 	for key in EFFECT_KEY_ORDER:
 		if not data.has(key):
 			continue
-		if key == "status":
-			# 027: special parser for "id(args)" inline encoding.
+		if key == "status_id":
+			# 027/031: special parser for "id(args)" inline encoding.
 			var eff := _make_status_effect(data[key], ability_id)
 			if eff != null:
 				out.append(eff)
@@ -252,10 +259,10 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 		var inst: Object = (script_v as GDScript).new()
 		# Broadcast all keys via Object.set(): non-matching properties no-op,
 		# so DamageEffect picks up `damage`, MoveEffect picks up
-		# `move_type`+`move_distance`, etc. `duration` and `status` are
-		# skipped explicitly (status is handled above; duration is gone).
+		# `move_type`+`move_distance`, etc. `duration` and `status_id` are
+		# skipped explicitly (status_id is handled above; duration is gone).
 		for k in data.keys():
-			if k == "kind" or k == "status" or k == "duration":
+			if k == "kind" or k == "status" or k == "status_id" or k == "duration":
 				continue
 			inst.set(k, data[k])
 		var eff := inst as AbilityEffect

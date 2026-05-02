@@ -30,7 +30,7 @@
       "effects": [
         {
           "damage": 8,
-          "status": "burning(1, 2, 1)"
+          "status_id": "burning(1, 2, 1)"
         }
       ],
       "modifiers": []

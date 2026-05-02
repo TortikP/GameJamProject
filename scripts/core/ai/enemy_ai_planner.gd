@@ -248,7 +248,10 @@ func _target_in_skill_range(actor: Actor, skill: Skill, target: Variant, ctx: Di
 # ── Fallback skill (backward-compat path for current manekin) ────────────────
 
 func _try_fallback_skill(actor: Actor, skill_id: StringName, ctx: Dictionary) -> void:
-	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	# 034: per-actor skill lookup so cooldown state is read from this
+	# actor's own copy, not the DB-shared resource. Symmetric with the
+	# main planner path (line 148: iterates actor's _skills directly).
+	var skill: Skill = actor.get_skill_by_id(skill_id)
 	if skill == null or not skill.is_ready():
 		return
 	# Fallback only triggers if there's an enemy in skill range — match current

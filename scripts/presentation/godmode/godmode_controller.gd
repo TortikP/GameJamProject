@@ -300,17 +300,19 @@ func _place_player() -> void:
 func _seed_slots() -> void:
 	if _slot_bar_node == null:
 		return
+	# 034: clone_for_owner so player's cooldowns are isolated from any other
+	# owner of the same skill (DB-shared instance never receives cd state).
 	var debug: Skill = SkillDatabase.get_skill(&"skill_debug_punch")
 	if debug != null:
-		_slot_bar_node.set_slot(0, debug)
+		_slot_bar_node.set_slot(0, debug.clone_for_owner())
 	else:
 		GameLogger.warn("Godmode", "skill_debug_punch not found in SkillDatabase")
 	var melee: Skill = SkillDatabase.get_skill(&"skill_melee_punch")
 	if melee != null:
-		_slot_bar_node.set_slot(1, melee)
+		_slot_bar_node.set_slot(1, melee.clone_for_owner())
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
-		_slot_bar_node.set_slot(2, kb)
+		_slot_bar_node.set_slot(2, kb.clone_for_owner())
 	# 029 / req-1: do NOT pre-select an ability. Player must consciously pick
 	# Q/W/E/R (or click a slot) before LMB casts. Avoids accidental opening cast.
 	_slot_bar_node.set_active(-1)
@@ -321,6 +323,11 @@ func _seed_slots() -> void:
 		if sk != null:
 			ids.append_array(sk.get_ability_ids())
 	player.set_abilities(ids)
+	# 031 phase 2: also push the actual Skill resources onto Actor._skills so
+	# _tick_all_skills can decrement their cooldowns. Without this, slot-bound
+	# skills cast fine but never come off cooldown for the player (enemies
+	# work because enemy_data_loader sets _skills directly).
+	_sync_player_skills_from_slots()
 
 
 func _emit_initial_turn() -> void:
@@ -386,17 +393,15 @@ func _refresh_overlay() -> void:
 	# looking at" panel, separate concern from "what can I do this turn".
 	if _overlay == null or player == null:
 		return
-	# Skills (post-007) wrap multiple abilities. Pass Ability objects directly
-	# rather than IDs — avoids AbilityDatabase collisions when multiple skills
-	# share an ability ID (e.g. "vs_dmg").
+	# 031 phase 12+13: idle slot preview shows only the *current* ability's
+	# range — abilities[0] when idle, abilities[_cast_step] during FSM.
+	# Painting the full ability list would mix every step's range/area into
+	# one mash-up. _current_preview_ability is the shared source of truth
+	# with the zone-area preview in _update_castability.
 	var ability_items: Array = []
-	if _slot_bar_node != null:
-		var active: int = _slot_bar_node.get_active()
-		if active != -1:
-			var sk := _slot_bar_node.get_slot(active) as Skill
-			if sk != null:
-				for ab in sk.abilities:
-					ability_items.append(ab)
+	var preview_ability: Ability = _current_preview_ability()
+	if preview_ability != null:
+		ability_items.append(preview_ability)
 	_overlay.show_for(player, registry, ability_items)
 
 
@@ -458,22 +463,20 @@ func _update_castability() -> void:
 	# Zone AoE preview — repaint every frame so it follows the cursor.
 	if _overlay != null and _overlay.has_method("show_zone_preview"):
 		var zone_hexes: Array[Vector2i] = []
-		if active_skill != null and coord != Vector2i(-1, -1):
+		# 031 phase 13: paint only the *current* ability's area, not the union
+		# of every ability in the skill. Previously the loop merged every
+		# ability's affected hexes into one dedup'd dictionary → always
+		# painted the largest radius across the skill (paper_jam: 3
+		# abilities with radii 1/1/2 → 2-radius blob always shown).
+		# During the FSM the "current" ability is the step the next click
+		# resolves; idle preview falls back to abilities[0].
+		var preview_ability: Ability = _current_preview_ability()
+		if preview_ability != null and preview_ability.area != null and coord != Vector2i(-1, -1):
 			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-			for ab_obj in active_skill.abilities:
-				var ab := ab_obj as Ability
-				if ab == null or ab.area == null:
-					continue
-				# Anchor the preview where the area will actually resolve at cast time.
-				# SelfTarget pins this to caster_coord; spatial targets (Hex/Entity)
-				# fall through to hover_coord. See AbilityTarget.preview_anchor_coord.
-				var anchor: Vector2i = coord
-				if ab.target != null:
-					anchor = ab.target.preview_anchor_coord(caster_coord, coord)
-				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, anchor, grid)
-				for c in affected:
-					if not zone_hexes.has(c):
-						zone_hexes.append(c)
+			var anchor: Vector2i = coord
+			if preview_ability.target != null:
+				anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
+			zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
 		_overlay.show_zone_preview(zone_hexes)
 
 	# 029 / bonus-2: hover-path preview. Show the route the player would take
@@ -576,6 +579,27 @@ func _refresh_intent_tooltip(hovered_id: StringName) -> void:
 		# anchor=null → tooltip places itself near the mouse pointer (see
 		# tooltip_panel.gd::_place_near).
 		tooltip.show_tooltip(null, title, body)
+
+
+# 031 phase 13: which ability should overlays preview "right now"?
+# - During FSM cast: abilities[_cast_step] (the step the next click resolves).
+# - Idle slot active: abilities[0] (the step the FSM will resolve first).
+# - No active slot: null (caller paints nothing).
+# Used by both _refresh_overlay (target-range paint) and _update_castability
+# (zone-area paint) so the two stay in sync — same source of truth, no
+# chance of one preview showing step N while the other shows step 0.
+func _current_preview_ability() -> Ability:
+	if _cast_in_progress and _cast_skill != null and _cast_step < _cast_skill.abilities.size():
+		return _cast_skill.abilities[_cast_step]
+	if _slot_bar_node == null:
+		return null
+	var active: int = _slot_bar_node.get_active()
+	if active == -1:
+		return null
+	var sk := _slot_bar_node.get_slot(active) as Skill
+	if sk == null or sk.abilities.is_empty():
+		return null
+	return sk.abilities[0]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -870,10 +894,14 @@ func _commit_cast() -> void:
 	var ctxs: Array[Dictionary] = _cast_ctxs
 	_reset_cast_state()
 	var did_cast: bool = skill.cast(player, ctxs)
-	# 029 / req-2: deselect ability after a successful cast. Forces the player
-	# to consciously re-arm before next attack — no held-trigger spam, every
-	# turn a chosen action. activate(-1) emits slot_activated(-1) which clears
-	# the active-slot tint and PSP spell description via _on_slot_activated.
+	# 029 req-2 / 031 phase 11: deselect ability after a successful cast.
+	# Forces the player to consciously re-arm before next attack — no
+	# held-trigger spam. Using activate(active) (toggle off) emits
+	# slot_activated(-1), which also clears the PSP spell description
+	# (set_active(-1) alone wouldn't trigger that signal).
+	# 031 phase 12: must run BEFORE _refresh_overlay — otherwise refresh
+	# reads the still-active slot and re-paints its range, leaving stale
+	# overlay paint until the next refresh trigger (end of enemy turn).
 	if did_cast and _slot_bar_node != null and _slot_bar_node.get_active() != -1:
 		_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
 	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
@@ -1049,6 +1077,10 @@ func _on_world_turn_ended(_turn: int) -> void:
 	# 027 / AC-CT1: tick statuses for ALL actors before AI runs. DoT damage
 	# may kill some — they're skipped naturally in subsequent loops.
 	_tick_all_statuses()
+	# 031: tick skill cooldowns for ALL actors. Must run before the stun-skip
+	# branch below, otherwise a stunned actor's cooldowns freeze for the
+	# stun's duration. See specs/031-skill-cooldown-fix.
+	_tick_all_skills()
 	# 027 / AC-X5: if player is stunned (newly applied or carried over),
 	# show the icon for stun_skip_delay seconds, then auto-advance their turn.
 	# Recursion is fine — next world_turn_ended will tick again, and either
@@ -1076,6 +1108,20 @@ func _tick_all_statuses() -> void:
 		var actor: Actor = actor_v
 		if actor.is_alive():
 			actor.tick_statuses_with_ctx(ctx)
+
+
+# 031: skill-cooldown tick for all live actors. Mirrors _tick_all_statuses.
+# No ctx — Actor.tick_skills only needs the decrement amount. Dead actors
+# skipped (their skills can't fire anyway; consistent with status helper).
+func _tick_all_skills() -> void:
+	if registry == null:
+		return
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor.is_alive():
+			actor.tick_skills(1)
 
 
 func _run_enemy_turn() -> void:
@@ -1171,7 +1217,10 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 	var intent: CastIntent = intent_v as CastIntent
 	if intent == null or not intent.is_valid():
 		return
-	var skill: Skill = SkillDatabase.get_skill(intent.skill_id)
+	# 034: read the *enemy's* per-owner Skill copy, not the DB-shared one.
+	# Otherwise cast() writes cooldown state onto the shared resource,
+	# leaking cd between every actor that uses this skill_id.
+	var skill: Skill = enemy.get_skill_by_id(intent.skill_id)
 	if skill == null or not skill.is_ready():
 		return
 
@@ -1418,12 +1467,48 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	if item_id < 0 or item_id >= ids.size():
 		return
 	var skill_id: StringName = StringName(ids[item_id])
-	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	# 034: get-or-clone. If the player already owns a copy of this skill
+	# (e.g. it's already in another slot), reuse it so its cooldown state
+	# is shared between slots — same spell, one cooldown. Only mint a new
+	# clone when the player doesn't yet own this id.
+	var skill: Skill = _get_or_clone_player_skill(skill_id)
 	if skill == null:
 		return
 	if _slot_bar_node != null:
 		_slot_bar_node.set_slot(_picker_target_slot, skill)
+	# 031 phase 2: rebuild player._skills so the new slot's cooldown ticks.
+	_sync_player_skills_from_slots()
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
+
+
+# 034: returns the player's existing per-instance Skill if they already
+# have one for this id, else mints a fresh clone from the DB. Keeps the
+# DB-shared resource read-only at runtime.
+func _get_or_clone_player_skill(skill_id: StringName) -> Skill:
+	if player != null:
+		var existing: Skill = player.get_skill_by_id(skill_id)
+		if existing != null:
+			return existing
+	var src: Skill = SkillDatabase.get_skill(skill_id)
+	if src == null:
+		return null
+	return src.clone_for_owner()
+
+
+# 031 phase 2: rebuild Actor._skills from the current slot bar contents.
+# Slot bar holds the canonical Skill resources for the player; this just
+# mirrors them onto the Actor so the cooldown tick (driven from
+# _tick_all_skills via Actor.tick_skills) reaches the same instances that
+# the player actually casts. De-duped — same skill in two slots ticks once.
+func _sync_player_skills_from_slots() -> void:
+	if player == null or _slot_bar_node == null:
+		return
+	var skills: Array = []
+	for i in 4:
+		var sk: Skill = _slot_bar_node.get_slot(i) as Skill
+		if sk != null and not skills.has(sk):
+			skills.append(sk)
+	player.set_skills(skills)
 
 
 # ── 007 skill dev smoke test ──────────────────────────────────────────────
