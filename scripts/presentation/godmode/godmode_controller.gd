@@ -255,17 +255,19 @@ func _place_player() -> void:
 func _seed_slots() -> void:
 	if _slot_bar_node == null:
 		return
+	# 034: clone_for_owner so player's cooldowns are isolated from any other
+	# owner of the same skill (DB-shared instance never receives cd state).
 	var debug: Skill = SkillDatabase.get_skill(&"skill_debug_punch")
 	if debug != null:
-		_slot_bar_node.set_slot(0, debug)
+		_slot_bar_node.set_slot(0, debug.clone_for_owner())
 	else:
 		GameLogger.warn("Godmode", "skill_debug_punch not found in SkillDatabase")
 	var melee: Skill = SkillDatabase.get_skill(&"skill_melee_punch")
 	if melee != null:
-		_slot_bar_node.set_slot(1, melee)
+		_slot_bar_node.set_slot(1, melee.clone_for_owner())
 	var kb: Skill = SkillDatabase.get_skill(&"skill_knockback_punch")
 	if kb != null:
-		_slot_bar_node.set_slot(2, kb)
+		_slot_bar_node.set_slot(2, kb.clone_for_owner())
 	_slot_bar_node.set_active(0)
 	# Sync player ability IDs for inspector/overlay display
 	var ids: Array[StringName] = []
@@ -1009,7 +1011,10 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 	var intent: CastIntent = intent_v as CastIntent
 	if intent == null or not intent.is_valid():
 		return
-	var skill: Skill = SkillDatabase.get_skill(intent.skill_id)
+	# 034: read the *enemy's* per-owner Skill copy, not the DB-shared one.
+	# Otherwise cast() writes cooldown state onto the shared resource,
+	# leaking cd between every actor that uses this skill_id.
+	var skill: Skill = enemy.get_skill_by_id(intent.skill_id)
 	if skill == null or not skill.is_ready():
 		return
 
@@ -1216,7 +1221,11 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	if item_id < 0 or item_id >= ids.size():
 		return
 	var skill_id: StringName = StringName(ids[item_id])
-	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	# 034: get-or-clone. If the player already owns a copy of this skill
+	# (e.g. it's already in another slot), reuse it so its cooldown state
+	# is shared between slots — same spell, one cooldown. Only mint a new
+	# clone when the player doesn't yet own this id.
+	var skill: Skill = _get_or_clone_player_skill(skill_id)
 	if skill == null:
 		return
 	if _slot_bar_node != null:
@@ -1224,6 +1233,20 @@ func _on_ability_picker_selected(item_id: int, ids: Array) -> void:
 	# 031 phase 2: rebuild player._skills so the new slot's cooldown ticks.
 	_sync_player_skills_from_slots()
 	GameLogger.info("Godmode", "Slot %d ← %s" % [_picker_target_slot, skill_id])
+
+
+# 034: returns the player's existing per-instance Skill if they already
+# have one for this id, else mints a fresh clone from the DB. Keeps the
+# DB-shared resource read-only at runtime.
+func _get_or_clone_player_skill(skill_id: StringName) -> Skill:
+	if player != null:
+		var existing: Skill = player.get_skill_by_id(skill_id)
+		if existing != null:
+			return existing
+	var src: Skill = SkillDatabase.get_skill(skill_id)
+	if src == null:
+		return null
+	return src.clone_for_owner()
 
 
 # 031 phase 2: rebuild Actor._skills from the current slot bar contents.

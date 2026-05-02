@@ -68,6 +68,17 @@ func set_skills(skills: Array) -> void:
 	_skills = skills
 
 
+## 034: lookup an actor's per-instance Skill by id. AI cast resolution
+## (and player cast paths) must read cooldown state from the *actor's*
+## skill copy, not from the SkillDatabase shared instance — see spec 034.
+## Returns null if the actor doesn't own a skill with this id.
+func get_skill_by_id(skill_id: StringName) -> Skill:
+	for s in _skills:
+		if (s as Skill).id == skill_id:
+			return s
+	return null
+
+
 ## Reduce cooldown on all skills by 1. Call from controller on each turn advance.
 func tick_skills(by: int = 1) -> void:
 	for s in _skills:

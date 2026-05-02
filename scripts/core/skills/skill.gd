@@ -132,3 +132,16 @@ func tick_cooldown(by: int = 1) -> void:
 		_skip_next_tick = false
 		return
 	_cd_remaining = maxi(0, _cd_remaining - by)
+
+
+## 034: returns a fresh copy with its own cooldown state — call this when
+## an Actor takes ownership of a skill resource so cooldowns don't leak
+## between owners (Skill is a Resource → SkillDatabase.get_skill returns
+## a single shared instance). `abilities` array stays shared (Ability has
+## no per-cast persistent state — last_target_ids is read immediately
+## after cast(), no race in single-threaded execution).
+func clone_for_owner() -> Skill:
+	var copy: Skill = self.duplicate()   # shallow — abilities[] shared
+	copy._cd_remaining = 0
+	copy._skip_next_tick = false
+	return copy
