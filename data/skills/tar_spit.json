@@ -1,0 +1,58 @@
+{
+  "id": "tar_spit",
+  "name": "tar_spit_name",
+  "tooltip": "tar_spit_tooltip",
+  "desc": "tar_spit_desc",
+  "icon": "assets/sprites/icons/skills/tar_spit.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "direct_ranged_damage",
+      "sound_start": "assets/audio/skills/direct_ranged_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/direct_ranged_damage/projectile_hit.prefab",
+      "sound_end": "assets/audio/skills/direct_ranged_damage/end.wav",
+      "animation": "assets/animations/skills/direct_ranged_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 8
+        }
+      ]
+    },
+    {
+      "id": "apply_slow_single",
+      "sound_start": "assets/audio/skills/apply_slow_single/start.wav",
+      "collision_effect": "assets/vfx/status/slowed/apply_single.prefab",
+      "sound_end": "assets/audio/status/slowed/end.wav",
+      "animation": "assets/animations/status/apply_slow_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "status_id": "slowed (3)"
+        }
+      ]
+    }
+  ]
+}
