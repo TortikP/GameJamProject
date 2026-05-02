@@ -1,10 +1,16 @@
-## MusicLab — dev scene. Запускай через Project → Run Specific Scene.
-## UI строится кодом в _ready — никаких @onready, никакого зависания редактора.
+## MusicLab — dev scene. Run via F6 / "Run Specific Scene".
+## UI built in code at _ready — no @onready, no editor-time freeze.
 
 extends Control
 
-const _PresetResolver = preload("res://scripts/audio/music/preset_resolver.gd")
+const _PresetResolver  = preload("res://scripts/audio/music/preset_resolver.gd")
+const _Harmony         = preload("res://scripts/audio/music/harmony.gd")
+const _DrumPatterns    = preload("res://scripts/audio/music/drum_patterns.gd")
+const _BassPatterns    = preload("res://scripts/audio/music/bass_patterns.gd")
+const _PadGenSrc       = preload("res://scripts/audio/music/generators/pad_gen.gd")
 const STINGS_PATH: String = "res://data/music/stings.json"
+
+const BARS_PER_CHORD_OPTS: Array = [1, 2, 4, 8]
 
 var _director: Node = null
 var _sliders: Dictionary = {}
@@ -12,9 +18,17 @@ var _value_labels: Dictionary = {}
 var _slot_a: Dictionary = {}
 var _slot_b: Dictionary = {}
 var _current_ab: StringName = &"none"
-var _state_dropdown: OptionButton = null
-var _seed_spin: SpinBox = null
-var _preset_dropdown: OptionButton = null
+
+var _state_dropdown:        OptionButton = null
+var _seed_spin:             SpinBox = null
+var _preset_dropdown:       OptionButton = null
+var _progression_dropdown:  OptionButton = null
+var _scale_dropdown:        OptionButton = null
+var _bars_dropdown:         OptionButton = null
+var _drum_dropdown:         OptionButton = null
+var _bass_dropdown:         OptionButton = null
+var _voicing_dropdown:      OptionButton = null
+
 var _stings_hbox: HFlowContainer = null
 
 func _ready() -> void:
@@ -33,6 +47,12 @@ func _ready() -> void:
 		_sliders["lead_density_battle"].value)
 	_director.set_layer_db(&"pad",   _sliders["pad_gain_db"].value)
 	_director.set_layer_db(&"drums", _sliders["drums_gain_db"].value)
+	_director.set_progression(_dropdown_value(_progression_dropdown))
+	_director.set_scale(_dropdown_value(_scale_dropdown))
+	_director.set_bars_per_chord(BARS_PER_CHORD_OPTS[_bars_dropdown.selected])
+	_director.set_drum_pattern(_dropdown_value(_drum_dropdown))
+	_director.set_bass_pattern(_dropdown_value(_bass_dropdown))
+	_director.set_pad_voicing(_dropdown_value(_voicing_dropdown))
 	# Immediate, not pending — first bar event hasn't been emitted yet.
 	_director._apply_state(&"calm")
 	_director._ensure_playing()
@@ -44,14 +64,21 @@ func _build_ui() -> void:
 		margin.add_theme_constant_override("margin_" + side, 16)
 	add_child(margin)
 
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	margin.add_child(scroll)
+
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
-	margin.add_child(vbox)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
 
 	var header := Label.new()
 	header.text = "Music Lab — тюнинг музыки"
 	vbox.add_child(header)
 
+	# ── Sliders ──────────────────────────────────────────────────────────────
 	var params_hbox := HBoxContainer.new()
 	params_hbox.add_theme_constant_override("separation", 24)
 	vbox.add_child(params_hbox)
@@ -64,13 +91,14 @@ func _build_ui() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	params_hbox.add_child(right)
 
-	_make_slider(left,  "bpm",                40.0, 200.0, 72.0)
-	_make_slider(left,  "lead_density_calm",   0.0,   1.0, 0.2)
-	_make_slider(left,  "lead_density_battle", 0.0,   1.0, 0.5)
+	_make_slider(left,  "bpm",                40.0, 200.0, 96.0)
+	_make_slider(left,  "lead_density_calm",   0.0,   1.0, 0.3)
+	_make_slider(left,  "lead_density_battle", 0.0,   1.0, 0.7)
 	_make_slider(right, "pad_gain_db",       -24.0,   6.0, 0.0)
 	_make_slider(right, "drums_gain_db",     -24.0,   6.0, 0.0)
 	_make_slider(right, "master_gain_db",    -24.0,   6.0, 0.0)
 
+	# ── State + seed ─────────────────────────────────────────────────────────
 	var state_row := HBoxContainer.new()
 	vbox.add_child(state_row)
 	_lbl(state_row, "State: ")
@@ -81,6 +109,7 @@ func _build_ui() -> void:
 	_state_dropdown.item_selected.connect(_on_state)
 	state_row.add_child(_state_dropdown)
 
+	_lbl(state_row, "  Seed: ")
 	_seed_spin = SpinBox.new()
 	_seed_spin.min_value = 0
 	_seed_spin.max_value = 2147483647
@@ -89,13 +118,45 @@ func _build_ui() -> void:
 	state_row.add_child(_seed_spin)
 
 	var reroll := Button.new()
-	reroll.text = "Reroll seed"
+	reroll.text = "Reroll"
 	reroll.pressed.connect(func():
 		var s := randi() & 0x7fffffff
 		_seed_spin.value = float(s)
 		_director.set_seed(s))
 	state_row.add_child(reroll)
 
+	# ── Music structure dropdowns ────────────────────────────────────────────
+	var struct_row1 := HBoxContainer.new()
+	vbox.add_child(struct_row1)
+
+	_progression_dropdown = _make_dropdown(struct_row1, "Progression:",
+			_Harmony.list_progression_ids(), "am_f_c_g",
+			func(id): _director.set_progression(StringName(id)))
+	_scale_dropdown = _make_dropdown(struct_row1, "  Scale:",
+			_Harmony.list_scale_ids(), "natural_minor",
+			func(id): _director.set_scale(StringName(id)))
+
+	var struct_row2 := HBoxContainer.new()
+	vbox.add_child(struct_row2)
+
+	_bars_dropdown = _make_dropdown(struct_row2, "Bars/chord:",
+			["1", "2", "4", "8"], "1",
+			func(s): _director.set_bars_per_chord(int(s)))
+	_drum_dropdown = _make_dropdown(struct_row2, "  Drums:",
+			_DrumPatterns.list_ids(), "march",
+			func(id): _director.set_drum_pattern(StringName(id)))
+
+	var struct_row3 := HBoxContainer.new()
+	vbox.add_child(struct_row3)
+
+	_bass_dropdown = _make_dropdown(struct_row3, "Bass:",
+			_BassPatterns.list_ids(), "root_fifth",
+			func(id): _director.set_bass_pattern(StringName(id)))
+	_voicing_dropdown = _make_dropdown(struct_row3, "  Pad voicing:",
+			_PadGenSrc.list_voicing_ids(), "triad",
+			func(id): _director.set_pad_voicing(StringName(id)))
+
+	# ── Presets + A/B ────────────────────────────────────────────────────────
 	var preset_row := HBoxContainer.new()
 	vbox.add_child(preset_row)
 	_lbl(preset_row, "Preset: ")
@@ -122,11 +183,13 @@ func _build_ui() -> void:
 	sw.pressed.connect(_on_switch)
 	preset_row.add_child(sw)
 
+	# ── Stings ───────────────────────────────────────────────────────────────
 	_lbl(vbox, "Стинги:")
 	_stings_hbox = HFlowContainer.new()
 	vbox.add_child(_stings_hbox)
 	_build_stings()
 
+	# ── Export / transport ───────────────────────────────────────────────────
 	var export_row := HBoxContainer.new()
 	vbox.add_child(export_row)
 
@@ -144,6 +207,8 @@ func _build_ui() -> void:
 	start_btn.pressed.connect(func(): _director._ensure_playing())
 	export_row.add_child(start_btn)
 
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
 func _lbl(parent: Node, text: String) -> void:
 	var l := Label.new(); l.text = text; parent.add_child(l)
 
@@ -159,6 +224,28 @@ func _make_slider(parent: VBoxContainer, param: String,
 	vl.custom_minimum_size = Vector2(50, 0); row.add_child(vl)
 	_sliders[param] = sl; _value_labels[param] = vl
 	sl.value_changed.connect(_on_slider.bind(param))
+
+## Build labelled OptionButton with default-by-text-match.
+## on_change signature: func(id_string: String) -> void
+func _make_dropdown(parent: Node, label: String, ids: Array, default: String,
+		on_change: Callable) -> OptionButton:
+	_lbl(parent, label)
+	var dd := OptionButton.new()
+	var default_idx := 0
+	for i in ids.size():
+		dd.add_item(String(ids[i]))
+		if String(ids[i]) == default:
+			default_idx = i
+	dd.selected = default_idx
+	dd.item_selected.connect(func(idx: int):
+		on_change.call(dd.get_item_text(idx)))
+	parent.add_child(dd)
+	return dd
+
+func _dropdown_value(dd: OptionButton) -> StringName:
+	if dd == null or dd.item_count == 0:
+		return &""
+	return StringName(dd.get_item_text(dd.selected))
 
 func _build_stings() -> void:
 	if not FileAccess.file_exists(STINGS_PATH): return
@@ -203,8 +290,14 @@ func _on_switch() -> void:
 func _gather() -> Dictionary:
 	var out := {}
 	for p in _sliders: out[p] = _sliders[p].value
-	out["seed"] = int(_seed_spin.value)
-	out["base_state"] = _state_dropdown.get_item_text(_state_dropdown.selected)
+	out["seed"]           = int(_seed_spin.value)
+	out["base_state"]     = _state_dropdown.get_item_text(_state_dropdown.selected)
+	out["progression"]    = _progression_dropdown.get_item_text(_progression_dropdown.selected)
+	out["scale"]          = _scale_dropdown.get_item_text(_scale_dropdown.selected)
+	out["bars_per_chord"] = BARS_PER_CHORD_OPTS[_bars_dropdown.selected]
+	out["drum_pattern"]   = _drum_dropdown.get_item_text(_drum_dropdown.selected)
+	out["bass_pattern"]   = _bass_dropdown.get_item_text(_bass_dropdown.selected)
+	out["pad_voicing"]    = _voicing_dropdown.get_item_text(_voicing_dropdown.selected)
 	return out
 
 func _apply(params: Dictionary) -> void:
@@ -214,3 +307,30 @@ func _apply(params: Dictionary) -> void:
 	if params.has("base_state"):
 		var idx := ["calm","battle","menu"].find(String(params["base_state"]))
 		if idx >= 0: _state_dropdown.selected = idx; _on_state(idx)
+	_apply_dropdown(_progression_dropdown, params, "progression",
+			func(s): _director.set_progression(StringName(s)))
+	_apply_dropdown(_scale_dropdown, params, "scale",
+			func(s): _director.set_scale(StringName(s)))
+	if params.has("bars_per_chord"):
+		var n := int(params["bars_per_chord"])
+		var bidx := BARS_PER_CHORD_OPTS.find(n)
+		if bidx >= 0:
+			_bars_dropdown.selected = bidx
+			_director.set_bars_per_chord(n)
+	_apply_dropdown(_drum_dropdown, params, "drum_pattern",
+			func(s): _director.set_drum_pattern(StringName(s)))
+	_apply_dropdown(_bass_dropdown, params, "bass_pattern",
+			func(s): _director.set_bass_pattern(StringName(s)))
+	_apply_dropdown(_voicing_dropdown, params, "pad_voicing",
+			func(s): _director.set_pad_voicing(StringName(s)))
+
+func _apply_dropdown(dd: OptionButton, params: Dictionary, key: String,
+		on_apply: Callable) -> void:
+	if not params.has(key) or dd == null:
+		return
+	var target := String(params[key])
+	for i in dd.item_count:
+		if dd.get_item_text(i) == target:
+			dd.selected = i
+			on_apply.call(target)
+			return

@@ -7,6 +7,12 @@
 ##   set_seed(seed)
 ##   set_layer_db(layer, db)
 ##   set_lead_density(calm, battle)
+##   set_progression(id)       id from data/music/progressions.json
+##   set_scale(id)             natural_minor / dorian / phrygian / harmonic_minor / pentatonic_minor
+##   set_bars_per_chord(n)     1, 2, 4, or 8
+##   set_drum_pattern(id)      march / drive / halftime / tribal
+##   set_bass_pattern(id)      root / root_fifth / walking / syncopated
+##   set_pad_voicing(id)       triad / sus2 / sus4 / seven
 ##   play_sting(name)
 
 extends Node
@@ -23,6 +29,8 @@ const _VoicePoolSrc   = preload("res://scripts/audio/music/synth/voice_pool.gd")
 const _StateMixerSrc  = preload("res://scripts/audio/music/state_mixer.gd")
 const _ConductorSrc   = preload("res://scripts/audio/music/conductor.gd")
 const _HarmonySrc     = preload("res://scripts/audio/music/harmony.gd")
+const _DrumPatternsSrc = preload("res://scripts/audio/music/drum_patterns.gd")
+const _BassPatternsSrc = preload("res://scripts/audio/music/bass_patterns.gd")
 const _BassGenSrc     = preload("res://scripts/audio/music/generators/bass_gen.gd")
 const _PadGenSrc      = preload("res://scripts/audio/music/generators/pad_gen.gd")
 const _LeadGenSrc     = preload("res://scripts/audio/music/generators/lead_gen.gd")
@@ -147,6 +155,24 @@ func set_layer_db(layer: StringName, db: float) -> void:
 func set_lead_density(calm: float, battle: float) -> void:
 	_lead_gen.set_density(calm, battle)
 
+func set_progression(id: StringName) -> void:
+	_harmony.set_progression(id)
+
+func set_scale(id: StringName) -> void:
+	_harmony.set_scale(id)
+
+func set_bars_per_chord(n: int) -> void:
+	_harmony.set_bars_per_chord(n)
+
+func set_drum_pattern(id: StringName) -> void:
+	_drums_gen.set_pattern(id)
+
+func set_bass_pattern(id: StringName) -> void:
+	_bass_gen.set_pattern(id)
+
+func set_pad_voicing(id: StringName) -> void:
+	_pad_gen.set_voicing(id)
+
 func play_sting(name: StringName) -> void:
 	_sting_player.play(name, _harmony, _voice_pool, self)
 
@@ -171,6 +197,12 @@ func _on_level_loaded(level: LevelData) -> void:
 	var lead_battle: float = float(cfg.get("lead_density_battle", 0.7))
 	var pad_db: float     = float(cfg.get("pad_gain_db", 0.0))
 	var drums_db: float   = float(cfg.get("drums_gain_db", 0.0))
+	var progression: StringName = StringName(cfg.get("progression", "am_f_c_g"))
+	var scale: StringName       = StringName(cfg.get("scale", "natural_minor"))
+	var bars_per_chord: int     = int(cfg.get("bars_per_chord", 1))
+	var drum_pattern: StringName = StringName(cfg.get("drum_pattern", "march"))
+	var bass_pattern: StringName = StringName(cfg.get("bass_pattern", "root_fifth"))
+	var pad_voicing:  StringName = StringName(cfg.get("pad_voicing",  "triad"))
 
 	if muted:
 		_stop()
@@ -181,11 +213,17 @@ func _on_level_loaded(level: LevelData) -> void:
 
 	_conductor.reset(bpm, seed_v)
 	_harmony.reset(seed_v)
+	_harmony.set_progression(progression)
+	_harmony.set_scale(scale)
+	_harmony.set_bars_per_chord(bars_per_chord)
 	_voice_pool.reset()
 
 	_state_mixer.set_layer_db(&"pad",   pad_db)
 	_state_mixer.set_layer_db(&"drums", drums_db)
 	_lead_gen.set_density(lead_calm, lead_battle)
+	_drums_gen.set_pattern(drum_pattern)
+	_bass_gen.set_pattern(bass_pattern)
+	_pad_gen.set_voicing(pad_voicing)
 	_sting_player.set_overrides(stings_override)
 
 	_apply_state(base_state)
@@ -223,12 +261,24 @@ func _on_main_menu_entered() -> void:
 	var seed_v: int = int(cfg.get("seed", 7777))
 	var bpm: float  = float(cfg.get("bpm", 72.0))
 	var state: StringName = StringName(cfg.get("base_state", "calm"))
+	var progression: StringName  = StringName(cfg.get("progression",  "am_f_c_g"))
+	var scale: StringName        = StringName(cfg.get("scale",        "natural_minor"))
+	var bars_per_chord: int      = int(cfg.get("bars_per_chord", 1))
+	var drum_pattern: StringName = StringName(cfg.get("drum_pattern", "march"))
+	var bass_pattern: StringName = StringName(cfg.get("bass_pattern", "root_fifth"))
+	var pad_voicing:  StringName = StringName(cfg.get("pad_voicing",  "triad"))
 
 	_rng.seed       = seed_v
 	_noise_rng.seed = seed_v + 1
 	_conductor.reset(bpm, seed_v)
 	_harmony.reset(seed_v)
+	_harmony.set_progression(progression)
+	_harmony.set_scale(scale)
+	_harmony.set_bars_per_chord(bars_per_chord)
 	_voice_pool.reset()
+	_drums_gen.set_pattern(drum_pattern)
+	_bass_gen.set_pattern(bass_pattern)
+	_pad_gen.set_voicing(pad_voicing)
 	_apply_state(state)
 	_ensure_playing()
 
