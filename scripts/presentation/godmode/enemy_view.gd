@@ -9,7 +9,6 @@ extends Actor
 ## On death, controller listens to `died` signal and removes from grid + scene.
 
 const _EnemyDataLoader := preload("res://scripts/core/actors/enemy_data_loader.gd")
-const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 ## Set by spawner BEFORE add_child so _ready picks up the right JSON.
 ## Default is &"" — a scene with no id will fall back to manekin defaults
