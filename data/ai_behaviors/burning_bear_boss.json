@@ -1,5 +1,5 @@
 {
-  "id": "default_melee",
+  "id": "burning_bear_boss",
   "rules": [
     {
       "condition": {
@@ -19,8 +19,31 @@
         "kind": "nearest_enemy"
       },
       "tag_priority": [
-        "damage",
-        "melee"
+        "melee",
+        "damage"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 10
+          },
+          {
+            "kind": "aoe_net_positive",
+            "check_radius": 1
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "ranged",
+        "damage"
       ],
       "min_skill_count": 1
     }

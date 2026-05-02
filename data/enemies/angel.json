@@ -11,6 +11,6 @@
     "angel_sharp_feathers",
     "angel_scorching_ray"
   ],
-  "behavior_id": "default_ranged",
-  "fallback_skill_id": "angel_sharp_feathers"
+  "behavior_id": "angel_ranged",
+  "fallback_skill_id": "angel_scorching_ray"
 }

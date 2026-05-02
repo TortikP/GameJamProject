@@ -11,5 +11,5 @@
     "monkey_business"
   ],
   "behavior_id": "default_melee",
-  "fallback_skill_id": "monkey_business"
+  "fallback_skill_id": "monkey_time"
 }

@@ -192,7 +192,7 @@ func _build_target_candidates(actor: Actor, selector: TargetSelector, ctx: Dicti
 		if src == null or not src.is_alive():
 			return []
 		return [src]
-	var want_allies: bool = selector is SelectorLowestHpAlly
+	var want_allies: bool = selector is SelectorLowestHpAlly or selector is SelectorHighestHpAlly  # 030 AC-PL1
 	var result: Array = []
 	for other_v in actors:
 		if not (other_v is Actor):
