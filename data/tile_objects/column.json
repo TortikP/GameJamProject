@@ -1,8 +1,7 @@
 {
-  "id": "bush",
-  "level": 0,
-  "blocks_movement": false,
-  "sprite_path": "",
+  "id": "column",
+  "level": 1,
+  "sprite_path": "res://assets/tiles/column.png",
 
   "breakable": false,
 
@@ -14,7 +13,7 @@
 
   "linger_effect_id": "",
 
-  "tags": ["plant", "flammable"],
+  "tags": ["stone", "construct"],
 
   "on_destroy_effect_id": "",
   "on_destroy_spawn_object_id": "",

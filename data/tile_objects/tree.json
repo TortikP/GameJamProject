@@ -1,7 +1,7 @@
 {
   "id": "tree",
   "level": -1,
-  "sprite_path": "",
+  "sprite_path": "res://assets/tiles/tree.png",
 
   "breakable": true,
   "hp": 3,
