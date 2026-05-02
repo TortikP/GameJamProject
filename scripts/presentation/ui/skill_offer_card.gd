@@ -20,7 +20,7 @@ extends PanelContainer
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-const CARD_MIN_SIZE: Vector2 = Vector2(220, 280)
+const CARD_MIN_SIZE: Vector2 = Vector2(200, 280)
 
 signal card_clicked(card_data: Dictionary)
 

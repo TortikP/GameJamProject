@@ -3,5 +3,5 @@
 [ext_resource type="Script" path="res://scripts/presentation/ui/skill_offer_card.gd" id="1_card"]
 
 [node name="SkillOfferCard" type="PanelContainer"]
-custom_minimum_size = Vector2(220, 280)
+custom_minimum_size = Vector2(200, 280)
 script = ExtResource("1_card")

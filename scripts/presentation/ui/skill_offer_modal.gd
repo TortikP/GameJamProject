@@ -71,12 +71,24 @@ func _build_tree() -> void:
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.add_child(_backdrop)
 
+	# CenterContainer auto-centers its single child regardless of child
+	# size — the previous PRESET_CENTER on the panel anchored its top-left
+	# at viewport center, growing right/down off-screen.
+	var centerer := CenterContainer.new()
+	centerer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	centerer.mouse_filter = Control.MOUSE_FILTER_PASS  # backdrop already stops
+	_root.add_child(centerer)
+
 	_center_panel = PanelContainer.new()
-	_center_panel.set_anchors_preset(Control.PRESET_CENTER)
 	_center_panel.add_theme_stylebox_override("panel", UiThemeScript.make_panel_stylebox(true))
+	# Cap horizontal size so wide pools (count=5) don't overflow at 1280.
+	# Cards are 220 each; with 3 cards + paddings we want ~720 max, with
+	# headroom for a 4th/5th card the cap of 1100 keeps content within
+	# the standard 1280 viewport with comfortable margins.
+	_center_panel.custom_minimum_size = Vector2(0, 0)
 	_center_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_center_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_root.add_child(_center_panel)
+	centerer.add_child(_center_panel)
 
 	_vbox = VBoxContainer.new()
 	_vbox.add_theme_constant_override("separation", UiThemeScript.SP_4)
@@ -97,10 +109,6 @@ func _build_tree() -> void:
 	_footer_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_footer_row.add_theme_constant_override("separation", UiThemeScript.SP_3)
 	_vbox.add_child(_footer_row)
-
-	# After build, the modal centers itself on the next frame once the
-	# panel has measured. Re-anchor in idle so it stays centered.
-	_center_panel.set_anchors_preset(Control.PRESET_CENTER)
 
 
 ## Public API — called by SkillOfferController.
