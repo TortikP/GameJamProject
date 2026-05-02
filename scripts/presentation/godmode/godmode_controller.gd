@@ -122,7 +122,7 @@ func _ready() -> void:
 	# 020 — if ActiveLevel.has_queued(), load that level instead of running
 	# the procedural _paint_grid + _place_player path. Falls through to the
 	# original flow on any load failure (logged warn, still playable).
-	grid.actor_step_started.connect(_on_step_started)
+	grid.actor_step_started.connect(step_animator._on_step_started)
 	var loaded_via_active_level: bool = false
 	if ActiveLevel.has_queued():
 		loaded_via_active_level = _try_load_queued_level()
@@ -1038,21 +1038,6 @@ func _on_actor_died(id: StringName) -> void:
 	_refresh_telegraphs()
 
 
-# ── Movement animation (mirror of arena_demo_controller) ─────────────────────
-
-func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> void:
-	var actor: Actor = registry.get_actor(actor_id)
-	if actor == null:
-		return
-	var pos: Vector2 = grid.tile_map_layer.map_to_local(to)
-	var duration: float = GameSpeed.get_value("arena", "step_duration", 0.18) * grid.get_move_cost(to)
-	create_tween().tween_property(actor, "position", pos, duration)
-	# 029 / req-7: barely-visible side-to-side sway on the actor's sprite
-	# during the step. Helper finds the conventional "Body" child sprite —
-	# leaves the actor's own position tween (above) and overhead UI alone.
-	ActorMotion.apply_step_sway(actor, duration)
-
-
 # ── AI ───────────────────────────────────────────────────────────────────────
 #
 # Two-stage per enemy on world_turn_ended:
@@ -1069,7 +1054,6 @@ func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> vo
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
 const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
-const ActorMotion = preload("res://scripts/infrastructure/actor_motion.gd")
 
 var _telegraph_hexes: Dictionary = {}  # Vector2i coord -> TelegraphHex node
 var _intent_arrows: Dictionary = {}    # StringName actor_id -> IntentArrow node
