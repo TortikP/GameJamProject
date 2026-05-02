@@ -102,8 +102,19 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	eff_area.apply_level(level)
 	_apply_param_modifiers(eff_area, modifiers)
 
+	# 041: CreateEffect operates per-hex (via ctx["target_coord"]) and doesn't
+	# need a victim. Detect upfront so empty-area on a hex-targeted ability
+	# (e.g. summon onto an empty hex) doesn't bail at the victims.is_empty()
+	# guard, and so multi-hex zones (zone_circle radius>1) spawn one entity
+	# per affected hex instead of N copies at the primary coord.
+	var has_create: bool = false
+	for e in effects:
+		if e is CreateEffect:
+			has_create = true
+			break
+
 	var victims: Array = eff_area.resolve(caster, primary, ctx)
-	if victims.is_empty():
+	if victims.is_empty() and not has_create:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
 		return false
 
@@ -124,14 +135,36 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 			if v != caster:
 				filtered.append(v)
 		victims = filtered
-	if victims.is_empty():
+	if victims.is_empty() and not has_create:
 		GameLogger.info("Ability", "%s: no victims after caster exclusion" % id)
 		return false
 
 	var target_ids: Array = []
 
+	# 041: CreateEffect hex-pass. Independent of victim iteration — drives
+	# spawn coord from area.get_affected_hexes() so an empty hex still fires
+	# and a multi-hex zone produces one entity per hex.
+	if has_create:
+		var grid: HexGrid = ctx.get("grid")
+		var caster_coord: Vector2i = Vector2i(-1, -1)
+		if grid != null and caster != null:
+			caster_coord = grid.get_coord(caster.actor_id)
+		var hexes: Array[Vector2i] = eff_area.get_affected_hexes(caster_coord, primary, grid)
+		for hex_coord in hexes:
+			var per_hex_ctx: Dictionary = ctx.duplicate()
+			per_hex_ctx["target_coord"] = hex_coord
+			for base_eff in effects:
+				if not base_eff is CreateEffect:
+					continue
+				var eff_dup_c: AbilityEffect = base_eff.duplicate()
+				eff_dup_c.apply_level(level)
+				_apply_param_modifiers(eff_dup_c, modifiers)
+				eff_dup_c.apply(caster, null, per_hex_ctx)
+
 	for victim in victims:
 		for base_eff in effects:
+			if base_eff is CreateEffect:
+				continue   # 041: handled by hex-pass above
 			var eff_dup: AbilityEffect = base_eff.duplicate()
 			eff_dup.apply_level(level)              # 021: level FIRST
 			_apply_param_modifiers(eff_dup, modifiers)  # then modifiers ON TOP
