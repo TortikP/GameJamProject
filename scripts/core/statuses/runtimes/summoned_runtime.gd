@@ -20,9 +20,11 @@ static func compute_snapshot(args: Array[int], _skill_level: int) -> int:
 
 
 ## Called when status is removed. If duration <= 0, this is a natural expire →
-## destroy actor via take_damage(hp) (routes through standard death pipeline →
-## actor_died → registry cleanup). If duration > 0, status was removed externally
-## (e.g. dispel, not implemented in 041) → don't kill, just log.
+## destroy actor via kill_with_reason (bypasses take_damage pipeline → ignores
+## shielded absorption / future damage_reduction tiers; summon timer must NOT
+## be cancellable by piling defensive buffs on the entity). If duration > 0,
+## status was removed externally (e.g. dispel, not implemented in 041) →
+## don't kill, just log.
 static func on_remove(actor: Actor, instance: StatusInstance) -> void:
 	if not actor.is_alive():
 		return  # already dead by combat; status removed via dead-cleanup, no-op
@@ -30,4 +32,4 @@ static func on_remove(actor: Actor, instance: StatusInstance) -> void:
 		GameLogger.info("SummonedRuntime", "%s summoned removed early (duration=%d) — not killing" % [actor.actor_id, instance.duration])
 		return
 	GameLogger.info("SummonedRuntime", "%s summoned expired — destroying" % actor.actor_id)
-	actor.take_damage(actor.hp)
+	actor.kill_with_reason("summon expired")
