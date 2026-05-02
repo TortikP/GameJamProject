@@ -1,0 +1,218 @@
+# 034 — Status-apply replan
+
+**Owner:** Egor
+**Upstream:** 027-status-effects (status runtime), 008-enemy-ai (intent contract).
+**Touches:**
+- `scripts/infrastructure/event_bus.gd` (new signal)
+- `scripts/core/actors/actor.gd` (emit on add_status)
+- `scripts/core/statuses/runtimes/slowed_runtime.gd` (rt_flag init)
+- `scripts/presentation/godmode/godmode_controller.gd` (replan listener + cosmetic stun-skip timer)
+
+## Problem
+
+Control statuses (rooted, stunned, feared, enraged, slowed) don't take effect
+on the turn they're applied. The enemy still moves and/or casts on the
+**first** `world_turn_ended` after apply, despite carrying the status with
+valid duration. Visible symptom Egor reported: enemy keeps moving on turn-1
+of rooted.
+
+### Why
+
+Per-turn loop in `godmode_controller._on_world_turn_ended` (~L1071):
+
+```
+_tick_all_statuses()        # decrements duration; on_turn_start runs
+_tick_all_skills()
+(player stun-skip branch)
+_run_enemy_turn():
+  Phase 1 RESOLVE: each enemy executes its move_intent_coord / cast_intent
+                   set during the PREVIOUS world_turn_ended Phase 2.
+  Phase 2 PLAN:    EnemyAIPlanner.plan() — checks is_stunned(), runs
+                   override_movement, sets fresh intents for next turn.
+```
+
+Player applies status during *their* turn — `Skill.cast` runs synchronously,
+`StatusEffect.apply → Actor.add_status → runtime.on_apply` all complete
+before `TurnManager.advance()`. By the time we hit `_on_world_turn_ended`,
+the status is on the actor — but the actor's intents from last Phase 2
+are still set. Phase 1 fires those stale intents.
+
+Phase 2 then correctly accounts for the new status — but the move/cast
+already happened.
+
+### Behavior we want (per Egor)
+
+When status changes the actor's available actions, the actor must
+**recompute** its plan immediately, not just drop the stale intent. If a
+rooted enemy can't move, it should try to cast from where it stands. If
+a stunned enemy can do nothing, it skips. If a feared enemy now wants to
+kite, it kites. If enraged charges source, it charges.
+
+This is exactly what `EnemyAIPlanner.plan(actor, ctx)` does given current
+state — so we re-call it on status apply.
+
+## Fix
+
+### 1. Replan signal
+
+Add `EventBus.actor_status_added(actor_id: StringName, status_id: StringName)`.
+`Actor.add_status` emits it after `on_apply` and `statuses_changed`, i.e.
+once the status is fully bound into the actor. Symmetric naming with
+existing `EventBus.actor_died`.
+
+### 2. Listener in godmode_controller
+
+```gdscript
+func _on_actor_status_added(actor_id: StringName, _status_id: StringName) -> void:
+    var actor: Actor = registry.get_actor(actor_id)
+    if actor == null or actor.team != &"enemy" or not actor.is_alive():
+        return
+    if _world_processing:
+        return  # mid-world-turn add (e.g. enemy A applies status on B during Phase 1)
+                # Phase 2 PLAN runs at end of _run_enemy_turn anyway and overwrites
+                # all intents — replanning here would be redundant work.
+    EnemyAIPlanner.plan(actor, _world_ctx())
+    _refresh_telegraphs()
+```
+
+`EnemyAIPlanner.plan()` already does what we want:
+- resets `cast_intent = null` and `move_intent_coord = (-1,-1)` at start, so stale intents die unconditionally
+- early-returns on `is_stunned()` (stunned actor's intents stay null → skip)
+- runs `override_movement` for every active status (rooted/slowed return hold sentinel → no move plan)
+- enriches ctx with `behavior_target_id` from feared/enraged source
+- iterates scenario rules with the current `behavior_id` (fear/rage scenario already swapped in by the runtime's `on_apply`)
+
+So the listener is one-line plumbing — all logic is already in plan().
+
+### 3. Slowed flip-flop init
+
+Slowed's `rt_flag` defaults to 0 (free) on a fresh `StatusInstance`. With the
+replan happening immediately on apply, the planner sees `rt_flag=0` and
+plans a normal move — meaning the apply turn would still end up with the
+actor moving on the next RESOLVE. To preserve "first turn slowed = no
+move", `slowed_runtime.on_apply` sets `instance.rt_flag = 1` (held).
+
+Trace with d=4:
+
+| step                      | rt_flag | dur | action |
+|---------------------------|---------|-----|--------|
+| apply (end of player turn)| 1 (set in on_apply) | 4 | replan: held, intent=null |
+| W1 tick                   | 1→0     | 4→3 | Phase 1: nothing. Phase 2: free, plan move |
+| W2 tick                   | 0→1     | 3→2 | Phase 1: W1 plan executes. **MOVES**. Phase 2: held |
+| W3 tick                   | 1→0     | 2→1 | Phase 1: nothing. Phase 2: free, plan move |
+| W4 tick                   | 0→1     | 1→0 (REMOVED) | Phase 1: W3 plan executes. **MOVES**. Phase 2: free (no slowed) |
+| W5 tick                   | —       | —   | normal |
+
+Net: slowed(d=4) → 2 movements at W2, W4. Apply turn (W1 RESOLVE) holds. ✓
+This collapses 027 §"Open after playtest" #7.
+
+### 4. Cosmetic stun-skip timer
+
+`godmode_controller.gd:1089`:
+
+```gdscript
+# was:
+await get_tree().create_timer(GameSpeed.get_value("arena", "stun_skip_delay", 0.4)).timeout
+# becomes:
+await GameSpeed.wait("arena", "stun_skip_delay", 0.4)
+```
+
+Same value, project-canonical helper. Per Egor's instruction, kept in this
+PR.
+
+## Why this shape (vs alternatives considered)
+
+- **Replan at apply, not at every status_changed.** Removal (expire) is
+  already handled correctly by Phase 2 PLAN at end of every world turn.
+  Replanning on remove would actually break duration semantics — e.g.
+  rooted(d=2) tick removes status on W2, replan would fire a move on W2
+  RESOLVE, costing one rooted turn.
+- **EventBus signal, not direct call from `Actor.add_status` to
+  `EnemyAIPlanner`.** CLAUDE.md hard rule: cross-system communication
+  goes through EventBus. Actor staying ignorant of AI is exactly the
+  layering this rule protects.
+- **Listener in godmode_controller, not in EnemyAIPlanner autoload.**
+  Replanning needs `_refresh_telegraphs()` (presentation) and `_world_ctx`
+  / `registry` / `grid` (controller-owned). Listener belongs where those
+  live. EnemyAIPlanner stays a pure plan(actor, ctx) function.
+- **No on_apply intent-clear hook.** `plan()` already nulls intents on
+  entry. Adding a separate clear is redundant with the replan.
+
+## Acceptance
+
+- **AC1** — rooted-on-enemy: cast `rooted(d=2)` on a manekin moving toward
+  the player. On the **next** `world_turn_ended`, manekin does not change
+  hex. If manekin has a damage skill in melee range AND adjacent to player,
+  it casts (rooted lets you swing in place). Otherwise no cast (skip).
+  After d turns, expires; manekin resumes moving.
+- **AC2** — stunned-on-enemy: cast `stunned(d=2)` on a manekin with a
+  planned cast telegraphed at the player. On next `world_turn_ended`:
+  telegraph cleared, no move, no cast. Repeats for d turns then expires.
+- **AC3** — feared-on-enemy: cast `feared(d=3, source=player)` on a manekin
+  that just planned `attack player`. Replan picks fear scenario
+  (`policy_kite_specific_actor`). On next `world_turn_ended`: manekin moves
+  AWAY from player, no attack. Until expire / source death.
+- **AC4** — enraged-on-enemy with two-target test: spawn manekins A and B.
+  A had planned `attack B`. Player casts `enraged(d=3)` on A with
+  `source=player`. Replan picks enraged scenario. On next `world_turn_ended`:
+  A moves toward player (or attacks if in range), ignores B. Until expire.
+- **AC5** — slowed flip-flop preserved: cast `slowed(d=4)` on a manekin
+  that just planned a move. On next `world_turn_ended`: manekin does not
+  move (replan with `rt_flag=1` plans nothing). Subsequent ticks alternate
+  per the table above. Expected total movements during d=4: 2.
+- **AC6** — re-apply: re-applying any control status before expire fires
+  the replan again with the refreshed instance (rt_flag back to its apply
+  value for slowed; behavior_id stays / re-swapped for feared/enraged).
+  Manekin's intents recomputed under current state.
+- **AC7** — non-control statuses unchanged: cast `poisoned`, `burning`,
+  `shielded`, `strong`, `weak`. Replan still fires (same listener), but
+  plan() makes the same decision because none of these affect plan logic.
+  No visible behavior regression. (Cost: one wasted plan per non-control
+  apply — bounded, fine for jam.)
+- **AC8** — replan skipped during world processing: enemy A's cast applies
+  status on enemy B during Phase 1 RESOLVE (`_world_processing == true`).
+  Listener bails. Phase 2 PLAN handles B normally. Verified by setting up
+  an enemy with a status-applying skill targeting another enemy and
+  watching logs (no extra "plan" log line during the resolve loop).
+- **AC9** — player not affected: applying any status to player does not
+  trigger replan (listener bails on `team != &"enemy"`). Player has no
+  plan to refresh anyway.
+- **AC10** — telegraph refresh: after applying any status to an enemy
+  during the player's turn, the enemy's telegraph (cast or movement
+  arrow) updates immediately to reflect the new plan. Verified visually
+  in godmode.
+- **AC11** — cosmetic: stun-skip uses `GameSpeed.wait("arena",
+  "stun_skip_delay", 0.4)`. Same delay, same behavior.
+
+## Out of scope
+
+- **Replan on status remove.** See "Why this shape" above.
+- **Batched telegraph refresh.** AoE that statuses N enemies fires N
+  signals → N replans → N refreshes. Bounded cost, fine for jam. If a
+  spike shows up at high enemy counts, defer the refresh to next process
+  frame — separate task.
+- **Stun(d=1) corner case.** Tick decrements 1→0 immediately, status
+  removed before RESOLVE. Effectively no-op. Designer-side issue (use
+  d≥2). Documented in 027; not enforced here.
+- **Phase ordering (RESOLVE-first vs PLAN-first).** Status quo correct
+  for 1-turn-ahead telegraph UX.
+- **`actor_status_removed` EventBus signal.** Could be added later if a
+  consumer needs it. Not used by this fix.
+- **Player's own intent fields.** Player input is realtime, no intent
+  buffer. Player stun/root handled at input-time elsewhere.
+- **028 / 030 spec numbers** stay unallocated (gap).
+
+## Risks
+
+- If a future status's `on_apply` transitively calls `add_status` (e.g. a
+  status that grafts another status onto the carrier), the EventBus
+  signal fires twice and replan runs twice in one frame. Plan() is
+  idempotent given fixed state — second replan computes the same intent.
+  Wasted CPU only. None of the current 11 statuses do this.
+- `_world_processing` guard is critical. Without it, an enemy applying a
+  status on another enemy during Phase 1 RESOLVE would replan the target
+  mid-loop, then Phase 2 PLAN would replan again, then Phase 1 RESOLVE
+  for that target… wait no, Phase 1 already happened for that target.
+  Still, guard avoids the redundant replan. If the guard ever silently
+  flips false during world processing, replan storms become possible.
+  Single owner of the flag (godmode_controller), low risk.
