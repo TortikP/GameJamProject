@@ -6,7 +6,7 @@ extends Node2D
 ## Set coord via `set_coord(c)`; pass Vector2i(-1, -1) to hide.
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
-const HEX_RADIUS: float = 60.0
+const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
 
 @export var grid: HexGrid
 
@@ -48,10 +48,10 @@ func has_coord() -> bool:
 func _draw() -> void:
 	if _coord == Vector2i(-1, -1):
 		return
-	var pts: PackedVector2Array = []
-	for i in 6:
-		var a: float = deg_to_rad(60.0 * i)
-		pts.append(Vector2(cos(a) * HEX_RADIUS, sin(a) * HEX_RADIUS))
+	if grid == null or grid.tile_map_layer == null or grid.tile_map_layer.tile_set == null:
+		return
+	var pts: PackedVector2Array = HexGeometry.flat_top_polygon(
+		Vector2(grid.tile_map_layer.tile_set.tile_size))
 	var fill: Color = Color(UiTheme.SEM_DAMAGE.r, UiTheme.SEM_DAMAGE.g, UiTheme.SEM_DAMAGE.b, 0.45)
 	var border: Color = Color(UiTheme.SEM_DAMAGE.r, UiTheme.SEM_DAMAGE.g, UiTheme.SEM_DAMAGE.b, 0.95)
 	draw_colored_polygon(pts, fill)
