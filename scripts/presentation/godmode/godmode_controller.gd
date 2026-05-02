@@ -476,6 +476,62 @@ func _update_castability() -> void:
 						zone_hexes.append(c)
 		_overlay.show_zone_preview(zone_hexes)
 
+	# 029 / bonus-2: hover-path preview. Show the route the player would take
+	# IFF the cursor is over a reachable hex (within effective_speed) AND
+	# isn't blocked. Skipped during cast FSM and stun — neither is "I'm
+	# considering moving here" mode. Path is recomputed via find_path_around
+	# with live actor blocks so it bends around enemies — same set the move
+	# zone was computed against, so reachability and path agree.
+	_refresh_hover_path(coord)
+
+
+## 029 / bonus-2: hover-path computation + push to overlay. Cheap when no
+## change (overlay early-returns on identical array) so calling per frame is OK.
+func _refresh_hover_path(hover_coord: Vector2i) -> void:
+	if _overlay == null or not _overlay.has_method("set_hover_path"):
+		return
+	if player == null or grid == null:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Skip during cast FSM (player is targeting, not considering movement) and
+	# during AI turns / stun.
+	if _cast_in_progress or _world_processing or player.is_stunned():
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	var from: Vector2i = grid.get_coord(player.actor_id)
+	if from == Vector2i(-1, -1) or hover_coord == Vector2i(-1, -1) or hover_coord == from:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	if not grid.is_walkable(hover_coord) or grid.get_actor_at(hover_coord) != &"":
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Build live actor-block list — same convention as _resolve_move_intent
+	# and the move-zone occupied list, so paths match the boundary visually.
+	var blocked: Array = []
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var a: Actor = actor_v
+		if a == player or not a.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(a.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	var path: Array = grid.find_path_around(from, hover_coord, blocked)
+	if path.size() < 2:
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Cap to effective_speed — only show preview if it's actually reachable
+	# THIS turn (path.size() - 1 = number of steps).
+	if path.size() - 1 > player.effective_speed():
+		_overlay.set_hover_path([] as Array[Vector2i])
+		return
+	# Re-type Array → Array[Vector2i] for the typed setter.
+	var typed: Array[Vector2i] = []
+	for c in path:
+		typed.append(c)
+	_overlay.set_hover_path(typed)
+
 	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
 	# Only fires for enemies that have a non-null cast_intent — moving-only
 	# turns or idle holds get no tooltip (nothing to telegraph). The hex

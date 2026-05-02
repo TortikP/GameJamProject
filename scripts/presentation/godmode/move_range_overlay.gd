@@ -55,6 +55,21 @@ var _attack_color: Color = Color.WHITE
 var _zone_preview: Array[Vector2i] = []
 var _zone_preview_color: Color = Color.WHITE
 
+# 029 / bonus-2: hover-path preview. Coords from the actor to the cursor's
+# hex (inclusive). Empty when the cursor isn't over a reachable hex (or hover
+# is on the actor's own coord). Pushed by godmode_controller every frame from
+# _update_castability.
+var _hover_path: Array[Vector2i] = []
+
+# 029 / bonus-3: breathing alpha on the move-zone boundary outline. Phase
+# advances in _process; alpha modulates as a sine across BREATH_PERIOD_S.
+# Costs one queue_redraw per frame while the zone is active — _draw is cheap
+# for typical zone sizes (~12 hexes × 6 edges = 72 line draws max).
+const BREATH_PERIOD_S: float = 1.6
+const BREATH_AMP: float = 0.18           # peak ± from mid-alpha
+const BREATH_MID_ALPHA: float = 0.78     # average alpha — boundary is ALWAYS visible
+var _breath_phase: float = 0.0
+
 
 func setup(grid: Node) -> void:
 	_grid = grid
@@ -63,6 +78,16 @@ func setup(grid: Node) -> void:
 func _ready() -> void:
 	z_index = 2
 	EventBus.ui_theme_reloaded.connect(queue_redraw)
+
+
+# 029 / bonus-3: advance breath phase + redraw while a zone is shown. No-op
+# when no zone — saves a per-frame draw call when the player has no movement
+# (cleared zone, e.g. during AI turn or stunned).
+func _process(delta: float) -> void:
+	if _zone_coords.is_empty():
+		return
+	_breath_phase += delta
+	queue_redraw()
 
 
 # ── Public API (same surface as before — controller calls untouched) ────────
@@ -84,13 +109,26 @@ func clear_zone_preview() -> void:
 	queue_redraw()
 
 
-## Wipe everything (move zone, attack range, AoE preview).
+## 029 / bonus-2: set hover-path preview — line through hex centers from the
+## actor to the hovered hex. Pass [] to clear. Caller pushes new coords every
+## frame; we no-op when unchanged to skip redundant queue_redraw calls (the
+## breathing _process triggers redraws anyway, so visual updates are immediate
+## either way).
+func set_hover_path(coords: Array[Vector2i]) -> void:
+	if _hover_path == coords:
+		return
+	_hover_path = coords
+	queue_redraw()
+
+
+## Wipe everything (move zone, attack range, AoE preview, hover path).
 func clear() -> void:
-	if _zone_coords.is_empty() and _attack_coords.is_empty() and _zone_preview.is_empty():
+	if _zone_coords.is_empty() and _attack_coords.is_empty() and _zone_preview.is_empty() and _hover_path.is_empty():
 		return
 	_zone_coords = {}
 	_attack_coords = []
 	_zone_preview = []
+	_hover_path = []
 	_self_coord = Vector2i(-1, -1)
 	queue_redraw()
 
@@ -166,6 +204,7 @@ func _draw() -> void:
 		return
 
 	# 1) Move zone — single boundary outline around the whole reachable region.
+	#    Alpha breathes via _breath_phase (bonus-3).
 	_draw_zone_outline(layer, corners)
 
 	# 2) Self-hex marker — small dot at actor center. Subtle, just a "you are
@@ -175,7 +214,14 @@ func _draw() -> void:
 		var center: Vector2 = layer.map_to_local(_self_coord)
 		draw_circle(center, 3.5, Color(UiTheme.SEM_HEAL.r, UiTheme.SEM_HEAL.g, UiTheme.SEM_HEAL.b, 0.9))
 
-	# 3) Attack-range — per-hex thin outlines (paint_preview style).
+	# 3) Hover-path preview (bonus-2). Drawn AFTER the zone outline (so the
+	#    line sits on top) but BEFORE attack/AoE outlines (so range overlays
+	#    aren't crossed by it). Skip when only one coord (player on themselves)
+	#    or empty.
+	if _hover_path.size() >= 2:
+		_draw_hover_path(layer)
+
+	# 4) Attack-range — per-hex thin outlines (paint_preview style).
 	var attack_line: Color = Color(_attack_color.r, _attack_color.g, _attack_color.b, 0.55)
 	for c in _attack_coords:
 		var cen: Vector2 = layer.map_to_local(c)
@@ -183,7 +229,7 @@ func _draw() -> void:
 			draw_line(cen + corners[i], cen + corners[(i + 1) % 6],
 					attack_line, 1.5, true)
 
-	# 4) AoE preview — per-hex thin outlines, slightly brighter alpha than
+	# 5) AoE preview — per-hex thin outlines, slightly brighter alpha than
 	#    attack range so the cursor-anchored preview pops over the static
 	#    range overlay underneath.
 	var aoe_line: Color = Color(_zone_preview_color.r, _zone_preview_color.g, _zone_preview_color.b, 0.80)
@@ -194,20 +240,26 @@ func _draw() -> void:
 					aoe_line, 2.0, true)
 
 
-## 029 / req-3: outline ONLY the boundary edges of the zone (not per-hex).
-## For each cell in the zone, for each of its 6 edges, draw the edge IFF
-## the neighbor on the other side of that edge is NOT in the zone. Result:
-## one continuous contour around the entire walkable region.
+## 029 / req-3 + bonus-3: outline ONLY the boundary edges of the zone (not
+## per-hex). For each cell in the zone, for each of its 6 edges, draw the
+## edge IFF the neighbor on the other side of that edge is NOT in the zone.
+## Result: one continuous contour around the entire walkable region.
+##
+## Bonus-3: alpha modulates as a sine across BREATH_PERIOD_S. Mid-alpha is
+## high enough that the contour is always clearly visible — the breathing is
+## a "this is alive UI" cue, not a flash that loses information.
 ##
 ## Cost: O(N * 6) where N = zone size. For typical reach (≤12 hexes) that's
-## ~72 edge tests per redraw — cheap. queue_redraw is only called on
-## show_for / theme reload, not per-frame.
+## ~72 edge tests per redraw. Now called per frame (breath), still cheap.
 func _draw_zone_outline(layer: TileMapLayer, corners: PackedVector2Array) -> void:
 	if _zone_coords.is_empty():
 		return
-	# Outline color: team color, high alpha so the contour reads clearly.
-	# Width 2.5 px reads as "intentional UI element" vs the 1.5 px brush outlines.
-	var outline: Color = Color(_zone_color.r, _zone_color.g, _zone_color.b, 0.90)
+	# Breathing alpha — sine across the full period, centered on
+	# BREATH_MID_ALPHA, peak ±BREATH_AMP. Width 2.5 px reads as "intentional
+	# UI element" vs the 1.5 px brush outlines below.
+	var t: float = (_breath_phase / BREATH_PERIOD_S) * TAU
+	var alpha: float = clampf(BREATH_MID_ALPHA + BREATH_AMP * sin(t), 0.0, 1.0)
+	var outline: Color = Color(_zone_color.r, _zone_color.g, _zone_color.b, alpha)
 	for coord_v in _zone_coords.keys():
 		var coord: Vector2i = coord_v
 		var center: Vector2 = layer.map_to_local(coord)
@@ -219,3 +271,23 @@ func _draw_zone_outline(layer: TileMapLayer, corners: PackedVector2Array) -> voi
 			# Boundary edge — draw it.
 			draw_line(center + corners[edge_idx], center + corners[(edge_idx + 1) % 6],
 					outline, 2.5, true)
+
+
+## 029 / bonus-2: draw a thin polyline through hex centers along _hover_path.
+## Source coord is the actor (path[0]), terminal is the hovered hex
+## (path[-1]). Color: team-color for cohesion with the zone outline. Endpoint
+## gets a small filled disc to make "this is where you'd land" unambiguous.
+func _draw_hover_path(layer: TileMapLayer) -> void:
+	if _hover_path.size() < 2:
+		return
+	# Polyline. polyline draw call would also work but draws unsmoothed —
+	# explicit per-segment draw_line lets us pass antialiased=true cheaply.
+	var col: Color = Color(_zone_color.r, _zone_color.g, _zone_color.b, 0.85)
+	for i in range(1, _hover_path.size()):
+		var a: Vector2 = layer.map_to_local(_hover_path[i - 1])
+		var b: Vector2 = layer.map_to_local(_hover_path[i])
+		draw_line(a, b, col, 2.0, true)
+	# Endpoint marker — small filled disc at the destination so the eye lands
+	# on "I will be HERE" without parsing the polyline.
+	var end_pos: Vector2 = layer.map_to_local(_hover_path[_hover_path.size() - 1])
+	draw_circle(end_pos, 4.5, Color(_zone_color.r, _zone_color.g, _zone_color.b, 0.95))
