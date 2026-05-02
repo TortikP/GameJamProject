@@ -74,6 +74,13 @@ var _placing_spawner_kind: StringName = &""
 var _placing_spawner_ref: StringName = &""
 var _dirty: bool = false
 
+# Drag-paint state (T-02): LMB held + last coord painted, anti-dup at micro-motion
+var _lmb_held: bool = false
+var _last_paint_coord: Vector2i = Vector2i(-1, -1)
+
+# Silent-reject occupied-toast debounce (T-04): suppress spam during drag-paint
+var _occupied_toast_until_msec: int = 0
+
 
 func _ready() -> void:
 	# 1. Resolve nodes
@@ -240,17 +247,47 @@ func get_level() -> LevelData:
 # ── Input ───────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_lmb_held = true
+				_last_paint_coord = Vector2i(-1, -1)
+				if coord != Vector2i(-1, -1):
+					_handle_lmb(coord)
+					_last_paint_coord = coord
+				get_viewport().set_input_as_handled()
+			else:
+				if _lmb_held:
+					_lmb_held = false
+					_last_paint_coord = Vector2i(-1, -1)
+		elif mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
+			if coord == Vector2i(-1, -1):
+				return
+			_handle_rmb(coord)
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and _lmb_held:
+		if not _is_drag_paint_mode():
+			return
 		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
 		if coord == Vector2i(-1, -1):
 			return
-		if mb.button_index == MOUSE_BUTTON_LEFT:
-			_handle_lmb(coord)
-			get_viewport().set_input_as_handled()
-		elif mb.button_index == MOUSE_BUTTON_RIGHT:
-			_handle_rmb(coord)
-			get_viewport().set_input_as_handled()
+		if coord != _last_paint_coord:
+			_paint_at(coord)
+			_last_paint_coord = coord
+
+
+## Drag-paint allowed for placing-floor / erasing / placing-object / placing
+## non-player spawner. Player spawner is a singleton — no drag.
+func _is_drag_paint_mode() -> bool:
+	match _mode:
+		Mode.PLACING_FLOOR, Mode.ERASING_FLOOR, Mode.PLACING_OBJECT:
+			return true
+		Mode.PLACING_SPAWNER:
+			return _placing_spawner_kind != &"player"
+		_:
+			return false
 
 
 # ── LMB — placement table ───────────────────────────────────────────────────
@@ -258,6 +295,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_lmb(coord: Vector2i) -> void:
 	# LMB always cancels pending delete (regardless of mode).
 	_clear_pending_delete()
+	_paint_at(coord)
+
+
+## Pure paint operation — no input-side-effects (pending-delete clear, etc.).
+## Safe to call multiple times during a drag-paint without retriggering them.
+func _paint_at(coord: Vector2i) -> void:
 	match _mode:
 		Mode.IDLE:
 			pass  # drag-existing is P3 stretch (T019)
@@ -306,10 +349,10 @@ func _erase_floor(coord: Vector2i) -> void:
 
 func _place_object(coord: Vector2i, object_id: StringName) -> void:
 	if not _is_floor_painted(coord):
-		EventBus.ui_toast_requested.emit("Сначала нарисуй пол", 1.5, &"warn")
+		_emit_occupied_toast("Сначала нарисуй пол")
 		return
 	if _has_object_at(coord) or _has_spawner_at(coord):
-		_show_occupied_modal()
+		_emit_occupied_toast("Занято")
 		return
 	_level.objects.append({"coord": coord, "object_id": object_id})
 	if _objects_overlay != null and _objects_overlay.has_method("set_object"):
@@ -319,10 +362,10 @@ func _place_object(coord: Vector2i, object_id: StringName) -> void:
 
 func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 	if not _is_floor_painted(coord):
-		EventBus.ui_toast_requested.emit("Сначала нарисуй пол", 1.5, &"warn")
+		_emit_occupied_toast("Сначала нарисуй пол")
 		return
 	# Player spawner is a singleton — placing while one exists fades the old
-	# out. Other collisions (object, enemy) → modal.
+	# out. Other collisions (object, enemy) → silent reject (toast).
 	if kind == &"player":
 		var existing_player_coord: Vector2i = _find_player_spawner()
 		if existing_player_coord != Vector2i(-1, -1):
@@ -332,11 +375,11 @@ func _place_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 			_remove_spawner_at(existing_player_coord)
 		# Even player spawner can't go on top of an object or enemy.
 		if _has_object_at(coord) or _has_spawner_at(coord):
-			_show_occupied_modal()
+			_emit_occupied_toast("Занято")
 			return
 	else:
 		if _has_object_at(coord) or _has_spawner_at(coord):
-			_show_occupied_modal()
+			_emit_occupied_toast("Занято")
 			return
 	_level.spawners.append({"coord": coord, "kind": kind, "ref": ref})
 	if _spawners_overlay != null and _spawners_overlay.has_method("set_spawner"):
@@ -427,12 +470,14 @@ func _remove_spawner_at(coord: Vector2i) -> void:
 		_spawners_overlay.clear_spawner(coord)
 
 
-func _show_occupied_modal() -> void:
-	if _confirm_modal == null or not _confirm_modal.has_method("ask"):
-		EventBus.ui_toast_requested.emit("Тайл занят", 1.5, &"warn")
+## Silent-reject feedback. Single toast per ~800ms window — during drag-paint
+## across occupied cells we don't want a stream of warnings, just the first one.
+func _emit_occupied_toast(text: String) -> void:
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms < _occupied_toast_until_msec:
 		return
-	# Fire-and-forget — single OK button (use same label for both)
-	_confirm_modal.ask("Тайл занят", "На этом гексе уже есть объект или спавнер.", "OK", "OK", false)
+	_occupied_toast_until_msec = now_ms + 800
+	EventBus.ui_toast_requested.emit(text, 1.0, &"info")
 
 
 # ── Dirty / autosave ────────────────────────────────────────────────────────
