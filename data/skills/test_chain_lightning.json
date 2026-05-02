@@ -14,12 +14,10 @@
       },
       "effects": [
         {
-          "duration": 0,
           "damage": 10
         },
         {
-          "duration": 1,
-          "status": "stun"
+          "status": "stunned(2)"
         }
       ],
       "modifiers": []

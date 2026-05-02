@@ -17,7 +17,6 @@
       },
       "effects": [
         {
-          "duration": 0,
           "damage": 4
         }
       ],

@@ -35,6 +35,9 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 	# 027 / AC-AI3: enrich ctx with behavior_target_id from active feared/enraged.
 	# Mutual exclusivity (AC-RA3) means at most one is active. Enraged checked
 	# first — but in practice add_status enforces only-one, so order is moot.
+	# CTX is shared across iterations in godmode_controller's enemy loop; we
+	# must clear stale state from the previous enemy before setting (or not).
+	ctx.erase("behavior_target_id")
 	var bid: StringName = &""
 	var enr: StatusInstance = actor.get_status(&"enraged")
 	if enr != null:

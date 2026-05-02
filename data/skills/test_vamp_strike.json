@@ -14,7 +14,6 @@
       },
       "effects": [
         {
-          "duration": 0,
           "damage": 100
         }
       ],
@@ -30,7 +29,6 @@
       },
       "effects": [
         {
-          "duration": 0,
           "heal": 50
         }
       ],

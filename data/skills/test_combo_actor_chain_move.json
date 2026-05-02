@@ -25,11 +25,9 @@
       },
       "effects": [
         {
-          "duration": 0,
           "damage": 4
         },
         {
-          "duration": 0,
           "move_type": "push",
           "move_distance": 2
         }

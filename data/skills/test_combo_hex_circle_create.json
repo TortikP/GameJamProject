@@ -23,7 +23,6 @@
       },
       "effects": [
         {
-          "duration": 0,
           "entity_id": "swarm"
         }
       ],
