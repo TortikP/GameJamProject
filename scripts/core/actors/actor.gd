@@ -27,6 +27,12 @@ signal statuses_changed(actor_id: StringName)
 @export var speed: int = 1                  # hex steps per turn (0 = immobile)
 @export var damage_bonus: int = 0           # flat bonus added to any DamageEffect cast by this actor
 
+## 037: status ids this actor refuses to receive. Checked in add_status — listed
+## ids never apply (no on_apply, no statuses_changed, no EventBus emit). Symmetric:
+## player sets [&"stunned"] in player.tscn; enemies can opt out of feared/enraged/etc
+## via their own scene or (future) JSON data. Empty by default.
+@export var status_immunities: Array[StringName] = []
+
 var hp: int = 0
 var _dead: bool = false
 var _ability_ids: Array[StringName] = []
@@ -186,6 +192,13 @@ func heal_to_full() -> void:
 ## the new one. Emits statuses_changed once.
 func add_status(instance: StatusInstance) -> void:
 	if instance == null or instance.status_id == &"":
+		return
+	# 037: immunity guard — refuse listed status_ids before any side effects.
+	# Order matters: must run BEFORE the _BEHAVIOR_OVERRIDE_IDS removal block,
+	# otherwise we'd evict an existing feared to make room for a stunned we
+	# then refuse. info-level log: this is expected behavior, not an error.
+	if instance.status_id in status_immunities:
+		GameLogger.info("Actor", "%s immune to %s — refused" % [actor_id, instance.status_id])
 		return
 	# Mutual exclusivity for behavior-override statuses.
 	if instance.status_id in _BEHAVIOR_OVERRIDE_IDS:
