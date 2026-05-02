@@ -96,6 +96,24 @@ Manual via godmode (no automated tests in repo).
 - [ ] **F6** — AC-F2b (enraged adjacent → casts immediately).
 - [ ] **F7** — AC-F3a/b/c (duration display shows every intermediate
   value; slowed-only stale bug gone).
+- [x] **F8** — `scripts/core/ai/policies/policy_kite_specific_actor.gd`:
+  swap 1-ring iteration for `HexGrid.reachable_within(my_coord, speed, occupied)`,
+  pick coord that maximises distance from source. Strict `>` for BFS-order
+  tiebreak (cheapest path among ties). (Bug F4.)
+- [x] **F9** — `scripts/core/ai/policies/policy_kite_from_nearest_enemy.gd`:
+  same change, score = min-distance to ANY opposing actor. Mirror of F8.
+- [ ] **F10** — Manual: AC-F4 (feared manekin with `speed=5` kites 5
+  hexes/turn from player).
+- [x] **F11** — `scripts/core/abilities/ability_database.gd`: replace
+  `_make_status_effect` (singular) with `_make_status_effects` (plural,
+  returns Array). Add `_split_top_level_commas` paren-aware splitter.
+  Caller in `_make_effects_from_dict` switches to `out.append_array(...)`.
+  Backward-compatible (single-status JSONs unchanged).
+- [x] **F12** — `data/skills/test_status_multi.json`: minimal test skill
+  with `"status_id": "rooted(2), slowed(3)"` for AC-F5a manual run.
+- [ ] **F13** — Manual: AC-F5a (cast test_status_multi → both statuses
+  on target). AC-F5b (paper_jam still works). AC-F5c (garbled list logs
+  bad part, applies good).
 
 ## Out
 

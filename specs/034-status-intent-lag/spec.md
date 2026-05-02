@@ -302,3 +302,62 @@ double-emit on expire turns). UI now refreshes every tick.
   across consecutive world turns, then disappears.
 - **AC-F3c**: No double-rebuild of pill strip on expire turns (manual:
   inspect logs / expect no flicker).
+
+### F4 — kite policies ignored actor.effective_speed()
+
+**Symptom:** feared enemy with `speed=5` kites only 1 hex per turn.
+The status reads as "barely working" — manekin runs, but slowly.
+
+**Cause:** `PolicyKiteSpecificActor.pick_step` (and `PolicyKiteFromNearestEnemy.pick_step`)
+iterate only the 6 immediate neighbours of the actor's current coord and
+pick the best one. `actor.effective_speed()` is never read. Mismatch with
+the approach policies, which were updated in 029/req-5 to walk up to
+`effective_speed` along the shortest path.
+
+**Fix:** use `HexGrid.reachable_within(my_coord, effective_speed, occupied)`
+to enumerate every coord reachable within the speed budget; pick the one
+that maximises distance from source (kite_specific) or from the nearest
+opposing actor (kite_from_nearest). BFS yields candidates ring-by-ring,
+so strict `>` comparison naturally takes the cheapest path among ties.
+Resolver's existing `find_path_around` then walks the shortest path to
+the chosen destination.
+
+**Touches:** `scripts/core/ai/policies/policy_kite_specific_actor.gd`,
+`scripts/core/ai/policies/policy_kite_from_nearest_enemy.gd`.
+
+**AC-F4**: Spawn a manekin with `speed=5`, apply `feared(d=3, source=player)`.
+On next world turn, manekin moves 5 hexes away from player (capped by
+arena bounds / walls). No cast.
+
+### F5 — multi-status syntax in JSON
+
+**Need:** one effect dict applies several statuses in one go, instead of
+splitting them across multiple ability stages or one effect-key per
+status. Designer-side ergonomics — collapses paper_jam-style stacks.
+
+**Format:**
+```json
+"effects": [{"status_id": "rooted(2), slowed(3)"}]
+```
+
+Backward-compatible — single-status legacy `"burning(2, 3, 1)"` has zero
+top-level commas, splits to one element, parses as before.
+
+**Implementation:** `AbilityDatabase._make_status_effect` (singular)
+becomes `_make_status_effects` (plural, returns Array). New helper
+`_split_top_level_commas(s)` does paren-depth-aware splitting so commas
+inside `(2, 3, 1)` aren't mistaken for status separators. Each part
+runs through the existing `_parse_status_string` + arity check; bad
+parts log + drop, good parts append to the effect list.
+
+**Touches:** `scripts/core/abilities/ability_database.gd`,
+`data/skills/test_status_multi.json` (new — uses `"rooted(2), slowed(3)"`
+in one effect for AC-F5 verification).
+
+**AC-F5a**: Cast `test_status_multi` on a manekin. Manekin gains both
+rooted and slowed, with correct durations (2 and 3). Both pills visible.
+**AC-F5b**: Existing single-status JSONs (`paper_jam`, `ball_throw`,
+`spores`, `curse`, `honey_cold`, `staple_shot`) parse and apply
+unchanged.
+**AC-F5c**: Malformed entry in the list (e.g. `"rooted(2), garbage(x)"`)
+logs a warn for the bad part and applies the good one anyway.

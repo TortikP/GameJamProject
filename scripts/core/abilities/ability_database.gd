@@ -250,9 +250,11 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 			continue
 		if key == "status_id":
 			# 027/031: special parser for "id(args)" inline encoding.
-			var eff := _make_status_effect(data[key], ability_id)
-			if eff != null:
-				out.append(eff)
+			# 034: value may be a comma-separated list at top level —
+			# "rooted(2), slowed(3)" applies both statuses from one effect.
+			# Single-status legacy "burning(2, 3, 1)" is unaffected (no
+			# top-level comma → split returns 1 element).
+			out.append_array(_make_status_effects(data[key], ability_id))
 			continue
 		# Defensive type pattern (CLAUDE.md trap #6): Variant→Object→cast.
 		var script_v: Variant = EFFECT_KIND_BY_KEY[key]
@@ -273,16 +275,51 @@ func _make_effects_from_dict(data: Dictionary, ability_id: String) -> Array[Abil
 	return out
 
 
-# 027: parse `"id(d, a1, a2, ...)"` into a StatusEffect. Returns null on any
-# malformed input (bad shape, unknown id, arity mismatch) — callers append
-# only when non-null.
-func _make_status_effect(value: Variant, ability_id: String) -> StatusEffect:
+# 027: parse `"id(d, a1, a2, ...)"` into a StatusEffect.
+# 034: extended to accept multiple statuses separated by top-level commas:
+#   "rooted(2), slowed(3)"  → [StatusEffect(rooted), StatusEffect(slowed)]
+#   "burning(2, 3, 1)"      → [StatusEffect(burning)]   (legacy single)
+# Returns Array — empty on malformed/unknown/arity-mismatched input (each
+# bad part logs a warn and is dropped; the others survive).
+func _make_status_effects(value: Variant, ability_id: String) -> Array[StatusEffect]:
+	var out: Array[StatusEffect] = []
 	if not (value is String):
 		GameLogger.warn("AbilityDatabase", "%s: status value must be string, got %s" % [ability_id, type_string(typeof(value))])
-		return null
-	var parsed: Dictionary = _parse_status_string(value as String)
+		return out
+	for part in _split_top_level_commas(value as String):
+		var trimmed: String = (part as String).strip_edges()
+		if trimmed.is_empty():
+			continue
+		var eff: StatusEffect = _build_one_status_effect(trimmed, ability_id)
+		if eff != null:
+			out.append(eff)
+	return out
+
+
+# Paren-depth-aware split. Commas inside `(...)` belong to status args
+# ("burning(2, 3, 1)" — comma between 2 and 3 is internal). Only commas
+# at depth 0 separate status applications.
+func _split_top_level_commas(s: String) -> Array:
+	var out: Array = []
+	var depth: int = 0
+	var start: int = 0
+	for i in s.length():
+		var c: String = s[i]
+		if c == "(":
+			depth += 1
+		elif c == ")":
+			depth -= 1
+		elif c == "," and depth == 0:
+			out.append(s.substr(start, i - start))
+			start = i + 1
+	out.append(s.substr(start))
+	return out
+
+
+func _build_one_status_effect(s: String, ability_id: String) -> StatusEffect:
+	var parsed: Dictionary = _parse_status_string(s)
 	if parsed.is_empty():
-		GameLogger.warn("AbilityDatabase", "%s: malformed status string '%s' (expected 'id(n0, n1, ...)')" % [ability_id, value])
+		GameLogger.warn("AbilityDatabase", "%s: malformed status string '%s' (expected 'id(n0, n1, ...)')" % [ability_id, s])
 		return null
 	var id: StringName = parsed["id"]
 	var args: Array[int] = parsed["args"]
