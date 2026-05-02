@@ -3,7 +3,7 @@ extends Node2D
 ## one redraw per coord change. Pattern follows hex_cursor.gd.
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
-const HEX_RADIUS: float = 60.0  # matches hex_cursor / move_range_overlay convention
+const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
 
 @export var grid: HexGrid
 
@@ -31,10 +31,12 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
+	if grid == null or grid.tile_map_layer == null or grid.tile_map_layer.tile_set == null:
+		return
 	var color: Color = Color(UiTheme.FOCUS.r, UiTheme.FOCUS.g, UiTheme.FOCUS.b, 0.75)
+	var corners: PackedVector2Array = HexGeometry.flat_top_polygon(
+		Vector2(grid.tile_map_layer.tile_set.tile_size))
 	for i in 6:
-		var a1: float = deg_to_rad(60.0 * i)
-		var a2: float = deg_to_rad(60.0 * (i + 1))
-		var p1 := Vector2(cos(a1) * HEX_RADIUS, sin(a1) * HEX_RADIUS)
-		var p2 := Vector2(cos(a2) * HEX_RADIUS, sin(a2) * HEX_RADIUS)
+		var p1: Vector2 = corners[i]
+		var p2: Vector2 = corners[(i + 1) % 6]
 		draw_line(p1, p2, color, 2.0, true)
