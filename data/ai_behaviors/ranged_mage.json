@@ -3,16 +3,25 @@
   "rules": [
     {
       "condition": {
-        "kind": "no_enemy_in_range",
-        "distance": 2
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 4
+          },
+          {
+            "kind": "unclaimed_hex_exists_near_enemy",
+            "distance": 2
+          }
+        ]
       },
       "target_selector": {
-        "kind": "nearest_enemy"
+        "kind": "player_escape_hex"
       },
       "tag_priority": [
-        "damage",
         "damage_aoe",
-        "debuff"
+        "damage",
+        "ranged"
       ],
       "min_skill_count": 1
     },
@@ -22,7 +31,7 @@
         "children": [
           {
             "kind": "enemy_in_range",
-            "distance": 2
+            "distance": 4
           },
           {
             "kind": "unclaimed_hex_exists_near_enemy",
@@ -35,7 +44,8 @@
       },
       "tag_priority": [
         "damage_aoe",
-        "damage"
+        "damage",
+        "ranged"
       ],
       "min_skill_count": 1
     },
@@ -50,6 +60,7 @@
       "tag_priority": [
         "damage",
         "damage_aoe",
+        "ranged",
         "debuff"
       ],
       "min_skill_count": 1

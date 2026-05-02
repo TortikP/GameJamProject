@@ -190,6 +190,7 @@ func _build_condition(data: Variant, scenario_id: String, composers_allowed: boo
 			n.child = _build_condition(data.get("child", {}), scenario_id, false)
 			return n
 		# 030 additions
+		"ally_exists": return ConditionAllyExists.new()
 		"unclaimed_hex_exists_near_enemy":
 			var c10 := ConditionUnclaimedHexExistsNearEnemy.new()
 			c10.distance = int(data.get("distance", 1))
@@ -220,6 +221,11 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		# 030 additions
 		"unclaimed_hex_near_enemy": return SelectorUnclaimedHexNearEnemy.new()
 		"highest_hp_ally":          return SelectorHighestHpAlly.new()
+		"player_escape_hex":        return SelectorPlayerEscapeHex.new()
+		"hex_with_most_wounded_allies":
+			var s_hw := SelectorHexWithMostWoundedAllies.new()
+			s_hw.wounded_threshold = float(data.get("wounded_threshold", 0.7))
+			return s_hw
 		"target_without_status":
 			var s := SelectorTargetWithoutStatus.new()
 			s.status_id = StringName(data.get("status_id", ""))
@@ -247,6 +253,12 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 			p.desired_min = int(data.get("desired_min", 2))
 			p.desired_max = int(data.get("desired_max", 3))
 			return p
+		"support_kite":
+			var p_sk := PolicySupportKite.new()
+			p_sk.ally_hp_threshold = float(data.get("ally_hp_threshold", 0.4))
+			p_sk.heal_range = int(data.get("heal_range", 2))
+			p_sk.safe_ally_range = int(data.get("safe_ally_range", 3))
+			return p_sk
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()

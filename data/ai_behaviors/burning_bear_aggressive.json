@@ -33,5 +33,5 @@
   "movement_policy": {
     "kind": "approach_nearest_enemy_unclaimed"
   },
-  "fallback_skill_id": ""
+  "fallback_skill_id": "burning_bear_tire_throw"
 }

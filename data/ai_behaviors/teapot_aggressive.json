@@ -16,11 +16,32 @@
         ]
       },
       "target_selector": {
+        "kind": "player_escape_hex"
+      },
+      "tag_priority": [
+        "ranged"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "enemy_in_range",
+            "distance": 5
+          },
+          {
+            "kind": "unclaimed_hex_exists_near_enemy",
+            "distance": 2
+          }
+        ]
+      },
+      "target_selector": {
         "kind": "unclaimed_hex_near_enemy"
       },
       "tag_priority": [
-        "ranged",
-        "damage"
+        "ranged"
       ],
       "min_skill_count": 1
     },
@@ -33,8 +54,7 @@
         "kind": "nearest_enemy"
       },
       "tag_priority": [
-        "ranged",
-        "damage"
+        "ranged"
       ],
       "min_skill_count": 1
     },
@@ -52,7 +72,9 @@
     }
   ],
   "movement_policy": {
-    "kind": "approach_nearest_enemy"
+    "kind": "maintain_range",
+    "desired_min": 2,
+    "desired_max": 4
   },
-  "fallback_skill_id": ""
+  "fallback_skill_id": "teapot_spill_the_t"
 }

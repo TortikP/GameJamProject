@@ -16,9 +16,17 @@
     },
     {
       "condition": {
-        "kind": "ally_hp_below",
-        "pct": 50,
-        "distance": 2
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "ally_exists"
+          },
+          {
+            "kind": "ally_hp_below",
+            "pct": 50,
+            "distance": 2
+          }
+        ]
       },
       "target_selector": {
         "kind": "lowest_hp_ally"
@@ -30,7 +38,7 @@
     },
     {
       "condition": {
-        "kind": "always"
+        "kind": "ally_exists"
       },
       "target_selector": {
         "kind": "highest_hp_ally"
@@ -42,7 +50,8 @@
     },
     {
       "condition": {
-        "kind": "always"
+        "kind": "enemy_in_range",
+        "distance": 4
       },
       "target_selector": {
         "kind": "nearest_enemy"

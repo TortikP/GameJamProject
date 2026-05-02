@@ -24,14 +24,28 @@
       },
       "tag_priority": [
         "damage",
-        "damage_aoe",
+        "ranged",
         "debuff"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "always"
+      },
+      "target_selector": {
+        "kind": "self"
+      },
+      "tag_priority": [
+        "buff"
       ],
       "min_skill_count": 1
     }
   ],
   "movement_policy": {
-    "kind": "approach_nearest_enemy"
+    "kind": "maintain_range",
+    "desired_min": 2,
+    "desired_max": 3
   },
-  "fallback_skill_id": ""
+  "fallback_skill_id": "bear_ball_throw"
 }

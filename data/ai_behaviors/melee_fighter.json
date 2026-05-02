@@ -10,8 +10,23 @@
         "kind": "nearest_enemy"
       },
       "tag_priority": [
+        "melee",
         "damage",
-        "knockback"
+        "damage_aoe"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 3
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "damage_aoe"
       ],
       "min_skill_count": 1
     }

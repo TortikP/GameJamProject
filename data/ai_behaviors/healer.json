@@ -16,12 +16,20 @@
     },
     {
       "condition": {
-        "kind": "ally_hp_below",
-        "pct": 60,
-        "distance": 3
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "ally_exists"
+          },
+          {
+            "kind": "ally_hp_below",
+            "pct": 60,
+            "distance": 3
+          }
+        ]
       },
       "target_selector": {
-        "kind": "lowest_hp_ally"
+        "kind": "hex_with_most_wounded_allies"
       },
       "tag_priority": [
         "heal"
@@ -30,7 +38,8 @@
     },
     {
       "condition": {
-        "kind": "always"
+        "kind": "enemy_in_range",
+        "distance": 3
       },
       "target_selector": {
         "kind": "nearest_enemy"
@@ -42,7 +51,10 @@
     }
   ],
   "movement_policy": {
-    "kind": "follow_lowest_hp_ally"
+    "kind": "support_kite",
+    "ally_hp_threshold": 0.4,
+    "heal_range": 2,
+    "safe_ally_range": 3
   },
   "fallback_skill_id": ""
 }
