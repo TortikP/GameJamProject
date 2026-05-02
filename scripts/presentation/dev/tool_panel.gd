@@ -82,7 +82,13 @@ func _build_ui() -> void:
 	_size_spin.max_value = MAX_SIZE
 	_size_spin.step = 1
 	_size_spin.value = 1
-	_size_spin.custom_minimum_size = Vector2(64, 0)
+	_size_spin.editable = true
+	_size_spin.update_on_text_changed = true
+	# 64px was tight — +/- arrows were nearly invisible. ~104 leaves room
+	# for a 2-digit value plus visible arrows even at default theme metrics.
+	_size_spin.custom_minimum_size = Vector2(104, 0)
+	_size_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_size_spin.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_size_spin.value_changed.connect(_on_size_changed)
 	size_row.add_child(_size_spin)
 	vbox.add_child(size_row)
@@ -111,11 +117,13 @@ func _make_mode_btn(text: String, tool: int, default_pressed: bool) -> Button:
 
 func _on_mode_pressed(tool: int, btn: Button) -> void:
 	# Force toggle group (ButtonGroup would also work but is overkill for 2).
+	# set_pressed_no_signal on the OTHER button — un-press shouldn't re-fire
+	# anything; we already know which mode the user picked.
 	btn.button_pressed = true
 	if tool == TOOL_BRUSH:
-		_rect_btn.button_pressed = false
+		_rect_btn.set_pressed_no_signal(false)
 	else:
-		_brush_btn.button_pressed = false
+		_brush_btn.set_pressed_no_signal(false)
 	if tool == _current_tool:
 		return
 	_current_tool = tool

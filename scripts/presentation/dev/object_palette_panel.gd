@@ -243,9 +243,11 @@ func _on_object_pressed(object_id: StringName, btn: Button) -> void:
 
 
 func _untoggle_others(self_btn: Button) -> void:
+	# set_pressed_no_signal: don't re-fire 'pressed' on every other toggle —
+	# Godot will otherwise cascade into unintended slot-handler calls.
 	for child in _content.get_children():
 		if child is Button and child != self_btn:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 
 
 func _install_drag(handle: Control) -> void:

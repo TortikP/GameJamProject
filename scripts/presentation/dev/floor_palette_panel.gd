@@ -103,10 +103,13 @@ func _on_tileset_selected(idx: int) -> void:
 
 
 func _on_erase_pressed() -> void:
-	# Untoggle other tile buttons (visual feedback only)
+	# Untoggle other tile buttons (visual feedback only). set_pressed_no_signal
+	# prevents Godot from re-firing 'pressed' on the buttons we're resetting,
+	# which in toggle-mode can cascade into unexpected mode flips at the
+	# controller (seen in 023: every tile-click would re-trigger erase mode).
 	for child in _tile_grid.get_children():
 		if child is Button:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	erase_picked.emit()
 
 
@@ -163,12 +166,15 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 
 
 func _on_tile_pressed(source_id: int, atlas: Vector2i, btn: Button) -> void:
-	# Untoggle erase + every other button (visual single-select)
+	# Untoggle erase + every other tile button (visual single-select).
+	# set_pressed_no_signal so the un-press doesn't re-emit `pressed` on the
+	# Erase button — that was cascading into ERASING_FLOOR mode at the
+	# controller every time a tile was clicked.
 	if _erase_btn != null:
-		_erase_btn.button_pressed = false
+		_erase_btn.set_pressed_no_signal(false)
 	for child in _tile_grid.get_children():
 		if child is Button and child != btn:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	tile_picked.emit(source_id, atlas)
 
 

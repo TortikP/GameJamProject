@@ -195,6 +195,13 @@ func _ready() -> void:
 	else:
 		_check_autosave_recovery.call_deferred()
 
+	# 8. Defensive — if anything in the wiring above ended up firing
+	# erase/object/spawner mode by accident (signal cascade, queued resume
+	# side-effect, etc.), reassert the default placing-floor mode here so
+	# the user's first LMB-click paints rather than erases.
+	if _mode != Mode.PLACING_FLOOR:
+		set_mode_place_floor(INITIAL_SOURCE_ID, INITIAL_ATLAS_COORD)
+
 	GameLogger.info("MapEditor", "ready. LMB=place/paint, RMB=delete (2-step), Erase from FloorPalette")
 
 

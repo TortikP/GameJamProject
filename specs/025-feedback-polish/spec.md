@@ -30,6 +30,7 @@
 - Keypress feedback для всех hotkey'ев (визуальный echo на ассоциированном UI элементе).
 - Toast'ы — анимация slide-in/fade-out (сейчас instant).
 - Modal'ы — fade-in вместо instant.
+- **Hex-border preview style** (из 023 paint preview, `paint_preview.gd`) — переиспользовать стиль тонких FOCUS-окрашенных гекс-обводок для hover/highlight в боевом UI: ход курсора, выбранная ability area, валидные target hex'ы. Сейчас в бою используется монотонный fill — outline'ы читаются чище и не перекрывают тайлы.
 
 ### Pillar 4: pacing
 - Step duration / cast wind-up — баланс через `GameSpeed`. Что слишком быстро? Что слишком медленно? Плейтест.
