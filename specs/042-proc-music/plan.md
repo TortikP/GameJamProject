@@ -23,11 +23,15 @@
 | `project.godot` | edit | +1 autoload: `MusicDirector` (после `EventBus`, до `AudioDirector` — см. notes). |
 | `data/music/stings.json` | new | Дефолтный mapping: 4 procedural preset'а. |
 | `data/music/main_menu.json` | new | seed/bpm/state для меню. |
+| `data/music/presets.json` | new | Именованные наборы параметров (calm_dungeon / tense_arena / boss_finale / menu_quiet). Резолвятся в `music_config.preset`. |
+| `scenes/dev/music_lab.tscn` | new | Dev-сцена с UI для тюнинга. Открывается через F6 в Godot editor. |
+| `scripts/audio/music/dev/music_lab.gd` | new | Контроллер сцены: слайдеры → MusicDirector API, стинг-кнопки, A/B слоты в памяти, Copy JSON в clipboard. |
+| `scripts/audio/music/preset_resolver.gd` | new | Static. `resolve(music_config: Dictionary) -> Dictionary` — мерджит preset (если есть) + явные поля. Возвращает финальный «эффективный» config. Используется и MusicDirector, и Music Lab. |
 | `data/maps/_schema.md` | edit | +секция `music_config` с полным описанием полей. |
 | `HANDOFF.md` | edit | +секция `MusicDirector` рядом с существующим `AudioDirector`. |
 | `data/maps/sample_music_test.json` | new | Sample-уровень с явным `music_config` для smoke-теста (seed/bpm override). Минимальная карта 5×5, одна волна, один enemy. |
 
-**Итого вне модуля:** 5 файлов (level_data, project.godot, _schema.md, HANDOFF.md, sample). Контроллеры — 0 файлов. EventBus — 0 правок.
+**Итого вне модуля:** 5 файлов (level_data, project.godot, _schema.md, HANDOFF.md, sample). Контроллеры — 0 файлов. EventBus — 0 правок. Music Lab — отдельная dev-сцена, не привязана к продакшен-сценам.
 
 ## Data flow (high-level)
 
@@ -201,12 +205,17 @@ Harmony.tick_bar(bar_idx) → меняет current chord на `PROGRESSION_AM[ba
 ```gdscript
 # music_director.gd
 func _on_level_loaded(level: LevelData) -> void:
-    var cfg: Dictionary = level.music_config if level != null else {}
+    var raw: Dictionary = level.music_config if level != null else {}
+    var cfg: Dictionary = PresetResolver.resolve(raw)  # merges preset + explicit fields
     var seed_v: int = int(cfg.get("seed", _hash_str(level.name) & 0x7fffffff))
     var bpm: float = float(cfg.get("bpm", 96.0))
     var base_state: StringName = StringName(cfg.get("base_state", "calm"))
     var muted: bool = bool(cfg.get("muted", false))
     var stings_override: Dictionary = cfg.get("stings", {})
+    var lead_calm: float = float(cfg.get("lead_density_calm", 0.3))
+    var lead_battle: float = float(cfg.get("lead_density_battle", 0.7))
+    var pad_db: float = float(cfg.get("pad_gain_db", 0.0))
+    var drums_db: float = float(cfg.get("drums_gain_db", 0.0))
 
     if muted:
         _stop()
@@ -215,10 +224,51 @@ func _on_level_loaded(level: LevelData) -> void:
     _harmony.reset(seed_v)
     _rng.seed = seed_v
     _voice_pool.reset()
-    _state_mixer.set_state(base_state)  # ramp
+    _state_mixer.set_state(base_state)
+    _state_mixer.set_layer_db(&"pad", pad_db)
+    _state_mixer.set_layer_db(&"drums", drums_db)
+    _lead_gen.set_density(lead_calm, lead_battle)
     _sting_player.set_overrides(stings_override)
     _ensure_playing()
 ```
+
+### PresetResolver
+
+```gdscript
+# scripts/audio/music/preset_resolver.gd — static, no node.
+const PRESETS_PATH := "res://data/music/presets.json"
+static var _presets_cache: Dictionary = {}
+static var _loaded := false
+
+static func resolve(raw: Dictionary) -> Dictionary:
+    _ensure_loaded()
+    var out: Dictionary = {}
+    var preset_id: String = String(raw.get("preset", ""))
+    if preset_id != "" and _presets_cache.has(preset_id):
+        out.merge(_presets_cache[preset_id])  # base layer
+    elif preset_id != "":
+        push_warning("[PresetResolver] unknown preset '%s' — using defaults" % preset_id)
+    # Explicit fields override preset.
+    for key in raw.keys():
+        if key == "preset": continue
+        out[key] = raw[key]
+    return out
+
+static func _ensure_loaded() -> void:
+    if _loaded: return
+    _loaded = true
+    if not FileAccess.file_exists(PRESETS_PATH):
+        push_warning("[PresetResolver] %s missing — no presets" % PRESETS_PATH)
+        return
+    var f := FileAccess.open(PRESETS_PATH, FileAccess.READ)
+    var d: Variant = JSON.parse_string(f.get_as_text())
+    if d is Dictionary and d.has("presets") and d["presets"] is Dictionary:
+        _presets_cache = d["presets"]
+```
+
+`Dictionary.merge` сохраняет ключи из аргумента, не перезаписывает существующие — поэтому первый merge (пресет) кладёт основу, а явные `out[key] = raw[key]` дальше override'ят. Простой и предсказуемый порядок.
+
+Для main_menu.json — тот же резолвер: `MusicDirector._on_main_menu_entered` вызывает `PresetResolver.resolve(menu_json)` перед применением.
 
 ### LevelData edit (минимальный)
 
@@ -305,6 +355,68 @@ See specs/042-proc-music for full architecture.
 ```
 
 И в file tree — добавить `scripts/audio/music/` ветку и `data/music/`.
+
+## Music Lab — UI structure
+
+`scenes/dev/music_lab.tscn` — простой Control с VBoxContainer, без претензий к красоте. Layout сверху вниз:
+
+```
+MusicLab (Control)
+├── Margin (MarginContainer, 16px)
+│   └── VBox (VBoxContainer, separation 8)
+│       ├── Header (Label, "Music Lab — F6 to run") — bold
+│       ├── ParamsHBox (HBoxContainer)
+│       │   ├── ParamsLeft (VBox: BPM, lead_calm, lead_battle slider rows)
+│       │   └── ParamsRight (VBox: pad_gain_db, drums_gain_db, master_db slider rows)
+│       ├── StateRow (HBox)
+│       │   ├── StateDropdown (OptionButton: calm/battle/menu)
+│       │   ├── ProgressionDropdown (OptionButton: am_f_c_g/...)
+│       │   ├── SeedSpinBox (SpinBox)
+│       │   └── ReRollBtn (Button "🎲 Re-roll seed")
+│       ├── PresetRow (HBox)
+│       │   ├── PresetDropdown (OptionButton — заполнится из presets.json)
+│       │   ├── LoadPresetBtn (Button "Apply preset")
+│       │   ├── SaveABtn (Button "Save A")
+│       │   ├── SaveBBtn (Button "Save B")
+│       │   └── SwitchABBtn (Button "Switch A↔B")
+│       ├── StingsLabel (Label "Stings — click to play")
+│       ├── StingsHBox (HFlowContainer — populated runtime: button per sting)
+│       └── ExportRow (HBox)
+│           ├── CopyJsonBtn (Button "📋 Copy JSON to clipboard")
+│           ├── StopBtn (Button "Stop")
+│           └── StartBtn (Button "Start")
+```
+
+Slider row helper — Label (param name) + HSlider + Label (current value), на change → callback в скрипт → MusicDirector API.
+
+`music_lab.gd` — extends Control. В `_ready`:
+- `_director = get_node("/root/MusicDirector")` — есть, autoload.
+- Заполнить PresetDropdown из `PresetResolver._presets_cache` (через `PresetResolver.list_preset_ids()` геттер).
+- Заполнить StingsHBox кнопками из `data/music/stings.json` (читаем тем же кодом, что StingPlayer — выносим helper в `stings/sting_registry.gd` если будет дублирование, иначе inline).
+- Подключить все слайдеры/кнопки на handler'ы.
+
+`_on_copy_json_pressed`:
+```gdscript
+var snippet := {"music_config": _gather_current_params()}
+DisplayServer.clipboard_set(JSON.stringify(snippet, "  "))
+# toast "Copied"
+```
+
+`_on_apply_preset`: вычитываем выбранный preset, прогоняем через `_apply_params(preset_dict)` который сетает все слайдеры в нужные значения и пушит в MusicDirector.
+
+A/B слоты — два `Dictionary` в памяти. `Switch A↔B` мерит, в каком ты сейчас, и применяет другой.
+
+**Важно: лаб не дублирует синт.** Все слайдеры ходят через публичный API MusicDirector — то же, что использует `_on_level_loaded`. Гарантия: что слышишь в лабе = что услышишь в игре с тем же конфигом.
+
+Для этого MusicDirector расширяется setter-методами (часть базового API):
+- `set_bpm(bpm)`
+- `set_state(state)`
+- `set_seed(seed)`
+- `set_layer_db(layer, db)`
+- `set_lead_density(calm, battle)`
+- `play_sting(name)`
+
+Эти же методы потом могут пригодиться в гейм-коде, но в нашем спеке вызываются только из `_on_level_loaded` и из лаба.
 
 ## Tuning parameters
 

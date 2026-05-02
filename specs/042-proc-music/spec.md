@@ -59,6 +59,7 @@ JSON shape:
 ```json
 {
   "music_config": {
+    "preset": "tense_arena",            // optional StringName — id из data/music/presets.json. Поля ниже override'ят пресет.
     "seed": 1234,                       // optional int. Default = hash(level.name) & 0x7fffffff
     "bpm": 96,                          // optional float, 40..200. Default 96.
     "base_state": "calm",               // optional, "calm" | "battle". Default "calm".
@@ -72,9 +73,14 @@ JSON shape:
 }
 ```
 
-Все поля опциональны. Файл уровня без `music_config` → дефолты. Это даёт Stasyan'у нулевой барьер: ничего не редактирует — дефолтная музыка с per-level seed играет.
+Все поля опциональны. Файл уровня без `music_config` → дефолты. Файл с `preset: "..."` и без остальных полей — пресет применяется как есть. Поля поверх пресета override'ят его.
 
-Editor UI **не делается в этом спеке**. Designers редактируют JSON напрямую (документация в `data/maps/_schema.md`). Если будет время — отдельный спек 04N с панелью в `LevelMetaPanel`.
+**Resolution order** (от низкого к высокому приоритету):
+1. Хардкоженные дефолты (bpm 96, calm, default ADSR'ы и т.д.).
+2. Пресет (если `preset` указан и резолвится).
+3. Явные поля в `music_config` (если есть, override).
+
+Editor panel в `LevelMetaPanel` **не делается** в этом спеке. Designers/Andrey редактируют JSON напрямую (есть Music Lab — см. §7 — как «лаборатория тюнинга», там же кнопка `Copy JSON`). Если потом захочется in-editor панель в LevelMetaPanel — отдельный спек.
 
 ### 4. Stings — JSON-driven, заменимые
 
@@ -127,6 +133,64 @@ Procedural presets (v1, в коде, в `proc_stings.gd`):
 
 Музыка играется на bus `Music` (если такой есть в `default_bus_layout.tres`) или на `Master` fallback. Глобальный mute через `AudioServer.set_bus_mute`. Громкость музыки — `Music` bus volume в Settings, не наша забота.
 
+### 7. Music Lab — dev-сцена для тюнинга без аудио-опыта
+
+Стандалоновая сцена `scenes/dev/music_lab.tscn`, открывается напрямую в Godot editor (F6 на сцене или `Run Specific Scene…`). **Не привязана** к main_menu, к pause_menu, ни к каким хоткеям продакшена — отдельная dev-площадка, которую запускают только когда хотят покрутить параметры.
+
+UI (один экран, всё видно сразу):
+
+- **Параметры состояния (слайдеры с числовым readout):**
+  - BPM: 40..200, default 96.
+  - Lead density (calm): 0..1, default 0.3.
+  - Lead density (battle): 0..1, default 0.7.
+  - Pad gain dB: −24..+6, default 0.
+  - Drums gain dB: −24..+6, default 0.
+  - Master music gain dB: −24..+6, default 0 (пишет в `Music` bus volume).
+- **Состояние и прогрессия:**
+  - Dropdown: state ∈ {calm, battle, menu}.
+  - Dropdown: progression ∈ {`am_f_c_g`, `am_g_f_g`, `am_e_f_g`}. (Для v1 фиксированно одна, остальные — заглушки или быстрая фоллоу-апа.)
+  - Кнопка «Re-roll seed» — перегенерит RNG другим сидом, музыка слышимо меняется при том же конфиге.
+  - Числовое поле `seed` (read+write).
+- **Стинги:**
+  - Список стингов из `data/music/stings.json` (имя + kind), на каждом — кнопка «▶ Play». Жмёшь — стинг звучит поверх текущей музыки.
+- **Пресеты:**
+  - Dropdown: загрузить пресет из `data/music/presets.json` → все слайдеры/дропдауны устанавливаются в значения пресета.
+  - Кнопка «Save A» / «Save B» — два слота в памяти (не на диске). Сохраняет текущий снапшот всех параметров.
+  - Кнопка «Switch A↔B» — мгновенно переключает между сохранёнными слотами. Лучший способ A/B-сравнения.
+- **Экспорт:**
+  - Кнопка «Copy JSON» — копирует в clipboard `{"music_config": { … }}` с текущими параметрами, готовый к вставке в `data/maps/<level>.json`.
+  - Кнопка «Stop» / «Start» — отрубает/возобновляет рендер.
+
+**Что Music Lab НЕ делает (явно):**
+- Не редактирует существующие level.json. Только генерирует JSON-сниппет в clipboard.
+- Не сохраняет пресеты. Запись новых пресетов — руками в `data/music/presets.json` (примерно 5 минут после хорошего A/B сравнения).
+- Не показывает waveform / spectrum / визуализацию. Это лишний скоуп.
+- Не воспроизводит игровые события (level_loaded и т.д.) — только прямое управление состояниями. Геймплей-интеграцию проверяешь через `data/maps/sample_music_test.json`, не в лабе.
+
+**Backend.** Лаб не дублирует синт — инстанцирует ровно тот же `MusicDirector` напрямую (т.к. autoload + есть API set_state / set_bpm / play_sting / set_seed). Слайдеры пишут в этот же autoload. Всё, что слышишь в лабе, прозвучит идентично в игре с тем же конфигом.
+
+### 8. Presets — JSON
+
+`data/music/presets.json`:
+
+```json
+{
+  "version": 1,
+  "presets": {
+    "calm_dungeon":  { "bpm": 84,  "base_state": "calm",   "lead_density_calm": 0.25, "pad_gain_db": -2,  "drums_gain_db": -6 },
+    "tense_arena":   { "bpm": 100, "base_state": "battle", "lead_density_battle": 0.6, "pad_gain_db": -1,  "drums_gain_db": 0 },
+    "boss_finale":   { "bpm": 124, "base_state": "battle", "lead_density_battle": 0.85, "pad_gain_db": -3, "drums_gain_db": +2 },
+    "menu_quiet":    { "bpm": 72,  "base_state": "calm",   "lead_density_calm": 0.15, "pad_gain_db": 0,   "drums_gain_db": -24 }
+  }
+}
+```
+
+Каждый пресет — частичный override параметров. Не указанные поля = хардкоженные дефолты. `music_config: {"preset": "tense_arena"}` в level.json достаточно — ничего больше указывать не надо. `music_config: {"preset": "tense_arena", "bpm": 110}` → пресет + override BPM.
+
+**Дефолтный набор пресетов в этом спеке** — 4 штуки: `calm_dungeon`, `tense_arena`, `boss_finale`, `menu_quiet`. Стартовые цифры подобраны мной; финальные значения — после твоего A/B в Music Lab. Добавлять/удалять пресеты — правка одного файла, без кода.
+
+`main_menu.json` тоже может ссылаться на пресет вместо явных полей: `{"preset": "menu_quiet", "seed": 7777}`.
+
 ## Acceptance criteria
 
 - **AC-1 (детерминизм):** запуск уровня с `music_config.seed = 42` дважды → bit-identical PCM-выход за первые 30 секунд (smoke: записать буфер, сравнить хешем).
@@ -146,6 +210,8 @@ Procedural presets (v1, в коде, в `proc_stings.gd`):
 - **AC-10 (perf):** на ноуте Andrey'я 60 FPS sustained ≥5 минут геймплея, в Godot console — ноль `AudioStreamGeneratorPlayback: buffer underrun` warnings. Если не выходим — fallback на mix_rate=16000 + voice_pool=4.
 - **AC-11 (mute respected):** `Music` bus mute → молчание мгновенно, без хвоста ADSR.
 - **AC-12 (no jam-rule violation):** код не загружает ни одного аудио-файла из `assets/audio/music/` если `stings.json` весь procedural. Проверка — search по `load(.*\.ogg)` в коде модуля = 0 хитов кроме stream-стингов.
+- **AC-13 (Music Lab functional):** открыть `scenes/dev/music_lab.tscn` через F6 в Godot editor → музыка играет, слайдеры реально влияют на звук в реальном времени, кнопка «Copy JSON» кладёт валидный JSON-сниппет в clipboard, который при вставке в level.json даёт идентичный звук.
+- **AC-14 (presets resolve):** уровень с `music_config: {"preset": "tense_arena"}` звучит как preset; `music_config: {"preset": "tense_arena", "bpm": 130}` использует BPM из override, остальные поля — из пресета. Невалидный preset id → warn-once, дефолты, музыка играет.
 
 ## Risks
 
@@ -170,7 +236,9 @@ Procedural presets (v1, в коде, в `proc_stings.gd`):
 
 ## Out of scope (явно не делаем сейчас)
 
-- Editor panel для редактирования `music_config` (правка через JSON руками).
+- Editor panel в `LevelMetaPanel` для редактирования `music_config` (правка через JSON руками + Music Lab для тюнинга — этого достаточно).
+- Сохранение пресетов из Music Lab на диск (правишь `data/music/presets.json` руками после A/B).
+- Визуализация в Music Lab: waveform, spectrum, beat indicator. Лишний скоуп.
 - Hot reload `stings.json` / `music_config` без перезапуска уровня.
 - LFO, filter, delay, swing, vibrato — могут быть в follow-up спеке.
 - Major scale, lydian, etc. — не нужны.
