@@ -95,7 +95,7 @@ func _on_settings() -> void:
 
 
 func _on_credits() -> void:
-	EventBus.ui_toast_requested.emit("Credits scene coming later.", 2.0, &"info")
+	EventBus.ui_toast_requested.emit(Localization.t("Credits scene coming later.", "Credits scene coming later."), 2.0, &"info")
 
 
 func _on_quit() -> void:

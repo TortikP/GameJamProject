@@ -52,7 +52,7 @@ function Test-LocKey([string]$Value) {
     if ($Value.Contains(" ") -or $Value.Contains("`n") -or $Value.Contains("`t")) {
         return $false
     }
-    return ($Value -match '^[A-Za-z][A-Za-z0-9_.-]*$') -and ($Value.Contains(".") -or $Value.Contains("_"))
+    return (($Value -match '^[A-Za-z][A-Za-z0-9_.-]*$') -and ($Value.Contains(".") -or $Value.Contains("_")))
 }
 
 function ConvertTo-Slug([string]$Value) {
@@ -209,13 +209,19 @@ function Test-UserFacingCodeString([string]$Value) {
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -lt 3 -or (Test-PathLike $Value) -or (Test-LocKey $Value)) {
         return $false
     }
+    if (@("info", "warn", "error", "debug", "header", "body", "small", "display", "num_small", "num_large") -contains $Value.ToLowerInvariant()) {
+        return $false
+    }
     if ($Value.TrimStart().StartsWith("->")) {
+        return $false
+    }
+    if ($Value.Contains("%") -and -not ($Value.Contains(" ") -or $Value.Contains(":"))) {
         return $false
     }
     if ($Value -match '^[_$&]') {
         return $false
     }
-    if ($Value -match '^[A-Za-z0-9_]+$') {
+    if ($Value -cmatch '^[a-z0-9_]+$') {
         return $false
     }
     $withoutFormats = $Value -replace '%[-+ #0-9.]*[bcdeEfFgGosuxX]', ''
@@ -223,7 +229,7 @@ function Test-UserFacingCodeString([string]$Value) {
     if ([string]::IsNullOrEmpty($lettersOnly)) {
         return $false
     }
-    return ($Value.Contains(" ") -or $Value.Contains("`n") -or $Value.Contains(":")) -and ($withoutFormats -match '\p{L}')
+    return $withoutFormats -match '\p{L}'
 }
 
 function Read-GdScriptFiles {
@@ -231,26 +237,25 @@ function Read-GdScriptFiles {
     if (-not (Test-Path $scriptsDir)) {
         return
     }
-    Get-ChildItem $scriptsDir -Recurse -Filter "*.gd" | Sort-Object FullName | ForEach-Object {
-        $path = $_.FullName
+    foreach ($file in @(Get-ChildItem $scriptsDir -Recurse -Filter "*.gd" | Sort-Object FullName)) {
+        $path = $file.FullName
         $relativeForFilter = (Get-RelativePath $path)
         if (-not $relativeForFilter.StartsWith("scripts/presentation/")) {
-            return
+            continue
         }
         $scriptsUri = [System.Uri](([System.IO.Path]::GetFullPath($scriptsDir).TrimEnd('\') + '\'))
         $pathUri = [System.Uri]([System.IO.Path]::GetFullPath($path))
         $scriptRel = [System.Uri]::UnescapeDataString($scriptsUri.MakeRelativeUri($pathUri).ToString())
         $scriptKey = [System.IO.Path]::ChangeExtension($scriptRel, $null).Replace("\", ".").Replace("/", ".").Trim(".")
         $lineNo = 0
-        Get-Content $path -Encoding UTF8 | ForEach-Object {
+        foreach ($line in @(Get-Content $path -Encoding UTF8)) {
             $lineNo += 1
-            $line = $_
             $trimmed = $line.Trim()
             if ($trimmed.StartsWith("#")) {
-                return
+                continue
             }
-            if ($line -notmatch '\.text\s*=|\.title\s*=|\.tooltip_text\s*=|\.placeholder_text\s*=|ui_toast_requested|_make_[A-Za-z0-9_]*\(') {
-                return
+            if ($line -notmatch '\.text\s*=|\.title\s*=|\.tooltip_text\s*=|\.placeholder_text\s*=|ui_toast_requested|_make_[A-Za-z0-9_]*\(|add_tab\(|add_item\(|ask\(|Localization\.t\(|Localization\.tf\(') {
+                continue
             }
             foreach ($match in [regex]::Matches($line, '"((?:\\.|[^"\\])*)"')) {
                 $value = [regex]::Unescape($match.Groups[1].Value)
@@ -266,13 +271,39 @@ function Read-GdScriptFiles {
 
 function Write-Outputs {
     New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
+    $existingEnPath = Join-Path $OutDir "en.json"
+    $existingRuPath = Join-Path $OutDir "ru.json"
+    $existingEn = @{}
+    $existingRu = @{}
+    if (Test-Path $existingEnPath) {
+        (Get-Content $existingEnPath -Raw -Encoding UTF8 | ConvertFrom-Json).PSObject.Properties | ForEach-Object {
+            $existingEn[$_.Name] = [string]$_.Value
+        }
+    }
+    if (Test-Path $existingRuPath) {
+        (Get-Content $existingRuPath -Raw -Encoding UTF8 | ConvertFrom-Json).PSObject.Properties | ForEach-Object {
+            $existingRu[$_.Name] = [string]$_.Value
+        }
+    }
+    foreach ($key in $existingEn.Keys) {
+        if (-not $Entries.Contains($key)) {
+            $Entries[$key] = $existingEn[$key]
+            $Sources[$key] = @([ordered]@{ source = "preserved from existing en.json"; note = "manual or stale key" })
+        }
+    }
+    foreach ($key in $existingRu.Keys) {
+        if (-not $Entries.Contains($key)) {
+            $Entries[$key] = ""
+            $Sources[$key] = @([ordered]@{ source = "preserved from existing ru.json"; note = "manual or stale key" })
+        }
+    }
     $sortedKeys = @($Entries.Keys | Sort-Object)
     $en = [ordered]@{}
     $ru = [ordered]@{}
     $src = [ordered]@{}
     foreach ($key in $sortedKeys) {
-        $en[$key] = $Entries[$key]
-        $ru[$key] = ""
+        $en[$key] = if ($existingEn.ContainsKey($key) -and $existingEn[$key] -ne "") { $existingEn[$key] } else { $Entries[$key] }
+        $ru[$key] = if ($existingRu.ContainsKey($key)) { $existingRu[$key] } else { "" }
         $src[$key] = $Sources[$key]
     }
     $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -292,6 +323,8 @@ Generated by ``pwsh -File scripts/tools/extract_localization.ps1``.
 - ``_sources.json`` maps every key back to the file/property/line it came from.
 
 Current extraction: $($sortedKeys.Count) keys, $filled with source text, $missing empty placeholders.
+
+Runtime loading is handled by ``scripts/infrastructure/localization.gd``. It registers these JSON files as Godot ``Translation`` resources through ``TranslationServer``.
 
 Re-run the extractor after adding or renaming content defs.
 "@

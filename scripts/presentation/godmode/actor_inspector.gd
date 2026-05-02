@@ -348,11 +348,11 @@ func _build_tooltip(ability_id: StringName) -> String:
 	lines.append(String(ability_id))
 	for eff in ability.effects:
 		if eff is DamageEffect:
-			lines.append("Damage: %d" % (eff as DamageEffect).damage)
+			lines.append(Localization.tf("Damage: %d", [(eff as DamageEffect).damage], "Damage: %d"))
 		else:
-			lines.append("Effect: %s" % eff.get_class())
+			lines.append(Localization.tf("Effect: %s", [eff.get_class()], "Effect: %s"))
 	if ability.target != null:
-		lines.append("Target: %s" % ability.target.get_class())
+		lines.append(Localization.tf("Target: %s", [ability.target.get_class()], "Target: %s"))
 	return "\n".join(lines)
 
 
