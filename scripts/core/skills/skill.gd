@@ -5,8 +5,9 @@ extends Resource
 ## cast() executes abilities in array order. Each ability resolves its own targets
 ## at execution time (not at skill-start) — enabling multi-ability combos like vampirism.
 ##
-## tick_cooldown(n) is called by TurnManager each turn. Cooldown ticks at
-## "end of caster's turn" by convention — clarified once TurnManager integrates.
+## tick_cooldown(n) is called once per round by
+## godmode_controller._tick_all_skills (driven from _on_world_turn_ended)
+## for every live Actor. See spec 031-skill-cooldown-fix.
 ##
 ## 021 additions (021-skill-system-v2):
 ##  - name / tooltip / desc — localization keys (raw strings; resolution out of scope).
