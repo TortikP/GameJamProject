@@ -1,0 +1,58 @@
+{
+  "id": "page_storm",
+  "name": "page_storm_name",
+  "tooltip": "page_storm_tooltip",
+  "desc": "page_storm_desc",
+  "icon": "assets/sprites/icons/skills/page_storm.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 2,
+  "abilities": [
+    {
+      "id": "area_damage_light",
+      "sound_start": "assets/audio/skills/area_damage_light/start.wav",
+      "collision_effect": "assets/vfx/skills/area_damage_light/area_impact.prefab",
+      "sound_end": "assets/audio/skills/area_damage_light/end.wav",
+      "animation": "assets/animations/skills/area_damage_light.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "damage": 7
+        }
+      ]
+    },
+    {
+      "id": "apply_fear_area",
+      "sound_start": "assets/audio/skills/apply_fear_area/start.wav",
+      "collision_effect": "assets/vfx/status/feared/apply_area.prefab",
+      "sound_end": "assets/audio/status/feared/end.wav",
+      "animation": "assets/animations/status/apply_fear_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "feared (2)"
+        }
+      ]
+    }
+  ]
+}
