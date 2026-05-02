@@ -20,7 +20,11 @@ const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const PLACEHOLDER_TEXTURE: Texture2D = null  # null = no texture, just modulated rect via icon node
 
 @export var grid: HexGrid
-@export var sprite_scale: float = 0.6  # most TileObject sprites are larger than a hex
+@export var sprite_scale: float = 1.0  # Katya's pixel-art sized at native to
+                                       # slightly overflow hex on top edge
+                                       # (canopy/column rises out of tile);
+                                       # tweak per-overlay if a hi-res
+                                       # placeholder lands here.
 
 var _registry: TileObjectRegistry  # resolved from grid in _ready
 
