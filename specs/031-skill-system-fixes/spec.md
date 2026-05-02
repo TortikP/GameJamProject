@@ -387,6 +387,50 @@ no chance of one path showing step N while the other shows step 0.
 
 ---
 
+## Phase 14 — Cast-range hexes painted over zone area (post-merge regression)
+
+### Problem
+After merging staging (which brought 029 polish — refactor of
+`MoveRangeOverlay` to a unified `_draw()`-based architecture), the
+target-range overlay (`CastRangeOverlay`, z=4) rendered ABOVE the
+zone-area preview (`MoveRangeOverlay`, z=2). User-visible: when
+multi-ability skills entered FSM step 2+, the orange "you can click
+here" hexes covered the pink "this is the affected area" hexes.
+
+Cause: pre-029, `MoveRangeOverlay.show_zone_preview` used individual
+`Polygon2D` children with explicit `z=4` per the `_add_hex(... 4 ...)`
+parameter — equal-z to `CastRangeOverlay`'s polys, with render order
+falling out of insertion order (zone repainted every frame, ended up
+on top — accidentally correct). The 029 refactor merged all
+`MoveRangeOverlay` painting into one `_draw()` at the node's
+`z_index = 2`, which placed everything below `CastRangeOverlay`'s
+z=4. The semantic "area > target range" stacking inverted as a
+side-effect.
+
+### Fix
+Set `MoveRangeOverlay.z_index = 5`. The unified `_draw()` output
+(zone outline + attack range + hover path + zone preview) all moves
+above `CastRangeOverlay`'s z=4 polys. Internal stacking inside
+`MoveRangeOverlay._draw()` is preserved by call order
+(`draw_zone_outline` first, then attack-range outlines, then zone
+preview last → on top within the same z).
+
+Other z=5 users (spawner_placeholder runtime, delete_highlight /
+paint_preview editor-only) audited — spawner_placeholder coexists
+rarely (player rarely stands on a spawner mid-cast), the others are
+editor-only.
+
+### Acceptance
+- AC38: during FSM step 2+ of paper_jam, the pink area zone is fully
+  visible on top of the cast-range (orange) outlines.
+- AC39: idle slot preview still renders correctly (no FSM, no
+  CastRangeOverlay; only MoveRangeOverlay paints — stack order moot).
+- AC40: regression check on move-zone outline / attack-range / hover
+  path — internal draw order preserved (still drawn in `_draw()` in
+  the same sequence).
+
+---
+
 ## Out of scope (across all phases)
 
 - Per-caster turn-end ticking (round-based is correct for current TurnManager).

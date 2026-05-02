@@ -66,6 +66,9 @@ run Godot.
 - [x] T36 — `_update_castability` zone preview reads from helper (no more union).
 - [x] T37 — `_refresh_overlay` reads from same helper (single source of truth, FSM-aware).
 
+## Phase 14 — Z-order: area zone above cast range (post-merge regression)
+- [x] T38 — `MoveRangeOverlay.z_index = 5` (was 2) so its unified `_draw()` output renders above `CastRangeOverlay`'s z=4 polys.
+
 ## Manual smoke (deferred to user)
 
 - [ ] M1 — Wave with multiple identical enemies: cd is per-actor, not
