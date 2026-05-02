@@ -94,7 +94,7 @@ func _on_settings() -> void:
 	if settings != null and settings.has_method("open"):
 		settings.open()
 	else:
-		EventBus.ui_toast_requested.emit("Settings unavailable", 2.0, &"warn")
+		EventBus.ui_toast_requested.emit(Localization.t("Settings unavailable", "Settings unavailable"), 2.0, &"warn")
 
 
 func _on_main_menu() -> void:

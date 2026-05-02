@@ -19,13 +19,13 @@ static func format_skill(skill) -> String:
 		return ""
 	var lines: Array[String] = []
 	# Header: name + cooldown if > 0
-	var header: String = String(skill.id)
+	var header: String = Localization.t(String(skill.name), String(skill.id))
 	if skill.cooldown > 0:
 		var cd_remaining: int = int(skill.get("_cd_remaining"))
 		if cd_remaining > 0:
-			header += " (CD %d/%d)" % [cd_remaining, skill.cooldown]
+			header += " " + Localization.tf("(CD %d/%d)", [cd_remaining, skill.cooldown], "(CD %d/%d)")
 		else:
-			header += " (CD %d)" % skill.cooldown
+			header += " " + Localization.tf("(CD %d)", [skill.cooldown], "(CD %d)")
 	lines.append(header)
 	# One block per contained ability — most skills have just 1.
 	for ab in skill.abilities:
@@ -59,8 +59,9 @@ static func format_ability(ability) -> Array[String]:
 static func format_skill_headline(skill) -> String:
 	if skill == null:
 		return ""
+	var display_name := Localization.t(String(skill.name), String(skill.id))
 	if skill.abilities.is_empty():
-		return String(skill.id)
+		return display_name
 	# Sum predicted damage across abilities, if any
 	var total_dmg: int = 0
 	for ab in skill.abilities:
@@ -70,8 +71,8 @@ static func format_skill_headline(skill) -> String:
 				_apply_modifiers(eff_dup, ab.modifiers)
 				total_dmg += (eff_dup as DamageEffect).damage
 	if total_dmg > 0:
-		return "%s — %d dmg" % [String(skill.id), total_dmg]
-	return String(skill.id)
+		return Localization.tf("%s — %d dmg", [display_name, total_dmg], "%s — %d dmg")
+	return display_name
 
 
 # ── Internals ────────────────────────────────────────────────────────────────
@@ -110,7 +111,7 @@ static func _describe_effect(eff_final: AbilityEffect, eff_base: AbilityEffect) 
 		var f: int = (eff_final as DamageEffect).damage
 		var b: int = (eff_base as DamageEffect).damage
 		if f != b:
-			return "Damage: %d → %d" % [b, f]
-		return "Damage: %d" % f
+			return Localization.tf("Damage: %d → %d", [b, f], "Damage: %d → %d")
+		return Localization.tf("Damage: %d", [f], "Damage: %d")
 	# Generic fallback — class name is informative for unknown effect types.
-	return "Effect: %s" % eff_final.get_class()
+	return Localization.tf("Effect: %s", [eff_final.get_class()], "Effect: %s")
