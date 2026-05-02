@@ -186,15 +186,17 @@ func _ready() -> void:
 		_wave_controller.grid = grid
 		_wave_controller.registry = registry
 		add_child(_wave_controller)
-		# Defer start_level so any deferred sibling _ready (HUD wave timeline,
-		# score corner) connects to wave_started before we emit it.
-		_wave_controller.start_level.call_deferred(_queued_level)
-		# Bind the LevelData to the HUD WaveTimeline so it can render the
-		# sequence + cursor. RUNTIME mode subscribes to wave_started / cleared
-		# / world_turn_ended internally.
+		# Bind the LevelData to the HUD WaveTimeline FIRST — its _do_rebuild
+		# runs deferred and must populate _anchor_positions before
+		# wave_started fires (the runtime cursor reads _anchor_positions).
+		# call_deferred preserves call order via FIFO, so bind queued first
+		# means rebuild runs first.
 		var wt: Node = get_node_or_null("../HUD/WaveTimeline")
 		if wt != null and wt.has_method("bind_level"):
 			wt.bind_level.call_deferred(_queued_level)
+		# Then start the wave controller — its first emit of wave_started
+		# is now safe because the timeline already has its anchors.
+		_wave_controller.start_level.call_deferred(_queued_level)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────

@@ -267,7 +267,13 @@ func _draw() -> void:
 				UiThemeScript.WAVE_ANCHOR_OUTLINE, 1.5, true)
 
 	# RUNTIME cursor.
-	if mode == Mode.RUNTIME and _level.waves.size() > 0:
+	# _anchor_positions is populated by _do_rebuild which is call_deferred'd
+	# (see _rebuild). On the first frame after bind_level there's a paint
+	# pass where _level is set but _anchor_positions is still empty —
+	# without this guard, `clampi(0, 0, -1)` returns -1 and `_anchor_positions[-1]`
+	# blows up (98 errors per second flooding the debugger). Skipping the
+	# cursor for that one frame is invisible to the user.
+	if mode == Mode.RUNTIME and _level.waves.size() > 0 and not _anchor_positions.is_empty():
 		var cur_anchor: float = _anchor_positions[clampi(_runtime_current_wave, 0, _anchor_positions.size() - 1)]
 		var cursor_x: float = cur_anchor + float(_runtime_turns_into_wave) * PIXELS_PER_TURN
 		# Vertical line glyph, thin diamond on top.
