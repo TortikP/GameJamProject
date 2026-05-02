@@ -68,7 +68,7 @@ var _form_error_label: Label
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiThemeScript.make_panel_stylebox())
+	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
 	_build_ui()
 	_refresh_list()
 	_update_button_states()
@@ -111,7 +111,7 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	vbox.add_child(header)
 	var title := Label.new()
-	UiThemeScript.apply_label_kind(title, "header")
+	UiTheme.apply_label_kind(title, "header")
 	title.text = "Dialogue Triggers"
 	header.add_child(title)
 	_title_label = title
@@ -119,10 +119,10 @@ func _build_ui() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 	_count_label = Label.new()
-	UiThemeScript.apply_label_kind(_count_label, "dim")
+	UiTheme.apply_label_kind(_count_label, "dim")
 	header.add_child(_count_label)
 	_collapse_btn = Button.new()
-	UiThemeScript.apply_button_styling(_collapse_btn)
+	UiTheme.apply_button_styling(_collapse_btn)
 	_collapse_btn.text = "v"
 	_collapse_btn.flat = true
 	_collapse_btn.pressed.connect(_on_collapse_toggled)
@@ -138,22 +138,22 @@ func _build_ui() -> void:
 	var btn_row := HBoxContainer.new()
 	vbox.add_child(btn_row)
 	var btn_add := Button.new()
-	UiThemeScript.apply_button_styling(btn_add)
+	UiTheme.apply_button_styling(btn_add)
 	btn_add.text = "+ Add"
 	btn_add.pressed.connect(_on_add_pressed)
 	btn_row.add_child(btn_add)
 	_btn_edit = Button.new()
-	UiThemeScript.apply_button_styling(_btn_edit)
+	UiTheme.apply_button_styling(_btn_edit)
 	_btn_edit.text = "Edit"
 	_btn_edit.pressed.connect(_on_edit_pressed)
 	btn_row.add_child(_btn_edit)
 	_btn_dupe = Button.new()
-	UiThemeScript.apply_button_styling(_btn_dupe)
+	UiTheme.apply_button_styling(_btn_dupe)
 	_btn_dupe.text = "Dupe"
 	_btn_dupe.pressed.connect(_on_duplicate_pressed)
 	btn_row.add_child(_btn_dupe)
 	_btn_delete = Button.new()
-	UiThemeScript.apply_button_styling(_btn_delete)
+	UiTheme.apply_button_styling(_btn_delete)
 	_btn_delete.text = "Delete"
 	_btn_delete.pressed.connect(_on_delete_pressed)
 	btn_row.add_child(_btn_delete)
@@ -166,7 +166,7 @@ func _build_ui() -> void:
 
 	# Error label
 	_form_error_label = Label.new()
-	UiThemeScript.apply_label_kind(_form_error_label, "error")
+	UiTheme.apply_label_kind(_form_error_label, "error")
 	_form_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_form_error_label.visible = false
 	vbox.add_child(_form_error_label)
@@ -179,7 +179,7 @@ func _build_form(parent: Control) -> void:
 	# id row
 	var id_row := HBoxContainer.new()
 	sb.add_child(id_row)
-	var id_lbl := Label.new(); id_lbl.text = "id:"; UiThemeScript.apply_label_kind(id_lbl, "dim")
+	var id_lbl := Label.new(); id_lbl.text = "id:"; UiTheme.apply_label_kind(id_lbl, "dim")
 	id_row.add_child(id_lbl)
 	_form_id = LineEdit.new()
 	_form_id.placeholder_text = "unique_id"
@@ -189,7 +189,7 @@ func _build_form(parent: Control) -> void:
 	# event row
 	var ev_row := HBoxContainer.new()
 	sb.add_child(ev_row)
-	var ev_lbl := Label.new(); ev_lbl.text = "event:"; UiThemeScript.apply_label_kind(ev_lbl, "dim")
+	var ev_lbl := Label.new(); ev_lbl.text = "event:"; UiTheme.apply_label_kind(ev_lbl, "dim")
 	ev_row.add_child(ev_lbl)
 	_form_event_option = OptionButton.new()
 	_form_event_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -207,7 +207,7 @@ func _build_form(parent: Control) -> void:
 	# dialogue_id row
 	var dlg_row := HBoxContainer.new()
 	sb.add_child(dlg_row)
-	var dlg_lbl := Label.new(); dlg_lbl.text = "dialogue:"; UiThemeScript.apply_label_kind(dlg_lbl, "dim")
+	var dlg_lbl := Label.new(); dlg_lbl.text = "dialogue:"; UiTheme.apply_label_kind(dlg_lbl, "dim")
 	dlg_row.add_child(dlg_lbl)
 	_form_dialogue_filter = LineEdit.new()
 	_form_dialogue_filter.placeholder_text = "filter..."
@@ -222,7 +222,7 @@ func _build_form(parent: Control) -> void:
 	# play_mode row
 	var pm_row := HBoxContainer.new()
 	sb.add_child(pm_row)
-	var pm_lbl := Label.new(); pm_lbl.text = "mode:"; UiThemeScript.apply_label_kind(pm_lbl, "dim")
+	var pm_lbl := Label.new(); pm_lbl.text = "mode:"; UiTheme.apply_label_kind(pm_lbl, "dim")
 	pm_row.add_child(pm_lbl)
 	_form_playmode_request = CheckBox.new()
 	_form_playmode_request.text = "request"
@@ -235,7 +235,7 @@ func _build_form(parent: Control) -> void:
 	pm_row.add_child(_form_playmode_play)
 
 	# Conditions section
-	var cond_lbl := Label.new(); cond_lbl.text = "Conditions (opt):"; UiThemeScript.apply_label_kind(cond_lbl, "dim")
+	var cond_lbl := Label.new(); cond_lbl.text = "Conditions (opt):"; UiTheme.apply_label_kind(cond_lbl, "dim")
 	sb.add_child(cond_lbl)
 	_form_conditions = VBoxContainer.new()
 	sb.add_child(_form_conditions)
@@ -244,10 +244,10 @@ func _build_form(parent: Control) -> void:
 	# Form buttons
 	var form_btns := HBoxContainer.new()
 	sb.add_child(form_btns)
-	var save_btn := Button.new(); UiThemeScript.apply_button_styling(save_btn); save_btn.text = "Save"
+	var save_btn := Button.new(); UiTheme.apply_button_styling(save_btn); save_btn.text = "Save"
 	save_btn.pressed.connect(_on_form_save)
 	form_btns.add_child(save_btn)
-	var cancel_btn := Button.new(); UiThemeScript.apply_button_styling(cancel_btn); cancel_btn.text = "Cancel"
+	var cancel_btn := Button.new(); UiTheme.apply_button_styling(cancel_btn); cancel_btn.text = "Cancel"
 	cancel_btn.pressed.connect(_on_form_cancel)
 	form_btns.add_child(cancel_btn)
 
