@@ -22,6 +22,10 @@ data/status_effects/
 data/skills/
   test_status_runtime.json     # NEW — для AC-X3
 
+data/ai_behaviors/
+  feared.json                  # NEW — feared scenario (kite_specific_actor)
+  enraged.json                 # NEW — enraged scenario (approach_specific_actor + damage rule)
+
 scripts/core/statuses/
   status_instance.gd           # data resource
   status_registry.gd           # autoload (preload table → runtime classes + JSON metadata)
@@ -31,11 +35,16 @@ scripts/core/statuses/
     slowed_runtime.gd
     poisoned_runtime.gd
     rooted_runtime.gd
-    feared_runtime.gd
+    feared_runtime.gd          # behavior_id swap
     burning_runtime.gd
     glitched_runtime.gd
     shielded_runtime.gd
-    enraged_runtime.gd
+    enraged_runtime.gd         # behavior_id swap
+
+scripts/core/ai/
+  selectors/selector_specific_actor.gd          # NEW — reads ctx.behavior_target_id
+  policies/policy_approach_specific_actor.gd    # NEW
+  policies/policy_kite_specific_actor.gd        # NEW
 ```
 
 ## Изменяемые файлы
@@ -54,7 +63,9 @@ scripts/core/actors/
   actor.gd                     # add _statuses, signals, methods, take_damage delta
 
 scripts/core/ai/
-  enemy_ai_planner.gd          # if actor.is_stunned() → bail
+  enemy_ai_planner.gd          # bail-on-stunned; ctx-enrichment behavior_target_id;
+                               # _build_target_candidates special-case for SelectorSpecificActor
+  behavior_database.gd         # register new selector/policy kinds
   policies/policy_approach_nearest_enemy.gd  # honor effective_speed (just for rooted)
   policies/policy_kite_from_nearest_enemy.gd # same
 
@@ -112,6 +123,17 @@ extends RefCounted
 static func compute_snapshot(_args: Array[int], _skill_level: int) -> int:
     return 0
 
+# Called by Actor.add_status AFTER the instance is stored. Side effects
+# on the actor are allowed (e.g. behavior_id swap for feared/enraged).
+# Default — no-op.
+static func on_apply(_actor: Actor, _instance: StatusInstance) -> void:
+    pass
+
+# Called by Actor.remove_status BEFORE the instance is erased. Symmetric
+# to on_apply (e.g. restore behavior_id). Default — no-op.
+static func on_remove(_actor: Actor, _instance: StatusInstance) -> void:
+    pass
+
 # Called at start of actor's tick. May call actor.take_damage,
 # may set instance.duration = 0 to expire early, may set rt_flag.
 static func on_turn_start(_actor: Actor, _instance: StatusInstance, _ctx: Dictionary) -> void:
@@ -128,15 +150,16 @@ static func modify_speed(_current: int, _instance: StatusInstance) -> int:
 static func damage_reduction(_instance: StatusInstance) -> int:
     return 0
 
-# Called by AI movement_policy to override step pick.
-# Returns Vector2i(-1,-1) to defer to default policy.
+# Called by AI planner BEFORE scenario.movement_policy.pick_step.
+# Sentinel return values:
+#   Vector2i(-1,-1) → defer to default policy (no override)
+#   Vector2i(-2,-2) → hold this turn (no move_intent set)
+#   Any other Vector2i → use as actor.move_intent_coord
+# Used ONLY by slowed (flip-flop) and rooted (always hold).
+# Feared/enraged DO NOT use this hook — they swap behavior_id via on_apply
+# and let the dedicated scenario's movement_policy handle steering.
 static func override_movement(_actor: Actor, _instance: StatusInstance, _ctx: Dictionary) -> Vector2i:
     return Vector2i(-1, -1)
-
-# Called by AI cast_intent target selector — returns preferred victim_id
-# (or &"" to defer).
-static func override_cast_target(_actor: Actor, _instance: StatusInstance, _ctx: Dictionary) -> StringName:
-    return &""
 ```
 
 Все методы — `static`. Runtime — stateless, состояние живёт в
@@ -175,13 +198,46 @@ signal statuses_changed(actor_id: StringName)
 # CLAUDE trap #6: Dictionary not Array[StatusInstance].
 var _statuses: Dictionary = {}   # status_id -> StatusInstance
 
+# Behavior-override state (used by feared/enraged runtimes).
+# &"" when no override is active.
+var _original_behavior_id: StringName = &""
+var _behavior_override_id: StringName = &""
+
+const _BEHAVIOR_OVERRIDE_IDS: Array[StringName] = [&"feared", &"enraged"]
+
 func add_status(instance: StatusInstance) -> void:
-    _statuses[instance.status_id] = instance       # re-apply replaces (AC-RA1)
+    # Mutual exclusivity for behavior-override statuses (AC-RA3):
+    # applying feared while enraged is active (or vice versa) — silently
+    # remove the active one first. Same status_id re-apply is handled by
+    # the standard replace branch below; no special case needed.
+    if instance.status_id in _BEHAVIOR_OVERRIDE_IDS:
+        for other_id in _BEHAVIOR_OVERRIDE_IDS:
+            if other_id != instance.status_id and _statuses.has(other_id):
+                remove_status(other_id)   # triggers other.on_remove → restore
+
+    # Re-apply branch: if same status_id exists, fire its on_remove first
+    # (so e.g. shielded.snapshot doesn't leak; on_apply will set the new one).
+    if _statuses.has(instance.status_id):
+        var old: StatusInstance = _statuses[instance.status_id]
+        var old_rt: Variant = StatusRegistry.runtime_for(old.status_id)
+        if old_rt != null:
+            old_rt.on_remove(self, old)
+
+    _statuses[instance.status_id] = instance       # store (AC-RA1 — replace)
+    var rt: Variant = StatusRegistry.runtime_for(instance.status_id)
+    if rt != null:
+        rt.on_apply(self, instance)
     statuses_changed.emit(actor_id)
 
 func remove_status(id: StringName) -> void:
-    if _statuses.erase(id):
-        statuses_changed.emit(actor_id)
+    if not _statuses.has(id):
+        return
+    var inst: StatusInstance = _statuses[id]
+    var rt: Variant = StatusRegistry.runtime_for(id)
+    if rt != null:
+        rt.on_remove(self, inst)
+    _statuses.erase(id)
+    statuses_changed.emit(actor_id)
 
 func get_statuses() -> Array:
     return _statuses.values()
@@ -210,14 +266,12 @@ func damage_reduction() -> int:
             sum += rt.damage_reduction(inst)
     return sum
 
-func tick_statuses() -> void:
+func tick_statuses_with_ctx(ctx: Dictionary) -> void:
     if _dead: return
     var to_remove: Array[StringName] = []
-    var ctx: Dictionary = {}   # filled by caller via set_meta? — see below
-    # Snapshot keys to allow safe expire-during-iter.
     var ids: Array = _statuses.keys()
     for id_v in ids:
-        if not _statuses.has(id_v):  # may have been removed mid-loop (cascading)
+        if not _statuses.has(id_v):  # may have been removed mid-loop
             continue
         var inst := _statuses[id_v] as StatusInstance
         var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
@@ -229,9 +283,8 @@ func tick_statuses() -> void:
         if inst.duration <= 0:
             to_remove.append(inst.status_id)
     for id in to_remove:
-        _statuses.erase(id)
-    if not to_remove.is_empty():
-        statuses_changed.emit(actor_id)
+        # Use full remove_status path so on_remove fires (AC-BO2 for feared/enraged).
+        remove_status(id)
 
 # take_damage delta
 func take_damage(amount: int) -> void:
@@ -250,10 +303,10 @@ func take_damage(amount: int) -> void:
         EventBus.actor_died.emit(actor_id)
 ```
 
-`tick_statuses` берёт `ctx: Dictionary` пустым — runtime-методам, которым
-нужны `grid` или `actor_registry`, выдёргивают через autoload (ActorRegistry,
-HexGrid из ctx-supplier). Альтернатива — `tick_statuses(ctx)` с прокидыванием
-из godmode_controller. Беру **второй** вариант для явности; см. tasks.
+`tick_statuses_with_ctx` берёт `ctx: Dictionary` от caller'а
+(godmode_controller передаёт `_world_ctx()`). `remove_status` — единая
+точка для expire-on-tick и manual-remove (например при mutual exclusivity);
+гарантирует, что `on_remove` всегда фирится.
 
 ### Runtime-классы — конкретика
 
@@ -279,12 +332,18 @@ HexGrid из ctx-supplier). Альтернатива — `tick_statuses(ctx)` с
 
 **`feared_runtime`:**
 - `compute_snapshot` → 0
-- `on_turn_start(actor, inst, ctx)`:
-  - `var src := ActorRegistry.get_actor(inst.source_id)`
-  - if src == null или not is_alive() → `inst.duration = 0` (expire next sweep)
-- `override_movement(actor, inst, ctx)`:
-  - на player'е (variant C): defer → `(-1,-1)`. Но как runtime знает, что target — player? Через `actor.team == &"player"`. Это знание на core-уровне допустимо (team — поле Actor).
-  - На AI: вычислить шаг, который максимизирует `hex_distance(self, source)`; см. plan §"AI movement override impl".
+- `on_apply(actor, inst)` — behavior swap:
+  - `if actor._behavior_override_id == &"": actor._original_behavior_id = actor.behavior_id`
+  - `actor._behavior_override_id = &"feared"`
+  - `actor.behavior_id = &"feared"`
+- `on_remove(actor, inst)` — behavior restore:
+  - `if actor._behavior_override_id == &"feared":`
+  - `    actor.behavior_id = actor._original_behavior_id`
+  - `    actor._behavior_override_id = &""`
+  - `    actor._original_behavior_id = &""`
+- `on_turn_start(actor, inst, ctx)`: source-validity check —
+  `var src := ActorRegistry.get_actor(inst.source_id); if src == null or not src.is_alive(): inst.duration = 0` (expire next sweep, on_remove restore'ит behavior).
+- `override_movement` — НЕ override'ит. Steering — на dedicated `feared` сценарии.
 
 **`burning_runtime`:**
 - `compute_snapshot(args, level)` → `args[1] + level * args[2]`
@@ -299,42 +358,207 @@ HexGrid из ctx-supplier). Альтернатива — `tick_statuses(ctx)` с
 
 **`enraged_runtime`:**
 - `compute_snapshot` → 0
-- `on_turn_start` — source-validity check как у feared
-- `override_movement(actor, inst, ctx)`:
-  - на player'е: defer → `(-1,-1)`
-  - на AI: шаг к source (ровно как `policy_approach_nearest_enemy`, но target_coord = source_coord фиксирован)
-- `override_cast_target(actor, inst, ctx)`:
-  - на AI: если source_coord в `actor.cast_intent.ability.target.range` — return `inst.source_id` как preferred victim.
-  - на player'е: defer → `&""`
+- `on_apply(actor, inst)` — поведение симметрично feared, но с
+  `actor.behavior_id = &"enraged"`. Mutual-exclusivity между feared и
+  enraged ensure'ится в `Actor.add_status` (см. delta выше) — runtime
+  предполагает, что предыдущий behavior-override уже снят.
+- `on_remove(actor, inst)` — restore (то же тело, что у feared, но
+  чек на `&"enraged"`).
+- `on_turn_start(actor, inst, ctx)`: source-validity check (то же что у feared).
+- `override_movement` — не override'ит. Steering — на сценарии `enraged`.
 
-### AI movement override impl (feared / enraged)
+### AI scenario building blocks (для feared / enraged)
 
-`enemy_ai_planner.plan` после bail-on-stunned, ДО existing scenario logic:
+Feared и enraged НЕ override'ят policy/selector через runtime hooks.
+Вместо этого они **swap'ят `actor.behavior_id`** на dedicated сценарий.
+Сценарий читает `behavior_target_id: StringName` из ctx (добавленного
+планировщиком из активного status'а).
 
+**1. Новые AI-блоки.**
+
+`scripts/core/ai/selectors/selector_specific_actor.gd`:
 ```gdscript
-# Status overrides win over scenario.movement_policy.
-for inst_v in actor.get_statuses():
-    var inst := inst_v as StatusInstance
-    var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
-    if rt == null: continue
-    var override: Vector2i = rt.override_movement(actor, inst, ctx)
-    if override == Vector2i(-2, -2):
-        actor.move_intent_coord = Vector2i(-1, -1)
-        return  # hold completely
-    if override != Vector2i(-1, -1):
-        actor.move_intent_coord = override
-        # don't return — cast planning may still proceed
-        break
+class_name SelectorSpecificActor
+extends TargetSelector
+
+func resolve(_actor: Actor, candidates: Array, _ctx: Dictionary) -> Variant:
+    # candidates уже отфильтрован _build_target_candidates'ом
+    # (singleton с этим actor'ом, или пустой если source мёртв).
+    return candidates[0] if not candidates.is_empty() else null
 ```
 
-Аналогично для cast-target override — patch'им `_resolve_cast_intent` в
-godmode_controller (или, лучше, в AI-target-selector — но где он?).
+`scripts/core/ai/policies/policy_approach_specific_actor.gd`:
+```gdscript
+class_name PolicyApproachSpecificActor
+extends MovementPolicy
 
-Проверить, где AI выбирает victim_coord для cast'а. Если централизованно
-в `_resolve_cast_intent` — патчим там; если в каждом scenario rule —
-проще прокинуть через `_select_cast_target(actor, ability) -> coord`
-helper. Конкретный путь — выяснить во время implement'а; добавить TODO
-в task.
+func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
+    var grid: HexGrid = ctx.get("grid")
+    var bid: StringName = ctx.get("behavior_target_id", &"")
+    if grid == null or bid == &"":
+        return Vector2i(-1, -1)
+    var src: Actor = ActorRegistry.get_actor(bid)
+    if src == null or not src.is_alive():
+        return Vector2i(-1, -1)
+    var my_coord: Vector2i = grid.get_coord(actor.actor_id)
+    var src_coord: Vector2i = grid.get_coord(src.actor_id)
+    if my_coord == Vector2i(-1, -1) or src_coord == Vector2i(-1, -1):
+        return Vector2i(-1, -1)
+    # Block all other actors (same logic as PolicyApproachNearestEnemy).
+    var blocked: Array[Vector2i] = []
+    for other_v in ctx.get("all_actors", []):
+        if not (other_v is Actor): continue
+        var other: Actor = other_v
+        if other == actor or other == src or not other.is_alive(): continue
+        var c: Vector2i = grid.get_coord(other.actor_id)
+        if c != Vector2i(-1, -1): blocked.append(c)
+    var path: Array = grid.find_path_around(my_coord, src_coord, blocked)
+    if path.size() < 2:
+        return Vector2i(-1, -1)
+    return path[1]
+```
+
+`scripts/core/ai/policies/policy_kite_specific_actor.gd`:
+```gdscript
+class_name PolicyKiteSpecificActor
+extends MovementPolicy
+
+func pick_step(actor: Actor, ctx: Dictionary) -> Vector2i:
+    # Симметрично approach: source-валидация одинакова, но шаг — на
+    # соседний хекс с максимальным hex_distance до source. Если все
+    # доступные шаги уменьшают дистанцию — return (-1,-1) (hold).
+    var grid: HexGrid = ctx.get("grid")
+    var bid: StringName = ctx.get("behavior_target_id", &"")
+    if grid == null or bid == &"": return Vector2i(-1, -1)
+    var src: Actor = ActorRegistry.get_actor(bid)
+    if src == null or not src.is_alive(): return Vector2i(-1, -1)
+    var my_coord: Vector2i = grid.get_coord(actor.actor_id)
+    var src_coord: Vector2i = grid.get_coord(src.actor_id)
+    if my_coord == Vector2i(-1, -1) or src_coord == Vector2i(-1, -1):
+        return Vector2i(-1, -1)
+    var current_d: int = grid.hex_distance(my_coord, src_coord)
+    var best_step: Vector2i = my_coord
+    var best_d: int = current_d
+    for n in grid.tile_map_layer.get_surrounding_cells(my_coord):
+        if not grid.is_walkable(n): continue
+        if grid.get_actor_at(n) != &"": continue
+        var d: int = grid.hex_distance(n, src_coord)
+        if d > best_d:
+            best_d = d; best_step = n
+    if best_step == my_coord: return Vector2i(-1, -1)
+    return best_step
+```
+
+**2. Регистрация в `behavior_database.gd`** — добавить case'ы в три match:
+
+```gdscript
+# _build_selector
+"specific_actor": return SelectorSpecificActor.new()
+
+# _build_policy
+"approach_specific_actor": return PolicyApproachSpecificActor.new()
+"kite_specific_actor":     return PolicyKiteSpecificActor.new()
+```
+
+**3. Сценарии — `data/ai_behaviors/feared.json`:**
+```json
+{
+  "id": "feared",
+  "rules": [],
+  "movement_policy": {"kind": "kite_specific_actor"},
+  "fallback_skill_id": ""
+}
+```
+
+**`data/ai_behaviors/enraged.json`:**
+```json
+{
+  "id": "enraged",
+  "rules": [
+    {
+      "condition": {"kind": "always"},
+      "target_selector": {"kind": "specific_actor"},
+      "tag_priority": ["damage"],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {"kind": "approach_specific_actor"},
+  "fallback_skill_id": ""
+}
+```
+
+Note: enraged rule использует `condition_always` — out-of-range source
+автоматически отсекается на existing'е `_target_in_skill_range` →
+правило не fire'ит → планировщик сваливается на `policy_approach_specific_actor`.
+Не нужен новый `condition_specific_actor_in_range`.
+
+**4. `enemy_ai_planner.plan` delta:**
+
+```gdscript
+func plan(actor: Actor, ctx: Dictionary) -> void:
+    actor.cast_intent = null
+    actor.move_intent_coord = Vector2i(-1, -1)
+    if not actor.is_alive(): return
+
+    # 027: stunned bail
+    if actor.is_stunned(): return
+
+    # 027: ctx-enrichment with behavior_target_id from active feared/enraged.
+    # Read in priority order — last applied wins per AC-RA3, but in practice
+    # mutual exclusivity means at most one is active.
+    var bid: StringName = &""
+    if actor.has_status(&"enraged"):
+        bid = (actor.get_statuses_by_id(&"enraged") as StatusInstance).source_id
+    elif actor.has_status(&"feared"):
+        bid = (actor.get_statuses_by_id(&"feared") as StatusInstance).source_id
+    if bid != &"":
+        ctx["behavior_target_id"] = bid
+
+    # 027: status-driven movement override (slowed flip-flop / rooted hold).
+    # Runs BEFORE scenario logic — if any status returns (-2,-2), we hold
+    # the movement step but still let scenario rules try to cast.
+    var hold_movement: bool = false
+    for inst_v in actor.get_statuses():
+        var inst := inst_v as StatusInstance
+        var rt: Variant = StatusRegistry.runtime_for(inst.status_id)
+        if rt == null: continue
+        var ov: Vector2i = rt.override_movement(actor, inst, ctx)
+        if ov == Vector2i(-2, -2):
+            hold_movement = true
+            break
+
+    # ... existing scenario-resolve / rules-loop / movement-policy fallthrough ...
+    # The movement_policy.pick_step result is suppressed if hold_movement.
+```
+
+`Actor.get_statuses_by_id(id)` — вспомогательный, возвращает StatusInstance
+или null. Тривиальный — добавить в Actor delta.
+
+**5. `_build_target_candidates` delta** — special-case для SelectorSpecificActor:
+
+```gdscript
+func _build_target_candidates(actor: Actor, selector: TargetSelector, ctx: Dictionary) -> Array:
+    if selector is SelectorSelf:
+        return [actor]
+    # 027: SelectorSpecificActor reads behavior_target_id, ignores team filter.
+    if selector is SelectorSpecificActor:
+        var bid: StringName = ctx.get("behavior_target_id", &"")
+        if bid == &"": return []
+        var src: Actor = ActorRegistry.get_actor(bid)
+        if src == null or not src.is_alive(): return []
+        return [src]
+    # ... existing ally/enemy filter logic ...
+```
+
+### Зачем такая раздача
+
+- Steering feared/enraged живёт в данных (`data/ai_behaviors/*.json`), а не в коде runtime'а.
+- Designer может (при добавлении новых behavior-override статусов) создать новый
+  сценарий + JSON-метаданные status'а без правок планировщика.
+- Test'ировать поведение проще — debug-скрипты могут принудительно
+  установить `actor.behavior_id = &"feared"` без статус-системы.
+- Изолированность: код status-runtime'а трогает только `behavior_id` +
+  `_original_behavior_id`, ничего больше из AI surface.
 
 ### Парсер — `_make_effects_from_dict` delta
 
@@ -495,14 +719,21 @@ world_turn_ended(N)
             runtime.on_turn_start(actor, inst, ctx)  # DoT damage, source-check
             if actor died → break out
             inst.duration -= 1
-          remove expired, emit statuses_changed
+          for each expired status:
+            actor.remove_status(id)  # fires on_remove → behavior_id restore for feared/enraged
+          emit statuses_changed (if any change)
     if player.is_stunned():
       delay → TurnManager.advance() → recursion to top
       RETURN  (no enemy phase)
     _run_enemy_turn():
       for each enemy:
         if enemy.is_stunned(): skip plan/resolve
-        else: existing logic, with movement-override hooks
+        else:
+          enemy_ai_planner.plan(enemy, ctx_enriched_with_behavior_target_id):
+            scenario := BehaviorDatabase.get_scenario(enemy.behavior_id)
+                       # for feared/enraged AI — this is "feared"/"enraged"
+                       # scenario, not default_melee
+            try rules → try movement_policy → fallback skill
 ```
 
 ## Тесты / smoke
@@ -517,9 +748,8 @@ world_turn_ended(N)
 
 ## Open questions / TODO в коде
 
-- AI cast-target selector path — найти централизованную точку, где AI
-  выбирает victim_coord. Если её нет (каждый scenario rule сам выбирает) —
-  добавить hook через override_cast_target. Точное место — в task'е.
+- `Actor.get_statuses_by_id(id) -> StatusInstance` helper — добавить в
+  Actor delta (тривиальный getter).
 - Если actor спавнится без `StatusIconStrip` ребёнка (тестовые сцены) —
   Actor не падает, лог info. Уже учтено в spec AC-UI.
 - `glitched` runtime — пустой класс. Если в будущем нужно реальное

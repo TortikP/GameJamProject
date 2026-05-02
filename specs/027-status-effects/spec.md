@@ -39,11 +39,20 @@
 | `slowed`   | `slowed(d)` | `effective_speed = floor(speed / 2)`, минимум 0. Не скейлится от lvl. Для AI, у которой `policy_step = 1 hex/turn` независимо от speed — флип-флоп: статус хранит `_skip_next_move: bool`, на каждый tick тогглит, на `true` policy не emit'ит `move_intent_coord`. |
 | `poisoned` | `poisoned(d, dmg_pct, lvl_bonus_pct)` | в начале хода: `take_damage(floor(max_hp * (dmg_pct + level * lvl_bonus_pct) / 100))`. `level` = `Skill.level` на момент каста, snapshot'ится в `StatusInstance` (caster может выйти из боя или измениться). |
 | `rooted`   | `rooted(d)` | `effective_speed = 0`. AI policy не emit'ит `move_intent_coord`. Кастеры (`cast_intent`) не блокируются. |
-| `feared`   | `feared(d)` | **на player'е — статус хранится, runtime no-op** (вариант C из чата). На AI: переопределяет `movement_policy` на текущем ходу — actor двигается на хекс, максимизирующий `hex_distance(self, source)`. Если source мёртв или не в registry — статус истекает немедленно. Cast-intent не блокируется. |
+| `feared`   | `feared(d)` | **На player'е — статус хранится, runtime no-op** (вариант C из чата). **На AI:** на `add_status` swap'ит `actor.behavior_id` → `&"feared"` (новый сценарий с `policy_kite_specific_actor`); source прокидывается AI-планировщику через ctx-ключ `behavior_target_id`. На `remove_status` (или expire) — restore оригинального `behavior_id`. Если source мёртв на tick — статус expire'ит, что revert'ит behavior. Tactic rules сценария — пустые: feared не атакует. |
 | `burning`  | `burning(d, dmg, lvl_bonus)` | в начале хода: `take_damage(dmg + level * lvl_bonus)`. Аналогично poisoned по snapshot'у `level`. |
 | `glitched` | `glitched(d)` | **STUB.** Runtime — пустой класс. Хранится, тикает duration, отображается иконкой. Поведение — отдельной фичей. |
 | `shielded` | `shielded(d, n_block, lvl_bonus)` | при вызове `take_damage(amount)` на target'е урон уменьшается на `n_block + level * lvl_bonus` (до min 0). Не consume'ится, не decrement'ится от удара — только от tick'а duration. |
-| `enraged`  | `enraged(d)` | **на player'е — статус хранится, runtime no-op**. На AI: переопределяет `movement_policy` — двигаться к source; AI таргет-селектор для cast-intent при возможности предпочитает source как victim. Если source мёртв — expire. |
+| `enraged`  | `enraged(d)` | **На player'е — статус хранится, runtime no-op**. **На AI:** на `add_status` swap'ит `actor.behavior_id` → `&"enraged"` (сценарий: `policy_approach_specific_actor` + один rule с `selector_specific_actor`, `tag_priority: ["damage"]`). Source — через ctx `behavior_target_id`. AI бежит к source и при наличии damage-скилла в range атакует его, игнорируя других врагов. На expire — restore. Source мёртв на tick → expire. |
+
+### Behavior-override mutual exclusivity
+
+`feared` и `enraged` оба swap'ят `actor.behavior_id`. На один Actor может быть
+наложен только один из них одновременно — применение одного **полностью
+удаляет** инстанс другого (даже если у того ещё есть duration). Это
+позволяет хранить ровно один `_original_behavior_id` slot на Actor'е и
+избежать вложенной семантики восстановления при пересечении эффектов.
+Other status-id (poisoned, burning, etc.) с feared/enraged не конфликтуют.
 
 **Snapshot levels.** `poisoned`, `burning`, `shielded` пересчитывают свой эффективный
 числовой параметр в момент каста (`level` берётся с `Skill.level`) и сохраняют его
@@ -307,12 +316,16 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
   Floating-number и damage_dealt event приходят через стандартный канал
   (без правок в presentation).
 - **AC-RT-burning**: на tick — `take_damage(snapshot_value)`. Аналогично.
-- **AC-RT-feared**: AI с feared(_) двигается ОТ source (не к ближайшему
-  врагу). Если source мёртв на tick — статус expire (duration → 0,
-  cleanup в этот же tick). Player с feared — runtime no-op (статус
-  отображается, иконка висит, поведение игрока не меняется).
-- **AC-RT-enraged**: AI с enraged движется К source И, если source попадает
-  в `target.range`, AI cast-планировщик предпочитает source как victim.
+- **AC-RT-feared**: AI с feared имеет `behavior_id == &"feared"` (overridden).
+  Сценарий feared двигает actor'а ОТ source через `policy_kite_specific_actor`;
+  rules пусты (cast не происходит). Если source мёртв на tick — статус expire
+  в этот же tick, behavior_id restore'ится. Player с feared — статус
+  отображается иконкой, поведение игрока не меняется.
+- **AC-RT-enraged**: AI с enraged имеет `behavior_id == &"enraged"`. Сценарий
+  enraged двигает actor'а К source через `policy_approach_specific_actor`;
+  один rule с `condition_always` + `selector_specific_actor` + `tag_priority:
+  ["damage"]` — при наличии damage-скилла в range, кастит его в source,
+  игнорируя всех остальных врагов. Source мёртв на tick → expire + restore.
   Player с enraged — runtime no-op.
 - **AC-RT-glitched**: runtime — пустой класс, тик только декрементит
   duration. Иконка отображается, поведения нет.
@@ -327,6 +340,48 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
   тем же `status_id` — старый инстанс полностью замещается. Никакого
   `max(old.duration, new.duration)`, никакого суммирования.
 - **AC-RA2**: re-apply emit'ит `statuses_changed` один раз.
+- **AC-RA3**: применение `feared` при активном `enraged` (или наоборот) —
+  старый инстанс удаляется через стандартный `remove_status` путь
+  (включая runtime.on_remove → restore behavior_id), затем добавляется
+  новый. Behavior-override slot на Actor'е содержит ровно один
+  feared/enraged инстанс одновременно.
+
+### AI scenario building blocks (feared/enraged)
+- **AC-AI1**: `BehaviorDatabase` распознаёт новые `kind`-значения:
+  - `target_selector.kind == "specific_actor"` → `SelectorSpecificActor`
+  - `movement_policy.kind == "approach_specific_actor"` → `PolicyApproachSpecificActor`
+  - `movement_policy.kind == "kite_specific_actor"` → `PolicyKiteSpecificActor`
+  Unknown kind на этих позициях — warn + fallback (`SelectorNearestEnemy` /
+  `PolicyHoldPosition`) как у существующих ветвей match.
+- **AC-AI2**: `data/ai_behaviors/feared.json` и `enraged.json` загружаются
+  `BehaviorDatabase` без warn'ов.
+- **AC-AI3**: `EnemyAIPlanner.plan` перед обходом `scenario.rules` обогащает
+  ctx ключом `behavior_target_id: StringName` — id source'а из активного
+  feared/enraged status (если есть). Если на actor'е нет ни feared, ни
+  enraged — ключ не выставляется (или пустой).
+- **AC-AI4**: `EnemyAIPlanner._build_target_candidates` для `SelectorSpecificActor`
+  возвращает `[ActorRegistry.get_actor(ctx["behavior_target_id"])]` без
+  team-фильтра. Null или dead source → пустой список → правило не сработает,
+  AI fallthrough на movement.
+- **AC-AI5**: `PolicyApproachSpecificActor.pick_step` / `PolicyKiteSpecificActor.pick_step`
+  читают `ctx["behavior_target_id"]`. Источник null/dead → return `(-1,-1)`
+  (defer); следом `enemy_ai_planner` опционально сваливается на
+  `fallback_skill_id` (в наших сценариях он пустой → hold).
+
+### Behavior-override apply / restore
+- **AC-BO1**: `feared_runtime.on_apply(actor, inst)` / `enraged_runtime.on_apply`:
+  - если `actor._behavior_override_id == &""` — сохраняет
+    `actor._original_behavior_id = actor.behavior_id`
+  - устанавливает `actor._behavior_override_id = inst.status_id`,
+    `actor.behavior_id = inst.status_id`
+- **AC-BO2**: `feared_runtime.on_remove` / `enraged_runtime.on_remove`:
+  - если `actor._behavior_override_id == inst.status_id` —
+    restore `actor.behavior_id = actor._original_behavior_id`,
+    очистить `_behavior_override_id` и `_original_behavior_id`
+  - иначе (status был silently удалён ради другого override'а) — no-op
+- **AC-BO3**: `Actor.add_status(inst)` — для feared/enraged, ДО store'а
+  в `_statuses` снимает противоположный статус через `remove_status`
+  (триггерит on_remove + restore), затем уже store'ит и вызывает on_apply.
 
 ### Cast-flow / tick-order
 - **AC-CT1**: `_on_world_turn_ended` — статусы тикаются ПЕРЕД `_run_enemy_turn`.
@@ -380,9 +435,19 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
   получает 3 урона (8-5).
 - **AC-X7**: Re-apply burning(5,3,1) поверх burning(2,3,1) — duration
   скакнул до 5, args заменились, не «burning(7,3,1)».
-- **AC-X8**: AI с feared(3, source=player_id) — двигается ОТ player'а 3
-  хода, потом возвращается к нормальной policy (approach). Если player
-  умирает на ходу 2 — status expire'нул сразу, AI back to normal с хода 3.
+- **AC-X8**: AI manekin с feared(3, source=player_id) — `behavior_id`
+  меняется на `&"feared"`, manekin двигается ОТ player'а 3 хода (через
+  `policy_kite_specific_actor`), не атакует. На ходе 4 — статус expire,
+  `behavior_id` restore'ится на `&"default_melee"`, AI возвращается к
+  approach+attack. Если player умирает на ходу 2 — feared expire'ит сразу
+  на следующем tick'е (source мёртв), AI back to default с хода 3.
+- **AC-X9**: AI manekin с enraged(3, source=player_id), баргу-другие враги
+  на карте (например другой manekin) — manekin игнорирует второго и идёт
+  к player'у; в range атакует ТОЛЬКО player'а. На expire — обычная default
+  policy (атакует ближайшего).
+- **AC-X10**: AI manekin с feared(2), затем кастят enraged(3): feared
+  инстанс удаляется (один на одного — mutual exclusivity), enraged
+  применяется. `behavior_id` сразу `&"enraged"`. Player'а атакует.
 
 ## Out of scope
 
@@ -407,6 +472,12 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
 - **`AbilityEffect.duration` шим** — нет (hard removal, как 021/026).
 - **Tooltip на pill'ах** — `status_icon_strip` уже эмитит
   `status_pill_hovered`, но потребитель — отдельная фича UI-kit'а.
+- **`ConditionSpecificActorInRange`** — НЕ нужен. Сценарий enraged
+  использует `condition_always` + `selector_specific_actor`; out-of-range
+  source автоматически отсекается через существующий `_target_in_skill_range`
+  → правило не fire'ит → fallthrough на approach-policy.
+- **Coexistence feared+enraged** — exclusive (см. AC-RA3). Если плейтест
+  покажет потребность в стаке — отдельная фича.
 
 ## Open after playtest
 
@@ -429,8 +500,10 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
   (Skill/Ability контракт), 011 (UI-kit StatusIconStrip).
 - **Downstream:** 008 (enemy AI — feared/enraged hook в movement_policy
   и target-selector), будущая фича audio/VFX dispatch для on_apply / on_tick.
-- **Координация:** Sergey (008) — feared/enraged переопределяют
-  movement_policy.pick_step и таргет-приоритет cast_intent; пересекается
-  с его планировщиком. Andrey (009) — StatusIconStrip уже UI-kit, патчим
-  только `bind_actor` (low-touch). Стасян — балансные числа в burning
-  skill'ах после имплемента.
+- **Координация:** Sergey (008) — добавляем 1 selector + 2 movement-policy
+  + 2 scenario JSON'а в его территорию AI. Хук в `EnemyAIPlanner.plan`
+  (ctx-enrichment с `behavior_target_id`) и `_build_target_candidates`
+  (специальная ветка для `SelectorSpecificActor`) — на его стороне 2 файла.
+  Без правок tactic_rule / selectors API. Согласовать через PR-review.
+  Andrey (009) — StatusIconStrip уже UI-kit, патчим только `bind_actor`
+  (low-touch). Стасян — балансные числа в burning skill'ах после имплемента.

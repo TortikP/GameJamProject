@@ -12,9 +12,10 @@
   `status_id / duration / args / source_id / snapshot_value / rt_flag`
   (см. plan §"StatusInstance").
 - [ ] **A2.** Создать `scripts/core/statuses/status_runtime.gd` —
-  abstract base со static-методами `compute_snapshot / on_turn_start /
-  modify_speed / damage_reduction / override_movement /
-  override_cast_target` (defaults как в plan).
+  abstract base со static-методами `compute_snapshot / on_apply / on_remove /
+  on_turn_start / modify_speed / damage_reduction / override_movement`
+  (defaults как в plan). `override_cast_target` НЕ нужен — feared/enraged
+  ходят через scenario swap, не через runtime hook.
 - [ ] **A3.** Создать 9 runtime-классов в `scripts/core/statuses/runtimes/`:
   - [ ] `stunned_runtime.gd` — defaults
   - [ ] `slowed_runtime.gd` — `modify_speed = floor(s/2)`,
@@ -23,16 +24,17 @@
         `on_turn_start = take_damage(floor(max_hp * snapshot / 100))`
   - [ ] `rooted_runtime.gd` — `modify_speed → 0`,
         `override_movement → (-2,-2)`
-  - [ ] `feared_runtime.gd` — source-validity на `on_turn_start`,
-        `override_movement` максимизирует hex_distance до source (AI only;
-        skip если actor.team == &"player")
+  - [ ] `feared_runtime.gd` — **behavior swap** через `on_apply`/`on_remove`
+        (см. plan §"Runtime-классы конкретика"); `on_turn_start` —
+        source-validity check; `override_movement` — **НЕ override'ит**.
   - [ ] `burning_runtime.gd` — `compute_snapshot = args[1] + level * args[2]`,
         `on_turn_start = take_damage(snapshot)`
   - [ ] `glitched_runtime.gd` — pure stub (все defaults)
   - [ ] `shielded_runtime.gd` — `compute_snapshot = args[1] + level * args[2]`,
         `damage_reduction = inst.snapshot_value`
-  - [ ] `enraged_runtime.gd` — source-validity, `override_movement` к source
-        (AI only), `override_cast_target` возвращает source_id если в range
+  - [ ] `enraged_runtime.gd` — **behavior swap** через `on_apply`/`on_remove`
+        (то же тело что feared, но behavior_id == "enraged"); `on_turn_start` —
+        source-validity check; `override_movement` — **НЕ override'ит**.
 - [ ] **A4.** Создать `scripts/core/statuses/status_registry.gd` (autoload):
   - preload-таблица `_RT_BY_ID` со всеми 9
   - `_ready` — load `data/status_effects/*.json` в `_meta`
@@ -92,42 +94,64 @@
 - [ ] **E1.** `scripts/core/actors/actor.gd` — добавить:
   - сигнал `statuses_changed(actor_id: StringName)`
   - `var _statuses: Dictionary = {}` (CLAUDE trap #6 — Dictionary, not Array[Resource])
-  - методы `add_status / remove_status / get_statuses / has_status /
-    is_stunned / effective_speed / damage_reduction`
+  - `var _original_behavior_id: StringName = &""`
+  - `var _behavior_override_id: StringName = &""`
+  - `const _BEHAVIOR_OVERRIDE_IDS: Array[StringName] = [&"feared", &"enraged"]`
+  - методы `add_status / remove_status / get_statuses / get_statuses_by_id /
+    has_status / is_stunned / effective_speed / damage_reduction`
+  - `add_status` — mutual-exclusivity branch (см. plan §"Actor delta") +
+    on_remove old + on_apply new
+  - `remove_status` — on_remove → erase → emit
 - [ ] **E2.** Добавить метод `tick_statuses_with_ctx(ctx: Dictionary) -> void`
-  (см. plan §"Actor delta"). Игнорировать при `_dead`.
+  (см. plan §"Actor delta"). Игнорировать при `_dead`. Expired — через
+  `remove_status(id)` (не `_statuses.erase` напрямую — чтобы on_remove фирилось).
 - [ ] **E3.** Модифицировать `take_damage`: применить `damage_reduction()`
   до клампинга hp. Если reduced ≤ 0 — return без emit (полное поглощение).
 - [ ] **E4.** `_ready` — попытаться bind'нуть `$StatusIconStrip` если
   существует: `if has_node("StatusIconStrip"): $StatusIconStrip.bind_actor(self)`.
   Лог info если нет.
 
-## F. AI / movement honor speed
+## F. AI / movement honor speed (slowed / rooted only)
 
 - [ ] **F1.** `scripts/core/ai/enemy_ai_planner.gd`:
   - в начале `plan(actor, ctx)` — `if actor.is_stunned(): clear intents, return`
-  - после bail-on-stunned, до scenario.movement_policy:
-    - обойти `actor.get_statuses()`, для каждого вызвать
-      `runtime.override_movement(actor, inst, ctx)`
-    - если `(-2,-2)` — clear move_intent, продолжить к cast_intent (rooted/slowed-skip ещё может cast'ить)
-    - если другой Vector2i — записать в `actor.move_intent_coord`, break
-  - см. plan §"AI movement override impl"
-- [ ] **F2.** AI cast-target override:
-  - найти точку, где AI выбирает victim_coord для `cast_intent` (вероятно
-    в `enemy_ai_planner` или `tactic_rule.gd` / `selectors/*.gd` —
-    инспектировать при импле)
-  - после выбора default'ного — обойти статусы, вызвать
-    `override_cast_target(actor, inst, ctx)`; первый non-empty StringName
-    переопределяет victim
-  - **TODO в коде:** если selector-логика разбросана по rule'ам, вынести
-    хук в общий помощник `_pick_victim_coord(actor, ability)` — но
-    рефактор только если естественно укладывается; иначе — в каждом
-    selector'е добавить override-чек, и оставить TODO для пост-джем чистки.
+  - после bail-on-stunned, ДО scenario lookup: enrich `ctx` with
+    `behavior_target_id` from active feared/enraged status (см. plan §"AI
+    scenario building blocks" пункт 4)
+  - после scenario.movement_policy.pick_step (но до записи в actor.move_intent_coord) —
+    обойти `actor.get_statuses()`, для каждого вызвать
+    `runtime.override_movement(actor, inst, ctx)`. Если хоть один вернул
+    `(-2, -2)` — НЕ записывать pick_step result в `move_intent_coord`
+    (hold). Cast-intent остаётся valid и продолжает планироваться.
+- [ ] **F2.** Special-case в `_build_target_candidates(actor, selector, ctx)`:
+  если `selector is SelectorSpecificActor` — return
+  `[ActorRegistry.get_actor(ctx["behavior_target_id"])]` (с проверкой
+  null/dead → []), без team-фильтра.
 - [ ] **F3.** Выяснить, читают ли существующие movement-policy
   (`policy_approach_nearest_enemy`, `policy_kite_from_nearest_enemy`)
-  `actor.speed` или жёстко 1 hex/turn. Если читают — заменить на
-  `actor.effective_speed()`. Если нет — оставить 1 hex/turn (slowed/rooted
-  всё равно перехватит через `override_movement → (-2,-2)`).
+  `actor.speed`. Если читают — заменить на `actor.effective_speed()`.
+  Если нет — оставить 1 hex/turn (slowed/rooted всё равно перехватит
+  через `override_movement → (-2,-2)`).
+
+## M. AI scenario building blocks (для feared/enraged)
+
+- [ ] **M1.** Создать `scripts/core/ai/selectors/selector_specific_actor.gd`
+  (`class_name SelectorSpecificActor extends TargetSelector`). См.
+  plan §"AI scenario building blocks" пункт 1.
+- [ ] **M2.** Создать `scripts/core/ai/policies/policy_approach_specific_actor.gd`
+  (`class_name PolicyApproachSpecificActor extends MovementPolicy`).
+- [ ] **M3.** Создать `scripts/core/ai/policies/policy_kite_specific_actor.gd`
+  (`class_name PolicyKiteSpecificActor extends MovementPolicy`).
+- [ ] **M4.** `scripts/core/ai/behavior_database.gd` — добавить case'ы:
+  - `_build_selector` match: `"specific_actor": return SelectorSpecificActor.new()`
+  - `_build_policy` match:
+    - `"approach_specific_actor": return PolicyApproachSpecificActor.new()`
+    - `"kite_specific_actor":     return PolicyKiteSpecificActor.new()`
+- [ ] **M5.** Создать `data/ai_behaviors/feared.json` (kite policy, empty rules,
+  empty fallback). См. plan §"AI scenario building blocks" пункт 3.
+- [ ] **M6.** Создать `data/ai_behaviors/enraged.json` (approach policy,
+  one rule with always-condition + specific_actor selector + tag_priority
+  ["damage"], empty fallback).
 
 ## G. Godmode controller — tick + stun-skip
 
@@ -216,8 +240,13 @@
 - [ ] **K5.** Godmode → AC-X5 (stun на player → slot grey + auto-advance)
 - [ ] **K6.** Godmode → AC-X6 (shielded блокирует часть урона)
 - [ ] **K7.** Godmode → AC-X7 (re-apply burning замещает duration)
-- [ ] **K8.** Godmode → AC-X8 (feared AI убегает от player'а;
+- [ ] **K8.** Godmode → AC-X8 (feared AI убегает от player'а через
+  `behavior_id == "feared"` swap; на expire restore'ится `default_melee`;
   если player умирает — feared expire)
+- [ ] **K9.** Godmode → AC-X9 (enraged AI игнорирует второго manekin'а,
+  идёт в player'а, атакует только player'а)
+- [ ] **K10.** Godmode → AC-X10 (feared(2) → enraged(3) reapply: feared
+  снимается, behavior_id сразу `&"enraged"`)
 
 ## L. Push & PR
 
@@ -234,7 +263,9 @@
 ```
 A1 → A2 → A3 (все 9) → A4 → A5
 B1 (параллельно с A)
-A* + B* → C → D → E → F + G + H + I (параллельно)
+M1, M2, M3 (параллельно с A) → M4 → M5, M6 (параллельно)
+A* + B* → C → D → E → F (требует M4 для SelectorSpecificActor класса)
+G + H + I (параллельно с F)
 любая правка JSON → J (параллельно с кодом)
 всё → K → L
 ```
