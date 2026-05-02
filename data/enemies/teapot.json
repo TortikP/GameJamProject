@@ -11,6 +11,6 @@
     "teapot_spill_the_t",
     "teapot_tea_gathering"
   ],
-  "behavior_id": "default_range",
+  "behavior_id": "default_caster",
   "fallback_skill_id": "teapot_low_possibility"
 }
