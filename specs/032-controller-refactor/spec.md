@@ -83,11 +83,11 @@ After migration: `godmode_terrain.tres` is deleted. `_paint_grid` uses `hex_terr
 4. Single tileset in repo (`hex_terrain.tres`, tile_shape = HEXAGON). `godmode_terrain.tres` and the orphaned atlas (if any) deleted.
 5. Move-range overlay renders correctly on EVERY level (procedural godmode + every editor-built level). The bug Andrey reported on 2026-05-02 is closed by either (a) the tileset consolidation alone, or (b) a follow-up patch tracked here.
 
-## Open questions
+## Open questions (resolved 2026-05-02)
 
-- OQ-1: Is map_editor_controller.gd worth refactoring in the same pass? It's the same size and same "god object" shape. Probably yes, but it'd double the spec's scope. Recommend separate spec 033 if so.
+- ~~OQ-1: Is map_editor_controller.gd worth refactoring in the same pass?~~ → **No, separate spec 033** (Andrey, 2026-05-02). Same shape, different scope; lands after 032 so it can use the same module split conventions and benefit from the tileset consolidation.
 - OQ-2: Should the Node-child modules be reusable across godmode AND arena_demo controllers? Probably not — godmode is a superset of arena_demo's needs and reuse would force premature abstraction. Keep godmode-specific for now; revisit if arena_demo gains the same complexity.
-- OQ-3: Tileset migration — atomic single PR, or migrate `_paint_grid` first then delete the old tres in a follow-up? Atomic is safer (no half-state where some scenes reference the deleted file).
+- ~~OQ-3: Tileset migration — atomic single PR, or migrate `_paint_grid` first then delete the old tres in a follow-up?~~ → **Atomic single PR** (Andrey, 2026-05-02). Safer (no half-state where some scenes reference the deleted file). Migration includes: (a) re-save `hex_terrain.tres` with `tile_shape = HEXAGON`, (b) update `_paint_grid` to use it, (c) delete `godmode_terrain.tres` and the orphaned godmode_atlas.png if no other consumers, (d) update CLAUDE.md "Two tilesets exist" rule. All in one PR.
 
 ## Out of scope
 
