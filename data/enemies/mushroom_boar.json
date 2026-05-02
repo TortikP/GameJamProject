@@ -1,0 +1,16 @@
+{
+  "id": "mushroom_boar",
+  "name": "mushroom_boar_name",
+  "desc": "mushroom_boar_desc",
+  "sprite": "assets/sprites/enemies/mushroom_boar.png",
+  "max_hp": 40,
+  "team": "enemy",
+  "speed": 4,
+  "skills": [
+    "tusk_attack",
+    "spores",
+    "weaken"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "tusk_attack"
+}
