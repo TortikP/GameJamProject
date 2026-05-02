@@ -53,6 +53,7 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 @export var object_palette_path: NodePath
 @export var meta_panel_path: NodePath
 @export var confirm_modal_path: NodePath
+@export var hotkey_overlay_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -63,6 +64,7 @@ var _floor_palette: Node
 var _object_palette: Node
 var _meta_panel: Node
 var _confirm_modal: Node
+var _hotkey_overlay: Control
 var _autosave_timer: Timer
 
 # ── Editing state ───────────────────────────────────────────────────────────
@@ -110,6 +112,7 @@ func _ready() -> void:
 	_object_palette = _resolve(object_palette_path, "HUD/ObjectPalettePanel")
 	_meta_panel = _resolve(meta_panel_path, "HUD/LevelMetaPanel")
 	_confirm_modal = _resolve(confirm_modal_path, "HUD/ConfirmModal")
+	_hotkey_overlay = _resolve(hotkey_overlay_path, "HUD/HotkeyOverlay") as Control
 
 	# 2. Initial canvas paint, then init grid
 	_paint_initial_canvas()
@@ -334,6 +337,12 @@ func _handle_key_event(event: InputEventKey) -> void:
 	if not event.ctrl_pressed and not event.alt_pressed and not event.shift_pressed:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			_quick_select(event.keycode - KEY_1)
+			get_viewport().set_input_as_handled()
+			return
+		# H — toggle hotkey cheatsheet overlay (T-23)
+		if event.keycode == KEY_H:
+			if _hotkey_overlay != null:
+				_hotkey_overlay.visible = not _hotkey_overlay.visible
 			get_viewport().set_input_as_handled()
 			return
 

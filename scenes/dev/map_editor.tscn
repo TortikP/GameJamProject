@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=14 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/floor_palette_panel.gd" id="10_fp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/object_palette_panel.gd" id="11_op"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/level_meta_panel.gd" id="12_mp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/hotkey_overlay.gd" id="13_hk"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -23,6 +24,7 @@ floor_palette_path = NodePath("HUD/FloorPalettePanel")
 object_palette_path = NodePath("HUD/ObjectPalettePanel")
 meta_panel_path = NodePath("HUD/LevelMetaPanel")
 confirm_modal_path = NodePath("HUD/ConfirmModal")
+hotkey_overlay_path = NodePath("HUD/HotkeyOverlay")
 
 [node name="EditorCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
@@ -85,3 +87,11 @@ grow_horizontal = 0
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 
 [node name="ConfirmModal" parent="HUD" instance=ExtResource("9_modal")]
+
+[node name="HotkeyOverlay" type="Control" parent="HUD"]
+script = ExtResource("13_hk")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+visible = false
