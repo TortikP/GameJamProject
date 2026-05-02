@@ -1,0 +1,15 @@
+{
+  "id": "angel",
+  "name": "angel_name",
+  "desc": "angel_desc",
+  "sprite": "assets/sprites/enemies/enemy_angel.png",
+  "max_hp": 35,
+  "team": "enemy",
+  "speed": 3,
+  "skills": [
+    "holy_bolt",
+    "heal_aura"
+  ],
+  "behavior_id": "default_ranged",
+  "fallback_skill_id": "holy_bolt"
+}

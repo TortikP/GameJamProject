@@ -2,7 +2,7 @@
   "id": "bee",
   "name": "bee_name",
   "desc": "bee_desc",
-  "sprite": "assets/sprites/enemies/bee.png",
+  "sprite": "assets/sprites/enemies/enemy_bee.png",
   "max_hp": 10,
   "team": "enemy",
   "speed": 3,

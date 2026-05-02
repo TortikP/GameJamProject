@@ -1,0 +1,14 @@
+{
+  "id": "stapler",
+  "name": "stapler_name",
+  "desc": "stapler_desc",
+  "sprite": "assets/sprites/enemies/enemy_stapler.png",
+  "max_hp": 15,
+  "team": "enemy",
+  "speed": 2,
+  "skills": [
+    "staple_shot"
+  ],
+  "behavior_id": "default_ranged",
+  "fallback_skill_id": "staple_shot"
+}

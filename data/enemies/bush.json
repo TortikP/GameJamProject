@@ -2,7 +2,7 @@
   "id": "bush",
   "name": "bush_name",
   "desc": "bush_desc",
-  "sprite": "assets/sprites/enemies/bush.png",
+  "sprite": "assets/sprites/enemies/enemy_bush.png",
   "max_hp": 20,
   "team": "enemy",
   "speed": 0,
