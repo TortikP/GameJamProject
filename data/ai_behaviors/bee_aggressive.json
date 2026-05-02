@@ -3,6 +3,28 @@
   "rules": [
     {
       "condition": {
+        "kind": "all_of",
+        "children": [
+          {
+            "kind": "ally_exists"
+          },
+          {
+            "kind": "ally_hp_below",
+            "pct": 70,
+            "distance": 3
+          }
+        ]
+      },
+      "target_selector": {
+        "kind": "lowest_hp_ally"
+      },
+      "tag_priority": [
+        "heal"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
         "kind": "ally_count_below",
         "count": 2
       },
