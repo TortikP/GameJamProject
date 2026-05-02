@@ -515,11 +515,11 @@ ability, один effect-объект `{"status": "poisoned(3, 10, 2)"}`. Для
 5. **DoT-урон vs death timing** — если burning убивает в начале хода,
    actor лишается своего хода целиком. Альтернатива — DoT в конце хода.
    Сейчас в начале — симметрично с poisoned по описанию из чата.
-6. **Full-absorb damage UX** — когда shielded полностью гасит входящий
-   урон, `Actor.take_damage` молча возвращает без `damage_dealt` event'а.
-   Игрок видит pill `◆` но никаких floating numbers — выглядит как
-   промах. Опции: emit'ить damage_dealt(amount=0), отдельный
-   `EventBus.damage_absorbed` сигнал, или floating-text «ABSORBED».
+6. ~~**Full-absorb damage UX**~~ — RESOLVED: `take_damage` теперь
+   emit'ит `damage_dealt(amount=0)` через стандартный канал когда
+   shielded полностью гасит входящий урон. Игрок видит «0» floating
+   number, не путает с промахом. `damaged` (HP-state) signal
+   по-прежнему фирится только при реальном изменении hp.
 7. **Slowed AI 1-tick lag** — slowed начинает действовать со ВТОРОГО
    `world_turn_ended` после apply'а (resolve выполняется до plan'а в том же
    фрейме, поэтому первый ход после применения уже spent на resolve старого

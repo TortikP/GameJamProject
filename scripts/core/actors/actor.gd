@@ -95,14 +95,14 @@ func take_damage(amount: int) -> void:
 	if _dead or amount <= 0:
 		return
 	# 027: shielded (and any future damage_reduction status) absorbs first.
-	# Full absorb → silent return; reduced > 0 → standard path.
 	var reduced: int = maxi(0, amount - damage_reduction())
-	if reduced <= 0:
-		return
 	hp = max(0, hp - reduced)
-	damaged.emit(actor_id, reduced, hp)
-	# 013/F-002: world-space feedback channel (floating numbers, combat log).
-	# Separate from `damaged` — that's HP-state for HealthBar; this is UI events.
+	# `damaged` (HP-state) only fires when HP actually changed — semantic for
+	# HealthBar redraw. damage_dealt (UI feedback channel) fires unconditionally
+	# so a fully-absorbed hit shows a "0" floating number instead of looking
+	# like the cast missed. (027 fix per spec §"Open after playtest" #6.)
+	if reduced > 0:
+		damaged.emit(actor_id, reduced, hp)
 	EventBus.damage_dealt.emit(actor_id, reduced, global_position)
 	if reduced != amount:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d) [absorbed %d]" % [actor_id, reduced, hp, max_hp, amount - reduced])

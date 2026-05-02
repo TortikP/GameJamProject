@@ -152,12 +152,17 @@ func _make_pill(entry: Dictionary) -> Control:
 		var icon_lbl := Label.new()
 		icon_lbl.text = _ICON_BY_FAMILY.get(family, "?")
 		UiTheme.apply_label_kind(icon_lbl, "small")
+		# 027 fix: world-space text — pills sit over hex grid + actor sprites,
+		# read at default zoom only with a strong dark outline.
+		UiTheme.apply_world_text_outline(icon_lbl)
 		hbox.add_child(icon_lbl)
 
 	if duration != 0:
 		var dur_lbl := Label.new()
 		dur_lbl.text = "∞" if duration < 0 else str(duration)
 		UiTheme.apply_label_kind(dur_lbl, "small")
+		# 027 fix: same outline for duration digit.
+		UiTheme.apply_world_text_outline(dur_lbl)
 		hbox.add_child(dur_lbl)
 
 	# Hover for tooltip (TooltipPanel listens via EventBus signals — for now
