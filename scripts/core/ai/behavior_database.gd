@@ -189,6 +189,15 @@ func _build_condition(data: Variant, scenario_id: String, composers_allowed: boo
 			var n := ConditionNotOf.new()
 			n.child = _build_condition(data.get("child", {}), scenario_id, false)
 			return n
+		# 030 additions
+		"unclaimed_hex_exists_near_enemy":
+			var c10 := ConditionUnclaimedHexExistsNearEnemy.new()
+			c10.distance = int(data.get("distance", 1))
+			return c10
+		"ally_count_below":
+			var c11 := ConditionAllyCountBelow.new()
+			c11.count = int(data.get("count", 2))
+			return c11
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown condition kind '%s' — using always" % [scenario_id, kind])
 			return ConditionAlways.new()
@@ -208,6 +217,13 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		"densest_enemy_hex":  return SelectorDensestEnemyHex.new()
 		"random_enemy":       return SelectorRandomEnemy.new()
 		"specific_actor":     return SelectorSpecificActor.new()   # 027: feared/enraged
+		# 030 additions
+		"unclaimed_hex_near_enemy": return SelectorUnclaimedHexNearEnemy.new()
+		"highest_hp_ally":          return SelectorHighestHpAlly.new()
+		"target_without_status":
+			var s := SelectorTargetWithoutStatus.new()
+			s.status_id = StringName(data.get("status_id", ""))
+			return s
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown target_selector kind '%s'" % [scenario_id, kind])
 			return null
@@ -225,6 +241,7 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 		"follow_lowest_hp_ally":    return PolicyFollowLowestHpAlly.new()
 		"approach_specific_actor":  return PolicyApproachSpecificActor.new()   # 027: enraged
 		"kite_specific_actor":      return PolicyKiteSpecificActor.new()       # 027: feared
+		"approach_nearest_enemy_unclaimed": return PolicyApproachNearestEnemyUnclaimed.new()  # 030
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()
