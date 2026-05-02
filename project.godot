@@ -33,6 +33,9 @@ BehaviorDatabase="*res://scripts/core/ai/behavior_database.gd"
 EnemyAIPlanner="*res://scripts/core/ai/enemy_ai_planner.gd"
 CrtPostFx="*res://scenes/presentation/crt_post_fx.tscn"
 ActiveLevel="*res://scripts/infrastructure/active_level.gd"
+ActiveGame="*res://scripts/infrastructure/active_game.gd"
+CampaignController="*res://scripts/runtime/campaign_controller.gd"
+DummyUpgradeStub="*res://scripts/runtime/_dummy_upgrade_stub.gd"
 
 [display]
 

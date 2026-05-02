@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://lvltrans035"]
+
+[ext_resource type="Script" path="res://scripts/presentation/meta/level_transition.gd" id="1_script"]
+[ext_resource type="Shader" path="res://scripts/presentation/meta/level_transition.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lvltrans"]
+shader = ExtResource("2_shader")
+shader_parameter/wobble = 0.0
+shader_parameter/distort = 0.0
+shader_parameter/chroma = 0.0
+shader_parameter/fade = 0.0
+
+[node name="LevelTransition" type="CanvasLayer"]
+layer = 120
+script = ExtResource("1_script")
+
+[node name="Rect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_lvltrans")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
