@@ -9,6 +9,13 @@ extends Resource
 ## godmode_controller._tick_all_skills (driven from _on_world_turn_ended)
 ## for every live Actor. See spec 031-skill-cooldown-fix.
 ##
+## 031 phase 4 — first-tick absorption: world_turn_ended fires in the
+## same TurnManager.advance() that caps off the cast turn, so the very
+## next tick after cast() lands inside the *cast turn itself* and would
+## erase one round of cooldown. _skip_next_tick=true on cast absorbs
+## exactly that tick, so cooldown=N means N rounds of being unavailable
+## (the design intent in JSON), not N-1.
+##
 ## 021 additions (021-skill-system-v2):
 ##  - name / tooltip / desc — localization keys (raw strings; resolution out of scope).
 ##  - behaviour_tags — renamed from `tags`. AI strategy uses these to pick a skill.
@@ -38,15 +45,25 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var abilities: Array[Ability] = []
 
 var _cd_remaining: int = 0
+# 031 phase 4 — true between cast() and the very next tick_cooldown call,
+# which fires inside the same world_turn_ended as the cast itself. Set on
+# cast (cooldown>0), cleared by the absorbing tick.
+var _skip_next_tick: bool = false
 
 
 func is_ready() -> bool:
 	return _cd_remaining <= 0
 
 
-## Pre-check for UI slot greying. Delegates to first ability.
+## Pre-check for UI slot greying. Castable iff (a) skill is off cooldown
+## and (b) the first ability accepts the current ctx. Without the
+## is_ready guard, slot bar wouldn't grey out on cooldown (and the
+## set_castable early-return short-circuits cd label refreshes — see
+## spec 031 phase 3). Spec 031 phase 3.
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 	if abilities.is_empty():
+		return false
+	if not is_ready():
 		return false
 	return (abilities[0] as Ability).can_apply(caster, ctx)
 
@@ -96,12 +113,22 @@ func cast(caster: Actor, ctxs: Array[Dictionary]) -> bool:
 
 	if any_resolved:
 		_cd_remaining = cooldown
+		# 031 phase 4: world_turn_ended fires later in the same advance() that
+		# closes this turn → tick_cooldown lands inside the cast turn. Skip it
+		# once so 'cooldown=N' means N rounds of skip, not N-1.
+		if cooldown > 0:
+			_skip_next_tick = true
 		EventBus.skill_cast.emit(caster.actor_id, id, all_target_ids)
 		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster.actor_id, _cd_remaining])
 
 	return any_resolved
 
 
-## Reduce remaining cooldown by `by` turns. Called from TurnManager.
+## Reduce remaining cooldown by `by` turns. Called from
+## godmode_controller._tick_all_skills once per round per live actor.
 func tick_cooldown(by: int = 1) -> void:
+	# 031 phase 4: absorb the very first tick after a cast (see cast() above).
+	if _skip_next_tick:
+		_skip_next_tick = false
+		return
 	_cd_remaining = maxi(0, _cd_remaining - by)

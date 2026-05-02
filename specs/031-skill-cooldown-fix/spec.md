@@ -76,3 +76,69 @@ truth; `Actor._skills` mirrors it for the tick path.
 - AC7: removing a skill from a slot (RMB → reassign to something else)
   drops it from `player._skills` — no zombie cooldowns ticking on
   resources nobody can cast.
+
+## Phase 3 — playtest follow-up: slot bar doesn't reflect cooldown
+
+Even with phase-2 fix in, the slot bar didn't visually update during
+cooldown — the numeric label froze on its first painted value, and the
+slot stayed bright (looked castable) while actually on cooldown.
+
+Two interlocking causes:
+
+1. `Skill.can_apply` delegated to `abilities[0].can_apply` only, never
+   checked `is_ready()`. So castability was always `true` while on cd.
+2. `SlotBar.set_castable` had an early-return guard ("avoid redundant
+   modulate writes") that fired when castability was unchanged. Since
+   castability never flipped during cd (always `true` per #1), the
+   guard skipped every per-frame refresh — including the cd-label
+   redraw inside `_refresh_visual`.
+
+### Phase 3 fix
+
+- `Skill.can_apply`: add `is_ready()` to the chain. UI now greys out
+  slots on cd; click attempts are rejected pre-FSM (also fixes the
+  separate annoyance of casting starting the FSM only to fail at
+  `Skill.cast`).
+- `SlotBar.set_castable`: drop the early-return. 4 slots × ~60fps
+  modulate writes is nothing.
+
+### Phase 3 acceptance
+
+- AC8: slot dims (TEXT_DIM) the moment its skill goes on cd.
+- AC9: cd label counts down each round (4 → 3 → 2 → 1 → cleared).
+- AC10: pressing a hotkey while on cd does nothing — no FSM enter,
+  no log spam.
+
+## Phase 4 — playtest follow-up: cooldown counts off by one
+
+`cooldown=N` in JSON gave `N-1` rounds of skip — a `cooldown=1` skill
+was castable on the very next round, contradicting the design intent
+("cooldown of 1 means I sit out one round").
+
+Cause: `TurnManager.advance()` emits `world_turn_ended` synchronously
+inside the same call that closes the cast turn. `_on_world_turn_ended`
+runs `_tick_all_skills` immediately. So the very next tick after
+`Skill.cast` lands inside the cast turn itself, eating one of the
+intended skip rounds.
+
+### Phase 4 fix
+
+Add `_skip_next_tick: bool` on `Skill`. Set on `cast()` whenever
+`cooldown > 0`. `tick_cooldown` consumes the flag (clears it, returns
+without decrementing) on its next invocation. After that the field is
+back to default `false` and ticks normally.
+
+Why a flag and not `_cd_remaining = cooldown + 1`: `_cd_remaining` is
+read directly by the slot bar / status panel / formatter. With +1
+the user would briefly see the wrong number during the
+`ability_cast_delay` await window before the absorbing tick fires.
+The flag keeps `_cd_remaining` in sync with the displayed value at
+all times.
+
+### Phase 4 acceptance
+
+- AC11: `cooldown=1` skill cast on turn N is on cd for turn N and
+  turn N+1; ready on turn N+2 (one round of actual skip).
+- AC12: `cooldown=N` (any N≥1) gives exactly N rounds of unavailability.
+- AC13: `cooldown=0` skill cast does NOT set the skip flag and stays
+  ready (no behaviour change vs phase 1).
