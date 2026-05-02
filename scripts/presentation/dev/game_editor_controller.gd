@@ -63,6 +63,26 @@ func _ready() -> void:
 	_map_paths = _list_map_files()
 	_game = GameData.new()
 
+	# 035 v1.1 — when returning from Map Editor (the user clicked "Edit" on a
+	# row earlier), reload the same game file. Skips the autosave-restore
+	# prompt: this isn't a recovery, it's an explicit navigation return.
+	if ActiveGame.has_queued_for_editor():
+		var return_path: String = ActiveGame.consume_queued_for_editor()
+		var loaded: GameData = GameSerializer.load_from(return_path)
+		if loaded != null:
+			_game = loaded
+			# Don't promote the autosave path to a "real" current_path —
+			# next Save would silently overwrite the autosave file.
+			_current_path = "" if return_path == AUTOSAVE_PATH else return_path
+			_dirty = false
+		else:
+			# Loading the return file failed — fall through to normal init,
+			# leaving the user with an empty row to start over.
+			_game.add_level(GameData.make_level_entry("", "", &"", true))
+		_rebuild_rows()
+		_name_input.text = _game.name
+		return
+
 	# Try to restore from autosave, else start with one empty row.
 	if not await _try_restore_autosave():
 		_game.add_level(GameData.make_level_entry("", "", &"", true))
@@ -124,6 +144,7 @@ func _rebuild_rows() -> void:
 		row.moved_down.connect(_on_row_moved_down.bind(row))
 		row.changed.connect(_mark_dirty)
 		row.intro_toggled.connect(_on_intro_toggled.bind(row))
+		row.edit_requested.connect(_on_row_edit_requested.bind(row))
 	_suppress_autosave = false
 
 
@@ -167,6 +188,38 @@ func _on_row_moved_down(row: PanelContainer) -> void:
 	_game.swap(idx, idx + 1)
 	_rebuild_rows()
 	_mark_dirty()
+
+
+func _on_row_edit_requested(row: PanelContainer) -> void:
+	# 035 v1.1 — open the row's map in the Map Editor and queue this game
+	# file for return when the user exits Map Editor.
+	var idx: int = _row_index(row)
+	if idx < 0:
+		return
+	var entry: Dictionary = _game.levels[idx]
+	var map_path: String = String(entry.get("map_path", ""))
+	if map_path == "":
+		_toast("Pick a map first", &"warn")
+		return
+	if not FileAccess.file_exists(map_path):
+		_toast("Map file missing: %s" % map_path.get_file(), &"error")
+		return
+	# Persist current state so we can restore it on return. If the user has
+	# never saved the game, this writes to the autosave path — load on return
+	# will pick that up.
+	var save_path: String = _current_path
+	if save_path == "":
+		save_path = AUTOSAVE_PATH
+	if not GameSerializer.save(_game, save_path):
+		_toast("Save failed; aborting navigation", &"error")
+		return
+	_dirty = false
+	# Order matters: queue map first (Map Editor's _ready reads ActiveLevel),
+	# then mark return path (Map Editor's Exit reads ActiveGame),
+	# then change scene.
+	ActiveLevel.queue(map_path)
+	ActiveGame.queue_for_editor(save_path)
+	get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
 
 
 func _on_intro_toggled(pressed: bool, row: PanelContainer) -> void:

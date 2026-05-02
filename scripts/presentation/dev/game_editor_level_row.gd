@@ -12,12 +12,14 @@ signal moved_up
 signal moved_down
 signal changed
 signal intro_toggled(value: bool)
+signal edit_requested
 
 @onready var _index_label: Label = $HBox/IndexLabel
 @onready var _map_option: OptionButton = $HBox/MapOption
 @onready var _name_input: LineEdit = $HBox/NameInput
 @onready var _cutscene_input: LineEdit = $HBox/CutsceneInput
 @onready var _intro_check: CheckBox = $HBox/IntroCheck
+@onready var _edit_btn: Button = $HBox/EditButton
 @onready var _up_btn: Button = $HBox/UpButton
 @onready var _down_btn: Button = $HBox/DownButton
 @onready var _remove_btn: Button = $HBox/RemoveButton
@@ -29,6 +31,7 @@ var _map_paths: Array[String] = []
 
 
 func _ready() -> void:
+	UiTheme.apply_button_styling(_edit_btn)
 	UiTheme.apply_button_styling(_up_btn)
 	UiTheme.apply_button_styling(_down_btn)
 	UiTheme.apply_button_styling(_remove_btn)
@@ -37,6 +40,7 @@ func _ready() -> void:
 	_name_input.text_changed.connect(_on_name_changed)
 	_cutscene_input.text_changed.connect(_on_cutscene_changed)
 	_intro_check.toggled.connect(_on_intro_toggled)
+	_edit_btn.pressed.connect(func(): edit_requested.emit())
 	_up_btn.pressed.connect(func(): moved_up.emit())
 	_down_btn.pressed.connect(func(): moved_down.emit())
 	_remove_btn.pressed.connect(func(): removed.emit())

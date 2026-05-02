@@ -25,6 +25,13 @@ var _game: GameData = null
 var _game_path: String = ""
 var current_index: int = 0
 
+# Editor-return slot (035-game-editor v1.1). Set by the Game Editor right
+# before navigating to Map Editor on a row's "Edit" click; consumed by Game
+# Editor's _ready when the user returns. Survives a Map-Editor → Playtest →
+# Back-to-Editor cycle (only Game Editor's _ready or an explicit clear()
+# consumes it). Cleared on main menu entry like everything else.
+var _queued_editor_path: String = ""
+
 
 # ── State queries ───────────────────────────────────────────────────────────
 
@@ -124,6 +131,27 @@ func clear() -> void:
 	_game = null
 	_game_path = ""
 	current_index = 0
+	_queued_editor_path = ""
+
+
+# ── Editor-return slot ──────────────────────────────────────────────────────
+
+## Called by Game Editor right before change_scene to map editor.
+## `path` is the .game.json the Game Editor should re-open with on return.
+func queue_for_editor(path: String) -> void:
+	_queued_editor_path = path
+
+
+func has_queued_for_editor() -> bool:
+	return _queued_editor_path != ""
+
+
+## Returns the queued path AND clears the slot. Use exactly once on the
+## Game Editor side.
+func consume_queued_for_editor() -> String:
+	var p: String = _queued_editor_path
+	_queued_editor_path = ""
+	return p
 
 
 # ── Internals ───────────────────────────────────────────────────────────────

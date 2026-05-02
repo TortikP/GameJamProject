@@ -25,6 +25,11 @@ placeholder_text = "cutscene_id (optional)"
 [node name="IntroCheck" type="CheckBox" parent="HBox"]
 text = "Intro"
 
+[node name="EditButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(56, 0)
+text = "Edit"
+tooltip_text = "Open this level's map in the Map Editor (saves the game first)."
+
 [node name="UpButton" type="Button" parent="HBox"]
 custom_minimum_size = Vector2(28, 0)
 text = "↑"
