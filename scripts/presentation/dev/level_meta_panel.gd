@@ -15,6 +15,7 @@ extends PanelContainer
 ##   name_changed(new_name: String)
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const MAPS_DIR: String = "res://data/maps/"
 
@@ -27,6 +28,7 @@ signal name_changed(new_name: String)
 var _controller: Node = null
 
 var _name_edit: LineEdit
+var _dirty_marker: Label
 var _save_btn: Button
 var _load_btn: Button
 var _playtest_btn: Button
@@ -51,6 +53,12 @@ func set_level_name(new_name: String) -> void:
 		_name_edit.text = new_name
 
 
+## Toggle the unsaved-changes asterisk next to the name field.
+func set_dirty(dirty: bool) -> void:
+	if _dirty_marker != null:
+		_dirty_marker.visible = dirty
+
+
 func _apply_theme() -> void:
 	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
 
@@ -64,6 +72,7 @@ func _build_ui() -> void:
 	header.text = "Level"
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
 	# Name input
 	var name_row := HBoxContainer.new()
@@ -75,6 +84,14 @@ func _build_ui() -> void:
 	_name_edit.custom_minimum_size = Vector2(180, 0)
 	_name_edit.text_changed.connect(_on_name_changed)
 	name_row.add_child(_name_edit)
+	# Dirty marker (T-12) — separate label so we don't mangle the LineEdit
+	# text on every edit / undo / save event.
+	_dirty_marker = Label.new()
+	_dirty_marker.text = "*"
+	_dirty_marker.visible = false
+	UiTheme.apply_label_kind(_dirty_marker, "header")
+	_dirty_marker.modulate = UiTheme.SEM_DEBUFF  # warm orange — "attention, unsaved"
+	name_row.add_child(_dirty_marker)
 	vbox.add_child(name_row)
 
 	# Buttons
@@ -134,3 +151,9 @@ func _on_playtest() -> void:
 
 func _on_exit() -> void:
 	exit_requested.emit()
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)

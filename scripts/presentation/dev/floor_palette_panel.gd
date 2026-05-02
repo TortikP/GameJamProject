@@ -16,10 +16,12 @@ extends PanelContainer
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
-	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
-	{"label": "Hex Terrain",     "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
+	{"label": "Placeholder (6 tiles)", "path": "res://scenes/dev/placeholder_terrain.tres"},
+	{"label": "Godmode Terrain",       "path": "res://scenes/dev/godmode_terrain.tres"},
+	{"label": "Hex Terrain",           "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
 ]
 
 const ICON_SIZE: Vector2 = Vector2(48, 48)
@@ -66,6 +68,7 @@ func _build_ui() -> void:
 	header.text = "Floor"
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
 	# Tileset dropdown
 	_tileset_dropdown = OptionButton.new()
@@ -100,10 +103,13 @@ func _on_tileset_selected(idx: int) -> void:
 
 
 func _on_erase_pressed() -> void:
-	# Untoggle other tile buttons (visual feedback only)
+	# Untoggle other tile buttons (visual feedback only). set_pressed_no_signal
+	# prevents Godot from re-firing 'pressed' on the buttons we're resetting,
+	# which in toggle-mode can cascade into unexpected mode flips at the
+	# controller (seen in 023: every tile-click would re-trigger erase mode).
 	for child in _tile_grid.get_children():
 		if child is Button:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	erase_picked.emit()
 
 
@@ -152,18 +158,23 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 			btn.tooltip_text = String(tk)
 
 	UiTheme.apply_button_styling(btn)
+	btn.set_meta("source_id", source_id)
+	btn.set_meta("atlas_coord", atlas_coord)
 	btn.pressed.connect(_on_tile_pressed.bind(source_id, atlas_coord, btn))
 	btn.gui_input.connect(_on_tile_gui_input.bind(source_id, atlas_coord))
 	return btn
 
 
 func _on_tile_pressed(source_id: int, atlas: Vector2i, btn: Button) -> void:
-	# Untoggle erase + every other button (visual single-select)
+	# Untoggle erase + every other tile button (visual single-select).
+	# set_pressed_no_signal so the un-press doesn't re-emit `pressed` on the
+	# Erase button — that was cascading into ERASING_FLOOR mode at the
+	# controller every time a tile was clicked.
 	if _erase_btn != null:
-		_erase_btn.button_pressed = false
+		_erase_btn.set_pressed_no_signal(false)
 	for child in _tile_grid.get_children():
 		if child is Button and child != btn:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	tile_picked.emit(source_id, atlas)
 
 
@@ -244,3 +255,52 @@ func _label_for_atlas(source_id: int, atlas: Vector2i) -> String:
 			if tk != null and String(tk) != "":
 				return String(tk)
 	return "%d:%d,%d" % [source_id, atlas.x, atlas.y]
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)
+
+
+# ── Public selection API (eyedropper / 1-9 quick select) ───────────────────
+
+## Programmatically select the tile button matching (source_id, atlas).
+## Toggles the button as if user clicked it — including emitting tile_picked
+## so the controller switches mode. No-op if no button matches.
+func select_tile(source_id: int, atlas: Vector2i) -> void:
+	if _tile_grid == null:
+		return
+	for child in _tile_grid.get_children():
+		if not (child is Button):
+			continue
+		var btn := child as Button
+		if int(btn.get_meta("source_id", -1)) != source_id:
+			continue
+		if Vector2i(btn.get_meta("atlas_coord", Vector2i(-1, -1))) != atlas:
+			continue
+		# Found — simulate press.
+		btn.button_pressed = true
+		_on_tile_pressed(source_id, atlas, btn)
+		return
+
+
+## Quick palette select — pick the N-th tile button (0-indexed). Out of range
+## → no-op. Erase button is NOT counted; only the actual tile grid.
+func select_nth(idx: int) -> void:
+	if _tile_grid == null or idx < 0:
+		return
+	var i: int = 0
+	for child in _tile_grid.get_children():
+		if not (child is Button):
+			continue
+		if i == idx:
+			var btn := child as Button
+			var src_id: int = int(btn.get_meta("source_id", -1))
+			var atlas: Vector2i = Vector2i(btn.get_meta("atlas_coord", Vector2i(-1, -1)))
+			if src_id < 0:
+				return
+			btn.button_pressed = true
+			_on_tile_pressed(src_id, atlas, btn)
+			return
+		i += 1

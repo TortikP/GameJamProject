@@ -1,7 +1,8 @@
 class_name HealEffect
 extends AbilityEffect
 ## Restores HP. target must be an Actor.
-## HoT (duration > 0): # TODO 007 HoT scaffold — works as instant for now.
+##
+## 027: was a HoT scaffold via base.duration; unused. Removed with base field.
 
 @export var heal: int = 0
 

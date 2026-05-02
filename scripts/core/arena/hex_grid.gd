@@ -312,6 +312,23 @@ func coord_under_mouse() -> Vector2i:
 	return Vector2i(-1, -1)
 
 
+## Editor-only: returns the hex coord under cursor without checking against
+## the painted tile registry. Used by the map editor where the user can
+## paint anywhere — `_tiles` only knows about cells already initialized.
+## Hard-capped to ±MAP_HALF_LIMIT so a runaway scroll can't generate
+## absurd coords (Vector2i has 32-bit space; we don't want to test it).
+const MAP_HALF_LIMIT: int = 250  # ⇒ 500×500 effective canvas
+
+func coord_under_mouse_raw() -> Vector2i:
+	if tile_map_layer == null:
+		return Vector2i(-1, -1)
+	var local_pos: Vector2 = tile_map_layer.get_local_mouse_position()
+	var coord: Vector2i = tile_map_layer.local_to_map(local_pos)
+	if absi(coord.x) > MAP_HALF_LIMIT or absi(coord.y) > MAP_HALF_LIMIT:
+		return Vector2i(-1, -1)
+	return coord
+
+
 func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return _pathfinder.find_path(from, to)
 

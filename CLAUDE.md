@@ -42,6 +42,8 @@ Concrete:
 3. Autoloads (GameSpeed, EventBus, AudioDirector, UiTheme) are accessible from anywhere. Stateless logging via `GameLogger` — preload-only utility, see traps table.
 4. Cross-system communication goes through EventBus signals, not direct references.
 5. UI colors and spacing — only via `UiTheme.X`. No `Color(...)` inline in `scripts/presentation/`. New stylebox? `UiTheme.make_*_stylebox()`. New label kind? Extend `UiTheme.apply_label_kind`.
+6. Hex polygon geometry — via `HexGeometry.flat_top_polygon(layer.tile_set.tile_size)` (preload `scripts/infrastructure/hex_geometry.gd`). No hardcoded `RADIUS = 60.0` in overlays — `tile_size` in the .tres is the single source of truth, polygons inscribe into the tile bbox at draw time. See spec 022.
+7. **All TileSet `.tres` files use the same `tile_size = Vector2i(128, 80)`.** Two tilesets exist (`scenes/dev/godmode_terrain.tres`, `scenes/arena/tilesets/hex_terrain.tres`) — they MUST stay the same size so actor sprites, camera zoom limits, and overlay polygons behave identically across godmode and arena. If you need a different size, change BOTH at once and re-tune `player.tscn` / `manekin.tscn` anchor offsets in the same PR.
 
 ### Timing
 5. NO hardcoded timer values. Use `GameSpeed.wait(section, key)` or read

@@ -37,12 +37,20 @@ const GRID_H := 9
 var _slot_bar_node: Node
 var _inspector: Node      # ActorInspector
 var _overlay: Node        # MoveRangeOverlay
+var _cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
 var _selected: Actor      # currently inspected actor (default: player)
 var _next_manekin_idx: int = 1
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
 var _tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+
+# 026: multi-step cast collection state. Phase-1 (per-ability target picker)
+# lives here; phase-2 is Skill.cast(player, ctxs).
+var _cast_in_progress: bool = false
+var _cast_skill: Skill = null
+var _cast_step: int = 0                  # current ability index in skill.abilities
+var _cast_ctxs: Array[Dictionary] = []   # collected so far (length == _cast_step)
 
 
 func _ready() -> void:
@@ -131,9 +139,9 @@ func _ready() -> void:
 	if _overlay != null and _overlay.has_method("setup"):
 		_overlay.setup(grid)
 	# CastRangeOverlay (009-T033) — present in godmode.tscn as sibling under HexGrid.
-	# Wire its grid ref now; show_range/hide_range calls follow once cast_mode is
-	# explicit (007 ownership). For Phase 2 it stays inert.
-	var _cast_overlay: Node = grid.get_node_or_null("CastRangeOverlay")
+	# 026: promoted to class member so the multi-step cast FSM can call
+	# show_range_for_ability / show_self_confirm / hide_range from any handler.
+	_cast_overlay = grid.get_node_or_null("CastRangeOverlay")
 	if _cast_overlay != null and _cast_overlay.has_method("setup"):
 		_cast_overlay.setup(grid)
 	if _inspector != null and _inspector.has_signal("speed_changed"):
@@ -205,6 +213,21 @@ func _try_load_queued_level() -> bool:
 		# by hand may not have one.
 		GameLogger.warn("Godmode", "Loaded level has no player spawner — placing default")
 		_place_player()
+	# Render tile-object visuals. LevelLoader writes object_id to HexTile
+	# (logic / pathfinder / resolver), but doesn't paint sprites — that's the
+	# editor's job in editor scenes, godmode's here.
+	var objects_overlay: Node = grid.get_node_or_null("ObjectsOverlay")
+	if objects_overlay != null:
+		if objects_overlay.has_method("bind_registry"):
+			objects_overlay.bind_registry(grid.get_object_registry())
+		if objects_overlay.has_method("clear_all"):
+			objects_overlay.clear_all()
+		if objects_overlay.has_method("set_object"):
+			for entry in level.objects:
+				var coord: Vector2i = entry.get("coord", Vector2i(-1, -1))
+				var obj_id: StringName = entry.get("object_id", &"")
+				if coord != Vector2i(-1, -1) and obj_id != &"":
+					objects_overlay.set_object(coord, obj_id)
 	# Camera follow
 	var camera: Node = get_node_or_null("../GodmodeCamera")
 	if camera != null and camera.has_method("set_follow_target") and player != null:
@@ -351,10 +374,11 @@ func _update_castability() -> void:
 		"target_id": target_id,
 		"target_coord": coord,
 	}
-	# Slot castability tints
+	# Slot castability tints. 027: stunned player → all slots greyed.
+	var stunned: bool = player.is_stunned()
 	for i in 4:
 		var skill := _slot_bar_node.get_slot(i) as Skill
-		var castable: bool = skill != null and skill.can_apply(player, ctx)
+		var castable: bool = skill != null and not stunned and skill.can_apply(player, ctx)
 		_slot_bar_node.set_castable(i, castable)
 
 	# Damage preview on enemies — only the hovered one shows red strip,
@@ -402,14 +426,16 @@ func _update_castability() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).pressed:
 		if (event as InputEventKey).keycode == KEY_ESCAPE:
-			# 009-T051 priority chain:
-			#   1. active cast slot → cancel cast (deactivate slot)
+			# 026: priority 0 — cancel multi-step cast in progress.
+			# Slot-toggle path below is now unreachable while cast-FSM owns input.
+			if _cast_in_progress:
+				_cancel_cast()
+				get_viewport().set_input_as_handled()
+				return
+			# 009-T051 priority chain (post-026):
+			#   1. active cast slot → toggle off
 			#   2. selection != player → reset selection to player
 			#   3. otherwise → open pause menu
-			# Modal close (priority 2 in plan) is decentralized — each modal
-			# self-closes on ESC via its own _unhandled_input. They also call
-			# set_input_as_handled, so by the time this fires the modal stack
-			# is empty.
 			if _slot_bar_node != null and _slot_bar_node.get_active() != -1:
 				_slot_bar_node.activate(_slot_bar_node.get_active())  # toggle off
 				get_viewport().set_input_as_handled()
@@ -452,7 +478,31 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in 4:
 		if event.is_action_pressed("cast_slot_%d" % i):
-			# activate() in SlotBar toggles: press active slot again = deselect (-1)
+			# 027: stunned player can't enter cast FSM. _update_castability
+			# already greys the slot visually; this guards the keyboard path.
+			if player != null and player.is_stunned() and not _cast_in_progress:
+				get_viewport().set_input_as_handled()
+				return
+			# 026: when an FSM cast is in progress, slot keys gate through it.
+			if _cast_in_progress and _slot_bar_node != null:
+				var active_now: int = _slot_bar_node.get_active()
+				if i == active_now:
+					# Same slot pressed again — alternate keyboard path.
+					# On a self-step, this commits; otherwise it cancels (toggle off).
+					if _is_self_step():
+						var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+						_commit_step(caster_coord, player.actor_id)
+					else:
+						_cancel_cast()
+						_slot_bar_node.activate(i)  # toggle off
+				else:
+					# Different slot — drop current cast, switch slot. New entry happens
+					# only on the next LMB (matches 021 — slot key just selects, doesn't fire).
+					_cancel_cast()
+					_slot_bar_node.activate(i)
+				get_viewport().set_input_as_handled()
+				return
+			# Default: activate() in SlotBar toggles selection.
 			if _slot_bar_node != null:
 				_slot_bar_node.activate(i)
 			get_viewport().set_input_as_handled()
@@ -462,11 +512,45 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not mb.pressed:
 			return
 		if mb.button_index == MOUSE_BUTTON_RIGHT:
+			# 026: RMB cancels an in-progress cast instead of moving.
+			if _cast_in_progress:
+				_cancel_cast()
+				get_viewport().set_input_as_handled()
+				return
 			_request_move()
 			get_viewport().set_input_as_handled()
 		elif mb.button_index == MOUSE_BUTTON_LEFT:
+			# 026: LMB during cast FSM — commit step or no-op (out-of-range click).
+			if _cast_in_progress:
+				_handle_cast_lmb()
+				get_viewport().set_input_as_handled()
+				return
 			_request_cast_active()
 			get_viewport().set_input_as_handled()
+
+
+## 026: dispatch LMB while cast FSM is active.
+##   - self-step: any LMB anywhere commits with caster's coord (per spec AC-C4).
+##   - non-self : LMB on a hex within ability.target.range commits; otherwise
+##                no-op (overlay stays, player keeps the step).
+func _handle_cast_lmb() -> void:
+	if not _cast_in_progress or _cast_skill == null:
+		return
+	if _cast_step >= _cast_skill.abilities.size():
+		return
+	var ab: Ability = _cast_skill.abilities[_cast_step]
+	if ab.target is SelfTarget:
+		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+		_commit_step(caster_coord, player.actor_id)
+		return
+	var coord: Vector2i = grid.coord_under_mouse()
+	if coord == Vector2i(-1, -1):
+		return  # off-grid click — stay on step
+	var from_coord: Vector2i = grid.get_coord(player.actor_id)
+	var valid_hexes: Array[Vector2i] = ab.target.get_range_hexes(from_coord, grid)
+	if coord in valid_hexes:
+		_commit_step(coord, grid.get_actor_at(coord))
+	# else: invalid range click — neither commit nor cancel; stay on step
 
 
 # ── Actions ──────────────────────────────────────────────────────────────────
@@ -481,6 +565,9 @@ func _wait_turn() -> void:
 func _request_move() -> void:
 	if grid._moving or _world_processing:
 		return
+	if player.is_stunned():
+		# 027: pill icon over player explains why; no log spam.
+		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		return
@@ -493,13 +580,14 @@ func _request_move() -> void:
 	if grid.get_actor_at(coord) != &"":
 		GameLogger.info("Godmode", "occupied: %s" % str(coord))
 		return
-	if player.speed <= 0:
-		GameLogger.info("Godmode", "cannot move (speed=0)")
+	if player.effective_speed() <= 0:
+		# 027: rooted or speed=0. Pill icon explains.
+		GameLogger.info("Godmode", "cannot move (effective_speed=0)")
 		return
 	var path: Array = grid.find_path(from, coord)
 	var dist: int = path.size() - 1
-	if dist > player.speed:
-		GameLogger.info("Godmode", "too far (speed=%d, distance=%d)" % [player.speed, dist])
+	if dist > player.effective_speed():
+		GameLogger.info("Godmode", "too far (effective_speed=%d, distance=%d)" % [player.effective_speed(), dist])
 		return
 	await grid.move_actor(PLAYER_ID, coord)
 	if grid.get_coord(PLAYER_ID) != from:
@@ -510,6 +598,10 @@ func _request_move() -> void:
 func _request_cast_active() -> void:
 	if _slot_bar_node == null:
 		return
+	if player != null and player.is_stunned():
+		# 027: cast slots are greyed via _update_castability; this guards the
+		# direct LMB-to-cast path when an active slot is already selected.
+		return
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		return
@@ -519,11 +611,17 @@ func _request_cast_active() -> void:
 		"target_id": target_id, "target_coord": coord,
 	}
 	var active_idx: int = _slot_bar_node.get_active()
-	# If a spell is selected and can cast → cast
+	# If a spell is selected and can cast → start the FSM
 	if active_idx != -1:
 		var skill := _slot_bar_node.get_slot(active_idx) as Skill
 		if skill != null and skill.can_apply(player, ctx):
 			_cast_slot(active_idx)
+			# 026 fix: the entry LMB also acts as the commit click for step 0.
+			# Without this, the player would have to click twice (once to enter
+			# FSM, once to commit). _handle_cast_lmb is safe to call when FSM
+			# isn't active (early-returns).
+			if _cast_in_progress:
+				_handle_cast_lmb()
 		# Skill slot active → never inspect/deselect on a failed cast.
 		return
 	# No active skill: inspect hovered actor or hex
@@ -534,6 +632,16 @@ func _request_cast_active() -> void:
 		_inspect_hex(coord)
 
 
+# ── 026: multi-step cast collection (phase 1) ──────────────────────────────────
+##
+## State-machine: IDLE → AWAIT_TARGET / AWAIT_SELF_CONFIRM → ... → _commit_cast
+## Cancel paths reset to IDLE without firing Skill.cast.
+##
+## See specs/026-skill-system-v3/plan.md §"Player cast state-machine".
+
+## Entry point — called when player presses LMB with an active slot.
+## Pre-checks `skill.can_apply(player, mouse_ctx)` against abilities[0] (021
+## semantics). If false, slot stays greyed and FSM does not start.
 func _cast_slot(slot_index: int) -> void:
 	if _slot_bar_node == null:
 		return
@@ -541,24 +649,101 @@ func _cast_slot(slot_index: int) -> void:
 	if skill == null:
 		GameLogger.info("Godmode", "slot %d empty" % slot_index)
 		return
+	if skill.abilities.is_empty():
+		GameLogger.warn("Godmode", "slot %d skill '%s' has no abilities" % [slot_index, skill.id])
+		return
 	if grid._moving or _world_processing:
 		return
+
+	# Pre-check using mouse position. Cheap and matches 021 grey-out semantics.
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		GameLogger.info("Godmode", "no target (off-grid)")
 		return
-	var target_id: StringName = grid.get_actor_at(coord)
-	var ctx: Dictionary = {
-		"registry": registry,
-		"grid": grid,
-		"target_id": target_id,
-		"target_coord": coord,
+	var pre_ctx: Dictionary = {
+		"registry": registry, "grid": grid,
+		"target_id": grid.get_actor_at(coord), "target_coord": coord,
 	}
-	var did_cast: bool = skill.cast(player, ctx)
-	if not did_cast:
+	if not skill.can_apply(player, pre_ctx):
 		return
-	await GameSpeed.wait("godmode", "ability_cast_delay")
-	TurnManager.advance()
+
+	_cast_skill = skill
+	_cast_step = 0
+	_cast_ctxs = []
+	_cast_in_progress = true
+	# 026 fix: hide MoveRangeOverlay's slot-activation attack-range paint
+	# so CastRangeOverlay's per-step paint doesn't render on top of it.
+	# Restored on FSM exit via _refresh_overlay (in _commit_cast/_cancel_cast).
+	if _overlay != null and _overlay.has_method("clear"):
+		_overlay.clear()
+	_begin_step()
+
+
+func _begin_step() -> void:
+	if _cast_skill == null or _cast_step >= _cast_skill.abilities.size():
+		return
+	var ab: Ability = _cast_skill.abilities[_cast_step]
+	if _cast_overlay == null:
+		return
+	if ab.target is SelfTarget:
+		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+		if _cast_overlay.has_method("show_self_confirm"):
+			_cast_overlay.show_self_confirm(caster_coord)
+	else:
+		if _cast_overlay.has_method("show_range_for_ability"):
+			_cast_overlay.show_range_for_ability(player, ab)
+
+
+func _commit_step(coord: Vector2i, target_id: StringName) -> void:
+	var ctx: Dictionary = {
+		"registry": registry, "grid": grid,
+		"target_id": target_id, "target_coord": coord,
+	}
+	_cast_ctxs.append(ctx)
+	_cast_step += 1
+	if _cast_overlay != null and _cast_overlay.has_method("hide_range"):
+		_cast_overlay.hide_range()
+	if _cast_step == _cast_skill.abilities.size():
+		await _commit_cast()
+	else:
+		_begin_step()
+
+
+func _commit_cast() -> void:
+	# Snapshot then reset BEFORE Skill.cast so EventBus subscribers see clean state.
+	var skill: Skill = _cast_skill
+	var ctxs: Array[Dictionary] = _cast_ctxs
+	_reset_cast_state()
+	var did_cast: bool = skill.cast(player, ctxs)
+	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
+	_refresh_overlay()
+	if did_cast:
+		await GameSpeed.wait("godmode", "ability_cast_delay")
+		TurnManager.advance()
+
+
+func _cancel_cast() -> void:
+	if _cast_overlay != null and _cast_overlay.has_method("hide_range"):
+		_cast_overlay.hide_range()
+	_reset_cast_state()
+	# 026 fix: restore MoveRangeOverlay slot paint after FSM cancels.
+	_refresh_overlay()
+	# no cooldown, no commit, no turn advance
+
+
+func _reset_cast_state() -> void:
+	_cast_in_progress = false
+	_cast_skill = null
+	_cast_step = 0
+	_cast_ctxs = []
+
+
+func _is_self_step() -> bool:
+	if not _cast_in_progress or _cast_skill == null:
+		return false
+	if _cast_step >= _cast_skill.abilities.size():
+		return false
+	return _cast_skill.abilities[_cast_step].target is SelfTarget
 
 
 ## 016/F-034 — resolves PlayerStatusPanel via @export NodePath, with fallback
@@ -695,9 +880,36 @@ func _on_world_turn_ended(_turn: int) -> void:
 	if player == null or not player.is_alive():
 		return
 	_world_processing = true
+	# 027 / AC-CT1: tick statuses for ALL actors before AI runs. DoT damage
+	# may kill some — they're skipped naturally in subsequent loops.
+	_tick_all_statuses()
+	# 027 / AC-X5: if player is stunned (newly applied or carried over),
+	# show the icon for stun_skip_delay seconds, then auto-advance their turn.
+	# Recursion is fine — next world_turn_ended will tick again, and either
+	# decrement to expire or skip again.
+	if player.is_alive() and player.is_stunned():
+		await get_tree().create_timer(GameSpeed.get_value("arena", "stun_skip_delay", 0.4)).timeout
+		_world_processing = false
+		TurnManager.advance()
+		return
 	await _run_enemy_turn()
 	_world_processing = false
 	_refresh_overlay()
+
+
+# 027: status tick for all live actors. ctx mirrors what AI gets — runtimes
+# (feared/enraged source-validity, and any future ctx-dependent runtime) read
+# `registry` / `grid` / `all_actors` from it.
+func _tick_all_statuses() -> void:
+	if registry == null:
+		return
+	var ctx: Dictionary = _world_ctx()
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor.is_alive():
+			actor.tick_statuses_with_ctx(ctx)
 
 
 func _run_enemy_turn() -> void:
@@ -788,8 +1000,13 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 		"registry": registry, "grid": grid,
 		"target_id": target_id, "target_coord": target_coord,
 	}
+	# 026: AI broadcasts a single ctx to all abilities. Per-ability AI targeting
+	# is out of scope — see specs/026-skill-system-v3/spec.md §"Out of scope".
 	# can_apply re-validates range / castability at the moment of cast.
-	skill.cast(enemy, ctx)
+	var ctxs: Array[Dictionary] = []
+	for _i in skill.abilities.size():
+		ctxs.append(ctx)
+	skill.cast(enemy, ctxs)
 	await GameSpeed.wait("godmode", "ability_cast_delay")
 
 

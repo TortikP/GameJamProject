@@ -156,15 +156,22 @@ static func semantic_color(tag: StringName) -> Color:
 static func make_panel_stylebox(elevated: bool = false) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BG_ELEVATED if elevated else BG_PANEL
+	# Slightly stronger border on the left edge — visual "spine" without
+	# being heavy on every side. Other sides keep the muted BORDER.
 	sb.border_color = BORDER
-	sb.border_width_left   = 1
+	sb.border_width_left   = 2
 	sb.border_width_right  = 1
 	sb.border_width_top    = 1
 	sb.border_width_bottom = 1
-	sb.corner_radius_top_left     = 4
-	sb.corner_radius_top_right    = 4
-	sb.corner_radius_bottom_left  = 4
-	sb.corner_radius_bottom_right = 4
+	sb.corner_radius_top_left     = 6
+	sb.corner_radius_top_right    = 6
+	sb.corner_radius_bottom_left  = 6
+	sb.corner_radius_bottom_right = 6
+	# Soft drop-shadow — lifts the panel off the dark canvas without
+	# competing with the content. Cheap (no blur), Godot stretches the box.
+	sb.shadow_color = Color(0, 0, 0, 0.35)
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(0, 2)
 	sb.content_margin_left   = SP_3
 	sb.content_margin_right  = SP_3
 	sb.content_margin_top    = SP_2

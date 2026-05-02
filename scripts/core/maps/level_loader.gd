@@ -19,11 +19,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/dev/player.tscn")
 const MANEKIN_SCENE: PackedScene = preload("res://scenes/dev/manekin.tscn")
+const BUSH_SCENE: PackedScene = preload("res://scenes/dev/bush.tscn")
 
 # enemy_id → PackedScene mapping. New enemies plug in here as we add prefabs.
 # data/enemies/<id>.json files declare existence; this table maps id → scene.
 const ENEMY_SCENES: Dictionary = {
 	&"manekin": MANEKIN_SCENE,
+	&"bush": BUSH_SCENE,
 }
 
 const PLAYER_ID: StringName = &"player"

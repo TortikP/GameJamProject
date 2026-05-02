@@ -24,6 +24,7 @@ AudioDirector="*res://scripts/infrastructure/audio_director.gd"
 DialogueDB="*res://scripts/core/dialogue/dialogue_database.gd"
 DialogueManager="*res://scripts/presentation/dialogue_manager.gd"
 TurnManager="*res://scripts/core/turn/turn_manager.gd"
+StatusRegistry="*res://scripts/core/statuses/status_registry.gd"
 AbilityDatabase="*res://scripts/core/abilities/ability_database.gd"
 SkillDatabase="*res://scripts/core/skills/skill_database.gd"
 BehaviorDatabase="*res://scripts/core/ai/behavior_database.gd"
@@ -121,5 +122,6 @@ dev_open_editor={
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

@@ -13,7 +13,10 @@ extends Node2D
 ##
 ## Z-index 4 — below cursor (z=7), above terrain, above move overlay (z=2).
 
-const RADIUS: float = 60.0   # match MoveRangeOverlay / godmode_terrain.tres
+## Hex polygon dimensions come from the live tileset's tile_size — see
+## scripts/infrastructure/hex_geometry.gd. tile_size in the .tres is the
+## single source of truth.
+const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
 
 var _grid: Node = null  # HexGrid
 var _polys: Array[Node2D] = []
@@ -64,6 +67,36 @@ func show_range(caster: Actor, skill_or_id) -> void:
 		_add_hex(c, fill, outline)
 
 
+## 026: per-ability range — used by godmode_controller's multi-step cast FSM
+## to highlight only the hexes valid for `ability` (not the whole skill).
+func show_range_for_ability(caster: Actor, ability: Ability) -> void:
+	hide_range()
+	if _grid == null or caster == null or ability == null or ability.target == null:
+		return
+	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
+	if caster_coord == Vector2i(-1, -1):
+		return
+	var hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, _grid)
+	var base: Color = UiTheme.SEM_DEBUFF
+	var fill := Color(base.r, base.g, base.b, 0.32)
+	var outline := Color(base.r, base.g, base.b, 0.78)
+	for c in hexes:
+		_add_hex(c, fill, outline)
+
+
+## 026: highlight caster's hex for a self-target step. LMB anywhere on
+## screen confirms (handled by godmode_controller — this is just the visual).
+## Color uses SEM_HEAL (warm, friendly) to distinguish from offensive range.
+func show_self_confirm(coord: Vector2i) -> void:
+	hide_range()
+	if _grid == null:
+		return
+	var base: Color = UiTheme.SEM_HEAL
+	var fill := Color(base.r, base.g, base.b, 0.45)
+	var outline := Color(base.r, base.g, base.b, 0.85)
+	_add_hex(coord, fill, outline)
+
+
 func hide_range() -> void:
 	for p in _polys:
 		if is_instance_valid(p):
@@ -80,16 +113,16 @@ func _on_theme_reloaded() -> void:
 func _add_hex(coord: Vector2i, fill: Color, outline: Color) -> void:
 	if _grid == null:
 		return
+	# Polygon shape first — bail before allocating nodes if tile_set isn't ready.
+	var pts: PackedVector2Array = HexGeometry.flat_top_polygon_for_layer(_grid.tile_map_layer)
+	if pts.is_empty():
+		return
 	var poly: Node2D = Node2D.new()
 	poly.position = _grid.tile_map_layer.map_to_local(coord)
 	poly.z_index = 4
 	_grid.add_child(poly)
 	_polys.append(poly)
 
-	var pts: PackedVector2Array = []
-	for i in 6:
-		var a: float = deg_to_rad(60.0 * i)
-		pts.append(Vector2(cos(a) * RADIUS, sin(a) * RADIUS))
 	var pgon := Polygon2D.new()
 	pgon.polygon = pts
 	pgon.color = fill
