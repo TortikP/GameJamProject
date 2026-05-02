@@ -1,0 +1,53 @@
+{
+  "id": "shell_prayer",
+  "name": "shell_prayer_name",
+  "tooltip": "shell_prayer_tooltip",
+  "desc": "shell_prayer_desc",
+  "icon": "assets/sprites/icons/skills/shell_prayer.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "ranged"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "self_heal_medium",
+      "sound_start": "assets/audio/skills/self_heal_medium/start.wav",
+      "collision_effect": "assets/vfx/skills/self_heal_medium/self_heal.prefab",
+      "sound_end": "assets/audio/skills/self_heal_medium/end.wav",
+      "animation": "assets/animations/skills/self_heal_medium.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "heal": 14
+        }
+      ]
+    },
+    {
+      "id": "self_shield",
+      "sound_start": "assets/audio/skills/self_shield/start.wav",
+      "collision_effect": "assets/vfx/status/shielded/apply_self.prefab",
+      "sound_end": "assets/audio/status/shielded/end.wav",
+      "animation": "assets/animations/status/self_shield.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "shielded (2)"
+        }
+      ]
+    }
+  ]
+}
