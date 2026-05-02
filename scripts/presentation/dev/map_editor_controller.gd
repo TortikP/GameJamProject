@@ -1074,6 +1074,13 @@ func _on_exit_requested() -> void:
 			"Выйти без сохранения", "Остаться", true)
 		if not leave:
 			return
+	# 035 v1.1 — if we got here from the Game Editor (via a row's "Edit"
+	# button), return to it instead of the main menu. Game Editor's _ready
+	# consumes the queued path. Survives Map Editor → Playtest → Back to
+	# Editor cycles since only Game Editor's _ready or main_menu clears it.
+	if ActiveGame.has_queued_for_editor():
+		get_tree().change_scene_to_file("res://scenes/dev/game_editor.tscn")
+		return
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 

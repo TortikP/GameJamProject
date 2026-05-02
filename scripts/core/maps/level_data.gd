@@ -229,6 +229,12 @@ static func from_dict(d: Dictionary) -> LevelData:
 	lvl.name = String(d.get("name", "Untitled"))
 	lvl.version = int(d.get("version", SCHEMA_VERSION))
 	lvl.tileset_path = String(d.get("tileset_path", DEFAULT_TILESET_PATH))
+	# 035 fix — pre-032 saves still reference the deleted godmode_terrain.tres.
+	# Silently rewrite to the canonical tileset so old autosaves / playtest
+	# scratch files don't fail to load (which would drop us into procedural
+	# sandbox with no WaveController → no enemy spawning).
+	if lvl.tileset_path == "res://scenes/dev/godmode_terrain.tres":
+		lvl.tileset_path = DEFAULT_TILESET_PATH
 	lvl.waves = []
 
 	if d.has("waves") and d["waves"] is Array:

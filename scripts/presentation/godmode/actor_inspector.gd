@@ -271,7 +271,11 @@ func _disconnect_actor() -> void:
 		return
 	if _actor.damaged.is_connected(_on_actor_damaged):
 		_actor.damaged.disconnect(_on_actor_damaged)
-	# died was CONNECT_ONE_SHOT — auto-disconnects after fire, no manual needed
+	# died is CONNECT_ONE_SHOT, but if bind() is called a second time on the
+	# SAME actor before death, the previous one-shot connection is still
+	# active → re-connect spams "already connected". Defensive disconnect.
+	if _actor.died.is_connected(_on_actor_died):
+		_actor.died.disconnect(_on_actor_died)
 	if dev_mode:
 		if _spin_curr_hp.value_changed.is_connected(_on_curr_hp_changed):
 			_spin_curr_hp.value_changed.disconnect(_on_curr_hp_changed)

@@ -58,6 +58,14 @@ text = "Godmode (dev)"
 layout_mode = 2
 text = "Map Editor [Ctrl+E]"
 
+[node name="GameEditorButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Game Editor"
+
+[node name="LoadGameButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Load Game"
+
 [node name="LoadCustomLevelButton" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Load Custom Level"
@@ -84,4 +92,14 @@ file_mode = 0
 access = 0
 current_dir = "res://data/maps/"
 filters = PackedStringArray("*.json ; Map JSON files")
+use_native_dialog = false
+
+[node name="LoadGameFileDialog" type="FileDialog" parent="."]
+title = "Open a Game"
+size = Vector2i(720, 480)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+current_dir = "res://data/games/"
+filters = PackedStringArray("*.game.json ; Game files")
 use_native_dialog = false
