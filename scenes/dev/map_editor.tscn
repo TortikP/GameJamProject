@@ -78,24 +78,37 @@ anchor_right = 1.0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = -376.0
-offset_bottom = 88.0
+offset_bottom = 140.0
 grow_horizontal = 2
 
-[node name="HBox" type="HBoxContainer" parent="HUD/WavePanel"]
+[node name="VBox" type="VBoxContainer" parent="HUD/WavePanel"]
 
-[node name="Timeline" parent="HUD/WavePanel/HBox" instance=ExtResource("16_wt")]
+[node name="HeaderRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]
 
-[node name="Spacer" type="Control" parent="HUD/WavePanel/HBox"]
+[node name="StatusLabel" type="Label" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Wave 1 of 1"
+custom_minimum_size = Vector2(220, 32)
+vertical_alignment = 1
+
+[node name="HeaderSpacer" type="Control" parent="HUD/WavePanel/VBox/HeaderRow"]
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="CopyBtn" type="Button" parent="HUD/WavePanel/HBox"]
+[node name="CopyBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
 text = "Copy from prev"
 custom_minimum_size = Vector2(140, 32)
 
-[node name="SpecialBtn" type="Button" parent="HUD/WavePanel/HBox"]
+[node name="SpecialBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
 text = "Make Special"
 custom_minimum_size = Vector2(120, 32)
+
+[node name="DeleteBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
+text = "Delete wave"
+custom_minimum_size = Vector2(120, 32)
+
+[node name="TimelineRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]
+
+[node name="Timeline" parent="HUD/WavePanel/VBox/TimelineRow" instance=ExtResource("16_wt")]
 
 [node name="LevelMetaPanel" type="PanelContainer" parent="HUD"]
 script = ExtResource("12_mp")

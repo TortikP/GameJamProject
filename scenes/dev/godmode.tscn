@@ -105,7 +105,7 @@ mode = 1
 offset_left = 16.0
 offset_top = 96.0
 offset_right = 480.0
-offset_bottom = 152.0
+offset_bottom = 168.0
 
 [node name="ToastLayer" parent="." instance=ExtResource("16_tl")]
 

@@ -1120,6 +1120,8 @@ func _wire_wave_panel() -> void:
 		_wave_panel.copy_from_prev_pressed.connect(_on_wave_copy_prev)
 	if _wave_panel.has_signal("toggle_special_pressed"):
 		_wave_panel.toggle_special_pressed.connect(_on_wave_toggle_special)
+	if _wave_panel.has_signal("delete_wave_pressed"):
+		_wave_panel.delete_wave_pressed.connect(_on_wave_delete_active)
 	# Initial bind so the panel reflects the default _level (single empty wave).
 	if _wave_panel.has_method("bind_level"):
 		_wave_panel.bind_level(_level)
@@ -1226,6 +1228,13 @@ func _on_wave_toggle_special() -> void:
 	_level.waves[active]["is_special"] = not was
 	_mark_dirty()
 	_refresh_wave_panel()
+
+
+# v2 — visible Delete-wave button on the panel. Routes through the same
+# ConfirmModal flow as RMB-on-anchor for consistency.
+func _on_wave_delete_active() -> void:
+	var active: int = _level.get_active_wave_index()
+	_request_delete_wave(active)
 
 
 func _switch_to_wave(idx: int) -> void:

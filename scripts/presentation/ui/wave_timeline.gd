@@ -135,7 +135,7 @@ func _do_rebuild() -> void:
 	_turns_widgets.clear()
 	if _level == null or _level.waves.is_empty():
 		_bar_end_x = PADDING_LEFT
-		custom_minimum_size = Vector2(_bar_end_x + PADDING_RIGHT, 56)
+		custom_minimum_size = Vector2(_bar_end_x + PADDING_RIGHT, 64)
 		queue_redraw()
 		return
 
@@ -145,6 +145,9 @@ func _do_rebuild() -> void:
 	var x: float = PADDING_LEFT
 	for i in _level.waves.size():
 		_anchor_positions.append(x)
+		# v2 — wave index label "W0", "W1", ... under each anchor for
+		# at-a-glance identification regardless of mode.
+		_add_wave_index_label(i, x)
 		var ttn: int = int(_level.waves[i].get("turns_to_next", 0))
 		# Number Label between anchor[i] and anchor[i+1] only if there is a
 		# next anchor (i.e. not on the last wave).
@@ -158,8 +161,24 @@ func _do_rebuild() -> void:
 		_add_plus_wave_button(x + PLUS_BUTTON_OFFSET_X)
 		x += PLUS_BUTTON_OFFSET_X + 80.0  # rough button width
 
-	custom_minimum_size = Vector2(x + PADDING_RIGHT, 56)
+	custom_minimum_size = Vector2(x + PADDING_RIGHT, 64)
 	queue_redraw()
+
+
+func _add_wave_index_label(wave_idx: int, x: float) -> void:
+	var lbl := Label.new()
+	lbl.text = "W%d" % wave_idx
+	lbl.position = Vector2(x - 14, BAR_Y + UiThemeScript.WAVE_ANCHOR_RADIUS * 1.4)
+	lbl.size = Vector2(28, 14)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 11)
+	# Active wave's index label gets the focus accent for parity with the
+	# anchor outline. Other waves stay muted.
+	var col: Color = UiThemeScript.WAVE_ANCHOR_CURRENT \
+		if (mode == Mode.EDIT and wave_idx == _edit_active_wave) \
+		else UiThemeScript.WAVE_ANCHOR_PASSED
+	lbl.add_theme_color_override("font_color", col)
+	add_child(lbl)
 
 
 func _add_turns_label(wave_idx: int, x: float, ttn: int) -> void:
@@ -234,6 +253,15 @@ func _draw() -> void:
 		if is_special:
 			radius *= UiThemeScript.WAVE_ANCHOR_SPECIAL_RADIUS_MULT
 		var fill: Color = _anchor_color_for(i)
+		# Active wave (EDIT) or current wave (RUNTIME) gets an outer
+		# focus ring so it reads as "selected" on top of any background.
+		# The fill colour alone wasn't enough — at small radii on dark
+		# panels the colour shift was hard to spot.
+		var is_active: bool = (mode == Mode.EDIT and i == _edit_active_wave) \
+				or (mode == Mode.RUNTIME and i == _runtime_current_wave)
+		if is_active:
+			draw_arc(Vector2(ax, BAR_Y), radius + 4.0, 0.0, TAU, 28,
+					UiThemeScript.WAVE_ANCHOR_CURRENT, 2.5, true)
 		draw_circle(Vector2(ax, BAR_Y), radius, fill)
 		draw_arc(Vector2(ax, BAR_Y), radius, 0.0, TAU, 24,
 				UiThemeScript.WAVE_ANCHOR_OUTLINE, 1.5, true)
