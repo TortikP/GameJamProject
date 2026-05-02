@@ -97,3 +97,23 @@ signal pause_toggled(paused: bool)
 # is a Dictionary[StringName, int] over MoodTracker.MOODS_SKILL; dominant
 # is one of MOODS_SKILL ∪ {chimera}.
 signal player_mood_changed(counts: Dictionary, dominant: StringName)
+
+# Campaign / game flow (035-game-editor)
+# scene_ready: emitted as the LAST line of a scene's _ready() after all its
+# own initialisation. Read-only notification — listeners must not mutate world
+# state, only react (e.g. CampaignController plays intro cutscene hook or
+# fade-in transition).
+signal scene_ready(scene_kind: StringName)
+# upgrade_choice_requested: emitted by CampaignController when a level ends
+# inside an active game. Listener owns the upgrade screen (real impl in a
+# separate spec; 035 ships a dummy stub). Listener MUST eventually call
+# on_done.call() — CampaignController times out after
+# [meta]/upgrade_choice_timeout_sec and proceeds anyway.
+signal upgrade_choice_requested(level_score: int, on_done: Callable)
+# campaign_cutscene_requested: emitted by CampaignController on scene_ready
+# of a level that has cutscene_id != &"" (or is_intro=true with non-empty id).
+# Same callback contract as upgrade_choice_requested.
+signal campaign_cutscene_requested(cutscene_id: StringName, on_done: Callable)
+# campaign_level_started / campaign_finished: read-only notifications.
+signal campaign_level_started(index: int, map_path: String)
+signal campaign_finished(total_score: int)

@@ -21,8 +21,9 @@
 | `scripts/presentation/dev/game_editor_controller.gd` | Контроллер редактора. State, autosave, save/load, F5 не нужен. |
 | `scripts/presentation/dev/game_editor_level_row.gd` | Отдельная row-сцена / scene-script для каждого уровня в списке. |
 | `scenes/dev/game_editor_level_row.tscn` | Сцена строки списка. |
-| `scenes/meta/level_transition.tscn` | CanvasLayer + ColorRect + AnimationPlayer. Шейдер — reuse `010-crt-postfx`'s distort. |
+| `scenes/meta/level_transition.tscn` | CanvasLayer + ColorRect (fullscreen) с ShaderMaterial. |
 | `scripts/presentation/meta/level_transition.gd` | Логика 4-фазного перехода. `play_out() -> Signal`, `play_in() -> Signal`. |
+| `scripts/presentation/meta/level_transition.gdshader` | UV-distort + chromatic-split + fade шейдер. Self-contained, не зависит от CRT. |
 | `scenes/meta/campaign_end.tscn` | Минимальный экран. Reuse `UiTheme` styles. |
 | `scripts/presentation/meta/campaign_end.gd` | Кнопка Main Menu → `EventBus.main_menu_entered.emit()` + change_scene. |
 | `data/games/sample.game.json` | Sample игра из 2 уровней. |
@@ -121,7 +122,7 @@ godmode loaded → _ready done → scene_ready(&"godmode") emit
 | `CampaignController` как autoload, не сцена-узел | Узел в godmode-сцене | Autoload переживает change_scene; узлу пришлось бы переинициализироваться каждый раз и коннектить сигналы заново. |
 | Stub как отдельный autoload (`_DummyUpgradeStub`) | Inline в CampaignController | Легче удалить (одна строка в `project.godot`) когда настоящая сцена готова. CampaignController не должен знать про существование stub'а. |
 | Расширение `.game.json`, не `.json` | Один формат для всех файлов | FileDialog-фильтрация без чтения содержимого; визуально ясно что это игра а не карта. |
-| Reuse CRT distort шейдера для transition | Свой новый шейдер | 010-crt-postfx уже есть, тюнинг через `wave_amplitude` parameter. -1 файл шейдера. |
+| Dedicated transition shader | Reuse / extend CRT shader | CRT shader не имеет distort-параметров (curvature + chroma + scanline + bloom). Добавлять туда wave-distort = scope creep на другую систему + риск регрессов её визуала. Свой ~40-строчный canvas_item шейдер дешевле. |
 | Линейный список + ↑/↓, без drag-and-drop | DnD reorder | Mini-spec, экономим 2-3 часа имплементации DnD'а. Дизайнер с десятью уровнями переживёт. |
 | Cutscene-хук как сигнал с callback | Прямой await catscene_player.play() | CampaignController не знает существует ли вообще катсцена-движок. Сигнал + timeout = безопасный fallback. Та же схема, что для upgrade. |
 | Игра = только `Array[map_path]` без своих per-level overrides | Per-level enemy lists / loot tables в GameData | Карта самодостаточна (waves, spawners уже в LevelData). Двойная иерархия = двойной редактор. Полностью out of scope. |
