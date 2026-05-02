@@ -2,13 +2,14 @@
   "id": "fire_slime",
   "name": "fire_slime_name",
   "desc": "fire_slime_desc",
-  "sprite": "assets/sprites/enemies/enemy_fire_slime.png",
-  "max_hp": 20,
+  "sprite": "assets/sprites/enemies/fire_slime.png",
+  "max_hp": 30,
   "team": "enemy",
   "speed": 2,
   "skills": [
-    "flame_burst"
+    "fire_slime_magma_spit",
+    "fire_slime_firey_touch"
   ],
-  "behavior_id": "default_caster",
-  "fallback_skill_id": "flame_burst"
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "fire_slime_firey_touch"
 }
