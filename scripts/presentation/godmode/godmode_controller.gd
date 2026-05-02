@@ -67,13 +67,6 @@ var _picker_target_slot: int = 0        # which slot the picker is assigning to
 # show/hide the cast-intent tooltip with no flicker on idle frames.
 var _hover_intent_actor_id: StringName = &""
 
-# 026: multi-step cast collection state. Phase-1 (per-ability target picker)
-# lives here; phase-2 is Skill.cast(player, ctxs).
-var _cast_in_progress: bool = false
-var _cast_skill: Skill = null
-var _cast_step: int = 0                  # current ability index in skill.abilities
-var _cast_ctxs: Array[Dictionary] = []   # collected so far (length == _cast_step)
-
 
 func _ready() -> void:
 	_resolve_modules()
@@ -534,7 +527,7 @@ func _refresh_hover_path(hover_coord: Vector2i) -> void:
 		return
 	# Skip during cast FSM (player is targeting, not considering movement) and
 	# during AI turns / stun.
-	if _cast_in_progress or ai.is_world_processing() or player.is_stunned():
+	if cast_fsm.is_in_progress() or ai.is_world_processing() or player.is_stunned():
 		overlay.set_hover_path([] as Array[Vector2i])
 		return
 	var from: Vector2i = grid.get_coord(player.actor_id)
@@ -615,8 +608,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if (event as InputEventKey).keycode == KEY_ESCAPE:
 			# 026: priority 0 — cancel multi-step cast in progress.
 			# Slot-toggle path below is now unreachable while cast-FSM owns input.
-			if _cast_in_progress:
-				_cancel_cast()
+			if cast_fsm.is_in_progress():
+				cast_fsm.cancel()
 				get_viewport().set_input_as_handled()
 				return
 			# 009-T051 priority chain (post-026):
@@ -667,25 +660,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("cast_slot_%d" % i):
 			# 027: stunned player can't enter cast FSM. _update_castability
 			# already greys the slot visually; this guards the keyboard path.
-			if player != null and player.is_stunned() and not _cast_in_progress:
+			if player != null and player.is_stunned() and not cast_fsm.is_in_progress():
 				get_viewport().set_input_as_handled()
 				return
 			# 026: when an FSM cast is in progress, slot keys gate through it.
-			if _cast_in_progress and slot_bar != null:
+			if cast_fsm.is_in_progress() and slot_bar != null:
 				var active_now: int = slot_bar.get_active()
 				if i == active_now:
 					# Same slot pressed again — alternate keyboard path.
 					# On a self-step, this commits; otherwise it cancels (toggle off).
-					if _is_self_step():
+					if cast_fsm.is_self_step():
 						var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-						_commit_step(caster_coord, player.actor_id)
+						cast_fsm.commit_step(caster_coord, player.actor_id)
 					else:
-						_cancel_cast()
+						cast_fsm.cancel()
 						slot_bar.activate(i)  # toggle off
 				else:
 					# Different slot — drop current cast, switch slot. New entry happens
 					# only on the next LMB (matches 021 — slot key just selects, doesn't fire).
-					_cancel_cast()
+					cast_fsm.cancel()
 					slot_bar.activate(i)
 				get_viewport().set_input_as_handled()
 				return
@@ -700,44 +693,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if mb.button_index == MOUSE_BUTTON_RIGHT:
 			# 026: RMB cancels an in-progress cast instead of moving.
-			if _cast_in_progress:
-				_cancel_cast()
+			if cast_fsm.is_in_progress():
+				cast_fsm.cancel()
 				get_viewport().set_input_as_handled()
 				return
 			_request_move()
 			get_viewport().set_input_as_handled()
 		elif mb.button_index == MOUSE_BUTTON_LEFT:
 			# 026: LMB during cast FSM — commit step or no-op (out-of-range click).
-			if _cast_in_progress:
-				_handle_cast_lmb()
+			if cast_fsm.is_in_progress():
+				cast_fsm.handle_lmb()
 				get_viewport().set_input_as_handled()
 				return
 			_request_cast_active()
 			get_viewport().set_input_as_handled()
-
-
-## 026: dispatch LMB while cast FSM is active.
-##   - self-step: any LMB anywhere commits with caster's coord (per spec AC-C4).
-##   - non-self : LMB on a hex within ability.target.range commits; otherwise
-##                no-op (overlay stays, player keeps the step).
-func _handle_cast_lmb() -> void:
-	if not _cast_in_progress or _cast_skill == null:
-		return
-	if _cast_step >= _cast_skill.abilities.size():
-		return
-	var ab: Ability = _cast_skill.abilities[_cast_step]
-	if ab.target is SelfTarget:
-		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-		_commit_step(caster_coord, player.actor_id)
-		return
-	var coord: Vector2i = grid.coord_under_mouse()
-	if coord == Vector2i(-1, -1):
-		return  # off-grid click — stay on step
-	var from_coord: Vector2i = grid.get_coord(player.actor_id)
-	var valid_hexes: Array[Vector2i] = ab.target.get_range_hexes(from_coord, grid)
-	if coord in valid_hexes:
-		_commit_step(coord, grid.get_actor_at(coord))
-	# else: invalid range click — neither commit nor cancel; stay on step
 
 
 # ── Actions ──────────────────────────────────────────────────────────────────
@@ -802,13 +771,13 @@ func _request_cast_active() -> void:
 	if active_idx != -1:
 		var skill := slot_bar.get_slot(active_idx) as Skill
 		if skill != null and skill.can_apply(player, ctx):
-			_cast_slot(active_idx)
+			cast_fsm.start(active_idx)
 			# 026 fix: the entry LMB also acts as the commit click for step 0.
 			# Without this, the player would have to click twice (once to enter
 			# FSM, once to commit). _handle_cast_lmb is safe to call when FSM
 			# isn't active (early-returns).
-			if _cast_in_progress:
-				_handle_cast_lmb()
+			if cast_fsm.is_in_progress():
+				cast_fsm.handle_lmb()
 		# Skill slot active → never inspect/deselect on a failed cast.
 		return
 	# No active skill: inspect hovered actor or hex
@@ -817,126 +786,6 @@ func _request_cast_active() -> void:
 		select(target_actor)
 	elif grid.is_walkable(coord):
 		inspect_hex(coord)
-
-
-# ── 026: multi-step cast collection (phase 1) ──────────────────────────────────
-##
-## State-machine: IDLE → AWAIT_TARGET / AWAIT_SELF_CONFIRM → ... → _commit_cast
-## Cancel paths reset to IDLE without firing Skill.cast.
-##
-## See specs/026-skill-system-v3/plan.md §"Player cast state-machine".
-
-## Entry point — called when player presses LMB with an active slot.
-## Pre-checks `skill.can_apply(player, mouse_ctx)` against abilities[0] (021
-## semantics). If false, slot stays greyed and FSM does not start.
-func _cast_slot(slot_index: int) -> void:
-	if slot_bar == null:
-		return
-	var skill := slot_bar.get_slot(slot_index) as Skill
-	if skill == null:
-		GameLogger.info("Godmode", "slot %d empty" % slot_index)
-		return
-	if skill.abilities.is_empty():
-		GameLogger.warn("Godmode", "slot %d skill '%s' has no abilities" % [slot_index, skill.id])
-		return
-	if grid._moving or ai.is_world_processing() or _is_wave_transitioning():
-		return
-
-	# Pre-check using mouse position. Cheap and matches 021 grey-out semantics.
-	var coord := grid.coord_under_mouse()
-	if coord == Vector2i(-1, -1):
-		GameLogger.info("Godmode", "no target (off-grid)")
-		return
-	var pre_ctx: Dictionary = {
-		"registry": registry, "grid": grid,
-		"target_id": grid.get_actor_at(coord), "target_coord": coord,
-	}
-	if not skill.can_apply(player, pre_ctx):
-		return
-
-	_cast_skill = skill
-	_cast_step = 0
-	_cast_ctxs = []
-	_cast_in_progress = true
-	# 026 fix: hide MoveRangeOverlay's slot-activation attack-range paint
-	# so CastRangeOverlay's per-step paint doesn't render on top of it.
-	# Restored on FSM exit via refresh_overlay (in _commit_cast/_cancel_cast).
-	if overlay != null and overlay.has_method("clear"):
-		overlay.clear()
-	_begin_step()
-
-
-func _begin_step() -> void:
-	if _cast_skill == null or _cast_step >= _cast_skill.abilities.size():
-		return
-	var ab: Ability = _cast_skill.abilities[_cast_step]
-	if cast_overlay == null:
-		return
-	if ab.target is SelfTarget:
-		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-		if cast_overlay.has_method("show_self_confirm"):
-			cast_overlay.show_self_confirm(caster_coord)
-	else:
-		if cast_overlay.has_method("show_range_for_ability"):
-			cast_overlay.show_range_for_ability(player, ab)
-
-
-func _commit_step(coord: Vector2i, target_id: StringName) -> void:
-	var ctx: Dictionary = {
-		"registry": registry, "grid": grid,
-		"target_id": target_id, "target_coord": coord,
-	}
-	_cast_ctxs.append(ctx)
-	_cast_step += 1
-	if cast_overlay != null and cast_overlay.has_method("hide_range"):
-		cast_overlay.hide_range()
-	if _cast_step == _cast_skill.abilities.size():
-		await _commit_cast()
-	else:
-		_begin_step()
-
-
-func _commit_cast() -> void:
-	# Snapshot then reset BEFORE Skill.cast so EventBus subscribers see clean state.
-	var skill: Skill = _cast_skill
-	var ctxs: Array[Dictionary] = _cast_ctxs
-	_reset_cast_state()
-	var did_cast: bool = skill.cast(player, ctxs)
-	# 029 / req-2: deselect ability after a successful cast. Forces the player
-	# to consciously re-arm before next attack — no held-trigger spam, every
-	# turn a chosen action. activate(-1) emits slot_activated(-1) which clears
-	# the active-slot tint and PSP spell description via _on_slot_activated.
-	if did_cast and slot_bar != null and slot_bar.get_active() != -1:
-		slot_bar.activate(slot_bar.get_active())  # toggle off
-	# 026 fix: restore MoveRangeOverlay slot paint after FSM exits.
-	refresh_overlay()
-	if did_cast:
-		await GameSpeed.wait("godmode", "ability_cast_delay")
-		TurnManager.advance()
-
-
-func _cancel_cast() -> void:
-	if cast_overlay != null and cast_overlay.has_method("hide_range"):
-		cast_overlay.hide_range()
-	_reset_cast_state()
-	# 026 fix: restore MoveRangeOverlay slot paint after FSM cancels.
-	refresh_overlay()
-	# no cooldown, no commit, no turn advance
-
-
-func _reset_cast_state() -> void:
-	_cast_in_progress = false
-	_cast_skill = null
-	_cast_step = 0
-	_cast_ctxs = []
-
-
-func _is_self_step() -> bool:
-	if not _cast_in_progress or _cast_skill == null:
-		return false
-	if _cast_step >= _cast_skill.abilities.size():
-		return false
-	return _cast_skill.abilities[_cast_step].target is SelfTarget
 
 
 ## 016/F-034 — resolves PlayerStatusPanel via @export NodePath, with fallback
