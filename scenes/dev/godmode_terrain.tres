@@ -23,4 +23,6 @@ custom_data_layer_2/name = "tile_kind"
 custom_data_layer_2/type = 21
 custom_data_layer_3/name = "effect_id"
 custom_data_layer_3/type = 21
+custom_data_layer_4/name = "object_id"
+custom_data_layer_4/type = 21
 sources/0 = SubResource("TileSetAtlasSource_001")
