@@ -1,0 +1,59 @@
+{
+  "id": "tusk_charge",
+  "name": "tusk_charge_name",
+  "tooltip": "tusk_charge_tooltip",
+  "desc": "tusk_charge_desc",
+  "icon": "assets/sprites/icons/skills/tusk_charge.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "melee",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "heavy_melee_damage",
+      "sound_start": "assets/audio/skills/heavy_melee_damage/start.wav",
+      "collision_effect": "assets/vfx/skills/heavy_melee_damage/impact.prefab",
+      "sound_end": "assets/audio/skills/heavy_melee_damage/end.wav",
+      "animation": "assets/animations/skills/heavy_melee_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 13
+        }
+      ]
+    },
+    {
+      "id": "push_single",
+      "sound_start": "assets/audio/skills/push_single/start.wav",
+      "collision_effect": "assets/vfx/skills/push_single/impact.prefab",
+      "sound_end": "assets/audio/skills/push_single/end.wav",
+      "animation": "assets/animations/skills/push_single.anim",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 5,
+          "move_type": "push"
+        }
+      ]
+    }
+  ]
+}
