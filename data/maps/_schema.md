@@ -178,3 +178,43 @@ at runtime (warn-once if signal not found, remaining triggers still work).
 
 `play_mode`: `"play"` forces a specific dialogue id; `"request"` runs the
 selector in DialogueManager (picks by tag/conditions/played-set).
+
+## waves[i].skill_offer (added in 040)
+
+Optional. When present on a wave, the runtime opens a Hades-style "pick a
+skill" modal **after that wave clears** (all enemies dead, no pending
+spawners) and **before the next wave's snapshot applies**. Absent / null →
+no offer, transition is silent.
+
+```json
+{
+  "skill_offer": {
+    "pool": "basic",
+    "count": 3,
+    "allow_upgrade": true,
+    "allow_replace": true,
+    "allow_skip": false,
+    "exclude_owned": false
+  }
+}
+```
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `pool` | string | required | id of a JSON file in `data/skill_offer_pools/` (without `.json`). |
+| `count` | int | 3 | how many cards to show. Pool may yield fewer if filters cut deeper than expected. |
+| `allow_upgrade` | bool | true | a card for an already-owned skill becomes "upgrade level → N+1" instead of being dropped. |
+| `allow_replace` | bool | true | when slots are full, card can offer to replace a chosen slot. Triggers a sub-screen with slot picker. |
+| `allow_skip` | bool | false | shows a Skip button. `mode=&"skipped"` on the closed signal. |
+| `exclude_owned` | bool | false | filters owned skill ids from the pool entirely (regardless of allow_upgrade/replace). |
+
+**Last wave.** Putting `skill_offer` on the final wave is allowed — the modal
+opens before `level_completed`. Useful for "boss reward" framing.
+
+**Turn runout.** v1 only fires offers when the wave clears via kill-all
+(emits `wave_cleared`). If the player exhausts `turns_to_next` with enemies
+still alive, the next wave applies without an offer. Designers wanting a
+guaranteed offer should keep waves short enough that clear-by-kill is the
+expected path.
+
+**Pool file format** — see `data/skill_offer_pools/_schema.md`.

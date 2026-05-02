@@ -4,11 +4,11 @@
 
 ## Phase 1 — Schema + pool data
 
-- [ ] T001 [P1] `scripts/core/maps/level_data.gd` — `validate()` нормализует `waves[i].skill_offer` если присутствует. Per AC-S3 правила. Серилизация — поле уже сохраняется автоматически (waves — Dictionary).
-- [ ] T002 [P1] `data/maps/_schema.md` — секция `waves[i].skill_offer` с полями + curated pool list.
-- [ ] T003 [P1] `data/skill_offer_pools/_schema.md` — формат pool JSON.
-- [ ] T004 [P1] `data/skill_offer_pools/basic.json` — sample-пул из 6-8 скиллов из `data/skills/`. Verify ids существуют.
-- [ ] T005 [P1] `scripts/infrastructure/event_bus.gd` — `signal skill_offer_about_to_open(wave_index: int, count: int, pool_id: StringName)`, `signal skill_offer_closed(wave_index: int, picked_skill_id: StringName, mode: StringName)`.
+- [x] T001 [P1] `scripts/core/maps/level_data.gd` — `validate()` нормализует `waves[i].skill_offer` если присутствует. Per AC-S3 правила. Серилизация — поле уже сохраняется автоматически (waves — Dictionary).
+- [x] T002 [P1] `data/maps/_schema.md` — секция `waves[i].skill_offer` с полями + curated pool list.
+- [x] T003 [P1] `data/skill_offer_pools/_schema.md` — формат pool JSON.
+- [x] T004 [P1] `data/skill_offer_pools/basic.json` — sample-пул из 6-8 скиллов из `data/skills/`. Verify ids существуют.
+- [x] T005 [P1] `scripts/infrastructure/event_bus.gd` — `signal skill_offer_about_to_open(wave_index: int, count: int, pool_id: StringName)`, `signal skill_offer_closed(wave_index: int, picked_skill_id: StringName, mode: StringName)`.
 
 ## Phase 2 — Player skill adapter (preview / unblock)
 

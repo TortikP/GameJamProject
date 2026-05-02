@@ -189,6 +189,30 @@ func validate() -> Array[String]:
 			if i < waves.size() - 1 and timer_v > ttn:
 				errors.append("WARN: Wave %d: spawner timer (%d) > turns_to_next (%d) — won't trigger" % [i, timer_v, ttn])
 
+		# 040-wave-skill-choice: optional skill_offer Dictionary per wave.
+		var so: Variant = w.get("skill_offer", null)
+		if so != null:
+			if not (so is Dictionary):
+				errors.append("Wave %d: skill_offer must be a Dictionary" % i)
+			else:
+				var so_d: Dictionary = so
+				var pool_v: String = str(so_d.get("pool", ""))
+				if pool_v == "":
+					errors.append("Wave %d: skill_offer.pool must be a non-empty StringName" % i)
+				var count_v: int = int(so_d.get("count", 3))
+				if count_v < 1:
+					errors.append("Wave %d: skill_offer.count must be >= 1 (got %d)" % [i, count_v])
+				for k in [&"allow_upgrade", &"allow_replace", &"allow_skip", &"exclude_owned"]:
+					if so_d.has(k) and typeof(so_d[k]) != TYPE_BOOL:
+						errors.append("WARN: Wave %d: skill_offer.%s should be bool" % [i, k])
+				# Soft warn — pool file existence is checked at runtime by
+				# SkillOfferController. Don't hard-fail in editor; designers
+				# may be authoring the pool in parallel.
+				if pool_v != "":
+					var pool_path: String = "res://data/skill_offer_pools/%s.json" % pool_v
+					if not FileAccess.file_exists(pool_path):
+						errors.append("WARN: Wave %d: skill_offer.pool '%s' — file not found at %s" % [i, pool_v, pool_path])
+
 	if total_player_spawners == 0:
 		errors.append("No player spawner — set Player Spawn in some wave before saving")
 	elif total_player_spawners > 1:
@@ -232,14 +256,19 @@ func to_dict() -> Dictionary:
 	var waves_out: Array = []
 	for i in waves.size():
 		var w: Dictionary = waves[i]
-		waves_out.append({
+		var entry: Dictionary = {
 			"index": int(w.get("index", i)),
 			"is_special": bool(w.get("is_special", false)),
 			"turns_to_next": int(w.get("turns_to_next", 0)),
 			"floor": _floor_to_arr(w.get("floor", [])),
 			"objects": _objects_to_arr(w.get("objects", [])),
 			"spawners": _spawners_to_arr(w.get("spawners", [])),
-		})
+		}
+		# 040: optional per-wave skill_offer. Stored as raw Dictionary —
+		# JSON-friendly already (string/bool/int values).
+		if w.has("skill_offer") and w["skill_offer"] != null:
+			entry["skill_offer"] = (w["skill_offer"] as Dictionary).duplicate(true)
+		waves_out.append(entry)
 	return {
 		"name": name,
 		"version": version,
@@ -466,7 +495,7 @@ static func _spawners_to_arr(arr: Variant) -> Array:
 # ── JSON array forms → in-memory dicts (Array → Vector2i, etc.) ─────────────
 
 static func _wave_dict_from_arr(d: Dictionary) -> Dictionary:
-	return {
+	var out: Dictionary = {
 		"index": int(d.get("index", 0)),
 		"is_special": bool(d.get("is_special", false)),
 		"turns_to_next": int(d.get("turns_to_next", 0)),
@@ -474,6 +503,11 @@ static func _wave_dict_from_arr(d: Dictionary) -> Dictionary:
 		"objects": _objects_arr_to_dicts(d.get("objects", [])),
 		"spawners": _spawners_arr_to_dicts_with_default_timer(d.get("spawners", [])),
 	}
+	# 040: pass through skill_offer if present. Raw Dictionary; runtime
+	# (SkillOfferController) interprets fields. Drop entirely if null/absent.
+	if d.has("skill_offer") and d["skill_offer"] is Dictionary:
+		out["skill_offer"] = (d["skill_offer"] as Dictionary).duplicate(true)
+	return out
 
 
 static func _floor_arr_to_dicts(arr: Variant) -> Array[Dictionary]:
