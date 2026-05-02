@@ -1,0 +1,8 @@
+{
+  "id": "rooted",
+  "family": "control",
+  "arity": 1,
+  "param_names": ["duration"],
+  "loc_name": "status.rooted.name",
+  "loc_desc": "status.rooted.desc"
+}
