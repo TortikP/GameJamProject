@@ -6,6 +6,9 @@ extends Node
 ## State: IDLE → AWAIT_TARGET / AWAIT_SELF_CONFIRM → ... → _commit_cast
 ## Cancel paths reset to IDLE without firing Skill.cast.
 
+
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+
 var _ctrl: Node = null
 
 # 026: multi-step cast collection state. Phase-1 (per-ability target picker)

@@ -3,6 +3,9 @@ extends Node
 ## under the cursor (F1) and clears all enemies + revives player (F2). Plans
 ## the new manekin immediately so its intent is visible without ending turn.
 
+
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+
 const MANEKIN_SCENE := preload("res://scenes/dev/manekin.tscn")
 
 var _ctrl: Node = null

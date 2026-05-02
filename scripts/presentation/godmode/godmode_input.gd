@@ -3,6 +3,9 @@ extends Node
 ## (_request_move, _wait_turn, _request_cast_active). Dispatches LMB to CastFsm
 ## or to controller's selection facade.
 
+
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+
 const PLAYER_ID: StringName = &"player"
 
 var _ctrl: Node = null

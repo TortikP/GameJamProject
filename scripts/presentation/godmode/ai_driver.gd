@@ -16,6 +16,9 @@ extends Node
 ##
 ## Sequential per enemy. _world_processing locks player input during the loop.
 
+
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+
 var _ctrl: Node = null
 var _world_processing: bool = false  # true while AI takes its turn — locks player input
 

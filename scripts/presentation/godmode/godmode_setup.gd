@@ -5,6 +5,9 @@ extends Node
 ## hookups, WaveController spin-up. Public entry: run() — called by the
 ## controller after node + module resolution.
 
+
+const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const HEX_TERRAIN := preload("res://scenes/arena/tilesets/hex_terrain.tres")
 const PLAYER_ID: StringName = &"player"
