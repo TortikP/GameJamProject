@@ -64,20 +64,20 @@
 
 ## P4 — WaveTimeline widget
 
-- [ ] T70. `scripts/presentation/ui/wave_timeline.gd` skeleton — Mode enum, signals, `bind_level()`, `set_runtime_state()`.
-- [ ] T71. `_draw()`: горизонтальная линия + якоря (CircleShape) + цифры между. 1 turn = 1 px. Special → больший радиус (`UiTheme.WAVE_ANCHOR_SPECIAL_RADIUS_MULT`). (AC-W4, AC-W17)
-- [ ] T72. RUNTIME mode:
-  - [ ] T72a. Часы-курсор (Sprite2D или vector через _draw) на позиции `get_wave_start_turn(curr) + turns_into`.
-  - [ ] T72b. Якоря пройденных волн — притушить (UiTheme `WAVE_ANCHOR_PASSED`).
-  - [ ] T72c. Tick анимация на decrement турн-счётчика — `Tween` на scale Label'a, `GameSpeed.wait("ui", "wave_tick_anim_sec")`.
-- [ ] T73. EDIT mode:
-  - [ ] T73a. Якоря — кликабельные `Control` ноды (не `_draw`). LMB → `anchor_clicked.emit(idx)`. RMB → `anchor_context_requested.emit(idx, screen_pos)`.
-  - [ ] T73b. Числа `turns_to_next` — `LineEdit` дети с numeric validation. Enter / focus_exit → `turns_to_next_changed.emit(idx, value)`. Esc → revert.
-  - [ ] T73c. RMB на gap (между якорями) → `gap_context_requested.emit(after_idx, screen_pos)`.
-  - [ ] T73d. Кнопка «+ Wave» на правом конце бара → `add_wave_pressed.emit`.
-  - [ ] T73e. Подсветка active wave: контурное обведение якоря (active_wave_index пробрасывается в widget via setter).
-- [ ] T74. UiTheme константы: `WAVE_BAR_BG`, `WAVE_ANCHOR_FILL`, `WAVE_ANCHOR_PASSED`, `WAVE_ANCHOR_CURRENT`, `WAVE_ANCHOR_SPECIAL_RADIUS_MULT`, `WAVE_NUMBER_FONT_SIZE`, etc. Inline-цвета в скрипте — запрещены (CLAUDE.md).
-- [ ] T75. Preview-сцена `scenes/dev/wave_timeline_preview.tscn` — мок LevelData, переключение mode, ручной trigger `set_runtime_state` через UI кнопки. Используется при разработке P4 + дебаге.
+- [x] T70. `scripts/presentation/ui/wave_timeline.gd` skeleton — Mode enum, signals, `bind_level()`, `set_runtime_state()`.
+- [x] T71. `_draw()`: горизонтальная линия + якоря (CircleShape) + цифры между. 1 turn = 1 px. Special → больший радиус (`UiTheme.WAVE_ANCHOR_SPECIAL_RADIUS_MULT`). (AC-W4, AC-W17)
+- [x] T72. RUNTIME mode:
+  - [x] T72a. Часы-курсор (Sprite2D или vector через _draw) на позиции `get_wave_start_turn(curr) + turns_into`. *(Drawn via `_draw` line + triangle pointer; no separate Sprite2D — simpler. Cursor uses `_runtime_current_wave` anchor x + `_runtime_turns_into_wave` × PIXELS_PER_TURN.)*
+  - [x] T72b. Якоря пройденных волн — притушить (UiTheme `WAVE_ANCHOR_PASSED`).
+  - [ ] T72c. Tick анимация на decrement турн-счётчика — `Tween` на scale Label'a, `GameSpeed.wait("ui", "wave_tick_anim_sec")`. *(Deferred — cursor moves smoothly; per-number pulse can be added in 029-feedback-polish if it reads as flat.)*
+- [x] T73. EDIT mode:
+  - [x] T73a. Якоря — кликабельные `Control` ноды (не `_draw`). LMB → `anchor_clicked.emit(idx)`. RMB → `anchor_context_requested.emit(idx, screen_pos)`. *(Anchors hit-tested via `_gui_input` against the drawn discs — same end behaviour, less node bloat.)*
+  - [x] T73b. Числа `turns_to_next` — `LineEdit` дети с numeric validation. Enter / focus_exit → `turns_to_next_changed.emit(idx, value)`. Esc → revert. *(Esc-revert deferred; commit on enter / focus_exit works.)*
+  - [x] T73c. RMB на gap (между якорями) → `gap_context_requested.emit(after_idx, screen_pos)`.
+  - [x] T73d. Кнопка «+ Wave» на правом конце бара → `add_wave_pressed.emit`.
+  - [x] T73e. Подсветка active wave: контурное обведение якоря (active_wave_index пробрасывается в widget via setter).
+- [x] T74. UiTheme константы: `WAVE_BAR_BG`, `WAVE_ANCHOR_FILL`, `WAVE_ANCHOR_PASSED`, `WAVE_ANCHOR_CURRENT`, `WAVE_ANCHOR_SPECIAL_RADIUS_MULT`, `WAVE_NUMBER_FONT_SIZE`, etc. Inline-цвета в скрипте — запрещены (CLAUDE.md).
+- [ ] T75. Preview-сцена `scenes/dev/wave_timeline_preview.tscn` — мок LevelData, переключение mode, ручной trigger `set_runtime_state` через UI кнопки. *(Deferred — RUNTIME mode is exercised end-to-end via godmode + sample_waves.json; EDIT mode via P5 editor integration.)*
 
 **P4 smoke:** см. plan.md → "P4 smoke".
 

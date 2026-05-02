@@ -108,6 +108,21 @@ const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 # the foreground without competing with it.
 const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
 
+# ── 024-wave-editor — wave timeline visuals ──────────────────
+# Used by scenes/ui/wave_timeline.tscn in both EDIT and RUNTIME modes.
+const WAVE_BAR_BG                   := Color("16202c")  # bar trough
+const WAVE_BAR_HEIGHT               := 6.0              # px (drawn line thickness)
+const WAVE_ANCHOR_FILL              := Color("dceaff")  # default anchor disc
+const WAVE_ANCHOR_PASSED            := Color("4a5870")  # waves before current
+const WAVE_ANCHOR_CURRENT           := Color("f5d97a")  # active wave (FOCUS yellow)
+const WAVE_ANCHOR_OUTLINE           := Color("0c0e12")  # 1px ring around every disc
+const WAVE_ANCHOR_RADIUS            := 7.0              # px radius for normal anchor
+const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
+const WAVE_NUMBER_FONT_SIZE         := 14
+const WAVE_NUMBER_COLOR             := Color("e8ecf3")  # turns_to_next digit
+const WAVE_CURSOR_COLOR             := Color("f5d97a")  # runtime "now" pointer
+const WAVE_CURSOR_HEIGHT            := 18.0             # px tall
+
 # ── Lookups ──────────────────────────────────────────────────
 
 ## Returns hp fill color by ratio (0..1).

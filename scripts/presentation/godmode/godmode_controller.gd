@@ -184,6 +184,12 @@ func _ready() -> void:
 		# Defer start_level so any deferred sibling _ready (HUD wave timeline,
 		# score corner) connects to wave_started before we emit it.
 		_wave_controller.start_level.call_deferred(_queued_level)
+		# Bind the LevelData to the HUD WaveTimeline so it can render the
+		# sequence + cursor. RUNTIME mode subscribes to wave_started / cleared
+		# / world_turn_ended internally.
+		var wt: Node = get_node_or_null("../HUD/WaveTimeline")
+		if wt != null and wt.has_method("bind_level"):
+			wt.bind_level.call_deferred(_queued_level)
 
 
 # ── Setup ────────────────────────────────────────────────────────────────────
