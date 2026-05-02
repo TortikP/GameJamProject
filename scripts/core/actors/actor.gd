@@ -231,6 +231,20 @@ func damage_reduction() -> int:
 	return maxi(0, sum)
 
 
+## Signed sum of damage_amplifier across active statuses. strong returns
+## positive, weak returns negative — they coexist via algebraic sum.
+## Used by DamageEffect / predicted_damage_to: outgoing damage += this value.
+## Final damage is clamped to 0 minimum at apply-site.
+func damage_amplifier() -> int:
+	var sum: int = 0
+	for inst_v in _statuses.values():
+		var inst := inst_v as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt != null:
+			sum += rt.damage_amplifier(inst)
+	return sum
+
+
 ## Tick all statuses one turn. Called by godmode_controller from
 ## _on_world_turn_ended at the start of the turn, before AI plans / player
 ## acts. ctx is built by the caller (registry/grid/all_actors/turn) — passed

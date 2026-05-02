@@ -1,8 +1,11 @@
 {
   "id": "enraged",
   "family": "debuff",
+  "icon": "",
   "arity": 1,
-  "param_names": ["duration"],
+  "param_names": [
+    "duration"
+  ],
   "loc_name": "status.enraged.name",
   "loc_desc": "status.enraged.desc"
 }

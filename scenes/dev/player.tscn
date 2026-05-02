@@ -24,5 +24,5 @@ y_offset = -66.0
 z_index = 7
 
 [node name="StatusIconStrip" parent="." instance=ExtResource("4_strip")]
-position = Vector2(-32, -88)
+position = Vector2(-16, -100)
 z_index = 8

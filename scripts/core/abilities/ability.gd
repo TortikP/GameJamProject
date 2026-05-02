@@ -65,7 +65,10 @@ func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 ## KEEP IN SYNC with DamageEffect.apply + the cast lifecycle order.
 func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level: int = 0) -> int:
 	var total: int = 0
-	var bonus: int = 0 if caster == null else caster.damage_bonus
+	# 027: damage_amplifier sums strong/weak status modifiers (signed).
+	var bonus: int = 0
+	if caster != null:
+		bonus = caster.damage_bonus + caster.damage_amplifier()
 	for base_eff in effects:
 		if not base_eff is DamageEffect:
 			continue

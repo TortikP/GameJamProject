@@ -31,6 +31,8 @@ const _RT_BY_ID: Dictionary = {
 	&"glitched": preload("res://scripts/core/statuses/runtimes/glitched_runtime.gd"),
 	&"shielded": preload("res://scripts/core/statuses/runtimes/shielded_runtime.gd"),
 	&"enraged":  preload("res://scripts/core/statuses/runtimes/enraged_runtime.gd"),
+	&"strong":   preload("res://scripts/core/statuses/runtimes/strong_runtime.gd"),
+	&"weak":     preload("res://scripts/core/statuses/runtimes/weak_runtime.gd"),
 }
 
 # id → {family, arity, param_names, loc_name, loc_desc}
@@ -69,6 +71,21 @@ func meta_for(id: StringName) -> Dictionary:
 func family_of(id: StringName) -> StringName:
 	var m: Dictionary = _meta.get(id, {})
 	return StringName(m.get("family", &"debuff"))
+
+
+## Returns the icon resource path for the status (e.g. "res://assets/icons/status/poisoned.png"),
+## or empty string if no icon is configured. UI falls back to family-glyph
+## when icon is empty.
+func icon_of(id: StringName) -> String:
+	var m: Dictionary = _meta.get(id, {})
+	return String(m.get("icon", ""))
+
+
+## Path to the status icon texture (e.g. "res://assets/icons/burning.png").
+## Empty if not configured — UI falls back to family-glyph.
+func icon_of(id: StringName) -> String:
+	var m: Dictionary = _meta.get(id, {})
+	return String(m.get("icon", ""))
 
 
 ## Number of expected args in the inline encoding `id(d, a1, ...)`.
@@ -122,6 +139,7 @@ func _load_file(file_path: String) -> void:
 		return
 	_meta[id] = {
 		"family":      StringName(data.get("family", "debuff")),
+		"icon":        String(data.get("icon", "")),
 		"arity":       arity,
 		"param_names": data.get("param_names", []),
 		"loc_name":    String(data.get("loc_name", "")),

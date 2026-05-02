@@ -48,6 +48,16 @@ static func damage_reduction(_instance: StatusInstance) -> int:
 	return 0
 
 
+## Signed modifier on outgoing damage from this actor. Summed across active
+## instances by Actor.damage_amplifier and added to caster.damage_bonus
+## inside DamageEffect.apply / Ability.predicted_damage_to.
+##   strong → +snapshot_value
+##   weak   → -snapshot_value
+## Default 0; only strong/weak override.
+static func damage_amplifier(_instance: StatusInstance) -> int:
+	return 0
+
+
 ## Movement override hook for SLOWED (flip-flop) and ROOTED (always hold).
 ## Sentinel return values:
 ##   Vector2i(-1, -1) → defer to default policy
