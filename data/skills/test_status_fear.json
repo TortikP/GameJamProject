@@ -1,0 +1,26 @@
+{
+  "id": "test_status_fear",
+  "name": "skill.test_status_fear.name",
+  "tooltip": "skill.test_status_fear.tooltip",
+  "desc": "skill.test_status_fear.desc",
+  "icon": "",
+  "cooldown": 0,
+  "behaviour_tags": ["debuff"],
+  "mood": [],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "tsf_fear",
+      "sound_start": "",
+      "sound_end": "",
+      "collision_effect": "",
+      "animation": "",
+      "target": {"kind": "actor", "range": 5},
+      "area": {"kind": "chain", "area_max_chain_length": 1, "area_radius": 1},
+      "effects": [
+        {"status_id": "feared(3)"}
+      ],
+      "modifiers": []
+    }
+  ]
+}

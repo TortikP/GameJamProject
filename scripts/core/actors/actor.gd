@@ -203,6 +203,11 @@ func add_status(instance: StatusInstance) -> void:
 	if rt != null:
 		rt.on_apply(self, instance)
 	statuses_changed.emit(actor_id)
+	# 034: replan trigger. Listener (godmode_controller) recomputes the
+	# enemy's intent under the new status (rooted/stunned/feared/enraged
+	# change available actions; plan() handles them all). Fired after
+	# on_apply + statuses_changed so listeners see fully-bound state.
+	EventBus.actor_status_added.emit(actor_id, instance.status_id)
 
 
 ## Remove a status by id. No-op if not present. Fires on_remove. Emits

@@ -173,6 +173,9 @@ func _ready() -> void:
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_on_world_turn_ended)
 	EventBus.actor_died.connect(_on_actor_died_for_selection)
+	# 034: replan an enemy when it gains a status (rooted/stunned/feared/enraged
+	# change available actions; non-control statuses replan harmlessly).
+	EventBus.actor_status_added.connect(_on_actor_status_added)
 
 	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
 	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
@@ -1031,6 +1034,26 @@ func _on_actor_died(id: StringName) -> void:
 	_refresh_telegraphs()
 
 
+# 034: a freshly-applied status may invalidate the enemy's last-Phase-2 plan
+# (rooted enemy can't move; feared enemy must kite; stunned enemy must skip).
+# Replan immediately so the next world_turn_ended RESOLVE uses fresh intents
+# reflecting the new constraints. Telegraphs refresh so the player sees the
+# updated plan during their turn. Only enemies replan — player has no
+# AI-driven intent buffer; non-enemy actors aren't planned by EnemyAIPlanner.
+func _on_actor_status_added(actor_id: StringName, _status_id: StringName) -> void:
+	var actor: Actor = registry.get_actor(actor_id)
+	if actor == null or actor.team != &"enemy" or not actor.is_alive():
+		return
+	if _world_processing:
+		# Mid-world-turn add (e.g. enemy A's cast applies status on B during
+		# Phase 1 RESOLVE). Phase 2 PLAN runs for everyone at the end of
+		# _run_enemy_turn and overwrites all intents — replanning here is
+		# redundant and ctx is mid-flux.
+		return
+	EnemyAIPlanner.plan(actor, _world_ctx())
+	_refresh_telegraphs()
+
+
 # ── Movement animation (mirror of arena_demo_controller) ─────────────────────
 
 func _on_step_started(actor_id: StringName, _from: Vector2i, to: Vector2i) -> void:
@@ -1086,7 +1109,7 @@ func _on_world_turn_ended(_turn: int) -> void:
 	# Recursion is fine — next world_turn_ended will tick again, and either
 	# decrement to expire or skip again.
 	if player.is_alive() and player.is_stunned():
-		await get_tree().create_timer(GameSpeed.get_value("arena", "stun_skip_delay", 0.4)).timeout
+		await GameSpeed.wait("arena", "stun_skip_delay", 0.4)
 		_world_processing = false
 		TurnManager.advance()
 		return
