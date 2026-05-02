@@ -36,12 +36,20 @@ var _pending_fade_in: bool = false
 # Per-callback latch to make sure CampaignController only acts once even if a
 # listener calls on_done after the timeout already fired. Reset on each request.
 var _callback_fired: bool = false
+# Cumulative score across all levels of the current campaign. Resets when a
+# new campaign starts (campaign_level_started with index=0). Read by
+# campaign_end.gd at scene load. Necessary because RunScore.reset() fires on
+# every run_started (i.e. every level start), so per-level scores would be
+# lost otherwise.
+var last_campaign_total: int = 0
+var _running_total: int = 0
 
 
 func _ready() -> void:
 	EventBus.level_completed.connect(_on_level_completed)
 	EventBus.scene_ready.connect(_on_scene_ready)
 	EventBus.main_menu_entered.connect(_on_main_menu_entered)
+	EventBus.campaign_level_started.connect(_on_campaign_level_started)
 
 
 func _on_main_menu_entered() -> void:
@@ -51,6 +59,15 @@ func _on_main_menu_entered() -> void:
 	_callback_fired = true  # latch any in-flight upgrade/cutscene awaits
 
 
+func _on_campaign_level_started(index: int, _map_path: String) -> void:
+	# Fresh campaign → reset cumulative score. ActiveGame.load_game always
+	# emits with index=0 first; subsequent levels of the same campaign
+	# emit with index>0 (no reset).
+	if index == 0:
+		_running_total = 0
+		last_campaign_total = 0
+
+
 # ── level_completed flow ────────────────────────────────────────────────────
 
 func _on_level_completed(total_score: int) -> void:
@@ -58,8 +75,13 @@ func _on_level_completed(total_score: int) -> void:
 		# No campaign in progress — let downstream listeners (or none) handle
 		# the standalone-map case. We do nothing.
 		return
-	GameLogger.info("CampaignController", "level_completed (score=%d, level %d/%d)" % [
-		total_score, ActiveGame.current_index, ActiveGame.total_levels() - 1
+	# Accumulate before any awaits — total_score arg is RunScore.total at the
+	# moment WaveController declared the level done, which is the canonical
+	# per-level value (stub upgrade bonuses applied AFTER this don't count
+	# towards campaign cumulative — they're per-level visual only).
+	_running_total += total_score
+	GameLogger.info("CampaignController", "level_completed (level_score=%d, campaign_total=%d, level %d/%d)" % [
+		total_score, _running_total, ActiveGame.current_index, ActiveGame.total_levels() - 1
 	])
 	_run_post_level_flow(total_score)
 
@@ -77,8 +99,8 @@ func _run_post_level_flow(total_score: int) -> void:
 
 	# 3. Branch on last level vs next.
 	if ActiveGame.is_last_level():
-		var final_score: int = total_score
-		EventBus.campaign_finished.emit(final_score)
+		last_campaign_total = _running_total
+		EventBus.campaign_finished.emit(last_campaign_total)
 		ActiveGame.clear()
 		get_tree().change_scene_to_file(CAMPAIGN_END_SCENE)
 	else:
