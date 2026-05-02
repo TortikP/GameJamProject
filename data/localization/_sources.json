@@ -1,0 +1,2016 @@
+{
+    "angel_desc":  [
+                       {
+                           "source":  "data/enemies/angel.json:desc",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "angel_divine_word_desc":  [
+                                   {
+                                       "source":  "data/skills/angel_divine_word.json:desc",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "angel_divine_word_name":  [
+                                   {
+                                       "source":  "data/skills/angel_divine_word.json:name",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "angel_divine_word_tooltip":  [
+                                      {
+                                          "source":  "data/skills/angel_divine_word.json:tooltip",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "angel_name":  [
+                       {
+                           "source":  "data/enemies/angel.json:name",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "angel_scorching_ray_desc":  [
+                                     {
+                                         "source":  "data/skills/angel_scorching_ray.json:desc",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "angel_scorching_ray_name":  [
+                                     {
+                                         "source":  "data/skills/angel_scorching_ray.json:name",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "angel_scorching_ray_tooltip":  [
+                                        {
+                                            "source":  "data/skills/angel_scorching_ray.json:tooltip",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "angel_sharp_feathers_desc":  [
+                                      {
+                                          "source":  "data/skills/angel_sharp_feathers.json:desc",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "angel_sharp_feathers_name":  [
+                                      {
+                                          "source":  "data/skills/angel_sharp_feathers.json:name",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "angel_sharp_feathers_tooltip":  [
+                                         {
+                                             "source":  "data/skills/angel_sharp_feathers.json:tooltip",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "ball_throw_desc":  [
+                            {
+                                "source":  "data/skills/ball_throw.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "ball_throw_name":  [
+                            {
+                                "source":  "data/skills/ball_throw.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "ball_throw_tooltip":  [
+                               {
+                                   "source":  "data/skills/ball_throw.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "bear_ball_throw_desc":  [
+                                 {
+                                     "source":  "data/skills/bear_ball_throw.json:desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "bear_ball_throw_name":  [
+                                 {
+                                     "source":  "data/skills/bear_ball_throw.json:name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "bear_ball_throw_tooltip":  [
+                                    {
+                                        "source":  "data/skills/bear_ball_throw.json:tooltip",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "bear_desc":  [
+                      {
+                          "source":  "data/enemies/bear.json:desc",
+                          "note":  "existing localization key in data"
+                      }
+                  ],
+    "bear_hallo_desc":  [
+                            {
+                                "source":  "data/skills/bear_hallo.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "bear_hallo_name":  [
+                            {
+                                "source":  "data/skills/bear_hallo.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "bear_hallo_tooltip":  [
+                               {
+                                   "source":  "data/skills/bear_hallo.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "bear_name":  [
+                      {
+                          "source":  "data/enemies/bear.json:name",
+                          "note":  "existing localization key in data"
+                      }
+                  ],
+    "bear_paw_suck_desc":  [
+                               {
+                                   "source":  "data/skills/bear_paw_suck.json:desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "bear_paw_suck_name":  [
+                               {
+                                   "source":  "data/skills/bear_paw_suck.json:name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "bear_paw_suck_tooltip":  [
+                                  {
+                                      "source":  "data/skills/bear_paw_suck.json:tooltip",
+                                      "note":  "existing localization key in data"
+                                  }
+                              ],
+    "bee_desc":  [
+                     {
+                         "source":  "data/enemies/bee.json:desc",
+                         "note":  "existing localization key in data"
+                     }
+                 ],
+    "bee_honey_cold_desc":  [
+                                {
+                                    "source":  "data/skills/bee_honey_cold.json:desc",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "bee_honey_cold_name":  [
+                                {
+                                    "source":  "data/skills/bee_honey_cold.json:name",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "bee_honey_cold_tooltip":  [
+                                   {
+                                       "source":  "data/skills/bee_honey_cold.json:tooltip",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "bee_name":  [
+                     {
+                         "source":  "data/enemies/bee.json:name",
+                         "note":  "existing localization key in data"
+                     }
+                 ],
+    "bee_sting_desc":  [
+                           {
+                               "source":  "data/skills/bee_sting.json:desc",
+                               "note":  "existing localization key in data"
+                           }
+                       ],
+    "bee_sting_name":  [
+                           {
+                               "source":  "data/skills/bee_sting.json:name",
+                               "note":  "existing localization key in data"
+                           }
+                       ],
+    "bee_sting_tooltip":  [
+                              {
+                                  "source":  "data/skills/bee_sting.json:tooltip",
+                                  "note":  "existing localization key in data"
+                              }
+                          ],
+    "bee_summon_bee_desc":  [
+                                {
+                                    "source":  "data/skills/bee_summon_bee.json:desc",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "bee_summon_bee_name":  [
+                                {
+                                    "source":  "data/skills/bee_summon_bee.json:name",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "bee_summon_bee_tooltip":  [
+                                   {
+                                       "source":  "data/skills/bee_summon_bee.json:tooltip",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "berry_throw_desc":  [
+                             {
+                                 "source":  "data/skills/berry_throw.json:desc",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "berry_throw_name":  [
+                             {
+                                 "source":  "data/skills/berry_throw.json:name",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "berry_throw_tooltip":  [
+                                {
+                                    "source":  "data/skills/berry_throw.json:tooltip",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "burning_bear_burning_claw_desc":  [
+                                           {
+                                               "source":  "data/skills/burning_bear_burning_claw.json:desc",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "burning_bear_burning_claw_name":  [
+                                           {
+                                               "source":  "data/skills/burning_bear_burning_claw.json:name",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "burning_bear_burning_claw_tooltip":  [
+                                              {
+                                                  "source":  "data/skills/burning_bear_burning_claw.json:tooltip",
+                                                  "note":  "existing localization key in data"
+                                              }
+                                          ],
+    "burning_bear_desc":  [
+                              {
+                                  "source":  "data/enemies/burning_bear.json:desc",
+                                  "note":  "existing localization key in data"
+                              }
+                          ],
+    "burning_bear_hellshake_desc":  [
+                                        {
+                                            "source":  "data/skills/burning_bear_hellshake.json:desc",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "burning_bear_hellshake_name":  [
+                                        {
+                                            "source":  "data/skills/burning_bear_hellshake.json:name",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "burning_bear_hellshake_tooltip":  [
+                                           {
+                                               "source":  "data/skills/burning_bear_hellshake.json:tooltip",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "burning_bear_name":  [
+                              {
+                                  "source":  "data/enemies/burning_bear.json:name",
+                                  "note":  "existing localization key in data"
+                              }
+                          ],
+    "burning_bear_summon_bear_desc":  [
+                                          {
+                                              "source":  "data/skills/burning_bear_summon_bear.json:desc",
+                                              "note":  "existing localization key in data"
+                                          }
+                                      ],
+    "burning_bear_summon_bear_name":  [
+                                          {
+                                              "source":  "data/skills/burning_bear_summon_bear.json:name",
+                                              "note":  "existing localization key in data"
+                                          }
+                                      ],
+    "burning_bear_summon_bear_tooltip":  [
+                                             {
+                                                 "source":  "data/skills/burning_bear_summon_bear.json:tooltip",
+                                                 "note":  "existing localization key in data"
+                                             }
+                                         ],
+    "burning_bear_tire_throw_desc":  [
+                                         {
+                                             "source":  "data/skills/burning_bear_tire_throw.json:desc",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "burning_bear_tire_throw_name":  [
+                                         {
+                                             "source":  "data/skills/burning_bear_tire_throw.json:name",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "burning_bear_tire_throw_tooltip":  [
+                                            {
+                                                "source":  "data/skills/burning_bear_tire_throw.json:tooltip",
+                                                "note":  "existing localization key in data"
+                                            }
+                                        ],
+    "bush_berry_throw_desc":  [
+                                  {
+                                      "source":  "data/skills/bush_berry_throw.json:desc",
+                                      "note":  "existing localization key in data"
+                                  }
+                              ],
+    "bush_berry_throw_name":  [
+                                  {
+                                      "source":  "data/skills/bush_berry_throw.json:name",
+                                      "note":  "existing localization key in data"
+                                  }
+                              ],
+    "bush_berry_throw_tooltip":  [
+                                     {
+                                         "source":  "data/skills/bush_berry_throw.json:tooltip",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "bush_curse_desc":  [
+                            {
+                                "source":  "data/skills/bush_curse.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "bush_curse_name":  [
+                            {
+                                "source":  "data/skills/bush_curse.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "bush_curse_tooltip":  [
+                               {
+                                   "source":  "data/skills/bush_curse.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "bush_desc":  [
+                      {
+                          "source":  "data/enemies/bush.json:desc",
+                          "note":  "existing localization key in data"
+                      }
+                  ],
+    "bush_name":  [
+                      {
+                          "source":  "data/enemies/bush.json:name",
+                          "note":  "existing localization key in data"
+                      }
+                  ],
+    "bush_nice_smell_desc":  [
+                                 {
+                                     "source":  "data/skills/bush_nice_smell.json:desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "bush_nice_smell_name":  [
+                                 {
+                                     "source":  "data/skills/bush_nice_smell.json:name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "bush_nice_smell_tooltip":  [
+                                    {
+                                        "source":  "data/skills/bush_nice_smell.json:tooltip",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "curse_desc":  [
+                       {
+                           "source":  "data/skills/curse.json:desc",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "curse_name":  [
+                       {
+                           "source":  "data/skills/curse.json:name",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "curse_tooltip":  [
+                          {
+                              "source":  "data/skills/curse.json:tooltip",
+                              "note":  "existing localization key in data"
+                          }
+                      ],
+    "dialogues._speakers.merchant.display_name":  [
+                                                      {
+                                                          "source":  "data/dialogues/_speakers.json:merchant.display_name",
+                                                          "note":  "literal data string"
+                                                      }
+                                                  ],
+    "dialogues._speakers.narrator.display_name":  [
+                                                      {
+                                                          "source":  "data/dialogues/_speakers.json:narrator.display_name",
+                                                          "note":  "literal data string"
+                                                      }
+                                                  ],
+    "dialogues._speakers.rival.display_name":  [
+                                                   {
+                                                       "source":  "data/dialogues/_speakers.json:rival.display_name",
+                                                       "note":  "literal data string"
+                                                   }
+                                               ],
+    "dialogues.boss_defeat_gloat.3.text":  [
+                                               {
+                                                   "source":  "data/dialogues/boss.json:3.text",
+                                                   "note":  "literal data string"
+                                               }
+                                           ],
+    "dialogues.boss_intro.text":  [
+                                      {
+                                          "source":  "data/dialogues/boss_intro.json:text",
+                                          "note":  "literal data string"
+                                      }
+                                  ],
+    "dialogues.boss_intro_early.0.text":  [
+                                              {
+                                                  "source":  "data/dialogues/boss.json:0.text",
+                                                  "note":  "literal data string"
+                                              }
+                                          ],
+    "dialogues.boss_player_wins.4.text":  [
+                                              {
+                                                  "source":  "data/dialogues/boss.json:4.text",
+                                                  "note":  "literal data string"
+                                              }
+                                          ],
+    "dialogues.boss_taunt.1.text":  [
+                                        {
+                                            "source":  "data/dialogues/boss.json:1.text",
+                                            "note":  "literal data string"
+                                        }
+                                    ],
+    "dialogues.boss_tired.2.text":  [
+                                        {
+                                            "source":  "data/dialogues/boss.json:2.text",
+                                            "note":  "literal data string"
+                                        }
+                                    ],
+    "dialogues.choice_chain_a.6.text":  [
+                                            {
+                                                "source":  "data/dialogues/narrator_ambient.json:6.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.choice_chain_b.7.text":  [
+                                            {
+                                                "source":  "data/dialogues/narrator_ambient.json:7.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.choice_chain_test.5.choices.0.label":  [
+                                                          {
+                                                              "source":  "data/dialogues/narrator_ambient.json:5.choices.0.label",
+                                                              "note":  "literal data string"
+                                                          }
+                                                      ],
+    "dialogues.choice_chain_test.5.choices.1.label":  [
+                                                          {
+                                                              "source":  "data/dialogues/narrator_ambient.json:5.choices.1.label",
+                                                              "note":  "literal data string"
+                                                          }
+                                                      ],
+    "dialogues.choice_chain_test.5.choices.2.label":  [
+                                                          {
+                                                              "source":  "data/dialogues/narrator_ambient.json:5.choices.2.label",
+                                                              "note":  "literal data string"
+                                                          }
+                                                      ],
+    "dialogues.choice_chain_test.5.text":  [
+                                               {
+                                                   "source":  "data/dialogues/narrator_ambient.json:5.text",
+                                                   "note":  "literal data string"
+                                               }
+                                           ],
+    "dialogues.long_test_line.4.text":  [
+                                            {
+                                                "source":  "data/dialogues/narrator_ambient.json:4.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.merchant_brush_off.2.text":  [
+                                                {
+                                                    "source":  "data/dialogues/merchant.json:2.text",
+                                                    "note":  "literal data string"
+                                                }
+                                            ],
+    "dialogues.merchant_goods.1.text":  [
+                                            {
+                                                "source":  "data/dialogues/merchant.json:1.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.merchant_greet.0.choices.0.label":  [
+                                                       {
+                                                           "source":  "data/dialogues/merchant.json:0.choices.0.label",
+                                                           "note":  "literal data string"
+                                                       }
+                                                   ],
+    "dialogues.merchant_greet.0.choices.1.label":  [
+                                                       {
+                                                           "source":  "data/dialogues/merchant.json:0.choices.1.label",
+                                                           "note":  "literal data string"
+                                                       }
+                                                   ],
+    "dialogues.merchant_greet.0.text":  [
+                                            {
+                                                "source":  "data/dialogues/merchant.json:0.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.merchant_late_run.4.text":  [
+                                               {
+                                                   "source":  "data/dialogues/merchant.json:4.text",
+                                                   "note":  "literal data string"
+                                               }
+                                           ],
+    "dialogues.merchant_sold_out.3.text":  [
+                                               {
+                                                   "source":  "data/dialogues/merchant.json:3.text",
+                                                   "note":  "literal data string"
+                                               }
+                                           ],
+    "dialogues.respawn_choice.0.choices.0.label":  [
+                                                       {
+                                                           "source":  "data/dialogues/respawn_choice.json:0.choices.0.label",
+                                                           "note":  "literal data string"
+                                                       }
+                                                   ],
+    "dialogues.respawn_choice.0.choices.1.label":  [
+                                                       {
+                                                           "source":  "data/dialogues/respawn_choice.json:0.choices.1.label",
+                                                           "note":  "literal data string"
+                                                       }
+                                                   ],
+    "dialogues.respawn_choice.0.text":  [
+                                            {
+                                                "source":  "data/dialogues/respawn_choice.json:0.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.respawn_choice_yes.1.text":  [
+                                                {
+                                                    "source":  "data/dialogues/respawn_choice.json:1.text",
+                                                    "note":  "literal data string"
+                                                }
+                                            ],
+    "dialogues.respawn_existential.3.text":  [
+                                                 {
+                                                     "source":  "data/dialogues/respawn_pool.json:3.text",
+                                                     "note":  "literal data string"
+                                                 }
+                                             ],
+    "dialogues.respawn_first.text":  [
+                                         {
+                                             "source":  "data/dialogues/respawn_first.json:text",
+                                             "note":  "literal data string"
+                                         }
+                                     ],
+    "dialogues.respawn_nth.2.text":  [
+                                         {
+                                             "source":  "data/dialogues/respawn_pool.json:2.text",
+                                             "note":  "literal data string"
+                                         }
+                                     ],
+    "dialogues.respawn_rival_jab.4.text":  [
+                                               {
+                                                   "source":  "data/dialogues/respawn_pool.json:4.text",
+                                                   "note":  "literal data string"
+                                               }
+                                           ],
+    "dialogues.respawn_second.0.text":  [
+                                            {
+                                                "source":  "data/dialogues/respawn_pool.json:0.text",
+                                                "note":  "literal data string"
+                                            }
+                                        ],
+    "dialogues.respawn_third.1.text":  [
+                                           {
+                                               "source":  "data/dialogues/respawn_pool.json:1.text",
+                                               "note":  "literal data string"
+                                           }
+                                       ],
+    "dialogues.upgrade_big_choice.3.text":  [
+                                                {
+                                                    "source":  "data/dialogues/narrator_ambient.json:3.text",
+                                                    "note":  "literal data string"
+                                                }
+                                            ],
+    "dialogues.upgrade_offered_comment.2.text":  [
+                                                     {
+                                                         "source":  "data/dialogues/narrator_ambient.json:2.text",
+                                                         "note":  "literal data string"
+                                                     }
+                                                 ],
+    "dialogues.wave_first.0.text":  [
+                                        {
+                                            "source":  "data/dialogues/narrator_ambient.json:0.text",
+                                            "note":  "literal data string"
+                                        }
+                                    ],
+    "dialogues.wave_getting_rough.1.text":  [
+                                                {
+                                                    "source":  "data/dialogues/narrator_ambient.json:1.text",
+                                                    "note":  "literal data string"
+                                                }
+                                            ],
+    "fire_slime_desc":  [
+                            {
+                                "source":  "data/enemies/fire_slime.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "fire_slime_firey_touch_desc":  [
+                                        {
+                                            "source":  "data/skills/fire_slime_firey_touch.json:desc",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "fire_slime_firey_touch_name":  [
+                                        {
+                                            "source":  "data/skills/fire_slime_firey_touch.json:name",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "fire_slime_firey_touch_tooltip":  [
+                                           {
+                                               "source":  "data/skills/fire_slime_firey_touch.json:tooltip",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "fire_slime_magma_spit_desc":  [
+                                       {
+                                           "source":  "data/skills/fire_slime_magma_spit.json:desc",
+                                           "note":  "existing localization key in data"
+                                       }
+                                   ],
+    "fire_slime_magma_spit_name":  [
+                                       {
+                                           "source":  "data/skills/fire_slime_magma_spit.json:name",
+                                           "note":  "existing localization key in data"
+                                       }
+                                   ],
+    "fire_slime_magma_spit_tooltip":  [
+                                          {
+                                              "source":  "data/skills/fire_slime_magma_spit.json:tooltip",
+                                              "note":  "existing localization key in data"
+                                          }
+                                      ],
+    "fire_slime_name":  [
+                            {
+                                "source":  "data/enemies/fire_slime.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "hallo_desc":  [
+                       {
+                           "source":  "data/skills/hallo.json:desc",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "hallo_name":  [
+                       {
+                           "source":  "data/skills/hallo.json:name",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "hallo_tooltip":  [
+                          {
+                              "source":  "data/skills/hallo.json:tooltip",
+                              "note":  "existing localization key in data"
+                          }
+                      ],
+    "honey_cold_desc":  [
+                            {
+                                "source":  "data/skills/honey_cold.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "honey_cold_name":  [
+                            {
+                                "source":  "data/skills/honey_cold.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "honey_cold_tooltip":  [
+                               {
+                                   "source":  "data/skills/honey_cold.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "lavender_lion_bite_desc":  [
+                                    {
+                                        "source":  "data/skills/lavender_lion_bite.json:desc",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "lavender_lion_bite_name":  [
+                                    {
+                                        "source":  "data/skills/lavender_lion_bite.json:name",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "lavender_lion_bite_tooltip":  [
+                                       {
+                                           "source":  "data/skills/lavender_lion_bite.json:tooltip",
+                                           "note":  "existing localization key in data"
+                                       }
+                                   ],
+    "lavender_lion_desc":  [
+                               {
+                                   "source":  "data/enemies/lavender_lion.json:desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "lavender_lion_name":  [
+                               {
+                                   "source":  "data/enemies/lavender_lion.json:name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "lavender_lion_roar_desc":  [
+                                    {
+                                        "source":  "data/skills/lavender_lion_roar.json:desc",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "lavender_lion_roar_name":  [
+                                    {
+                                        "source":  "data/skills/lavender_lion_roar.json:name",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "lavender_lion_roar_tooltip":  [
+                                       {
+                                           "source":  "data/skills/lavender_lion_roar.json:tooltip",
+                                           "note":  "existing localization key in data"
+                                       }
+                                   ],
+    "lavender_lion_scare_desc":  [
+                                     {
+                                         "source":  "data/skills/lavender_lion_scare.json:desc",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "lavender_lion_scare_name":  [
+                                     {
+                                         "source":  "data/skills/lavender_lion_scare.json:name",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "lavender_lion_scare_tooltip":  [
+                                        {
+                                            "source":  "data/skills/lavender_lion_scare.json:tooltip",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "manekin_desc":  [
+                         {
+                             "source":  "data/enemies/manekin.json:desc",
+                             "note":  "existing localization key in data"
+                         }
+                     ],
+    "manekin_name":  [
+                         {
+                             "source":  "data/enemies/manekin.json:name",
+                             "note":  "existing localization key in data"
+                         }
+                     ],
+    "maps.sample.name":  [
+                             {
+                                 "source":  "data/maps/sample.json:name",
+                                 "note":  "literal data string"
+                             }
+                         ],
+    "maps.sample_waves.name":  [
+                                   {
+                                       "source":  "data/maps/sample_waves.json:name",
+                                       "note":  "literal data string"
+                                   }
+                               ],
+    "monkey_business_desc":  [
+                                 {
+                                     "source":  "data/skills/monkey_business.json:desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "monkey_business_name":  [
+                                 {
+                                     "source":  "data/skills/monkey_business.json:name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "monkey_business_tooltip":  [
+                                    {
+                                        "source":  "data/skills/monkey_business.json:tooltip",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "monkey_desc":  [
+                        {
+                            "source":  "data/enemies/monkey.json:desc",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "monkey_name":  [
+                        {
+                            "source":  "data/enemies/monkey.json:name",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "monkey_time_desc":  [
+                             {
+                                 "source":  "data/skills/monkey_time.json:desc",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "monkey_time_name":  [
+                             {
+                                 "source":  "data/skills/monkey_time.json:name",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "monkey_time_tooltip":  [
+                                {
+                                    "source":  "data/skills/monkey_time.json:tooltip",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "mushroom_boar_desc":  [
+                               {
+                                   "source":  "data/enemies/mushroom_boar.json:desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "mushroom_boar_name":  [
+                               {
+                                   "source":  "data/enemies/mushroom_boar.json:name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "mushroom_boar_spores_desc":  [
+                                      {
+                                          "source":  "data/skills/mushroom_boar_spores.json:desc",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "mushroom_boar_spores_name":  [
+                                      {
+                                          "source":  "data/skills/mushroom_boar_spores.json:name",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "mushroom_boar_spores_tooltip":  [
+                                         {
+                                             "source":  "data/skills/mushroom_boar_spores.json:tooltip",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "mushroom_boar_tusk_attack_desc":  [
+                                           {
+                                               "source":  "data/skills/mushroom_boar_tusk_attack.json:desc",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "mushroom_boar_tusk_attack_name":  [
+                                           {
+                                               "source":  "data/skills/mushroom_boar_tusk_attack.json:name",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "mushroom_boar_tusk_attack_tooltip":  [
+                                              {
+                                                  "source":  "data/skills/mushroom_boar_tusk_attack.json:tooltip",
+                                                  "note":  "existing localization key in data"
+                                              }
+                                          ],
+    "mushroom_boar_weaken_desc":  [
+                                      {
+                                          "source":  "data/skills/mushroom_boar_weaken.json:desc",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "mushroom_boar_weaken_name":  [
+                                      {
+                                          "source":  "data/skills/mushroom_boar_weaken.json:name",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "mushroom_boar_weaken_tooltip":  [
+                                         {
+                                             "source":  "data/skills/mushroom_boar_weaken.json:tooltip",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "nice_smell_desc":  [
+                            {
+                                "source":  "data/skills/nice_smell.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "nice_smell_name":  [
+                            {
+                                "source":  "data/skills/nice_smell.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "nice_smell_tooltip":  [
+                               {
+                                   "source":  "data/skills/nice_smell.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "paper_jam_desc":  [
+                           {
+                               "source":  "data/skills/paper_jam.json:desc",
+                               "note":  "existing localization key in data"
+                           }
+                       ],
+    "paper_jam_name":  [
+                           {
+                               "source":  "data/skills/paper_jam.json:name",
+                               "note":  "existing localization key in data"
+                           }
+                       ],
+    "paper_jam_tooltip":  [
+                              {
+                                  "source":  "data/skills/paper_jam.json:tooltip",
+                                  "note":  "existing localization key in data"
+                              }
+                          ],
+    "paw_suck_desc":  [
+                          {
+                              "source":  "data/skills/paw_suck.json:desc",
+                              "note":  "existing localization key in data"
+                          }
+                      ],
+    "paw_suck_name":  [
+                          {
+                              "source":  "data/skills/paw_suck.json:name",
+                              "note":  "existing localization key in data"
+                          }
+                      ],
+    "paw_suck_tooltip":  [
+                             {
+                                 "source":  "data/skills/paw_suck.json:tooltip",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "skill.test_combo_multikey_effect.desc":  [
+                                                  {
+                                                      "source":  "data/skills/test_combo_multikey_effect.json:desc",
+                                                      "note":  "existing localization key in data"
+                                                  }
+                                              ],
+    "skill.test_combo_multikey_effect.name":  [
+                                                  {
+                                                      "source":  "data/skills/test_combo_multikey_effect.json:name",
+                                                      "note":  "existing localization key in data"
+                                                  }
+                                              ],
+    "skill.test_combo_multikey_effect.tooltip":  [
+                                                     {
+                                                         "source":  "data/skills/test_combo_multikey_effect.json:tooltip",
+                                                         "note":  "existing localization key in data"
+                                                     }
+                                                 ],
+    "skill.test_status_fear.desc":  [
+                                        {
+                                            "source":  "data/skills/test_status_fear.json:desc",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "skill.test_status_fear.name":  [
+                                        {
+                                            "source":  "data/skills/test_status_fear.json:name",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "skill.test_status_fear.tooltip":  [
+                                           {
+                                               "source":  "data/skills/test_status_fear.json:tooltip",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "skill.test_status_multi.desc":  [
+                                         {
+                                             "source":  "data/skills/test_status_multi.json:desc",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "skill.test_status_multi.name":  [
+                                         {
+                                             "source":  "data/skills/test_status_multi.json:name",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "skill.test_status_multi.tooltip":  [
+                                            {
+                                                "source":  "data/skills/test_status_multi.json:tooltip",
+                                                "note":  "existing localization key in data"
+                                            }
+                                        ],
+    "skill.test_status_rage.desc":  [
+                                        {
+                                            "source":  "data/skills/test_status_rage.json:desc",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "skill.test_status_rage.name":  [
+                                        {
+                                            "source":  "data/skills/test_status_rage.json:name",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "skill.test_status_rage.tooltip":  [
+                                           {
+                                               "source":  "data/skills/test_status_rage.json:tooltip",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "skill.test_status_runtime.desc":  [
+                                           {
+                                               "source":  "data/skills/test_status_runtime.json:desc",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "skill.test_status_runtime.name":  [
+                                           {
+                                               "source":  "data/skills/test_status_runtime.json:name",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "skill.test_status_runtime.tooltip":  [
+                                              {
+                                                  "source":  "data/skills/test_status_runtime.json:tooltip",
+                                                  "note":  "existing localization key in data"
+                                              }
+                                          ],
+    "spores_desc":  [
+                        {
+                            "source":  "data/skills/spores.json:desc",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "spores_name":  [
+                        {
+                            "source":  "data/skills/spores.json:name",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "spores_tooltip":  [
+                           {
+                               "source":  "data/skills/spores.json:tooltip",
+                               "note":  "existing localization key in data"
+                           }
+                       ],
+    "staple_shot_desc":  [
+                             {
+                                 "source":  "data/skills/staple_shot.json:desc",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "staple_shot_name":  [
+                             {
+                                 "source":  "data/skills/staple_shot.json:name",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "staple_shot_tooltip":  [
+                                {
+                                    "source":  "data/skills/staple_shot.json:tooltip",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "stapler_desc":  [
+                         {
+                             "source":  "data/enemies/stapler.json:desc",
+                             "note":  "existing localization key in data"
+                         }
+                     ],
+    "stapler_name":  [
+                         {
+                             "source":  "data/enemies/stapler.json:name",
+                             "note":  "existing localization key in data"
+                         }
+                     ],
+    "stapler_paper_jam_desc":  [
+                                   {
+                                       "source":  "data/skills/stapler_paper_jam.json:desc",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "stapler_paper_jam_name":  [
+                                   {
+                                       "source":  "data/skills/stapler_paper_jam.json:name",
+                                       "note":  "existing localization key in data"
+                                   }
+                               ],
+    "stapler_paper_jam_tooltip":  [
+                                      {
+                                          "source":  "data/skills/stapler_paper_jam.json:tooltip",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "stapler_staple_shot_desc":  [
+                                     {
+                                         "source":  "data/skills/stapler_staple_shot.json:desc",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "stapler_staple_shot_name":  [
+                                     {
+                                         "source":  "data/skills/stapler_staple_shot.json:name",
+                                         "note":  "existing localization key in data"
+                                     }
+                                 ],
+    "stapler_staple_shot_tooltip":  [
+                                        {
+                                            "source":  "data/skills/stapler_staple_shot.json:tooltip",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "stapler_under_desk_jump_desc":  [
+                                         {
+                                             "source":  "data/skills/stapler_under_desk_jump.json:desc",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "stapler_under_desk_jump_name":  [
+                                         {
+                                             "source":  "data/skills/stapler_under_desk_jump.json:name",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "stapler_under_desk_jump_tooltip":  [
+                                            {
+                                                "source":  "data/skills/stapler_under_desk_jump.json:tooltip",
+                                                "note":  "existing localization key in data"
+                                            }
+                                        ],
+    "status.burning.desc":  [
+                                {
+                                    "source":  "data/status_effects/burning.json:loc_desc",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.burning.name":  [
+                                {
+                                    "source":  "data/status_effects/burning.json:loc_name",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.enraged.desc":  [
+                                {
+                                    "source":  "data/status_effects/enraged.json:loc_desc",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.enraged.name":  [
+                                {
+                                    "source":  "data/status_effects/enraged.json:loc_name",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.feared.desc":  [
+                               {
+                                   "source":  "data/status_effects/feared.json:loc_desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.feared.name":  [
+                               {
+                                   "source":  "data/status_effects/feared.json:loc_name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.glitched.desc":  [
+                                 {
+                                     "source":  "data/status_effects/glitched.json:loc_desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.glitched.name":  [
+                                 {
+                                     "source":  "data/status_effects/glitched.json:loc_name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.poisoned.desc":  [
+                                 {
+                                     "source":  "data/status_effects/poisoned.json:loc_desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.poisoned.name":  [
+                                 {
+                                     "source":  "data/status_effects/poisoned.json:loc_name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.rooted.desc":  [
+                               {
+                                   "source":  "data/status_effects/rooted.json:loc_desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.rooted.name":  [
+                               {
+                                   "source":  "data/status_effects/rooted.json:loc_name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.shielded.desc":  [
+                                 {
+                                     "source":  "data/status_effects/shielded.json:loc_desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.shielded.name":  [
+                                 {
+                                     "source":  "data/status_effects/shielded.json:loc_name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "status.slowed.desc":  [
+                               {
+                                   "source":  "data/status_effects/slowed.json:loc_desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.slowed.name":  [
+                               {
+                                   "source":  "data/status_effects/slowed.json:loc_name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.strong.desc":  [
+                               {
+                                   "source":  "data/status_effects/strong.json:loc_desc",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.strong.name":  [
+                               {
+                                   "source":  "data/status_effects/strong.json:loc_name",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "status.stunned.desc":  [
+                                {
+                                    "source":  "data/status_effects/stunned.json:loc_desc",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.stunned.name":  [
+                                {
+                                    "source":  "data/status_effects/stunned.json:loc_name",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "status.weak.desc":  [
+                             {
+                                 "source":  "data/status_effects/weak.json:loc_desc",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "status.weak.name":  [
+                             {
+                                 "source":  "data/status_effects/weak.json:loc_name",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "sting_desc":  [
+                       {
+                           "source":  "data/skills/sting.json:desc",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "sting_name":  [
+                       {
+                           "source":  "data/skills/sting.json:name",
+                           "note":  "existing localization key in data"
+                       }
+                   ],
+    "sting_tooltip":  [
+                          {
+                              "source":  "data/skills/sting.json:tooltip",
+                              "note":  "existing localization key in data"
+                          }
+                      ],
+    "summon_bee_desc":  [
+                            {
+                                "source":  "data/skills/summon_bee.json:desc",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "summon_bee_name":  [
+                            {
+                                "source":  "data/skills/summon_bee.json:name",
+                                "note":  "existing localization key in data"
+                            }
+                        ],
+    "summon_bee_tooltip":  [
+                               {
+                                   "source":  "data/skills/summon_bee.json:tooltip",
+                                   "note":  "existing localization key in data"
+                               }
+                           ],
+    "teapot_desc":  [
+                        {
+                            "source":  "data/enemies/teapot.json:desc",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "teapot_low_possibility_desc":  [
+                                        {
+                                            "source":  "data/skills/teapot_low_possibility.json:desc",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "teapot_low_possibility_name":  [
+                                        {
+                                            "source":  "data/skills/teapot_low_possibility.json:name",
+                                            "note":  "existing localization key in data"
+                                        }
+                                    ],
+    "teapot_low_possibility_tooltip":  [
+                                           {
+                                               "source":  "data/skills/teapot_low_possibility.json:tooltip",
+                                               "note":  "existing localization key in data"
+                                           }
+                                       ],
+    "teapot_name":  [
+                        {
+                            "source":  "data/enemies/teapot.json:name",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "teapot_spill_the_t_desc":  [
+                                    {
+                                        "source":  "data/skills/teapot_spill_the_t.json:desc",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "teapot_spill_the_t_name":  [
+                                    {
+                                        "source":  "data/skills/teapot_spill_the_t.json:name",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "teapot_spill_the_t_tooltip":  [
+                                       {
+                                           "source":  "data/skills/teapot_spill_the_t.json:tooltip",
+                                           "note":  "existing localization key in data"
+                                       }
+                                   ],
+    "teapot_tea_gathering_desc":  [
+                                      {
+                                          "source":  "data/skills/teapot_tea_gathering.json:desc",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "teapot_tea_gathering_name":  [
+                                      {
+                                          "source":  "data/skills/teapot_tea_gathering.json:name",
+                                          "note":  "existing localization key in data"
+                                      }
+                                  ],
+    "teapot_tea_gathering_tooltip":  [
+                                         {
+                                             "source":  "data/skills/teapot_tea_gathering.json:tooltip",
+                                             "note":  "existing localization key in data"
+                                         }
+                                     ],
+    "tusk_attack_desc":  [
+                             {
+                                 "source":  "data/skills/tusk_attack.json:desc",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "tusk_attack_name":  [
+                             {
+                                 "source":  "data/skills/tusk_attack.json:name",
+                                 "note":  "existing localization key in data"
+                             }
+                         ],
+    "tusk_attack_tooltip":  [
+                                {
+                                    "source":  "data/skills/tusk_attack.json:tooltip",
+                                    "note":  "existing localization key in data"
+                                }
+                            ],
+    "ui.actor_inspector.hintlabel.text":  [
+                                              {
+                                                  "source":  "scenes/dev/actor_inspector.tscn:108",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.actor_inspector.labelabilities.text":  [
+                                                   {
+                                                       "source":  "scenes/dev/actor_inspector.tscn:98",
+                                                       "note":  "scene property"
+                                                   }
+                                               ],
+    "ui.actor_inspector.labeldamage.text":  [
+                                                {
+                                                    "source":  "scenes/dev/actor_inspector.tscn:68",
+                                                    "note":  "scene property"
+                                                }
+                                            ],
+    "ui.actor_inspector.labelhexcoord.text":  [
+                                                  {
+                                                      "source":  "scenes/dev/actor_inspector.tscn:122",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.actor_inspector.labelhexkind.text":  [
+                                                 {
+                                                     "source":  "scenes/dev/actor_inspector.tscn:128",
+                                                     "note":  "scene property"
+                                                 }
+                                             ],
+    "ui.actor_inspector.labelid.text":  [
+                                            {
+                                                "source":  "scenes/dev/actor_inspector.tscn:30",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.actor_inspector.labelmaxhp.text":  [
+                                               {
+                                                   "source":  "scenes/dev/actor_inspector.tscn:47",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.actor_inspector.labelspeed.text":  [
+                                               {
+                                                   "source":  "scenes/dev/actor_inspector.tscn:83",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.actor_inspector.labelteam.text":  [
+                                              {
+                                                  "source":  "scenes/dev/actor_inspector.tscn:35",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.code.presentation.dev.floor_palette_panel.211":  [
+                                                             {
+                                                                 "source":  "scripts/presentation/dev/floor_palette_panel.gd:211",
+                                                                 "note":  "probable UI string in GDScript"
+                                                             }
+                                                         ],
+    "ui.code.presentation.dev.level_meta_panel.80":  [
+                                                         {
+                                                             "source":  "scripts/presentation/dev/level_meta_panel.gd:80",
+                                                             "note":  "probable UI string in GDScript"
+                                                         }
+                                                     ],
+    "ui.code.presentation.dev.map_editor_controller.1019":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1019",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1030":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1030",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1032":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1032",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1047":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1047",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1052":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1052",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1061":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1061",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1153":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1153",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.1216":  [
+                                                                {
+                                                                    "source":  "scripts/presentation/dev/map_editor_controller.gd:1216",
+                                                                    "note":  "probable UI string in GDScript"
+                                                                }
+                                                            ],
+    "ui.code.presentation.dev.map_editor_controller.446":  [
+                                                               {
+                                                                   "source":  "scripts/presentation/dev/map_editor_controller.gd:446",
+                                                                   "note":  "probable UI string in GDScript"
+                                                               }
+                                                           ],
+    "ui.code.presentation.dev.map_editor_controller.456":  [
+                                                               {
+                                                                   "source":  "scripts/presentation/dev/map_editor_controller.gd:456",
+                                                                   "note":  "probable UI string in GDScript"
+                                                               }
+                                                           ],
+    "ui.code.presentation.dev.map_editor_controller.960":  [
+                                                               {
+                                                                   "source":  "scripts/presentation/dev/map_editor_controller.gd:960",
+                                                                   "note":  "probable UI string in GDScript"
+                                                               }
+                                                           ],
+    "ui.code.presentation.dev.map_editor_controller.984":  [
+                                                               {
+                                                                   "source":  "scripts/presentation/dev/map_editor_controller.gd:984",
+                                                                   "note":  "probable UI string in GDScript"
+                                                               }
+                                                           ],
+    "ui.code.presentation.dev.map_editor_controller.992":  [
+                                                               {
+                                                                   "source":  "scripts/presentation/dev/map_editor_controller.gd:992",
+                                                                   "note":  "probable UI string in GDScript"
+                                                               }
+                                                           ],
+    "ui.code.presentation.dev.object_palette_panel.145":  [
+                                                              {
+                                                                  "source":  "scripts/presentation/dev/object_palette_panel.gd:145",
+                                                                  "note":  "probable UI string in GDScript"
+                                                              }
+                                                          ],
+    "ui.code.presentation.dev.object_palette_panel.183":  [
+                                                              {
+                                                                  "source":  "scripts/presentation/dev/object_palette_panel.gd:183",
+                                                                  "note":  "probable UI string in GDScript"
+                                                              }
+                                                          ],
+    "ui.code.presentation.dev.tool_panel.145":  [
+                                                    {
+                                                        "source":  "scripts/presentation/dev/tool_panel.gd:145",
+                                                        "note":  "probable UI string in GDScript"
+                                                    }
+                                                ],
+    "ui.code.presentation.dev.tool_panel.147":  [
+                                                    {
+                                                        "source":  "scripts/presentation/dev/tool_panel.gd:147",
+                                                        "note":  "probable UI string in GDScript"
+                                                    }
+                                                ],
+    "ui.code.presentation.dev.tool_panel.78":  [
+                                                   {
+                                                       "source":  "scripts/presentation/dev/tool_panel.gd:78",
+                                                       "note":  "probable UI string in GDScript"
+                                                   }
+                                               ],
+    "ui.code.presentation.dev.wave_panel.105":  [
+                                                    {
+                                                        "source":  "scripts/presentation/dev/wave_panel.gd:105",
+                                                        "note":  "probable UI string in GDScript"
+                                                    }
+                                                ],
+    "ui.code.presentation.dev.wave_panel.113":  [
+                                                    {
+                                                        "source":  "scripts/presentation/dev/wave_panel.gd:113",
+                                                        "note":  "probable UI string in GDScript"
+                                                    },
+                                                    {
+                                                        "source":  "scripts/presentation/dev/wave_panel.gd:113",
+                                                        "note":  "probable UI string in GDScript"
+                                                    }
+                                                ],
+    "ui.code.presentation.main_menu.98":  [
+                                              {
+                                                  "source":  "scripts/presentation/main_menu.gd:98",
+                                                  "note":  "probable UI string in GDScript"
+                                              }
+                                          ],
+    "ui.code.presentation.pause_menu.97":  [
+                                               {
+                                                   "source":  "scripts/presentation/pause_menu.gd:97",
+                                                   "note":  "probable UI string in GDScript"
+                                               }
+                                           ],
+    "ui.code.presentation.top_hud_bar.44":  [
+                                                {
+                                                    "source":  "scripts/presentation/top_hud_bar.gd:44",
+                                                    "note":  "probable UI string in GDScript"
+                                                }
+                                            ],
+    "ui.code.presentation.top_hud_bar.49":  [
+                                                {
+                                                    "source":  "scripts/presentation/top_hud_bar.gd:49",
+                                                    "note":  "probable UI string in GDScript"
+                                                }
+                                            ],
+    "ui.code.presentation.ui.wave_timeline.215":  [
+                                                      {
+                                                          "source":  "scripts/presentation/ui/wave_timeline.gd:215",
+                                                          "note":  "probable UI string in GDScript"
+                                                      }
+                                                  ],
+    "ui.combat_log.title.text":  [
+                                     {
+                                         "source":  "scenes/ui/combat_log.tscn:24",
+                                         "note":  "scene property"
+                                     }
+                                 ],
+    "ui.confirm_modal.cancelbutton.text":  [
+                                               {
+                                                   "source":  "scenes/ui/confirm_modal.tscn:40",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.confirm_modal.confirmbutton.text":  [
+                                                {
+                                                    "source":  "scenes/ui/confirm_modal.tscn:43",
+                                                    "note":  "scene property"
+                                                }
+                                            ],
+    "ui.confirm_modal.titlelabel.text":  [
+                                             {
+                                                 "source":  "scenes/ui/confirm_modal.tscn:29",
+                                                 "note":  "scene property"
+                                             }
+                                         ],
+    "ui.dialogue_preview.closebtn.text":  [
+                                              {
+                                                  "source":  "scenes/dev/dialogue_preview.tscn:39",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.dialogue_preview.header.text":  [
+                                            {
+                                                "source":  "scenes/dev/dialogue_preview.tscn:22",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.dialogue_preview.playbtn.text":  [
+                                             {
+                                                 "source":  "scenes/dev/dialogue_preview.tscn:68",
+                                                 "note":  "scene property"
+                                             }
+                                         ],
+    "ui.dialogue_preview.requestbtn.text":  [
+                                                {
+                                                    "source":  "scenes/dev/dialogue_preview.tscn:73",
+                                                    "note":  "scene property"
+                                                }
+                                            ],
+    "ui.dialogue_preview.searchbar.placeholder_text":  [
+                                                           {
+                                                               "source":  "scenes/dev/dialogue_preview.tscn:31",
+                                                               "note":  "scene property"
+                                                           }
+                                                       ],
+    "ui.floating_number.floatingnumber.text":  [
+                                                   {
+                                                       "source":  "scenes/ui/floating_number.tscn:8",
+                                                       "note":  "scene property"
+                                                   }
+                                               ],
+    "ui.keybind_overlay.hint.text":  [
+                                         {
+                                             "source":  "scenes/ui/keybind_overlay.tscn:38",
+                                             "note":  "scene property"
+                                         }
+                                     ],
+    "ui.keybind_overlay.title.text":  [
+                                          {
+                                              "source":  "scenes/ui/keybind_overlay.tscn:29",
+                                              "note":  "scene property"
+                                          }
+                                      ],
+    "ui.main.debugbtn.text":  [
+                                  {
+                                      "source":  "scenes/main.tscn:43",
+                                      "note":  "scene property"
+                                  }
+                              ],
+    "ui.main.label.text":  [
+                               {
+                                   "source":  "scenes/main.tscn:19",
+                                   "note":  "scene property"
+                               }
+                           ],
+    "ui.main.testdialoguebtn.text":  [
+                                         {
+                                             "source":  "scenes/main.tscn:32",
+                                             "note":  "scene property"
+                                         }
+                                     ],
+    "ui.main_menu.continuebutton.text":  [
+                                             {
+                                                 "source":  "scenes/main_menu.tscn:50",
+                                                 "note":  "scene property"
+                                             }
+                                         ],
+    "ui.main_menu.creditsbutton.text":  [
+                                            {
+                                                "source":  "scenes/main_menu.tscn:71",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.main_menu.godmodebutton.text":  [
+                                            {
+                                                "source":  "scenes/main_menu.tscn:55",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.main_menu.loadcustomlevelbutton.text":  [
+                                                    {
+                                                        "source":  "scenes/main_menu.tscn:63",
+                                                        "note":  "scene property"
+                                                    }
+                                                ],
+    "ui.main_menu.loadfiledialog.ok_button_text":  [
+                                                       {
+                                                           "source":  "scenes/main_menu.tscn:82",
+                                                           "note":  "scene property"
+                                                       }
+                                                   ],
+    "ui.main_menu.loadfiledialog.title":  [
+                                              {
+                                                  "source":  "scenes/main_menu.tscn:80",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.main_menu.mapeditorbutton.text":  [
+                                              {
+                                                  "source":  "scenes/main_menu.tscn:59",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.main_menu.quitbutton.text":  [
+                                         {
+                                             "source":  "scenes/main_menu.tscn:75",
+                                             "note":  "scene property"
+                                         }
+                                     ],
+    "ui.main_menu.settingsbutton.text":  [
+                                             {
+                                                 "source":  "scenes/main_menu.tscn:67",
+                                                 "note":  "scene property"
+                                             }
+                                         ],
+    "ui.main_menu.startbutton.text":  [
+                                          {
+                                              "source":  "scenes/main_menu.tscn:46",
+                                              "note":  "scene property"
+                                          }
+                                      ],
+    "ui.main_menu.subtitle.text":  [
+                                       {
+                                           "source":  "scenes/main_menu.tscn:41",
+                                           "note":  "scene property"
+                                       }
+                                   ],
+    "ui.main_menu.title.text":  [
+                                    {
+                                        "source":  "scenes/main_menu.tscn:36",
+                                        "note":  "scene property"
+                                    }
+                                ],
+    "ui.map_editor.copybtn.text":  [
+                                       {
+                                           "source":  "scenes/dev/map_editor.tscn:98",
+                                           "note":  "scene property"
+                                       }
+                                   ],
+    "ui.map_editor.deletebtn.text":  [
+                                         {
+                                             "source":  "scenes/dev/map_editor.tscn:106",
+                                             "note":  "scene property"
+                                         }
+                                     ],
+    "ui.map_editor.specialbtn.text":  [
+                                          {
+                                              "source":  "scenes/dev/map_editor.tscn:102",
+                                              "note":  "scene property"
+                                          }
+                                      ],
+    "ui.map_editor.statuslabel.text":  [
+                                           {
+                                               "source":  "scenes/dev/map_editor.tscn:89",
+                                               "note":  "scene property"
+                                           }
+                                       ],
+    "ui.pause_menu.backtoeditorbutton.text":  [
+                                                  {
+                                                      "source":  "scenes/ui/pause_menu.tscn:38",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.pause_menu.mainmenubutton.text":  [
+                                              {
+                                                  "source":  "scenes/ui/pause_menu.tscn:47",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.pause_menu.quitbutton.text":  [
+                                          {
+                                              "source":  "scenes/ui/pause_menu.tscn:50",
+                                              "note":  "scene property"
+                                          }
+                                      ],
+    "ui.pause_menu.restartbutton.text":  [
+                                             {
+                                                 "source":  "scenes/ui/pause_menu.tscn:41",
+                                                 "note":  "scene property"
+                                             }
+                                         ],
+    "ui.pause_menu.resumebutton.text":  [
+                                            {
+                                                "source":  "scenes/ui/pause_menu.tscn:34",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.pause_menu.settingsbutton.text":  [
+                                              {
+                                                  "source":  "scenes/ui/pause_menu.tscn:44",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.pause_menu.title.text":  [
+                                     {
+                                         "source":  "scenes/ui/pause_menu.tscn:30",
+                                         "note":  "scene property"
+                                     }
+                                 ],
+    "ui.player_status_panel.hplabel.text":  [
+                                                {
+                                                    "source":  "scenes/ui/player_status_panel.tscn:31",
+                                                    "note":  "scene property"
+                                                }
+                                            ],
+    "ui.player_status_panel.namelabel.text":  [
+                                                  {
+                                                      "source":  "scenes/ui/player_status_panel.tscn:23",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.player_status_panel.spellheader.text":  [
+                                                    {
+                                                        "source":  "scenes/ui/player_status_panel.tscn:46",
+                                                        "note":  "scene property"
+                                                    }
+                                                ],
+    "ui.player_status_panel.spellname.text":  [
+                                                  {
+                                                      "source":  "scenes/ui/player_status_panel.tscn:50",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.score_corner.label.text":  [
+                                       {
+                                           "source":  "scenes/ui/score_corner.tscn:23",
+                                           "note":  "scene property"
+                                       }
+                                   ],
+    "ui.settings_panel.closebutton.text":  [
+                                               {
+                                                   "source":  "scenes/ui/settings_panel.tscn:118",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.settings_panel.gamespeedlabel.text":  [
+                                                  {
+                                                      "source":  "scenes/ui/settings_panel.tscn:93",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.settings_panel.gamespeedvalue.text":  [
+                                                  {
+                                                      "source":  "scenes/ui/settings_panel.tscn:104",
+                                                      "note":  "scene property"
+                                                  }
+                                              ],
+    "ui.settings_panel.keybindstitle.text":  [
+                                                 {
+                                                     "source":  "scenes/ui/settings_panel.tscn:108",
+                                                     "note":  "scene property"
+                                                 }
+                                             ],
+    "ui.settings_panel.masterlabel.text":  [
+                                               {
+                                                   "source":  "scenes/ui/settings_panel.tscn:36",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.settings_panel.mastervalue.text":  [
+                                               {
+                                                   "source":  "scenes/ui/settings_panel.tscn:47",
+                                                   "note":  "scene property"
+                                               }
+                                           ],
+    "ui.settings_panel.musiclabel.text":  [
+                                              {
+                                                  "source":  "scenes/ui/settings_panel.tscn:55",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.settings_panel.musicvalue.text":  [
+                                              {
+                                                  "source":  "scenes/ui/settings_panel.tscn:66",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.settings_panel.sfxlabel.text":  [
+                                            {
+                                                "source":  "scenes/ui/settings_panel.tscn:74",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.settings_panel.sfxvalue.text":  [
+                                            {
+                                                "source":  "scenes/ui/settings_panel.tscn:85",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.settings_panel.title.text":  [
+                                         {
+                                             "source":  "scenes/ui/settings_panel.tscn:29",
+                                             "note":  "scene property"
+                                         }
+                                     ],
+    "ui.spawner_placeholder.label.text":  [
+                                              {
+                                                  "source":  "scenes/runtime/spawner_placeholder.tscn:20",
+                                                  "note":  "scene property"
+                                              }
+                                          ],
+    "ui.top_hud_bar.pausebutton.text":  [
+                                            {
+                                                "source":  "scenes/ui/top_hud_bar.tscn:34",
+                                                "note":  "scene property"
+                                            }
+                                        ],
+    "ui.top_hud_bar.timerlabel.text":  [
+                                           {
+                                               "source":  "scenes/ui/top_hud_bar.tscn:29",
+                                               "note":  "scene property"
+                                           }
+                                       ],
+    "ui.top_hud_bar.turnlabel.text":  [
+                                          {
+                                              "source":  "scenes/ui/top_hud_bar.tscn:19",
+                                              "note":  "scene property"
+                                          }
+                                      ],
+    "under_desk_jump_desc":  [
+                                 {
+                                     "source":  "data/skills/under_desk_jump.json:desc",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "under_desk_jump_name":  [
+                                 {
+                                     "source":  "data/skills/under_desk_jump.json:name",
+                                     "note":  "existing localization key in data"
+                                 }
+                             ],
+    "under_desk_jump_tooltip":  [
+                                    {
+                                        "source":  "data/skills/under_desk_jump.json:tooltip",
+                                        "note":  "existing localization key in data"
+                                    }
+                                ],
+    "weaken_desc":  [
+                        {
+                            "source":  "data/skills/weaken.json:desc",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "weaken_name":  [
+                        {
+                            "source":  "data/skills/weaken.json:name",
+                            "note":  "existing localization key in data"
+                        }
+                    ],
+    "weaken_tooltip":  [
+                           {
+                               "source":  "data/skills/weaken.json:tooltip",
+                               "note":  "existing localization key in data"
+                           }
+                       ]
+}
