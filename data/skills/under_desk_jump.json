@@ -3,7 +3,7 @@
   "name": "under_desk_jump_name",
   "tooltip": "under_desk_jump_tooltip",
   "desc": "under_desk_jump_desc",
-  "icon": "assets/sprites/icons/skills/under_desk_jump.png",
+  "icon": "icons/skills/under_desk_jump.png",
   "cooldown": 2,
   "behaviour_tags": [
     "melee"
@@ -15,10 +15,10 @@
   "abilities": [
     {
       "id": "teleport_self",
-      "sound_start": "assets/audio/skills/teleport_self/start.wav",
-      "collision_effect": "assets/vfx/skills/teleport_self/blink.prefab",
-      "sound_end": "assets/audio/skills/teleport_self/end.wav",
-      "animation": "assets/animations/skills/teleport_self.anim",
+      "sound_start": "teleport_self/teleport_self_start.wav",
+      "collision_effect": "teleport_self/teleport_self_collision.prefab",
+      "sound_end": "teleport_self/teleport_self_end.wav",
+      "animation": "teleport_self/teleport_self.anim",
       "target": {
         "kind": "self"
       },
@@ -33,10 +33,10 @@
     },
     {
       "id": "self_shield",
-      "sound_start": "assets/audio/skills/self_shield/start.wav",
-      "collision_effect": "assets/vfx/status/shielded/apply_self.prefab",
-      "sound_end": "assets/audio/status/shielded/end.wav",
-      "animation": "assets/animations/status/self_shield.anim",
+      "sound_start": "self_shield/self_shield_start.wav",
+      "collision_effect": "self_shield/self_shield_collision.prefab",
+      "sound_end": "self_shield/self_shield_end.wav",
+      "animation": "self_shield/self_shield.anim",
       "target": {
         "kind": "self"
       },
