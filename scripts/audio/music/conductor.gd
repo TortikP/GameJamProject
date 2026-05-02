@@ -31,6 +31,10 @@ func reset(new_bpm: float, _seed: int) -> void:
 ## The returned Array is reused each call — copy if needed across frames.
 func advance(num_samples: int) -> Array:
 	_events.clear()
+	# Guard: if reset() was never called, samples_per_beat == 0.0 → infinite
+	# beat-emit loop. Bail out cleanly until BPM is configured.
+	if samples_per_beat <= 0.0:
+		return _events
 	var end_pos: int = _sample_pos + num_samples
 
 	while true:

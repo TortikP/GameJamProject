@@ -23,7 +23,18 @@ func _ready() -> void:
 		push_error("[MusicLab] MusicDirector not found")
 		return
 	_build_ui()
-	_director.set_state(&"calm")
+	# Push current UI defaults into director BEFORE starting playback.
+	# Without this, Conductor.samples_per_beat stays at 0.0 → infinite loop
+	# in advance() on first _process tick. (See spec 042 retro.)
+	_director.set_seed(int(_seed_spin.value))
+	_director.set_bpm(_sliders["bpm"].value)
+	_director.set_lead_density(
+		_sliders["lead_density_calm"].value,
+		_sliders["lead_density_battle"].value)
+	_director.set_layer_db(&"pad",   _sliders["pad_gain_db"].value)
+	_director.set_layer_db(&"drums", _sliders["drums_gain_db"].value)
+	# Immediate, not pending — first bar event hasn't been emitted yet.
+	_director._apply_state(&"calm")
 	_director._ensure_playing()
 
 func _build_ui() -> void:
