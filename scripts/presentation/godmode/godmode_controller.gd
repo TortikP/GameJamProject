@@ -940,6 +940,11 @@ func _run_enemy_turn() -> void:
 	# Phase 1: RESOLVE — execute everyone's planned move, then planned cast.
 	# Movement first so casts happen from the post-move position.
 	for actor in enemies:
+		# 032: another enemy's cast/DoT in this same Phase-1 may have killed
+		# this one; queue_free + await turned the ref into a freed instance.
+		# Must check BEFORE the `is` operator (which errors on freed refs).
+		if not is_instance_valid(actor):
+			continue
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
@@ -954,6 +959,10 @@ func _run_enemy_turn() -> void:
 	# move_intent_coord on each enemy). Visuals rebuilt at the end of this loop.
 	var ctx: Dictionary = _world_ctx()
 	for actor in enemies:
+		# 032: same staleness as Phase 1 — by here a full round of casts may
+		# have killed entries; freed refs reach this loop too.
+		if not is_instance_valid(actor):
+			continue
 		if not (actor is Actor):
 			continue
 		var enemy: Actor = actor
