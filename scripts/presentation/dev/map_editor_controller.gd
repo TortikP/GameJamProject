@@ -52,6 +52,8 @@ enum Mode { IDLE, PLACING_FLOOR, ERASING_FLOOR, PLACING_OBJECT, PLACING_SPAWNER 
 @export var meta_panel_path: NodePath
 @export var confirm_modal_path: NodePath
 @export var hotkey_overlay_path: NodePath
+@export var tool_panel_path: NodePath
+@export var paint_preview_path: NodePath
 
 # Resolved nodes
 var _objects_overlay: Node2D
@@ -63,6 +65,8 @@ var _object_palette: Node
 var _meta_panel: Node
 var _confirm_modal: Node
 var _hotkey_overlay: Control
+var _tool_panel: Node
+var _paint_preview: Node2D
 var _autosave_timer: Timer
 
 # ── Editing state ───────────────────────────────────────────────────────────
@@ -85,6 +89,21 @@ var _occupied_toast_until_msec: int = 0
 # Undo/redo (T-07): snapshot stack across LMB-drag transactions and one-shot
 # mutations (RMB delete, replace_all, load, tileset switch).
 var _history: LevelHistory = LevelHistory.new()
+
+# Paint tool state (commit 2 of 023). TOOL_BRUSH paints a hex disk of radius
+# (_brush_size - 1) on every drag step. TOOL_RECT click-and-drag fills an
+# axial-rect region on release (handled in commit 3).
+const TOOL_BRUSH: int = 0
+const TOOL_RECT: int = 1
+var _paint_tool: int = TOOL_BRUSH
+var _brush_size: int = 1
+# Rect-tool anchor — set on LMB-press in TOOL_RECT, cleared on release.
+# (Rect mode itself lands in commit 3; defining the var here so brush/tool
+# transitions can already reset it.)
+var _rect_anchor: Vector2i = Vector2i(-1, -1)
+# Last cursor coord seen by motion — used to refresh brush/rect preview on
+# tool/size change without waiting for the next mouse-move.
+var _last_cursor_coord: Vector2i = Vector2i(-1, -1)
 
 
 func _ready() -> void:
@@ -111,6 +130,8 @@ func _ready() -> void:
 	_meta_panel = _resolve(meta_panel_path, "HUD/LevelMetaPanel")
 	_confirm_modal = _resolve(confirm_modal_path, "HUD/ConfirmModal")
 	_hotkey_overlay = _resolve(hotkey_overlay_path, "HUD/HotkeyOverlay") as Control
+	_tool_panel = _resolve(tool_panel_path, "HUD/ToolPanel")
+	_paint_preview = _resolve(paint_preview_path, "HexGrid/PaintPreview") as Node2D
 
 	# 2. Paint a default 25×25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ±MAP_HALF_LIMIT (500×500).
@@ -141,6 +162,7 @@ func _ready() -> void:
 	_wire_floor_palette()
 	_wire_object_palette()
 	_wire_meta_panel()
+	_wire_tool_panel()
 
 	# Pre-select the default floor tile so the user can immediately paint
 	# without first clicking a palette button.
@@ -276,15 +298,17 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 			_handle_rmb(coord)
 			get_viewport().set_input_as_handled()
-	elif event is InputEventMouseMotion and _lmb_held:
-		if not _is_drag_paint_mode():
-			return
+	elif event is InputEventMouseMotion:
 		var coord: Vector2i = grid.coord_under_mouse_raw() if grid != null else Vector2i(-1, -1)
-		if coord == Vector2i(-1, -1):
-			return
-		if coord != _last_paint_coord:
-			_paint_at(coord)
-			_last_paint_coord = coord
+		_last_cursor_coord = coord
+		# Drag-paint dispatch (brush mode only).
+		if _lmb_held and _is_drag_paint_mode():
+			if coord != Vector2i(-1, -1) and coord != _last_paint_coord:
+				_paint_at(coord)
+				_last_paint_coord = coord
+		# Refresh multi-cell preview regardless of LMB state — shows brush
+		# disk on hover, rect-fill region while LMB held in rect mode.
+		_update_paint_preview()
 
 
 ## Drag-paint allowed for placing-floor / erasing / placing-object / placing
@@ -402,9 +426,24 @@ func _handle_lmb(coord: Vector2i) -> void:
 	_paint_at(coord)
 
 
-## Pure paint operation — no input-side-effects (pending-delete clear, etc.).
-## Safe to call multiple times during a drag-paint without retriggering them.
+## Brush-aware paint dispatch. For brush size 1 paints a single cell; for
+## size N paints a hex disk of radius (N-1) centered on `coord`. Each cell
+## goes through _paint_one which handles the placing/erasing/object/spawner
+## logic via the current edit mode.
 func _paint_at(coord: Vector2i) -> void:
+	if coord == Vector2i(-1, -1):
+		return
+	if _brush_size <= 1:
+		_paint_one(coord)
+		return
+	for c in _hex_disk(coord, _brush_size - 1):
+		_paint_one(c)
+
+
+## Pure paint operation for a single cell — no input-side-effects (pending-
+## delete clear, etc.). Safe to call multiple times during a drag-paint or
+## brush-disk expansion without retriggering them.
+func _paint_one(coord: Vector2i) -> void:
 	match _mode:
 		Mode.IDLE:
 			pass  # drag-existing is P3 stretch (T019)
@@ -416,6 +455,52 @@ func _paint_at(coord: Vector2i) -> void:
 			_place_object(coord, _placing_object_id)
 		Mode.PLACING_SPAWNER:
 			_place_spawner(coord, _placing_spawner_kind, _placing_spawner_ref)
+
+
+## Hex disk via BFS using TileMap's get_surrounding_cells — works for any
+## hex layout (offset coords, even/odd-row staggering) without the editor
+## needing to know the staggering rules. Capped to MAP_HALF_LIMIT.
+func _hex_disk(center: Vector2i, radius: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = [center]
+	if radius <= 0 or grid == null or grid.tile_map_layer == null:
+		return result
+	var visited: Dictionary = { center: true }
+	var frontier: Array[Vector2i] = [center]
+	for _step in radius:
+		var next_frontier: Array[Vector2i] = []
+		for c in frontier:
+			var neighbors: Array[Vector2i] = grid.tile_map_layer.get_surrounding_cells(c)
+			for n in neighbors:
+				if visited.has(n):
+					continue
+				if absi(n.x) > HexGrid.MAP_HALF_LIMIT or absi(n.y) > HexGrid.MAP_HALF_LIMIT:
+					continue
+				visited[n] = true
+				next_frontier.append(n)
+				result.append(n)
+		frontier = next_frontier
+	return result
+
+
+## Refresh the paint preview overlay based on current tool / size / cursor.
+## Called on motion, tool change, brush-size change, rect anchor set/cleared.
+func _update_paint_preview() -> void:
+	if _paint_preview == null or not _paint_preview.has_method("set_coords"):
+		return
+	var cells: Array[Vector2i] = []
+	if _paint_tool == TOOL_RECT and _rect_anchor != Vector2i(-1, -1) \
+			and _last_cursor_coord != Vector2i(-1, -1):
+		cells = _rect_cells(_rect_anchor, _last_cursor_coord)
+	elif _paint_tool == TOOL_BRUSH and _brush_size > 1 \
+			and _last_cursor_coord != Vector2i(-1, -1):
+		cells = _hex_disk(_last_cursor_coord, _brush_size - 1)
+	_paint_preview.set_coords(cells)
+
+
+## Placeholder for commit 3. For now returns just the anchor + cursor — the
+## proper axis-aligned hex rect lands with the rect-mode click-and-drag.
+func _rect_cells(_a: Vector2i, _b: Vector2i) -> Array[Vector2i]:
+	return []
 
 
 func _place_floor(coord: Vector2i, source_id: int, atlas: Vector2i) -> void:
@@ -712,6 +797,29 @@ func _wire_meta_panel() -> void:
 		_meta_panel.exit_requested.connect(_on_exit_requested)
 	if _meta_panel.has_signal("name_changed"):
 		_meta_panel.name_changed.connect(_on_name_changed)
+
+
+func _wire_tool_panel() -> void:
+	if _tool_panel == null:
+		return
+	if _tool_panel.has_method("setup"):
+		_tool_panel.setup(self)
+	if _tool_panel.has_signal("tool_changed"):
+		_tool_panel.tool_changed.connect(_on_tool_changed)
+	if _tool_panel.has_signal("brush_size_changed"):
+		_tool_panel.brush_size_changed.connect(_on_brush_size_changed)
+
+
+func _on_tool_changed(tool: int) -> void:
+	_paint_tool = tool
+	# Cancel any in-flight rect drag if user toggles mid-drag.
+	_rect_anchor = Vector2i(-1, -1)
+	_update_paint_preview()
+
+
+func _on_brush_size_changed(size: int) -> void:
+	_brush_size = size
+	_update_paint_preview()
 
 
 # ── Palette signal handlers ────────────────────────────────────────────────

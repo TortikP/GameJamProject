@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=16 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/object_palette_panel.gd" id="11_op"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/level_meta_panel.gd" id="12_mp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/hotkey_overlay.gd" id="13_hk"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/tool_panel.gd" id="14_tp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/paint_preview.gd" id="15_pp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -25,6 +27,8 @@ object_palette_path = NodePath("HUD/ObjectPalettePanel")
 meta_panel_path = NodePath("HUD/LevelMetaPanel")
 confirm_modal_path = NodePath("HUD/ConfirmModal")
 hotkey_overlay_path = NodePath("HUD/HotkeyOverlay")
+tool_panel_path = NodePath("HUD/ToolPanel")
+paint_preview_path = NodePath("HexGrid/PaintPreview")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="."]
 layer = -100
@@ -54,6 +58,9 @@ script = ExtResource("6_hh")
 
 [node name="DeleteHighlight" type="Node2D" parent="HexGrid"]
 script = ExtResource("7_dh")
+
+[node name="PaintPreview" type="Node2D" parent="HexGrid"]
+script = ExtResource("15_pp")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -93,6 +100,17 @@ offset_top = 160.0
 offset_right = -16.0
 offset_bottom = -240.0
 grow_horizontal = 0
+
+[node name="ToolPanel" type="PanelContainer" parent="HUD"]
+script = ExtResource("14_tp")
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 16.0
+offset_top = -120.0
+offset_right = 220.0
+offset_bottom = 120.0
+grow_vertical = 2
 
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 
