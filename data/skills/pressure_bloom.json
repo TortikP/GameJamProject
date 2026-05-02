@@ -1,0 +1,78 @@
+{
+  "id": "pressure_bloom",
+  "name": "pressure_bloom_name",
+  "tooltip": "pressure_bloom_tooltip",
+  "desc": "pressure_bloom_desc",
+  "icon": "assets/sprites/icons/skills/pressure_bloom.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "toxic"
+  ],
+  "level": 3,
+  "abilities": [
+    {
+      "id": "area_damage_medium",
+      "sound_start": "assets/audio/skills/area_damage_medium/start.wav",
+      "collision_effect": "assets/vfx/skills/area_damage_medium/area_impact.prefab",
+      "sound_end": "assets/audio/skills/area_damage_medium/end.wav",
+      "animation": "assets/animations/skills/area_damage_medium.anim",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "damage": 12
+        }
+      ]
+    },
+    {
+      "id": "apply_slow_area",
+      "sound_start": "assets/audio/skills/apply_slow_area/start.wav",
+      "collision_effect": "assets/vfx/status/slowed/apply_area.prefab",
+      "sound_end": "assets/audio/status/slowed/end.wav",
+      "animation": "assets/animations/status/apply_slow_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "status_id": "slowed (3)"
+        }
+      ]
+    },
+    {
+      "id": "apply_fear_area",
+      "sound_start": "assets/audio/skills/apply_fear_area/start.wav",
+      "collision_effect": "assets/vfx/status/feared/apply_area.prefab",
+      "sound_end": "assets/audio/status/feared/end.wav",
+      "animation": "assets/animations/status/apply_fear_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "feared (2)"
+        }
+      ]
+    }
+  ]
+}
