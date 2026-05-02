@@ -114,11 +114,11 @@
 
 ## P6 — Score corner HUD widget
 
-- [ ] T100. `scripts/presentation/ui/score_corner.gd` + `scenes/ui/score_corner.tscn`. Label child + AnchorPreset top-right.
-- [ ] T101. Подписан на `RunScore.score_changed`. Текст = `str(total)`.
-- [ ] T102. Punch tween: `scale 1.0 → 1.2 → 1.0` за `GameSpeed.get_value("ui", "score_punch_sec")` (дефолт 0.25).
-- [ ] T103. Mount в HUD `scenes/dev/godmode.tscn` (CanvasLayer top-right).
-- [ ] T104. Шрифт: `UiTheme.FS_NUM_HUGE`. Outline через `UiTheme.apply_world_text_outline`.
+- [x] T100. `scripts/presentation/ui/score_corner.gd` + `scenes/ui/score_corner.tscn`. Label child + AnchorPreset top-right.
+- [x] T101. Подписан на `RunScore.score_changed`. Текст = `str(total)`.
+- [x] T102. Punch tween: `scale 1.0 → 1.2 → 1.0` за `GameSpeed.get_value("ui", "score_punch_sec")` (дефолт 0.25).
+- [x] T103. Mount в HUD `scenes/dev/godmode.tscn` (CanvasLayer top-right).
+- [x] T104. Шрифт: `UiTheme.FS_NUM_HUGE`. Outline через `UiTheme.apply_world_text_outline`.
 
 **P6 smoke:** консоль/dev-кнопка → `RunScore.add(5)` → label обновляется с пульсом.
 
