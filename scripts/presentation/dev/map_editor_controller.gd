@@ -23,10 +23,7 @@ extends Node2D
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const LevelHistory = preload("res://scripts/presentation/dev/level_history.gd")
 const GODMODE_TERRAIN: TileSet = preload("res://scenes/dev/godmode_terrain.tres")
-const HEX_TERRAIN: TileSet = preload("res://scenes/arena/tilesets/hex_terrain.tres")
 
-const INITIAL_CANVAS_W: int = 25
-const INITIAL_CANVAS_H: int = 25
 const INITIAL_SOURCE_ID: int = 0
 const INITIAL_ATLAS_COORD: Vector2i = Vector2i(0, 0)
 
@@ -114,8 +111,8 @@ func _ready() -> void:
 	_confirm_modal = _resolve(confirm_modal_path, "HUD/ConfirmModal")
 	_hotkey_overlay = _resolve(hotkey_overlay_path, "HUD/HotkeyOverlay") as Control
 
-	# 2. Initial canvas paint, then init grid
-	_paint_initial_canvas()
+	# 2. Init grid against an EMPTY canvas. The user paints the map; map
+	# size is whatever they paint (capped at 500×500 via HexGrid.MAP_HALF_LIMIT).
 	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
 	if grid.vfx_overlay != null:
 		grid.vfx_overlay.tile_set = GODMODE_TERRAIN
@@ -124,13 +121,20 @@ func _ready() -> void:
 	# 3. Bind overlays
 	if _objects_overlay != null and _objects_overlay.has_method("bind_registry"):
 		_objects_overlay.bind_registry(grid.get_object_registry())
-	# Center camera on canvas centre
-	_center_camera()
+	# Center camera at origin so the user has a recognizable starting point.
+	if camera != null and grid != null and grid.tile_map_layer != null:
+		camera.position = grid.tile_map_layer.map_to_local(Vector2i.ZERO)
 
 	# 4. Wire palettes / meta panel
 	_wire_floor_palette()
 	_wire_object_palette()
 	_wire_meta_panel()
+
+	# Pre-select the default floor tile so the user can immediately paint
+	# without first clicking a palette button.
+	set_mode_place_floor(INITIAL_SOURCE_ID, INITIAL_ATLAS_COORD)
+	if _floor_palette != null and _floor_palette.has_method("select_tile"):
+		_floor_palette.select_tile(INITIAL_SOURCE_ID, INITIAL_ATLAS_COORD)
 
 	# 5. Autosave timer (recovery prompt deferred to step 7 once we know
 	#    whether a queued level is taking precedence)
@@ -140,9 +144,8 @@ func _ready() -> void:
 	_autosave_timer.timeout.connect(_do_autosave)
 	add_child(_autosave_timer)
 
-	# 6. Initial level baseline
-	_rebuild_level_floor_from_canvas()
-	_set_clean()  # initial paint isn't a user edit
+	# 6. Initial level baseline (empty until user paints)
+	_set_clean()
 
 	# 7. If we arrived here from a Back-to-Editor / queued path, load that
 	# level on top of the initial canvas. Skip autosave recovery in this
@@ -172,35 +175,10 @@ func _resolve(path: NodePath, fallback: String) -> Node:
 
 # ── Initial canvas / level state ────────────────────────────────────────────
 
-func _paint_initial_canvas() -> void:
-	# 25x25 grass on godmode_terrain. set_cell BEFORE grid.initialize.
-	grid.tile_map_layer.tile_set = GODMODE_TERRAIN
-	for row in INITIAL_CANVAS_H:
-		for col in INITIAL_CANVAS_W:
-			grid.tile_map_layer.set_cell(
-				Vector2i(col, row), INITIAL_SOURCE_ID, INITIAL_ATLAS_COORD)
-
-
-func _rebuild_level_floor_from_canvas() -> void:
-	# Mirror current TileMapLayer state into _level.floor_cells. Used after
-	# initial paint and after Load (where the loaded LevelData IS the source
-	# of truth, so this is skipped — see _apply_level).
-	_level.floor_cells.clear()
-	_level.tileset_path = _tileset_path_for(grid.tile_map_layer.tile_set)
-	for cell: Vector2i in grid.tile_map_layer.get_used_cells():
-		_level.floor_cells.append({
-			"coord": cell,
-			"source_id": grid.tile_map_layer.get_cell_source_id(cell),
-			"atlas_coord": grid.tile_map_layer.get_cell_atlas_coords(cell),
-		})
-
-
-static func _tileset_path_for(ts: TileSet) -> String:
-	if ts == GODMODE_TERRAIN:
-		return "res://scenes/dev/godmode_terrain.tres"
-	if ts == HEX_TERRAIN:
-		return "res://scenes/arena/tilesets/hex_terrain.tres"
-	return ts.resource_path if ts != null and ts.resource_path != "" else "res://scenes/dev/godmode_terrain.tres"
+# Empty canvas at startup — _level.tileset_path defaults to godmode in
+# LevelData. Old _rebuild_level_floor_from_canvas / _tileset_path_for helpers
+# were dropped along with the 25×25 initial paint; if a future "import current
+# tileset" feature needs them, restore from git history.
 
 
 func _center_camera() -> void:
@@ -260,7 +238,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
+		var coord: Vector2i = grid.coord_under_mouse_raw() if grid != null else Vector2i(-1, -1)
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
 				# Alt+LMB → eyedropper (T-17). No drag, no history.
@@ -289,7 +267,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and _lmb_held:
 		if not _is_drag_paint_mode():
 			return
-		var coord: Vector2i = grid.coord_under_mouse() if grid != null else Vector2i(-1, -1)
+		var coord: Vector2i = grid.coord_under_mouse_raw() if grid != null else Vector2i(-1, -1)
 		if coord == Vector2i(-1, -1):
 			return
 		if coord != _last_paint_coord:
@@ -389,7 +367,7 @@ func _perform_undo() -> void:
 		EventBus.ui_toast_requested.emit("Нечего отменять", 1.0, &"info")
 		return
 	var restored: LevelData = _history.undo(_level)
-	_apply_level(restored)
+	_apply_level(restored, false)
 	_mark_dirty()
 	EventBus.ui_toast_requested.emit("Undo", 0.6, &"info")
 
@@ -399,7 +377,7 @@ func _perform_redo() -> void:
 		EventBus.ui_toast_requested.emit("Нечего повторять", 1.0, &"info")
 		return
 	var restored: LevelData = _history.redo(_level)
-	_apply_level(restored)
+	_apply_level(restored, false)
 	_mark_dirty()
 	EventBus.ui_toast_requested.emit("Redo", 0.6, &"info")
 
@@ -644,7 +622,7 @@ func _check_autosave_recovery() -> void:
 
 # ── Apply a loaded LevelData to the editor ──────────────────────────────────
 
-func _apply_level(level: LevelData) -> void:
+func _apply_level(level: LevelData, recenter_camera: bool = true) -> void:
 	_level = level
 	# Re-paint floor to match new level
 	if level.tileset_path != "":
@@ -672,7 +650,11 @@ func _apply_level(level: LevelData) -> void:
 	# Update meta panel name field if present
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(level.name)
-	_center_camera()
+	# Camera recenter is opt-in — load/queued-resume want it (user expects
+	# the new map in view), but undo/redo do NOT (we already see the map and
+	# a jump on every Ctrl+Z is jarring).
+	if recenter_camera:
+		_center_camera()
 
 
 # ── Wiring stubs (palettes/meta panel signal hookup) ────────────────────────

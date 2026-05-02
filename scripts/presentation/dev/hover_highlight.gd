@@ -19,7 +19,9 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if grid == null or grid.tile_map_layer == null:
 		return
-	var coord := grid.coord_under_mouse()
+	# Editor-only consumer — use _raw so the cursor follows even where no
+	# floor is painted yet (paint-anywhere mode, capped at 500×500).
+	var coord := grid.coord_under_mouse_raw()
 	if coord == _last_coord:
 		return
 	_last_coord = coord

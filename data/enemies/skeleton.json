@@ -1,9 +1,0 @@
-{
-  "id": "skeleton",
-  "max_hp": 30,
-  "team": "enemy",
-  "speed": 1,
-  "skills": ["skill_manekin_attack"],
-  "behavior_id": "default_melee",
-  "fallback_skill_id": "skill_manekin_attack"
-}
