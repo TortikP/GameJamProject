@@ -350,6 +350,43 @@ Two related but independent bugs in the same overlay path:
 
 ---
 
+## Phase 13 — Zone preview painted the union of every ability
+
+### Problem
+Phase 12 fixed `_refresh_overlay` (target-range paint via
+`MoveRangeOverlay.show_for`), but the **zone-area preview** —
+`MoveRangeOverlay.show_zone_preview`, painted every frame from
+`_update_castability` — still iterated *all* of the active skill's
+abilities and merged their `area.get_affected_hexes` into one
+dedup'd dictionary. The painted blob was always the union, which is
+visually dominated by the largest-radius ability. paper_jam (3
+abilities with radii 1/1/2) always showed the 2-radius blob,
+regardless of which step the FSM was on.
+
+Additionally, during the FSM the zone preview should follow the
+*current step's* ability (the one the next click will resolve), not
+abilities[0] frozen at slot-activate time.
+
+### Fix
+New helper `_current_preview_ability() -> Ability`:
+- During FSM cast: `_cast_skill.abilities[_cast_step]`.
+- Idle, slot active: `active_skill.abilities[0]`.
+- No active slot: `null`.
+
+Both `_refresh_overlay` (target-range paint) and `_update_castability`
+(zone-area paint) read from this single helper — guaranteed in sync,
+no chance of one path showing step N while the other shows step 0.
+
+### Acceptance
+- AC35: paper_jam slot active — zone preview shows the abilities[0]
+  area (radius=1), not the radius=2 from abilities[2].
+- AC36: during paper_jam FSM, each step paints its own ability's area
+  (radius 1, then 1, then 2) as the player advances.
+- AC37: target-range and zone-area previews always describe the same
+  ability; impossible to see a mismatch.
+
+---
+
 ## Out of scope (across all phases)
 
 - Per-caster turn-end ticking (round-based is correct for current TurnManager).

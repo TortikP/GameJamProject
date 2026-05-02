@@ -339,19 +339,15 @@ func _refresh_overlay() -> void:
 	# looking at" panel, separate concern from "what can I do this turn".
 	if _overlay == null or player == null:
 		return
-	# 031 phase 12: idle slot preview shows only abilities[0] — the step the
-	# FSM resolves first. Painting all abilities at once mixes their ranges
-	# and areas (e.g. damage range + self-area heal of a vampirism skill)
-	# which misleads the player about where their first click lands. Steps
-	# 1..N are previewed by _cast_overlay one at a time as the FSM walks
-	# through them (see _begin_step → show_range_for_ability).
+	# 031 phase 12+13: idle slot preview shows only the *current* ability's
+	# range — abilities[0] when idle, abilities[_cast_step] during FSM.
+	# Painting the full ability list would mix every step's range/area into
+	# one mash-up. _current_preview_ability is the shared source of truth
+	# with the zone-area preview in _update_castability.
 	var ability_items: Array = []
-	if _slot_bar_node != null:
-		var active: int = _slot_bar_node.get_active()
-		if active != -1:
-			var sk := _slot_bar_node.get_slot(active) as Skill
-			if sk != null and not sk.abilities.is_empty():
-				ability_items.append(sk.abilities[0])
+	var preview_ability: Ability = _current_preview_ability()
+	if preview_ability != null:
+		ability_items.append(preview_ability)
 	_overlay.show_for(player, registry, ability_items)
 
 
@@ -413,23 +409,42 @@ func _update_castability() -> void:
 	# Zone AoE preview — repaint every frame so it follows the cursor.
 	if _overlay != null and _overlay.has_method("show_zone_preview"):
 		var zone_hexes: Array[Vector2i] = []
-		if active_skill != null and coord != Vector2i(-1, -1):
+		# 031 phase 13: paint only the *current* ability's area, not the union
+		# of every ability in the skill. Previously the loop merged every
+		# ability's affected hexes into one dedup'd dictionary → always
+		# painted the largest radius across the skill (paper_jam: 3
+		# abilities with radii 1/1/2 → 2-radius blob always shown).
+		# During the FSM the "current" ability is the step the next click
+		# resolves; idle preview falls back to abilities[0].
+		var preview_ability: Ability = _current_preview_ability()
+		if preview_ability != null and preview_ability.area != null and coord != Vector2i(-1, -1):
 			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-			for ab_obj in active_skill.abilities:
-				var ab := ab_obj as Ability
-				if ab == null or ab.area == null:
-					continue
-				# Anchor the preview where the area will actually resolve at cast time.
-				# SelfTarget pins this to caster_coord; spatial targets (Hex/Entity)
-				# fall through to hover_coord. See AbilityTarget.preview_anchor_coord.
-				var anchor: Vector2i = coord
-				if ab.target != null:
-					anchor = ab.target.preview_anchor_coord(caster_coord, coord)
-				var affected: Array[Vector2i] = ab.area.get_affected_hexes(caster_coord, anchor, grid)
-				for c in affected:
-					if not zone_hexes.has(c):
-						zone_hexes.append(c)
+			var anchor: Vector2i = coord
+			if preview_ability.target != null:
+				anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
+			zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
 		_overlay.show_zone_preview(zone_hexes)
+
+
+# 031 phase 13: which ability should overlays preview "right now"?
+# - During FSM cast: abilities[_cast_step] (the step the next click resolves).
+# - Idle slot active: abilities[0] (the step the FSM will resolve first).
+# - No active slot: null (caller paints nothing).
+# Used by both _refresh_overlay (target-range paint) and _update_castability
+# (zone-area paint) so the two stay in sync — same source of truth, no
+# chance of one preview showing step N while the other shows step 0.
+func _current_preview_ability() -> Ability:
+	if _cast_in_progress and _cast_skill != null and _cast_step < _cast_skill.abilities.size():
+		return _cast_skill.abilities[_cast_step]
+	if _slot_bar_node == null:
+		return null
+	var active: int = _slot_bar_node.get_active()
+	if active == -1:
+		return null
+	var sk := _slot_bar_node.get_slot(active) as Skill
+	if sk == null or sk.abilities.is_empty():
+		return null
+	return sk.abilities[0]
 
 
 func _unhandled_input(event: InputEvent) -> void:

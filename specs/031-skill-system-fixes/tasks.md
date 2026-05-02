@@ -61,6 +61,11 @@ run Godot.
 - [x] T33 — reorder `_commit_cast`: `set_active(-1)` BEFORE `_refresh_overlay`.
 - [x] T34 — `_refresh_overlay`: forward `abilities[0]` only, not the full list.
 
+## Phase 13 — Zone preview tracks current ability
+- [x] T35 — `_current_preview_ability()` helper.
+- [x] T36 — `_update_castability` zone preview reads from helper (no more union).
+- [x] T37 — `_refresh_overlay` reads from same helper (single source of truth, FSM-aware).
+
 ## Manual smoke (deferred to user)
 
 - [ ] M1 — Wave with multiple identical enemies: cd is per-actor, not
