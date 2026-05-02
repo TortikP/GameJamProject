@@ -1,0 +1,53 @@
+{
+  "id": "form_unfolding",
+  "name": "form_unfolding_name",
+  "tooltip": "form_unfolding_tooltip",
+  "desc": "form_unfolding_desc",
+  "icon": "assets/sprites/icons/skills/form_unfolding.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 3,
+  "abilities": [
+    {
+      "id": "teleport_self",
+      "sound_start": "assets/audio/skills/teleport_self/start.wav",
+      "collision_effect": "assets/vfx/skills/teleport_self/blink.prefab",
+      "sound_end": "assets/audio/skills/teleport_self/end.wav",
+      "animation": "assets/animations/skills/teleport_self.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "move_type": "teleport"
+        }
+      ]
+    },
+    {
+      "id": "self_shield",
+      "sound_start": "assets/audio/skills/self_shield/start.wav",
+      "collision_effect": "assets/vfx/status/shielded/apply_self.prefab",
+      "sound_end": "assets/audio/status/shielded/end.wav",
+      "animation": "assets/animations/status/self_shield.anim",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "shielded (2)"
+        }
+      ]
+    }
+  ]
+}
