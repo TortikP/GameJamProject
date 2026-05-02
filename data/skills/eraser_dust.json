@@ -1,0 +1,58 @@
+{
+  "id": "eraser_dust",
+  "name": "eraser_dust_name",
+  "tooltip": "eraser_dust_tooltip",
+  "desc": "eraser_dust_desc",
+  "icon": "assets/sprites/icons/skills/eraser_dust.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "apathetic"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "area_damage_light",
+      "sound_start": "assets/audio/skills/area_damage_light/start.wav",
+      "collision_effect": "assets/vfx/skills/area_damage_light/area_impact.prefab",
+      "sound_end": "assets/audio/skills/area_damage_light/end.wav",
+      "animation": "assets/animations/skills/area_damage_light.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "damage": 7
+        }
+      ]
+    },
+    {
+      "id": "apply_slow_area",
+      "sound_start": "assets/audio/skills/apply_slow_area/start.wav",
+      "collision_effect": "assets/vfx/status/slowed/apply_area.prefab",
+      "sound_end": "assets/audio/status/slowed/end.wav",
+      "animation": "assets/animations/status/apply_slow_area.anim",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 2
+      },
+      "effects": [
+        {
+          "status_id": "slowed (3)"
+        }
+      ]
+    }
+  ]
+}
