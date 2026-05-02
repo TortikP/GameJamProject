@@ -1,0 +1,26 @@
+{
+  "id": "test_combo_multikey_effect",
+  "name": "skill.test_combo_multikey_effect.name",
+  "tooltip": "skill.test_combo_multikey_effect.tooltip",
+  "desc": "skill.test_combo_multikey_effect.desc",
+  "icon": "",
+  "cooldown": 0,
+  "behaviour_tags": ["damage", "debuff"],
+  "mood": [],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "tcme_strike",
+      "sound_start": "",
+      "sound_end": "",
+      "collision_effect": "",
+      "animation": "",
+      "target": {"kind": "actor", "range": 1},
+      "area":   {"kind": "chain", "area_max_chain_length": 1, "area_radius": 1},
+      "effects": [
+        {"duration": 1, "damage": 8, "status": "burning"}
+      ],
+      "modifiers": []
+    }
+  ]
+}

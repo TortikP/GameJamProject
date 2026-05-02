@@ -15,7 +15,6 @@
   "abilities": [
     {
       "id": "tls_dmg",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "actor",
@@ -23,21 +22,20 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1,
-        "radius": 1
+        "area_max_chain_length": 1,
+        "area_radius": 1
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 100
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     },
     {
       "id": "tls_heal",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "self"
@@ -47,12 +45,12 @@
       },
       "effects": [
         {
-          "kind": "heal",
           "duration": 0,
           "heal": 50
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     }
   ]
 }

@@ -10,16 +10,14 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 3
+        "area_max_chain_length": 3
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 10
         },
         {
-          "kind": "status",
           "duration": 1,
           "status": "stun"
         }

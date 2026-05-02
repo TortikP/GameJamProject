@@ -12,7 +12,6 @@
   "abilities": [
     {
       "id": "tchcc_summon",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "hex",
@@ -20,16 +19,16 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "area_radius": 1
       },
       "effects": [
         {
-          "kind": "create",
           "duration": 0,
           "entity_id": "swarm"
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     }
   ]
 }

@@ -13,7 +13,6 @@
   "abilities": [
     {
       "id": "tchcds_blast",
-      "sound": "",
       "animation": "",
       "target": {
         "kind": "hex",
@@ -21,21 +20,20 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 2
+        "area_radius": 2
       },
       "effects": [
         {
-          "kind": "damage",
           "duration": 0,
           "damage": 8
         },
         {
-          "kind": "status",
           "duration": 2,
           "status": "burning"
         }
       ],
-      "modifiers": []
+      "modifiers": [],
+      "sound_start": ""
     }
   ]
 }

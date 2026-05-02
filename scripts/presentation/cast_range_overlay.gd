@@ -64,6 +64,36 @@ func show_range(caster: Actor, skill_or_id) -> void:
 		_add_hex(c, fill, outline)
 
 
+## 026: per-ability range — used by godmode_controller's multi-step cast FSM
+## to highlight only the hexes valid for `ability` (not the whole skill).
+func show_range_for_ability(caster: Actor, ability: Ability) -> void:
+	hide_range()
+	if _grid == null or caster == null or ability == null or ability.target == null:
+		return
+	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
+	if caster_coord == Vector2i(-1, -1):
+		return
+	var hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, _grid)
+	var base: Color = UiTheme.SEM_DEBUFF
+	var fill := Color(base.r, base.g, base.b, 0.32)
+	var outline := Color(base.r, base.g, base.b, 0.78)
+	for c in hexes:
+		_add_hex(c, fill, outline)
+
+
+## 026: highlight caster's hex for a self-target step. LMB anywhere on
+## screen confirms (handled by godmode_controller — this is just the visual).
+## Color uses SEM_HEAL (warm, friendly) to distinguish from offensive range.
+func show_self_confirm(coord: Vector2i) -> void:
+	hide_range()
+	if _grid == null:
+		return
+	var base: Color = UiTheme.SEM_HEAL
+	var fill := Color(base.r, base.g, base.b, 0.45)
+	var outline := Color(base.r, base.g, base.b, 0.85)
+	_add_hex(coord, fill, outline)
+
+
 func hide_range() -> void:
 	for p in _polys:
 		if is_instance_valid(p):

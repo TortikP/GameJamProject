@@ -22,12 +22,23 @@ extends Resource
 ##
 ## Modifier formula (007 AC-M5): final = (base + Σ adds) × Π muls
 ## Applied per-param, commutative, int → floor, float → as-is.
+##
+## 026 additions (026-skill-system-v3):
+##  - sound (021) renamed → sound_start (cast-start cue).
+##  - sound_end — new (cast-resolution cue).
+##  - collision_effect — new (VFX id at impact, distinct from `animation`
+##    which is the caster's pose/gesture).
+## All four presentation IDs (sound_start / sound_end / collision_effect /
+## animation) are stored as StringName, default &"". Dispatch (AudioDB / VFXDB)
+## lives in future features — 026 only fixes the data shape.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 @export var id: StringName = &""
-@export var sound: StringName = &""        # 021: AudioDB lookup id (no dispatch yet)
-@export var animation: StringName = &""    # 021: animation id (no dispatch yet)
+@export var sound_start:      StringName = &""    # 026 — was `sound` in 021
+@export var sound_end:        StringName = &""    # 026 — new
+@export var collision_effect: StringName = &""    # 026 — new (VFX at impact)
+@export var animation:        StringName = &""    # caster pose/gesture (021)
 @export var target: AbilityTarget
 @export var area: AbilityArea
 @export var effects: Array[AbilityEffect] = []
