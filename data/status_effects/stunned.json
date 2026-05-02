@@ -1,0 +1,8 @@
+{
+  "id": "stunned",
+  "family": "control",
+  "arity": 1,
+  "param_names": ["duration"],
+  "loc_name": "status.stunned.name",
+  "loc_desc": "status.stunned.desc"
+}

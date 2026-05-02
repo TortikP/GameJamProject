@@ -1,0 +1,8 @@
+{
+  "id": "enraged",
+  "family": "debuff",
+  "arity": 1,
+  "param_names": ["duration"],
+  "loc_name": "status.enraged.name",
+  "loc_desc": "status.enraged.desc"
+}

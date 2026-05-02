@@ -124,22 +124,36 @@ in-place в этой же фиче.
 
 ### Status registry
 
-**ОТМЕНЕНО (commit 027.fix-1).** Папка `data/status_effects/` и JSON
-metadata-layer убраны. Теперь runtime-классы сами знают свою арность и
-family — через `static func arity()` и `static func family()`. Skill JSON
-остаётся единственным источником per-status параметров через инлайн-
-кодировку `"id(d, a1, a2, ...)"`.
+Папка `data/status_effects/<id>.json` — один файл на статус для
+designer-side метаданных:
 
-`StatusRegistry` — pure dispatch table:
-- `runtime_for(id) -> GDScript` — returns the runtime class for static-method dispatch
-- `arity_of(id) -> int` — delegates to `runtime.arity()`
-- `family_of(id) -> StringName` — delegates to `runtime.family()`
-- `has_status(id) -> bool`
+```json
+{
+  "id": "poisoned",
+  "family": "dot",
+  "arity": 3,
+  "param_names": ["duration", "damage_pct", "lvl_bonus_pct"],
+  "loc_name": "status.poisoned.name",
+  "loc_desc": "status.poisoned.desc"
+}
+```
 
-См. `scripts/core/statuses/status_registry.gd`. Соответствующие AC-R*
-переинтерпретированы: AC-R1 не применим (нет JSON), AC-R2 заменён на
-"runtime classes carry their own metadata", AC-R3 без изменений
-(unknown id → null + warn).
+`family` — для UI-pill цвета (`buff` / `debuff` / `dot` / `hot` / `control` /
+`shield`), уже определены в `status_icon_strip._ICON_BY_FAMILY`.
+
+`arity` и `param_names` — для парсера: warn если кол-во аргументов в строке
+не сходится с arity. `loc_*` — стабы под локализацию (как у Skill).
+
+Runtime-классы статусов — код в `scripts/core/statuses/runtimes/`. Один
+класс на статус, владеет ПОВЕДЕНИЕМ (compute_snapshot, on_turn_start,
+modify_speed, …). JSON владеет МЕТАДАННЫМИ (family, arity, loc keys) —
+дизайнер тюнит без правок кода.
+
+`StatusRegistry` (autoload) — две таблицы: `_RT_BY_ID` (preload) →
+`runtime_for(id) -> GDScript`, `_meta` (loaded from JSON) →
+`family_of(id) / arity_of(id) / meta_for(id)`. **Регистрируется ДО
+AbilityDatabase в project.godot** — парсер skill'ов вызывает arity_of
+синхронно при загрузке.
 
 ### Actor — новая поверхность
 

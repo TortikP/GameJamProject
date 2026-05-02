@@ -1,23 +1,26 @@
 extends Node
-## StatusRegistry — autoload. Pure dispatch table from status_id to runtime
-## class. No JSON metadata loader anymore: arity, family, and all behaviour
-## live entirely on the runtime class itself (static methods + static funcs).
+## StatusRegistry — autoload. Two responsibilities:
 ##
-## Runtime lookup: StatusRegistry.runtime_for(&"poisoned") → PoisonedRuntime
-## (the GDScript class object — methods are static, no instances created).
+##   1. Dispatch table: status_id → runtime GDScript class (preload table).
+##      Runtime classes hold the *behaviour* (compute_snapshot, on_turn_start,
+##      modify_speed, …); methods are static, no instances created.
 ##
-## 027 (revised): metadata folder data/status_effects/ removed; runtime
-## classes own their own arity/family via static funcs. Skill JSON is the
-## sole source of per-status parameters via the inline encoding
-## "id(d, a1, a2, ...)".
+##   2. Designer-tunable metadata: family (UI pill colour), arity (parser
+##      validation), param_names (warn message clarity), loc keys (future
+##      localisation). Loaded from data/status_effects/<id>.json at boot.
+##
+## Why two layers: behaviour is code (lots of moving parts, requires
+## programmer); metadata is data (Stasyan can tune pill colour or rename
+## a status without touching .gd files).
 ##
 ## Autoload order: MUST be before AbilityDatabase / SkillDatabase, since
 ## the parser calls arity_of() at skill-load time. See project.godot.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const STATUSES_DIR := "res://data/status_effects/"
 
-# Preload table — id → runtime GDScript class. Only entry point for new
-# statuses: add row here + create runtime class.
+# Preload table — id → runtime GDScript class. Adding a status: row here +
+# create runtime class + create JSON metadata file.
 const _RT_BY_ID: Dictionary = {
 	&"stunned":  preload("res://scripts/core/statuses/runtimes/stunned_runtime.gd"),
 	&"slowed":   preload("res://scripts/core/statuses/runtimes/slowed_runtime.gd"),
@@ -30,9 +33,22 @@ const _RT_BY_ID: Dictionary = {
 	&"enraged":  preload("res://scripts/core/statuses/runtimes/enraged_runtime.gd"),
 }
 
+# id → {family, arity, param_names, loc_name, loc_desc}
+var _meta: Dictionary = {}
+
 
 func _ready() -> void:
-	GameLogger.info("StatusRegistry", "registered %d statuses: %s" % [_RT_BY_ID.size(), str(_RT_BY_ID.keys())])
+	_load_dir(STATUSES_DIR)
+	# Cross-check: every runtime should have metadata, and every metadata
+	# file should reference a runtime. Soft warn — game still boots if
+	# only one side is present.
+	for id in _RT_BY_ID.keys():
+		if not _meta.has(id):
+			GameLogger.warn("StatusRegistry", "no metadata for runtime '%s' — JSON missing in %s" % [id, STATUSES_DIR])
+	for id in _meta.keys():
+		if not _RT_BY_ID.has(id):
+			GameLogger.warn("StatusRegistry", "no runtime class for metadata '%s'" % id)
+	GameLogger.info("StatusRegistry", "loaded %d statuses (runtimes: %d, metadata: %d)" % [_RT_BY_ID.size(), _RT_BY_ID.size(), _meta.size()])
 
 
 ## Returns the runtime GDScript class object, or null if unknown.
@@ -46,23 +62,68 @@ func has_status(id: StringName) -> bool:
 	return _RT_BY_ID.has(id)
 
 
-## Number of expected args in the inline encoding `id(d, a1, ...)`. Returns 0
-## for unknown ids — parser uses 0 as the "reject" signal.
-## Delegates to runtime.arity().
-func arity_of(id: StringName) -> int:
-	var rt: GDScript = _RT_BY_ID.get(id, null) as GDScript
-	if rt == null:
-		return 0
-	return rt.arity()
+func meta_for(id: StringName) -> Dictionary:
+	return _meta.get(id, {}) as Dictionary
 
 
-## UI pill colour family. Default fallback is "debuff" if id is unknown.
 func family_of(id: StringName) -> StringName:
-	var rt: GDScript = _RT_BY_ID.get(id, null) as GDScript
-	if rt == null:
-		return &"debuff"
-	return rt.family()
+	var m: Dictionary = _meta.get(id, {})
+	return StringName(m.get("family", &"debuff"))
+
+
+## Number of expected args in the inline encoding `id(d, a1, ...)`.
+## Returns 0 for unknown ids — parser uses 0 as the "reject" signal.
+func arity_of(id: StringName) -> int:
+	if not _meta.has(id):
+		return 0
+	return int((_meta[id] as Dictionary).get("arity", 1))
 
 
 func all_ids() -> Array:
 	return _RT_BY_ID.keys()
+
+
+# ── Internal ────────────────────────────────────────────────────────────────
+
+func _load_dir(dir_path: String) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		GameLogger.warn("StatusRegistry", "dir not found: %s" % dir_path)
+		return
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if not dir.current_is_dir() and fname.ends_with(".json"):
+			_load_file(dir_path + fname)
+		fname = dir.get_next()
+	dir.list_dir_end()
+
+
+func _load_file(file_path: String) -> void:
+	var f := FileAccess.open(file_path, FileAccess.READ)
+	if f == null:
+		GameLogger.warn("StatusRegistry", "can't open: %s" % file_path)
+		return
+	var text := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		GameLogger.warn("StatusRegistry", "bad JSON: %s" % file_path)
+		return
+	var data := parsed as Dictionary
+	var id_str: String = data.get("id", "")
+	if id_str == "":
+		GameLogger.warn("StatusRegistry", "missing id in %s" % file_path)
+		return
+	var id: StringName = StringName(id_str)
+	var arity: int = int(data.get("arity", 1))
+	if arity < 1:
+		GameLogger.warn("StatusRegistry", "%s: arity must be >= 1, got %d" % [id, arity])
+		return
+	_meta[id] = {
+		"family":      StringName(data.get("family", "debuff")),
+		"arity":       arity,
+		"param_names": data.get("param_names", []),
+		"loc_name":    String(data.get("loc_name", "")),
+		"loc_desc":    String(data.get("loc_desc", "")),
+	}

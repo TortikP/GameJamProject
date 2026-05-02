@@ -1,0 +1,8 @@
+{
+  "id": "burning",
+  "family": "dot",
+  "arity": 3,
+  "param_names": ["duration", "damage", "lvl_bonus"],
+  "loc_name": "status.burning.name",
+  "loc_desc": "status.burning.desc"
+}
