@@ -12,18 +12,20 @@
 
 ## Phase 2 — Player skill adapter (preview / unblock)
 
-- [ ] T006 [P1] Найти и прочитать **существующий** API игрока для add/upgrade/replace skills. Возможные точки: `Actor.set_skills`, `godmode_controller.sync_player_skills_from_slots`, `PlayerSkillSet` (если есть). Документировать что найдено в `andrey/HANDOFF.md` (если папки нет — в спеке).
-- [ ] T007 [P1] Если public API покрывает всё — **отказываемся** от adapter, используем напрямую (mark T008-T009 [P3] N/A). Иначе → T008-T009. (depends T006)
-- [ ] T008 [P2] `scripts/runtime/player_skill_adapter.gd` — wrapper per plan.md. Только методы которые реально нужны: `owned_skills_array/dict`, `add_skill`, `can_upgrade`, `upgrade_skill`, `replace_slot`. (depends T006)
-- [ ] T009 [P2] Smoke: запустить godmode, через console (или пред-test-кнопку) дёрнуть `PlayerSkillAdapter.add_skill(&"ball_throw")` → убедиться что слот изменился. Verify upgrade/replace тем же путём. (depends T008)
+- [x] T006 [P1] Найти и прочитать **существующий** API игрока для add/upgrade/replace skills. Возможные точки: `Actor.set_skills`, `godmode_controller.sync_player_skills_from_slots`, `PlayerSkillSet` (если есть). Документировать что найдено в `andrey/HANDOFF.md` (если папки нет — в спеке).
+
+  **Found:** SlotBar (`scripts/presentation/slot_bar.gd`) holds canonical skills via `set_slot(i, skill)` / `get_slot(i)`; mirror to Actor via `GodmodeController.sync_player_skills_from_slots()` (which also drives MoodTracker). No `PlayerSkillSet` class exists. Adapter wraps these — see T008.
+- [x] T007 [P1] Если public API покрывает всё — **отказываемся** от adapter, используем напрямую (mark T008-T009 [P3] N/A). Иначе → T008-T009. **Decision:** adapter required — SlotBar lookup needs scene-tree walk, plus dedup logic for owned-skills query. `scripts/runtime/player_skill_adapter.gd` written.
+- [x] T008 [P2] `scripts/runtime/player_skill_adapter.gd` — wrapper per plan.md. `owned_skills_array/dict`, `add_skill`, `can_upgrade`, `upgrade_skill`, `replace_slot`, plus `first_empty_slot`, `filled_slot_indices`, `has_skill`. Lazy GodmodeController lookup; warn-once on absence.
+- [ ] T009 [P2] Smoke: запустить godmode, через console (или пред-test-кнопку) дёрнуть `PlayerSkillAdapter.add_skill(&"ball_throw")` → убедиться что слот изменился. Verify upgrade/replace тем же путём. (depends T008) — **manual, deferred to T030 batch smoke.**
 
 ## Phase 3 — Controller + modal scaffolding
 
-- [ ] T010 [P1] `scripts/runtime/skill_offer_controller.gd` — autoload skeleton: `_ready` подписки, `_scan_pools`, `_on_level_loaded`, `_on_wave_cleared`, `_on_battle_ended`. Не реализуем `_open_modal` пока — заглушка возвращает `{mode: &"skipped"}`. (depends T005)
-- [ ] T011 [P1] `project.godot` — autoload `SkillOfferController` после `SkillDatabase` (или эквивалента) и `EventBus`. (depends T010)
-- [ ] T012 [P1] Smoke: создать тестовый уровень с `skill_offer` в волне 0 → playtest → должны увидеть `skill_offer_about_to_open` лог + сразу `skill_offer_closed(_, &"", &"skipped")` (заглушка). (depends T011)
-- [ ] T013 [P1] `_build_cards` — sampling, mode-resolution per plan.md. Без UI. Smoke: `print(_build_cards(...))` показывает массив `{skill_id, mode, ...}`. (depends T009 OR T007)
-- [ ] T014 [P1] `_apply_pick` — диспатч в adapter / напрямую. Smoke: вручную вызвать `_apply_pick({skill_id: ball_throw, mode: add})` → ball_throw добавился. (depends T008 OR T006-direct)
+- [x] T010 [P1] `scripts/runtime/skill_offer_controller.gd` — autoload skeleton: `_ready` подписки, `_scan_pools`, `_on_level_loaded`, `_on_wave_cleared`, `_on_battle_ended`. Modal stub auto-picks first card until T015-T018 ship the real scene. (depends T005)
+- [x] T011 [P1] `project.godot` — autoload `SkillOfferController` после `SkillDatabase`. + WaveController gate: `_check_auto_clear` awaits `EventBus.skill_offer_closed` between `wave_cleared.emit` and `_advance_wave()` when the cleared wave has `skill_offer`. (depends T010)
+- [ ] T012 [P1] Smoke: создать тестовый уровень с `skill_offer` в волне 0 → playtest → должны увидеть `skill_offer_about_to_open` лог + сразу `skill_offer_closed(_, &"", &"skipped")` (заглушка). (depends T011) — **manual, batch with T030.**
+- [x] T013 [P1] `_build_cards` — sampling, mode-resolution per plan.md. Без UI. Built into SkillOfferController.
+- [x] T014 [P1] `_apply_pick` — диспатч в adapter / напрямую. Built into SkillOfferController.
 - [ ] T015 [P1] `scenes/ui/skill_offer_card.tscn` + `skill_offer_card.gd` — bind `(skill, mode, slot_index?)`, рендер icon/name/mode-badge/desc, click emit. Стилинг через UiTheme.
 - [ ] T016 [P1] `scenes/ui/skill_offer_modal.tscn` + `skill_offer_modal.gd` — открытие, слот для cards, Skip button, await `player_picked`. CanvasLayer=25. Pause через `get_tree().paused = true` в `open()`, false в `close()`. (depends T015)
 - [ ] T017 [P1] Replace-slot submenu — после клика по replace-карточке показываем second screen «выберите слот Q/W/E/R» → emit `player_picked` с slot_index. (depends T016)
