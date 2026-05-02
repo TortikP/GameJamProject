@@ -1,0 +1,16 @@
+{
+  "id": "bee",
+  "name": "bee_name",
+  "desc": "bee_desc",
+  "sprite": "assets/sprites/enemies/bee.png",
+  "max_hp": 10,
+  "team": "enemy",
+  "speed": 3,
+  "skills": [
+    "sting",
+    "honey_cold",
+    "summon_bee"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "sting"
+}

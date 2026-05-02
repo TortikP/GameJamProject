@@ -1,0 +1,38 @@
+{
+  "id": "berry_throw",
+  "name": "berry_throw_name",
+  "tooltip": "berry_throw_tooltip",
+  "desc": "berry_throw_desc",
+  "icon": "icons/skills/berry_throw.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "friendly"
+  ],
+  "level": 1,
+  "abilities": [
+    {
+      "id": "direct_ranged_damage",
+      "sound_start": "direct_ranged_damage/direct_ranged_damage_start.wav",
+      "collision_effect": "direct_ranged_damage/direct_ranged_damage_collision.prefab",
+      "sound_end": "direct_ranged_damage/direct_ranged_damage_end.wav",
+      "animation": "direct_ranged_damage/direct_ranged_damage.anim",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 8
+        }
+      ]
+    }
+  ]
+}
