@@ -9,7 +9,7 @@ use_texture_padding = false
 0:0/0 = 0
 0:0/0/custom_data_0 = true
 0:0/0/custom_data_1 = 1
-0:0/0/custom_data_2 = &"grass"
+0:0/0/custom_data_2 = &"forest"
 
 [resource]
 tile_shape = 3
