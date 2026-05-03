@@ -630,6 +630,13 @@
 						2
 					],
 					"object_id": "object_lava"
+				},
+				{
+					"coord": [
+						0,
+						0
+					],
+					"object_id": "lavander_car"
 				}
 			],
 			"skill_offer": {
