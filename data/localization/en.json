@@ -500,6 +500,8 @@
   "ui_top_hud_wave": "Wave %d",
   "ui_top_hud_wave_total": "Wave %d/%d",
   "ui_wave_panel_make_special": "Make Special",
+  "ui_wave_panel_collapse": "Collapse",
+  "ui_wave_panel_expand": "Expand",
   "ui_wave_panel_special_on": "Special (on)",
   "ui_wave_panel_status": "Wave %d of %d%s",
   "ui_wave_timeline_add_wave": "Add wave",

@@ -21,6 +21,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	var player: Actor = _ctrl.player
 	var cast_fsm: Node = _ctrl.cast_fsm
 	var campaign_mode: bool = ActiveGame.has_active_game()
+	# 045-intro-cutscene: lock all gameplay input on intro levels except ESC
+	# (pause menu remains the player's escape hatch). Cutscene/dialogue/move
+	# is fully scripted by IntroDirector.
+	if campaign_mode and ActiveGame.current_is_intro():
+		var is_esc: bool = event is InputEventKey \
+			and (event as InputEventKey).pressed \
+			and (event as InputEventKey).keycode == KEY_ESCAPE
+		if is_esc:
+			return  # let pause-menu handler pick it up
+		get_viewport().set_input_as_handled()
+		return
 	if campaign_mode and player != null and not player.is_alive():
 		get_viewport().set_input_as_handled()
 		return

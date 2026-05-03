@@ -3,10 +3,16 @@
 	"version": 1,
 	"levels": [
 		{
+			"map_path": "res://data/maps/office_intro.json",
+			"display_name": "Office",
+			"cutscene_id": "",
+			"is_intro": true
+		},
+		{
 			"map_path": "res://data/maps/story_map_01.json",
 			"display_name": "Gate One",
-			"cutscene_id": "story_intro",
-			"is_intro": true
+			"cutscene_id": "",
+			"is_intro": false
 		},
 		{
 			"map_path": "res://data/maps/story_map_02.json",

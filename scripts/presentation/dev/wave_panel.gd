@@ -63,6 +63,15 @@ var _so_refreshing: bool = false
 # re-reading from the timeline.
 var _level: LevelData = null
 
+# Collapse — quick UX: hide everything below HeaderRow, keep just the top
+# strip. Anchors_preset=10 with a fixed offset_bottom means the panel has
+# an anchor-driven minimum height (~124px). When collapsed, drop
+# offset_bottom so the PanelContainer shrinks to the header's combined min
+# size; on expand restore the original offset so content drives the height.
+var _collapsed: bool = false
+var _orig_offset_bottom: float = 0.0
+var _collapse_btn: Button
+
 
 func _ready() -> void:
 	add_theme_stylebox_override("panel", UiThemeScript.make_panel_stylebox())
@@ -96,6 +105,53 @@ func _ready() -> void:
 			_timeline.skill_offer_marker_clicked.connect(
 				func(idx: int) -> void: skill_offer_marker_clicked.emit(idx))
 	_build_skill_offer_section()
+	_build_collapse_button()
+	_orig_offset_bottom = offset_bottom
+
+
+# Quick-fix collapse button (left of StatusLabel). Toggles visibility of
+# TimelineRow + skill-offer section so only HeaderRow stays on screen.
+# Built programmatically — keeps the change off the .tscn diff, mirrors
+# how _build_skill_offer_section handles its widgets.
+func _build_collapse_button() -> void:
+	var header_row: Node = get_node_or_null("VBox/HeaderRow")
+	if header_row == null:
+		return  # Test scenes — skip silently.
+	_collapse_btn = Button.new()
+	_collapse_btn.text = "−"
+	_collapse_btn.custom_minimum_size = Vector2(32, 32)
+	_collapse_btn.tooltip_text = Localization.t("ui_wave_panel_collapse", "Collapse")
+	UiThemeScript.apply_button_styling(_collapse_btn)
+	_collapse_btn.pressed.connect(_on_collapse_pressed)
+	header_row.add_child(_collapse_btn)
+	(header_row as Node).move_child(_collapse_btn, 0)
+
+
+func _on_collapse_pressed() -> void:
+	_collapsed = not _collapsed
+	_apply_collapsed()
+
+
+func _apply_collapsed() -> void:
+	var timeline_row: Node = get_node_or_null("VBox/TimelineRow")
+	if timeline_row is Control:
+		(timeline_row as Control).visible = not _collapsed
+	if _so_section_box != null:
+		_so_section_box.visible = not _collapsed
+	if _collapse_btn != null:
+		_collapse_btn.text = "+" if _collapsed else "−"
+		_collapse_btn.tooltip_text = Localization.t(
+			"ui_wave_panel_expand" if _collapsed else "ui_wave_panel_collapse",
+			"Expand" if _collapsed else "Collapse")
+	# Anchors_preset=10 keeps anchor_bottom=0; offset_bottom is the literal
+	# pixel distance from parent top. Setting it tight forces the
+	# PanelContainer to size from combined_minimum_size of remaining
+	# children (header only). Restoring _orig_offset_bottom hands height
+	# back to content-driven sizing.
+	if _collapsed:
+		offset_bottom = offset_top + 1.0
+	else:
+		offset_bottom = _orig_offset_bottom
 
 
 # 040 — programmatic build keeps the change off the .tscn diff. Section

@@ -21,6 +21,12 @@ extends Camera2D
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
+## 045-intro-cutscene: pan is gameplay-disabled by default. Map editor sets
+## this to true in its scene to keep navigation. Battle/runtime scenes leave
+## it false — pan during combat caused stale-cursor / off-screen click bugs
+## (see HANDOFF §22).
+@export var allow_pan: bool = false
+
 var _zoom_target: Vector2 = Vector2.ONE
 var _zoom_tween: Tween
 
@@ -111,16 +117,30 @@ func _center_on_target() -> void:
 		target = get_tree().root.find_child("Player", true, false) as Node2D
 	if target != null:
 		global_position = target.global_position
+		# 045: position_smoothing_enabled=true (set in godmode.tscn) makes
+		# global_position assignment lerp from the previous value — which is
+		# (0,0) on a fresh scene load. That causes a visible camera-drift
+		# from the top-left corner toward the player at the start of every
+		# level. reset_smoothing() snaps the smoothed transform to the
+		# current position so the next frame renders on the player exactly.
+		reset_smoothing()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# 045-intro-cutscene: full input lockout on intro levels (HUD hidden,
+	# scripted sequence drives the camera via _follow_target).
+	if ActiveGame.has_active_game() and ActiveGame.current_is_intro():
+		return
+
 	# --- MMB pan ---
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_MIDDLE:
 			# 043-camera-follow: pan is disabled while following a target.
 			# Battle camera should never drift from the player.
-			if _is_following():
+			# 045: pan is also disabled scene-wide unless allow_pan is set
+			# (only the map editor opts in). Both gates are ANDed implicitly.
+			if _is_following() or not allow_pan:
 				return
 			_panning = mb.pressed
 			_pan_last = mb.position

@@ -181,6 +181,15 @@ func run() -> void:
 		# is now safe because the timeline already has its anchors.
 		_ctrl.wave_controller.start_level.call_deferred(_ctrl.queued_level)
 
+	# 045-intro-cutscene: on campaign intro levels, the HUD is invisible —
+	# the player can't act, the cutscene/dialogue/scripted-step flow plays
+	# uninterrupted. Restored on next-level scene reload (fresh _ready).
+	if ActiveGame.has_active_game() and ActiveGame.current_is_intro():
+		var hud: CanvasLayer = _ctrl.get_node_or_null("../HUD") as CanvasLayer
+		if hud != null:
+			hud.visible = false
+			GameLogger.info("Godmode", "intro level — HUD hidden")
+
 
 # ── Setup helpers ────────────────────────────────────────────────────────────
 

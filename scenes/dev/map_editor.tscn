@@ -46,6 +46,7 @@ mouse_filter = 2
 
 [node name="EditorCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
+allow_pan = true
 position_smoothing_enabled = true
 zoom = Vector2(0.5, 0.5)
 

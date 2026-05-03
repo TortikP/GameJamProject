@@ -172,10 +172,20 @@ func _on_level_completed(total_score: int) -> void:
 
 func _run_post_level_flow(total_score: int) -> void:
 	await _await_dialogue_idle()
-	# 1. Upgrade screen (or stub).
 	capture_current_skill_loadout()
-	await _await_continue_input()
-	GameLogger.info("CampaignController", "upgrade done — playing transition out")
+	# 045-intro-cutscene: skip upgrade screen for intro levels. The intro is
+	# narrative-only — there's nothing to upgrade after the player gets up
+	# from the chair. ActiveGame.current_is_intro() still reflects the
+	# JUST-completed level here (advance() runs after this flow's transition).
+	var skip_upgrade: bool = ActiveGame.current_is_intro()
+	if skip_upgrade:
+		GameLogger.info("CampaignController", "post-level flow: intro level — skipping upgrade screen + continue-input")
+	else:
+		# 1. Upgrade screen (or stub).
+		GameLogger.info("CampaignController", "post-level flow: awaiting upgrade")
+		await _await_upgrade(total_score)
+		await _await_continue_input()
+		GameLogger.info("CampaignController", "upgrade done — playing transition out")
 
 	# 2. Transition out — but only if we're still in a scene that has a tree
 	#    (the upgrade screen could in principle have changed scenes; we don't,

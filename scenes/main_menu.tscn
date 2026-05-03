@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://main_menu_001"]
+[gd_scene load_steps=5 format=3 uid="uid://main_menu_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/main_menu.gd" id="1_mm"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_sp"]
+[ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="3_space"]
+[ext_resource type="Texture2D" path="res://assets/sprites/main_menu_sky.png" id="4_sky"]
 
 [node name="MainMenu" type="Control"]
 script = ExtResource("1_mm")
@@ -9,12 +11,16 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="SpaceBackground" parent="." instance=ExtResource("3_space")]
+
+[node name="SkyImage" type="TextureRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.047, 0.055, 0.071, 1)
-mouse_filter = 1
+mouse_filter = 2
+texture = ExtResource("4_sky")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
