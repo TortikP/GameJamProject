@@ -67,9 +67,15 @@ func _draw() -> void:
 	# 2px wide so it reads at the new bar size.
 	draw_rect(Rect2(x, y_offset, width, height), team_outline, false, 2.0)
 	# Numbers above the bar — outline first for contrast on any background,
-	# then fill text.
+	# then fill text. 051: when a damage preview is active, render
+	# "current → after" so the player reads the predicted outcome of the
+	# next click directly. Otherwise fall back to "hp/max_hp".
 	var font: Font = ThemeDB.fallback_font
-	var text: String = "%d/%d" % [_actor.hp, _actor.max_hp]
+	var text: String
+	if _preview_damage > 0:
+		text = "%d → %d" % [_actor.hp, max(0, _actor.hp - _preview_damage)]
+	else:
+		text = "%d/%d" % [_actor.hp, _actor.max_hp]
 	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
 	var text_pos: Vector2 = Vector2(-size.x * 0.5, y_offset - 4.0)
 	draw_string_outline(font, text_pos, text,

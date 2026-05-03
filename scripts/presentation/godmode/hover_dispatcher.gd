@@ -68,15 +68,47 @@ func update_castability() -> void:
 		var castable: bool = skill != null and not stunned and skill.can_apply(player, ctx)
 		slot_bar.set_castable(i, castable)
 
-	# Damage preview on enemies — only the hovered one shows red strip,
-	# others get cleared. Active slot's ability is the source.
+	# Zone AoE preview — compute FIRST (051): the zone drives both the
+	# overlay paint AND the per-enemy HP preview below. One source of
+	# truth — players can't see a hex highlighted "in zone" without the
+	# enemy on it ALSO showing their predicted HP, and vice versa.
+	#
+	# 031 phase 13 invariant retained: paint only the *current* ability's
+	# area (FSM step or abilities[0] when idle). cast_fsm is the shared
+	# truth with controller.refresh_overlay.
+	var zone_hexes: Array[Vector2i] = []
 	var active_idx: int = slot_bar.get_active()
 	var active_skill := slot_bar.get_slot(active_idx) as Skill
-	var hover_target: Actor = registry.get_actor(target_id) if target_id != &"" else null
-	var preview_for_hover: int = 0
-	if active_skill != null and hover_target != null and hover_target.team == &"enemy":
-		if active_skill.can_apply(player, ctx):
-			preview_for_hover = active_skill.predicted_damage_to(player, hover_target, ctx)
+	var preview_ability: Ability = _ctrl.cast_fsm.current_preview_ability()
+	if preview_ability != null and preview_ability.area != null and coord != Vector2i(-1, -1):
+		var caster_coord: Vector2i = grid.get_coord(player.actor_id)
+		var anchor: Vector2i = coord
+		if preview_ability.target != null:
+			anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
+		zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
+	if overlay != null and overlay.has_method("show_zone_preview"):
+		overlay.show_zone_preview(zone_hexes)
+
+	# Damage preview on enemies (051): every enemy whose coord is in
+	# zone_hexes gets a preview, not just the one literally under the
+	# cursor. For radius-1 coffee that means BOTH neighbours of the
+	# anchor light up, so the player sees the full splash before the
+	# click. Outside-zone enemies always cleared to 0.
+	#
+	# Skill must (a) exist, (b) pass can_apply at the cursor ctx — same
+	# gate used by FSM commit, so preview matches what a click actually
+	# does. Non-damage skills naturally yield 0 from predicted_damage_to,
+	# so heal/buff abilities don't paint a phantom red strip.
+	var preview_active: bool = (
+		active_skill != null
+		and not stunned
+		and active_skill.can_apply(player, ctx)
+		and not zone_hexes.is_empty()
+	)
+	var zone_set: Dictionary = {}
+	if preview_active:
+		for zc in zone_hexes:
+			zone_set[zc] = true
 	for actor in registry.all():
 		if not (actor is Actor):
 			continue
@@ -86,27 +118,12 @@ func update_castability() -> void:
 		var hp_bar: Node = a.get_node_or_null("HealthBar")
 		if hp_bar == null or not hp_bar.has_method("set_preview_damage"):
 			continue
-		hp_bar.set_preview_damage(preview_for_hover if a == hover_target else 0)
-
-	# Zone AoE preview — repaint every frame so it follows the cursor.
-	if overlay != null and overlay.has_method("show_zone_preview"):
-		var zone_hexes: Array[Vector2i] = []
-		# 031 phase 13: paint only the *current* ability's area, not the union
-		# of every ability in the skill. Previously the loop merged every
-		# ability's affected hexes into one dedup'd dictionary → always
-		# painted the largest radius across the skill (paper_jam: 3
-		# abilities with radii 1/1/2 → 2-radius blob always shown).
-		# During the FSM the "current" ability is the step the next click
-		# resolves; idle preview falls back to abilities[0]. cast_fsm is
-		# the shared source of truth with controller.refresh_overlay.
-		var preview_ability: Ability = _ctrl.cast_fsm.current_preview_ability()
-		if preview_ability != null and preview_ability.area != null and coord != Vector2i(-1, -1):
-			var caster_coord: Vector2i = grid.get_coord(player.actor_id)
-			var anchor: Vector2i = coord
-			if preview_ability.target != null:
-				anchor = preview_ability.target.preview_anchor_coord(caster_coord, coord)
-			zone_hexes = preview_ability.area.get_affected_hexes(caster_coord, anchor, grid)
-		overlay.show_zone_preview(zone_hexes)
+		var dmg: int = 0
+		if preview_active:
+			var enemy_coord: Vector2i = grid.get_coord(a.actor_id)
+			if zone_set.has(enemy_coord):
+				dmg = active_skill.predicted_damage_to(player, a, ctx)
+		hp_bar.set_preview_damage(dmg)
 
 	# 029 / bonus-2: hover-path preview. Show the route the player would take
 	# IFF the cursor is over a reachable hex (within effective_speed) AND
