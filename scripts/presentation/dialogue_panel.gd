@@ -40,6 +40,11 @@ func _ready() -> void:
 ## 047: dialogue panel uses the standard sharp-corner stylebox. Earlier
 ## attempts at rounded-top corners ("tray look") undermined the Win98
 ## sharp-edge palette — every other surface is flat-rectangular.
+##
+## 047 polish: dialogue uses dedicated FS_DIALOGUE_* sizes (much larger
+## than FS_HEADER/FS_BODY) — story beats are the focal point during a
+## dialogue, not chrome. apply_label_kind isn't used on Name because no
+## generic "kind" matches dialogue speaker scale.
 func _apply_theme() -> void:
 	# Build a fresh stylebox each call — UiTheme rule: don't share StyleBoxFlat
 	# instances between nodes (their bg_color is mutable).
@@ -47,9 +52,10 @@ func _apply_theme() -> void:
 	if _panel:
 		_panel.add_theme_stylebox_override("panel", sb)
 	if _name_lbl:
-		UiTheme.apply_label_kind(_name_lbl, "header")
+		_name_lbl.add_theme_font_size_override("font_size", UiTheme.FS_DIALOGUE_NAME)
+		_name_lbl.add_theme_color_override("font_color", UiTheme.TEXT)
 	if _text_lbl:
-		_text_lbl.add_theme_font_size_override("normal_font_size", UiTheme.FS_BODY)
+		_text_lbl.add_theme_font_size_override("normal_font_size", UiTheme.FS_DIALOGUE_TEXT)
 		_text_lbl.add_theme_color_override("default_color", UiTheme.TEXT)
 
 
