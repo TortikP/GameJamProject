@@ -2,35 +2,35 @@ extends Node
 ## IntroDirector — autoload (045-intro-cutscene).
 ##
 ## Activates ONLY on campaign levels marked `is_intro=true` in the game.json.
-## On scene_ready for godmode, runs the scripted intro flow:
+## The intro level itself is a 1-hex stub — never visually seen by the player
+## because CutscenePlayer's overlay covers it for the entire intro sequence.
 ##
-##   1. Wait for CutscenePlayer to finish the overlay (or skip-fired).
-##   2. Play the dialogue named `intro_office_monologue`.
-##   3. Step the player one hex south (`TileSet.CELL_NEIGHBOR_BOTTOM_SIDE`).
-##      Camera-follow (043) handles re-centering.
-##   4. Emit `EventBus.level_completed(0)` to fire the standard transition
-##      shader -> next campaign level.
+## On scene_ready for godmode:
+##   1. Wait for CutscenePlayer.cutscene_finished (frames done, overlay held).
+##   2. Play the dialogue 'intro_office_monologue' on top of the held last frame.
+##   3. Dismiss the overlay with a fade.
+##   4. Emit `level_completed(0)` -> standard transition shader -> next level.
 ##
-## Awaits are timeout-bounded so a missing dialogue / unresponsive grid can't
-## softlock the campaign. On timeout, the sequence proceeds to the next step
-## with a warning.
+## Originally also performed an in-engine south-step. Removed: the office is
+## fully cutscene art now, no visible hex room, no visible step. The 'step
+## off the chair' beat is conveyed by the cutscene art frames.
 ##
-## NOT generic: dialogue id and step direction are hardcoded for office_intro.
-## Adding another intro level means copying this director or extending the
-## campaign schema (per spec out-of-scope, jam policy).
+## All awaits timeout-bounded so a broken contract can't softlock the campaign.
+##
+## NOT generic: dialogue id is hardcoded for office_intro. Adding another
+## intro level means copy-pasting this director (per spec out-of-scope).
 ##
 ## Owner: Andrey / 045-intro-cutscene.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-const PLAYER_ID: StringName = &"player"
 const INTRO_DIALOGUE_ID: StringName = &"intro_office_monologue"
 
 # Timeouts: every await is bounded so a broken contract can't softlock.
-const CUTSCENE_TIMEOUT_SEC: float = 6.0       # > cutscene_request_timeout (4.0) + animation slack
-const DIALOGUE_TIMEOUT_SEC: float = 60.0      # generous — dialogue waits for player input
-const MOVE_TIMEOUT_SEC: float = 2.0           # step_duration is ~0.3s typical
-const POST_MOVE_BEAT_SEC: float = 0.4         # breathing room before transition
+const CUTSCENE_TIMEOUT_SEC: float = 8.0    # cutscene-art ~3s + slack
+const DIALOGUE_TIMEOUT_SEC: float = 60.0   # dialogue waits for player input
+const DISMISS_TIMEOUT_SEC: float = 2.0     # fade-out budget
+const PRE_TRANSITION_BEAT: float = 0.2     # tiny breathing room
 
 var _running: bool = false
 
@@ -53,7 +53,7 @@ func _on_scene_ready(scene_kind: StringName) -> void:
 		return
 	# Defer one frame so CampaignController._on_scene_ready (which fires the
 	# cutscene_request) finishes its sync work, and CutscenePlayer's overlay
-	# is in the tree before we await its finish-signal.
+	# is added to the tree before we await its finish-signal.
 	_run_sequence.call_deferred()
 
 
@@ -61,84 +61,39 @@ func _run_sequence() -> void:
 	_running = true
 	GameLogger.info("IntroDirector", "intro sequence starting (level=%d)" % ActiveGame.current_index)
 
-	# 1. Cutscene art (skip if no cutscene_id on this level)
+	# 1. Cutscene art frames done (overlay still held over the screen).
 	if ActiveGame.current_cutscene_id() != &"":
-		var ok: bool = await _await_cutscene_finished()
+		var ok: bool = await _await_signal_with_timeout(CutscenePlayer, &"cutscene_finished", CUTSCENE_TIMEOUT_SEC)
 		if not ok:
 			GameLogger.warn("IntroDirector", "cutscene_finished timeout — proceeding anyway")
+	else:
+		GameLogger.info("IntroDirector", "no cutscene_id on level — skipping cutscene wait")
 
-	# 2. Dialogue
+	# 2. Dialogue plays on top of the held cutscene frame.
+	#    (Game is NOT paused — is_intro locks already block gameplay input.)
 	if not DialogueManager.play(INTRO_DIALOGUE_ID):
-		GameLogger.warn("IntroDirector", "DialogueManager.play('%s') failed — skip dialogue" % INTRO_DIALOGUE_ID)
+		GameLogger.warn("IntroDirector", "DialogueManager.play('%s') failed — skipping dialogue" % INTRO_DIALOGUE_ID)
 	else:
 		var got: bool = await _await_signal_with_timeout(EventBus, &"dialogue_finished", DIALOGUE_TIMEOUT_SEC)
 		if not got:
 			GameLogger.warn("IntroDirector", "dialogue_finished timeout (%.1fs)" % DIALOGUE_TIMEOUT_SEC)
 
-	# 3. Scripted south step
-	var grid := _find_grid()
-	if grid == null:
-		GameLogger.warn("IntroDirector", "HexGrid not found — skip step, complete level")
-	else:
-		await _step_player_south(grid)
+	# 3. Dismiss the overlay with a fade. Reveals the (empty) hex stub briefly
+	#    before transition shader takes over.
+	if CutscenePlayer.is_playing():
+		CutscenePlayer.dismiss(0.4)
+		var dismissed: bool = await _await_signal_with_timeout(CutscenePlayer, &"cutscene_dismissed", DISMISS_TIMEOUT_SEC)
+		if not dismissed:
+			GameLogger.warn("IntroDirector", "cutscene_dismissed timeout")
 
-	# 4. Beat
-	await get_tree().create_timer(POST_MOVE_BEAT_SEC).timeout
-
-	# 5. Hand off to CampaignController via standard level_completed flow.
+	# 4. Tiny beat, then standard level-transition flow takes over.
+	await get_tree().create_timer(PRE_TRANSITION_BEAT).timeout
 	GameLogger.info("IntroDirector", "intro sequence complete -> level_completed(0)")
 	EventBus.level_completed.emit(0)
 	_running = false
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-func _find_grid() -> HexGrid:
-	var root: Node = get_tree().current_scene
-	if root == null:
-		return null
-	return root.find_child("HexGrid", true, false) as HexGrid
-
-
-func _step_player_south(grid: HexGrid) -> void:
-	# step_actor is async (awaits step_duration internally) and emits
-	# EventBus.actor_moved synchronously before the await. We fire-and-forget
-	# the call and wait for the signal with a timeout; if step_actor returns
-	# false (blocked / occupied), the signal never fires and we time out
-	# gracefully.
-	if not grid.has_method("step_actor"):
-		GameLogger.warn("IntroDirector", "HexGrid lacks step_actor")
-		return
-	# Use a callable to avoid awaiting the (void-returning) step_actor itself.
-	# step_actor returns bool, but as an async func GDScript still returns the
-	# call object; we just call it and rely on the EventBus signal.
-	var fired: bool = false
-	var moved_cb := func(actor_id: StringName, _from: Vector2i, _to: Vector2i) -> void:
-		if actor_id == PLAYER_ID:
-			fired = true
-	EventBus.actor_moved.connect(moved_cb)
-
-	# Step using TileSet.CELL_NEIGHBOR_BOTTOM_SIDE (south for our flat-top
-	# vertical-offset hex grid, see hex_terrain.tres).
-	grid.step_actor(PLAYER_ID, TileSet.CELL_NEIGHBOR_BOTTOM_SIDE)
-
-	# Poll for signal or timeout.
-	var elapsed: float = 0.0
-	var step: float = 0.05
-	while elapsed < MOVE_TIMEOUT_SEC and not fired:
-		await get_tree().create_timer(step).timeout
-		elapsed += step
-	if EventBus.is_connected(&"actor_moved", moved_cb):
-		EventBus.disconnect(&"actor_moved", moved_cb)
-	if not fired:
-		GameLogger.warn("IntroDirector", "actor_moved (player) timeout after %.1fs — south step blocked?" % MOVE_TIMEOUT_SEC)
-
-
-func _await_cutscene_finished() -> bool:
-	# CutscenePlayer.cutscene_finished is the signal emitted by the autoload
-	# itself (not via EventBus). Returns false on timeout.
-	return await _await_signal_with_timeout(CutscenePlayer, &"cutscene_finished", CUTSCENE_TIMEOUT_SEC)
-
 
 func _await_signal_with_timeout(target: Object, signal_name: StringName, timeout: float) -> bool:
 	var fired: bool = false

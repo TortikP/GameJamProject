@@ -3,33 +3,40 @@ extends Node
 ##
 ## Listens for `EventBus.campaign_cutscene_requested(cutscene_id, on_done)`,
 ## opens a fullscreen overlay (CanvasLayer 30) and runs a multi-frame slideshow
-## with scale + cross-fade between frames, then calls `on_done` and emits
-## `cutscene_finished(cutscene_id)`.
+## with scale + cross-fade between frames.
 ##
-## Designed for the office_intro flow (see specs/045) but data-driven via
-## `data/cutscenes/<id>.json`. JSON schema:
+## Two-phase design: animation finishes -> emit `cutscene_finished` and fire
+## `on_done` immediately so CampaignController's 4-sec timeout doesn't snip
+## the flow. The overlay STAYS up holding the last frame until `dismiss()`
+## is explicitly called by IntroDirector (after dialogue completes). This
+## hides the live hex level (which is a stub) for the entire intro.
+##
+## NB: we do NOT pause the tree. DialogueManager/DialoguePanel default to
+## process_mode=INHERIT and would stall during pause, leaving the player
+## unable to advance dialogue lines. Instead, `is_intro` early-returns in
+## godmode_input/camera block all gameplay input, and the overlay's
+## mouse_filter=STOP root absorbs stray clicks.
+##
+## JSON schema (`data/cutscenes/<id>.json`):
 ##   {
 ##     "id": "<id>",
 ##     "frames": [
 ##       {
-##         "image":               "res://...",
-##         "scale_from":          float,            # default 1.0
-##         "scale_to":            float,            # default 1.0
-##         "duration":            float,            # default 1.0 — animation time
-##         "fade_in_sec":         float,            # default 0.0
-##         "cross_fade_to_next_sec": float,         # default 0.0 — overlap with next frame
-##         "fade_out_sec":        float             # default 0.0 — only on last frame
-##       },
-##       ...
+##         "image":            "res://...",
+##         "scale_from":       float,    # default 1.0
+##         "scale_to":         float,    # default 1.0
+##         "duration":         float,    # default 1.0 — animation time
+##         "fade_in_sec":      float,    # default 0.0
+##         "cross_fade_to_next_sec": float,  # default 0.0
+##         "pivot":            [x, y],   # default [0.5, 0.5] — relative to image
+##         "fade_out_sec":     float     # default 0.0 — only on last frame if no hold
+##       }, ...
 ##     ]
 ##   }
 ##
-## Skip via Space / Enter / mouse click — interrupts running tweens, frees
-## overlay, fires `on_done`. Once `on_done` has fired (timeout or normal),
-## subsequent skip events are ignored.
-##
-## During play, `get_tree().paused = true`. Overlay nodes use
-## `PROCESS_MODE_ALWAYS` so tweens continue.
+## Skip via Space/Enter/Mouse — interrupts the frame loop, jumps to held last
+## frame. Skipping doesn't call dismiss() — IntroDirector still controls when
+## the overlay actually tears down.
 ##
 ## Owner: Andrey / 045-intro-cutscene.
 
@@ -38,12 +45,15 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const CUTSCENES_DIR: String = "res://data/cutscenes/"
 const OVERLAY_SCENE: String = "res://scenes/meta/cutscene_player.tscn"
 
-signal cutscene_finished(cutscene_id: StringName)
+signal cutscene_finished(cutscene_id: StringName)   # frames done; overlay still up
+signal cutscene_dismissed(cutscene_id: StringName)  # overlay torn down
 
 var _active: bool = false
+var _frames_done: bool = false
 var _skip_requested: bool = false
 var _current_id: StringName = &""
 var _overlay: CanvasLayer = null
+var _last_frame_rect: TextureRect = null
 
 
 func _ready() -> void:
@@ -59,140 +69,177 @@ func is_playing() -> bool:
 # ── Entry ─────────────────────────────────────────────────────────────────────
 
 func _on_cutscene_requested(cutscene_id: StringName, on_done: Callable) -> void:
+	GameLogger.info("CutscenePlayer", "cutscene_requested '%s'" % cutscene_id)
 	if _active:
-		GameLogger.warn("CutscenePlayer", "already playing — ignoring request '%s'" % cutscene_id)
-		# Still must fire callback so CampaignController doesn't hang.
+		GameLogger.warn("CutscenePlayer", "already playing — ignoring '%s'" % cutscene_id)
 		on_done.call()
 		cutscene_finished.emit(cutscene_id)
+		cutscene_dismissed.emit(cutscene_id)
 		return
 
 	var data: Dictionary = _load_cutscene(cutscene_id)
-	if data.is_empty():
-		# warn-once already logged in _load_cutscene
+	var frames: Array = (data.get("frames", []) as Array) if not data.is_empty() else []
+	if frames.is_empty():
+		GameLogger.warn("CutscenePlayer", "no frames for '%s' — firing on_done immediately" % cutscene_id)
 		on_done.call()
 		cutscene_finished.emit(cutscene_id)
+		cutscene_dismissed.emit(cutscene_id)
 		return
 
 	_active = true
+	_frames_done = false
 	_current_id = cutscene_id
 	_skip_requested = false
-	GameLogger.info("CutscenePlayer", "play '%s' — %d frames" % [cutscene_id, (data.get("frames", []) as Array).size()])
+	GameLogger.info("CutscenePlayer", "playing '%s' — %d frames" % [cutscene_id, frames.size()])
 
-	get_tree().paused = true
+	# NOTE: we used to set get_tree().paused = true here. Removed — DialogueManager
+	# and its panel default to PROCESS_MODE_INHERIT, so they'd stall during pause
+	# and the player couldn't advance dialogue lines on top of the held overlay.
+	# is_intro locks (godmode_input/camera early-returns) already prevent all
+	# gameplay input. WaveController has 0 enemies on intro level — nothing to
+	# tick. Overlay is_input mouse_filter=STOP catches stray clicks.
 
-	_overlay = (load(OVERLAY_SCENE) as PackedScene).instantiate() as CanvasLayer
+	# Spawn overlay parented to current_scene so a quit-to-menu mid-cutscene
+	# frees it cleanly. CanvasLayer renders globally regardless of parent.
+	var packed := load(OVERLAY_SCENE) as PackedScene
+	if packed == null:
+		GameLogger.error("CutscenePlayer", "failed to load overlay scene: %s" % OVERLAY_SCENE)
+		_active = false
+		on_done.call()
+		cutscene_finished.emit(cutscene_id)
+		cutscene_dismissed.emit(cutscene_id)
+		return
+	_overlay = packed.instantiate() as CanvasLayer
 	_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
-	# Parent to current_scene (not root) so a scene-change during cutscene
-	# (e.g. ESC -> Quit to menu) frees the overlay along with the level.
-	# CanvasLayer renders globally regardless of its parent's transform, so
-	# z-order (layer=30) is preserved.
 	var host: Node = get_tree().current_scene
 	if host == null:
 		host = get_tree().root
 	host.add_child(_overlay)
+	GameLogger.info("CutscenePlayer", "overlay spawned in %s" % host.name)
 
-	await _play_frames(data.get("frames", []) as Array)
+	await _play_frames(frames)
+	_frames_done = true
 
+	# Phase 1 complete: notify listeners so they can play dialogue / next steps.
+	# Overlay stays up holding the last frame; dismiss() ends it.
+	GameLogger.info("CutscenePlayer", "frames done '%s' — overlay held, awaiting dismiss()" % cutscene_id)
+	on_done.call()
+	cutscene_finished.emit(cutscene_id)
+
+
+# Public: tear down overlay with optional fade. Safe to call at any point.
+func dismiss(fade_sec: float = 0.4) -> void:
+	if not _active:
+		return
+	GameLogger.info("CutscenePlayer", "dismiss '%s' (fade=%.2fs)" % [_current_id, fade_sec])
+	if is_instance_valid(_overlay) and fade_sec > 0.0:
+		var root: Control = _overlay.get_node_or_null("Root") as Control
+		if root != null:
+			var tw := create_tween()
+			tw.tween_property(root, "modulate:a", 0.0, fade_sec)
+			await tw.finished
 	if is_instance_valid(_overlay):
 		_overlay.queue_free()
 	_overlay = null
-	get_tree().paused = false
+	_last_frame_rect = null
+	var id: StringName = _current_id
 	_active = false
-
-	on_done.call()
-	cutscene_finished.emit(cutscene_id)
-	GameLogger.info("CutscenePlayer", "done '%s'" % cutscene_id)
+	_frames_done = false
 	_current_id = &""
+	cutscene_dismissed.emit(id)
+	GameLogger.info("CutscenePlayer", "dismissed '%s'" % id)
 
 
 # ── Animation ─────────────────────────────────────────────────────────────────
 
 func _play_frames(frames: Array) -> void:
-	if frames.is_empty():
-		return
 	var root: Control = _overlay.get_node("Root") as Control
 	var f1: TextureRect = root.get_node("Frame1") as TextureRect
 	var f2: TextureRect = root.get_node("Frame2") as TextureRect
-	# Pivot at center of each TextureRect for scale-from-center.
-	# anchors_preset=15 fills parent → size set after first layout pass.
+	# Wait one frame so anchors apply and size is non-zero before computing pivot.
 	await get_tree().process_frame
 	f1.pivot_offset = f1.size * 0.5
 	f2.pivot_offset = f2.size * 0.5
 
-	# Two-buffer ping-pong: even frames go to f1, odd to f2.
-	# Cross-fade overlaps current frame's tail with next frame's head.
 	var slots: Array = [f1, f2]
 
 	for i in range(frames.size()):
 		if _skip_requested:
+			# Make last frame visible, hold; skip the rest
+			_set_frame_image(slots[i % 2], String((frames[i] as Dictionary).get("image", "")))
+			slots[i % 2].modulate.a = 1.0
+			slots[i % 2].scale = Vector2.ONE
+			_last_frame_rect = slots[i % 2]
 			return
 		var frame: Dictionary = frames[i] as Dictionary
 		var current: TextureRect = slots[i % 2]
-		var next: TextureRect = slots[(i + 1) % 2]
+		var nxt: TextureRect = slots[(i + 1) % 2]
 
 		_set_frame_image(current, String(frame.get("image", "")))
+		_apply_pivot(current, frame)
 
 		var scale_from: float = float(frame.get("scale_from", 1.0))
 		var scale_to: float = float(frame.get("scale_to", 1.0))
 		var duration: float = max(0.05, float(frame.get("duration", 1.0)))
 		var fade_in: float = max(0.0, float(frame.get("fade_in_sec", 0.0)))
 		var cross_to_next: float = max(0.0, float(frame.get("cross_fade_to_next_sec", 0.0)))
-		var fade_out: float = max(0.0, float(frame.get("fade_out_sec", 0.0)))
 
 		current.scale = Vector2(scale_from, scale_from)
+		current.modulate.a = 0.0 if fade_in > 0.0 else 1.0
 
-		# Fade in (or instant pop if fade_in == 0).
-		var tw_in := create_tween()
-		tw_in.tween_property(current, "modulate:a", 1.0, fade_in if fade_in > 0.0 else 0.001)
-		# Scale animation runs across full duration.
+		if fade_in > 0.0:
+			var tw_in := create_tween()
+			tw_in.tween_property(current, "modulate:a", 1.0, fade_in)
+
 		var tw_scale := create_tween()
 		tw_scale.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw_scale.tween_property(current, "scale", Vector2(scale_to, scale_to), duration)
 
-		# Schedule cross-fade out for this frame, timed so it OVERLAPS with the next
-		# frame's fade-in. cross_to_next is applied if there's a next frame, else
-		# fade_out kicks in (handled below).
 		var has_next: bool = i + 1 < frames.size()
 		if has_next and cross_to_next > 0.0:
-			# Wait until duration - cross_to_next, then start fading current out
-			# and the next frame in. Both happen in parallel.
 			var hold: float = max(0.0, duration - cross_to_next)
 			var ok: bool = await _await_or_skip(hold)
-			if not ok: return
-			# Prepare next frame
+			if not ok:
+				_last_frame_rect = current
+				return
 			var next_frame: Dictionary = frames[i + 1] as Dictionary
-			_set_frame_image(next, String(next_frame.get("image", "")))
+			_set_frame_image(nxt, String(next_frame.get("image", "")))
+			_apply_pivot(nxt, next_frame)
 			var next_scale_from: float = float(next_frame.get("scale_from", 1.0))
-			next.scale = Vector2(next_scale_from, next_scale_from)
-			next.modulate.a = 0.0
+			nxt.scale = Vector2(next_scale_from, next_scale_from)
+			nxt.modulate.a = 0.0
 			var tw_cross_out := create_tween()
 			tw_cross_out.tween_property(current, "modulate:a", 0.0, cross_to_next)
 			var tw_cross_in := create_tween()
-			tw_cross_in.tween_property(next, "modulate:a", 1.0, cross_to_next)
+			tw_cross_in.tween_property(nxt, "modulate:a", 1.0, cross_to_next)
 			ok = await _await_or_skip(cross_to_next)
-			if not ok: return
+			if not ok:
+				_last_frame_rect = nxt
+				return
 		else:
-			# Final frame (or no cross-fade): play full duration, then fade out if requested.
+			# Final frame — play full duration, leave visible (overlay stays for dialog).
 			var ok: bool = await _await_or_skip(duration)
-			if not ok: return
-			if fade_out > 0.0:
-				var tw_out := create_tween()
-				tw_out.tween_property(current, "modulate:a", 0.0, fade_out)
-				ok = await _await_or_skip(fade_out)
-				if not ok: return
+			_last_frame_rect = current
+			if not ok:
+				return
 
 
-# Returns false if skip was requested during the wait. Tweens continue independently
-# until overlay is freed; that's fine because the overlay teardown happens in caller.
+func _apply_pivot(rect: TextureRect, frame: Dictionary) -> void:
+	var pivot_arr: Array = frame.get("pivot", [0.5, 0.5]) as Array
+	var px: float = float(pivot_arr[0]) if pivot_arr.size() > 0 else 0.5
+	var py: float = float(pivot_arr[1]) if pivot_arr.size() > 1 else 0.5
+	rect.pivot_offset = Vector2(rect.size.x * px, rect.size.y * py)
+
+
 func _await_or_skip(seconds: float) -> bool:
 	if seconds <= 0.0:
 		return not _skip_requested
 	var elapsed: float = 0.0
-	var step: float = 0.016
+	var step: float = 0.033  # ~30Hz polling, enough for skip responsiveness
 	while elapsed < seconds:
 		if _skip_requested:
 			return false
-		await get_tree().create_timer(step, true, false, true).timeout  # ignore_time_scale ok; process_in_physics false
+		await get_tree().create_timer(step, true, false, true).timeout
 		elapsed += step
 	return not _skip_requested
 
@@ -203,16 +250,17 @@ func _set_frame_image(rect: TextureRect, path: String) -> void:
 		return
 	var tex := load(path) as Texture2D
 	if tex == null:
-		GameLogger.warn("CutscenePlayer", "missing texture: %s" % path)
+		GameLogger.warn("CutscenePlayer", "load() returned null for: %s (.import not generated yet?)" % path)
 		rect.texture = null
 		return
 	rect.texture = tex
+	GameLogger.info("CutscenePlayer", "frame texture loaded: %s" % path)
 
 
 # ── Skip input ────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not _active:
+	if not _active or _frames_done:
 		return
 	var consume: bool = false
 	if event is InputEventKey and (event as InputEventKey).pressed:
@@ -235,10 +283,11 @@ func _load_cutscene(id: StringName) -> Dictionary:
 		return {}
 	var text: String = FileAccess.get_file_as_string(path)
 	if text == "":
-		GameLogger.warn("CutscenePlayer", "cutscene file empty/unreadable: %s" % path)
+		GameLogger.warn("CutscenePlayer", "cutscene file empty: %s" % path)
 		return {}
 	var parsed: Variant = JSON.parse_string(text)
 	if not (parsed is Dictionary):
 		GameLogger.warn("CutscenePlayer", "cutscene root not Dictionary: %s" % path)
 		return {}
+	GameLogger.info("CutscenePlayer", "loaded cutscene '%s' from %s" % [id, path])
 	return parsed as Dictionary
