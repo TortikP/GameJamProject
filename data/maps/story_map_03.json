@@ -656,7 +656,7 @@
 					"timer": 1
 				}
 			],
-			"turns_to_next": 7
+			"turns_to_next": 14
 		},
 		{
 			"floor": [
@@ -1234,7 +1234,7 @@
 					"timer": 1
 				}
 			],
-			"turns_to_next": 7
+			"turns_to_next": 14
 		},
 		{
 			"floor": [

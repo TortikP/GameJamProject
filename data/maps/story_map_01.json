@@ -1160,7 +1160,7 @@
 					"timer": 1
 				}
 			],
-			"turns_to_next": 5
+			"turns_to_next": 10
 		},
 		{
 			"floor": [
@@ -2250,7 +2250,7 @@
 					"timer": 1
 				}
 			],
-			"turns_to_next": 6
+			"turns_to_next": 12
 		},
 		{
 			"floor": [
@@ -3358,7 +3358,7 @@
 					"timer": 1
 				}
 			],
-			"turns_to_next": 5
+			"turns_to_next": 10
 		},
 		{
 			"floor": [
