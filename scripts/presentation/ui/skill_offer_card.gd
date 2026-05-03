@@ -19,6 +19,10 @@ extends PanelContainer
 
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+# 049 / T005: shared icon resolution helper. Inline copy was duplicated
+# across SkillOfferCard, TelegraphHex, EnemyDetailsPanel, HexTooltip — hoisted
+# into a single static helper to keep behaviour identical everywhere.
+const SkillIconResolver = preload("res://scripts/presentation/skill_icon_resolver.gd")
 
 const CARD_MIN_SIZE: Vector2 = Vector2(200, 280)
 
@@ -143,30 +147,14 @@ func _apply_data_to_children() -> void:
 	# Icon — Skill.icon is a StringName id; treat as path hint when it
 	# starts with "icons/" or "res:". No real IconDB yet; placeholder when
 	# we can't resolve. Don't crash on missing.
-	_icon_rect.texture = _resolve_icon(skill)
+	_icon_rect.texture = SkillIconResolver.resolve(skill)
 
 
+# 049 / T005: _resolve_icon body moved to SkillIconResolver.resolve(). Method
+# kept as a thin shim so external callers (if any — grep finds none in repo)
+# don't break. Safe to remove in a follow-up cleanup.
 func _resolve_icon(skill) -> Texture2D:
-	if skill == null or not "icon" in skill:
-		return null
-	var icon_str: String = String(skill.icon)
-	if icon_str == "":
-		return null
-	# Common patterns from data/skills/*.json: "icons/skills/foo.png"
-	# (relative) or full res:// path. Try both.
-	var candidates: Array[String] = [
-		icon_str if icon_str.begins_with("res://") else "",
-		"res://assets/" + icon_str,
-		"res://" + icon_str,
-	]
-	for path in candidates:
-		if path == "":
-			continue
-		if ResourceLoader.exists(path):
-			var tex = load(path)
-			if tex is Texture2D:
-				return tex
-	return null
+	return SkillIconResolver.resolve(skill)
 
 
 # ── Hover / click feedback ─────────────────────────────────────────────────

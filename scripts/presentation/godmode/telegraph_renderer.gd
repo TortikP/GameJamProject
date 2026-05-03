@@ -107,8 +107,12 @@ func refresh() -> void:
 						# Sum damage only when both are damage-class with same tag; else keep first.
 						if prev.tag == tag and (tag == &"damage" or tag == &""):
 							prev.damage += dmg
+						# 049 / AC-5: keep the first attacker's skill ref for the
+						# icon. Aggregating multiple skills into one hex is rare
+						# and the visual answer of "show the dominant icon" is
+						# fine — first-write-wins matches existing tag aggregation.
 					else:
-						by_coord[coord] = {"tag": tag, "damage": dmg}
+						by_coord[coord] = {"tag": tag, "damage": dmg, "skill": skill}
 					# 029 / req-6: collect AoE-affected hexes for this intent.
 					# Skill.area lives on each Ability; iterate them and ask for
 					# the affected tiles given caster + target. Area can be null
@@ -150,6 +154,10 @@ func refresh() -> void:
 		var entry: Dictionary = by_coord[coord]
 		hex.set("semantic_tag", entry.tag)
 		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
+		# 049 / AC-5: skill ref drives icon (texture or letter fallback) at hex
+		# center. Null skill (legacy / non-skill telegraph) → TelegraphHex skips
+		# icon draw cleanly.
+		hex.set("icon_skill", entry.get("skill", null))
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
 

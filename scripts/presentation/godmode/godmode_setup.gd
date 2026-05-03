@@ -119,7 +119,11 @@ func run() -> void:
 	# show_range_for_ability / show_self_confirm / hide_range from any handler.
 	_ctrl.cast_overlay = _ctrl.grid.get_node_or_null("CastRangeOverlay")
 	if _ctrl.cast_overlay != null and _ctrl.cast_overlay.has_method("setup"):
-		_ctrl.cast_overlay.setup(_ctrl.grid)
+		# 049 / T009: registry is the second arg now — needed for AC-6
+		# valid/invalid hex classification (overlay calls target.resolve which
+		# reads ctx.registry). Backward-compatible: setup() default-args to
+		# null on registry so older scenes won't 500.
+		_ctrl.cast_overlay.setup(_ctrl.grid, _ctrl.registry)
 	if _ctrl.inspector != null and _ctrl.inspector.has_signal("speed_changed"):
 		_ctrl.inspector.speed_changed.connect(_ctrl._on_inspector_speed_changed)
 	if campaign_mode:
