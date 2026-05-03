@@ -495,6 +495,8 @@
   "ui_top_hud_wave": "Волна %d",
   "ui_top_hud_wave_total": "Волна %d/%d",
   "ui_wave_panel_make_special": "Сделать особой",
+  "ui_wave_panel_collapse": "Свернуть",
+  "ui_wave_panel_expand": "Развернуть",
   "ui_wave_panel_special_on": "Особая (вкл.)",
   "ui_wave_panel_status": "Волна %d из %d%s",
   "ui_wave_timeline_add_wave": "Добавить волну",
