@@ -102,6 +102,11 @@ signal ui_theme_reloaded
 signal ui_toast_requested(text: String, duration_sec: float, level: StringName)  # level ∈ info/success/warn/error
 signal ui_modal_opened(id: StringName)
 signal ui_modal_closed(id: StringName)
+# HUD HELP button (top-right) → HelpDropdown listens & toggles. Sibling
+# of the centered KeybindOverlay (`?` keybind), shares the same _BINDS
+# data; this one drops down under the HELP button so clicks elsewhere
+# stay unblocked.
+signal help_dropdown_toggle_requested
 
 # Game flow (used by main menu, pause)
 signal main_menu_entered
