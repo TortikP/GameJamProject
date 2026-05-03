@@ -100,3 +100,46 @@ set; covers both cascade and direct-read paths.
 `BAR_FONT_SIZE_OVERHEAD` bumped 18 → 22. Pixel fonts have thinner strokes
 than OpenSans on the same px size; on busy backgrounds (grass, fire) the
 original 18 washed out. Per Visibility doctrine — bump size, never font.
+
+### Palette: amber CRT → Win98-teal
+
+User direction: "цвет как в старой винде 98", with explicit "читаемость
+очень важна — найди компромисс". Pure Win98 teal `#008080` everywhere
+would camouflage SEM_HEAL green / TEAM_PLAYER blue / HP_FILL green into
+the UI surround → pillar-1 violation. Compromise:
+
+- **Surfaces** tinted dark teal instead of warm near-black: `BG_SCREEN
+  #001a1d`, `BG_PANEL #002830`, `BG_PANEL_2 #003a44`, `BG_ELEVATED
+  #004d59`. Still dark enough that semantic colors pop.
+- **Borders** use the iconic Win98 desktop teal `#008080` and a brighter
+  `#00c8c8` for modals. This is where the "Win98 vibe" most lives.
+- **Text** swaps from amber `#f5b943` to cool off-white `#d8f0f0`.
+  TEXT_DIM/FAINT recoloured to teal-greys.
+- **FOCUS** moves from amber gold `#ffce5e` to bright cyan `#00ffff` —
+  Win98-selection energy. `FOCUS_ACTIVE_CASTABLE` formula adapted: was
+  "amber → gold via ×1.3/×0.5", now "cyan → white-cyan via +0.3 on r"
+  (preserves intent: brighten the active state without hue-shifting).
+  `FOCUS_ACTIVE_DISABLED` is just FOCUS dimmed ×0.6 (cyan has nowhere
+  to desaturate without going gray).
+- **Semantic** colors retuned for distinguishability against teal:
+  damage/heal/buff/debuff stay clearly red/green/blue/orange. SEM_HEAL
+  pushed to `#60c080` (greener, less yellow) to separate from teal hue
+  family. SEM_BUFF pushed to `#6090f0` (more blue, less cyan) for the
+  same reason.
+- **Team** colors: TEAM_PLAYER blue `#6090f0` is clearly more saturated
+  than UI teal — player vs neutral teal panel reads unambiguously.
+- **HP bar** stays green/orange/red. Teal HP would camouflage; pillar 1.
+- **WaveTimeline**: anchors retinted (`WAVE_ANCHOR_FILL` cool white-cyan,
+  `WAVE_ANCHOR_PASSED` Win98 teal, `WAVE_ANCHOR_CURRENT` bright cyan).
+- **SKILL_OFFER_MARKER** was teal `#40b8a8` — would now camouflage into
+  UI teal. Switched to magenta-pink `#e060c0`. Distinct from violet
+  trigger markers, distinct from FOCUS cyan, distinct from teal panels.
+
+What was deliberately NOT done:
+- No Win98 bevel borders (white-top-left + dark-bottom-right). StyleBoxFlat
+  has uniform border_color only; per-side coloring needs custom `_draw()`
+  or 4 StyleBoxLines. Out of scope.
+- No grey panels (Win98-control-grey on Win98-desktop-teal). Light UI on
+  dark game world would be visually dominant — reads as "Office app
+  loaded over a game" not "stylish retro". Dark-teal-tinted UI keeps
+  the world primary.
