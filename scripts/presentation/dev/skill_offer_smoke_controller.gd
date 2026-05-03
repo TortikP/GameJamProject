@@ -197,6 +197,10 @@ func _on_btn_validation() -> void:
 			"allow_upgrade": "yes",  # WARN (not bool)
 		},
 	}]
+	# validate() first runs _sync_root_to_active_wave() which copies root
+	# fields (default empty) into waves[0] and would wipe the spawner we
+	# just set. Pull waves[0] into root first so the round-trip is a no-op.
+	lvl.sync_active_wave_to_root()
 	var errs: Array[String] = lvl.validate()
 	_log("scenario 8: validation — got %d errors:" % errs.size())
 	for e in errs:
