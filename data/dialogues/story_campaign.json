@@ -4,8 +4,14 @@
     "trigger": "story_intro",
     "mode": "sequence",
     "lines": [
-      { "def": "story_intro_opening_text", "speaker": "narrator" },
-      { "def": "story_intro_heroine_text", "speaker": "heroine" }
+      {
+        "def": "story_intro_opening_text",
+        "speaker": "narrator"
+      },
+      {
+        "def": "story_intro_heroine_text",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -13,9 +19,18 @@
     "trigger": "story_forest_arrive",
     "mode": "random",
     "options": [
-      { "def": "forest_enter_heroine_text_01", "speaker": "heroine" },
-      { "def": "forest_enter_heroine_text_02", "speaker": "heroine" },
-      { "def": "forest_enter_heroine_text_03", "speaker": "heroine" }
+      {
+        "def": "forest_enter_heroine_text_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "forest_enter_heroine_text_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "forest_enter_heroine_text_03",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -23,18 +38,46 @@
     "trigger": "story_forest_wave_first",
     "mode": "random_sequence",
     "options": [
-      { "lines": [
-        { "def": "forest_first_wave_intro01_text_01", "speaker": "narrator" },
-        { "def": "forest_first_wave_heroine_intro01_text_01", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "forest_first_wave_intro02_text_01", "speaker": "narrator" },
-        { "def": "forest_first_wave_heroine_intro02_text_01", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "forest_first_wave_intro03_text_01", "speaker": "narrator" },
-        { "def": "forest_first_wave_heroine_intro03_text_01", "speaker": "heroine" }
-      ] }
+      {
+        "lines": [
+          {
+            "def": "forest_first_wave_intro01_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_first_wave_heroine_intro01_text_01",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "forest_first_wave_intro02_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_first_wave_heroine_intro02_text_01",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "forest_first_wave_intro03_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_first_wave_heroine_intro03_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_first_wave_heroine_intro03_text_02",
+            "speaker": "heroine"
+          }
+        ]
+      }
     ]
   },
   {
@@ -42,9 +85,18 @@
     "trigger": "story_forest_wave_last",
     "mode": "random",
     "options": [
-      { "def": "forest_last_wave_heroine_text_01", "speaker": "heroine" },
-      { "def": "forest_last_wave_heroine_text_02", "speaker": "heroine" },
-      { "def": "forest_last_wave_heroine_text_03", "speaker": "heroine" }
+      {
+        "def": "forest_last_wave_heroine_text_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "forest_last_wave_heroine_text_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "forest_last_wave_heroine_text_03",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -52,9 +104,14 @@
     "trigger": "story_forest_clear",
     "mode": "sequence",
     "lines": [
-      { "def": "forest_last_wave_victory_text_01", "speaker": "narrator" },
-      { "def": "forest_last_wave_victory_text_02", "speaker": "narrator" },
-      { "def": "forest_last_wave_victory_text_03", "speaker": "narrator" }
+      {
+        "def": "forest_last_wave_victory_text_01",
+        "speaker": "narrator"
+      },
+      {
+        "def": "forest_last_wave_victory_text_02",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -62,8 +119,14 @@
     "trigger": "story_heaven_arrive",
     "mode": "sequence",
     "lines": [
-      { "def": "heaven_enter_text", "speaker": "narrator" },
-      { "def": "heaven_enter_heroine_text", "speaker": "heroine" }
+      {
+        "def": "heaven_enter_text",
+        "speaker": "narrator"
+      },
+      {
+        "def": "heaven_enter_heroine_text",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -71,8 +134,14 @@
     "trigger": "story_heaven_wave_first",
     "mode": "sequence",
     "lines": [
-      { "def": "heaven_first_wave_intro_text", "speaker": "narrator" },
-      { "def": "heaven_first_wave_heroine_text", "speaker": "heroine" }
+      {
+        "def": "heaven_first_wave_intro_text",
+        "speaker": "narrator"
+      },
+      {
+        "def": "heaven_first_wave_heroine_text",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -80,9 +149,18 @@
     "trigger": "story_heaven_wave_last",
     "mode": "random",
     "options": [
-      { "def": "heaven_last_wave_heroine_text_01", "speaker": "heroine" },
-      { "def": "heaven_last_wave_heroine_text_02", "speaker": "heroine" },
-      { "def": "heaven_last_wave_heroine_text_03", "speaker": "heroine" }
+      {
+        "def": "heaven_last_wave_heroine_text_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "heaven_last_wave_heroine_text_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "heaven_last_wave_heroine_text_03",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -90,9 +168,18 @@
     "trigger": "story_heaven_clear",
     "mode": "random",
     "options": [
-      { "def": "heaven_last_wave_victory_text_01", "speaker": "narrator" },
-      { "def": "heaven_last_wave_victory_text_02", "speaker": "narrator" },
-      { "def": "heaven_last_wave_victory_text_03", "speaker": "narrator" }
+      {
+        "def": "heaven_last_wave_victory_text_01",
+        "speaker": "narrator"
+      },
+      {
+        "def": "heaven_last_wave_victory_text_02",
+        "speaker": "narrator"
+      },
+      {
+        "def": "heaven_last_wave_victory_text_03",
+        "speaker": "narrator"
+      }
     ]
   },
   {
@@ -100,18 +187,42 @@
     "trigger": "story_fire_world_arrive",
     "mode": "random_sequence",
     "options": [
-      { "lines": [
-        { "def": "fire_world_enter_text_01", "speaker": "narrator" },
-        { "def": "fire_world_enter_heroine_text_01", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_enter_text_02", "speaker": "narrator" },
-        { "def": "fire_world_enter_heroine_text_02", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_enter_text_03", "speaker": "narrator" },
-        { "def": "fire_world_enter_heroine_text_03", "speaker": "heroine" }
-      ] }
+      {
+        "lines": [
+          {
+            "def": "fire_world_enter_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_enter_heroine_text_01",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_enter_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_enter_heroine_text_02",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_enter_text_03",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_enter_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      }
     ]
   },
   {
@@ -119,18 +230,42 @@
     "trigger": "story_fire_world_wave_first",
     "mode": "random_sequence",
     "options": [
-      { "lines": [
-        { "def": "fire_world_first_wave_intro_text_01", "speaker": "narrator" },
-        { "def": "fire_world_first_wave_heroine_text_01", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_first_wave_intro_text_02", "speaker": "narrator" },
-        { "def": "fire_world_first_wave_heroine_text_02", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_first_wave_intro_text_03", "speaker": "narrator" },
-        { "def": "fire_world_first_wave_heroine_text_03", "speaker": "heroine" }
-      ] }
+      {
+        "lines": [
+          {
+            "def": "fire_world_first_wave_intro_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_first_wave_heroine_text_01",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_first_wave_intro_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_first_wave_heroine_text_02",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_first_wave_intro_text_03",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_first_wave_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      }
     ]
   },
   {
@@ -138,18 +273,42 @@
     "trigger": "story_fire_world_wave_last",
     "mode": "random_sequence",
     "options": [
-      { "lines": [
-        { "def": "fire_world_last_wave_intro_text_01", "speaker": "narrator" },
-        { "def": "fire_world_last_wave_heroine_text_01", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_last_wave_intro_text_02", "speaker": "narrator" },
-        { "def": "fire_world_last_wave_heroine_text_02", "speaker": "heroine" }
-      ] },
-      { "lines": [
-        { "def": "fire_world_last_wave_intro_text_03", "speaker": "narrator" },
-        { "def": "fire_world_last_wave_heroine_text_03", "speaker": "heroine" }
-      ] }
+      {
+        "lines": [
+          {
+            "def": "fire_world_last_wave_intro_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_heroine_text_01",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_last_wave_intro_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_heroine_text_02",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      {
+        "lines": [
+          {
+            "def": "fire_world_last_wave_intro_text_03",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      }
     ]
   },
   {
@@ -157,9 +316,18 @@
     "trigger": "story_fire_world_clear",
     "mode": "random",
     "options": [
-      { "def": "fire_world_last_wave_victory_text_01", "speaker": "narrator" },
-      { "def": "fire_world_last_wave_victory_text_02", "speaker": "narrator" },
-      { "def": "fire_world_last_wave_victory_text_03", "speaker": "narrator" }
+      {
+        "def": "fire_world_last_wave_victory_text_01",
+        "speaker": "narrator"
+      },
+      {
+        "def": "fire_world_last_wave_victory_text_02",
+        "speaker": "narrator"
+      },
+      {
+        "def": "fire_world_last_wave_victory_text_03",
+        "speaker": "narrator"
+      }
     ]
   },
   {
@@ -167,8 +335,14 @@
     "trigger": "story_office_final_arrive",
     "mode": "sequence",
     "lines": [
-      { "def": "office_final_enter", "speaker": "narrator" },
-      { "def": "office_final_enter_heroine", "speaker": "heroine" }
+      {
+        "def": "office_final_enter",
+        "speaker": "narrator"
+      },
+      {
+        "def": "office_final_enter_heroine",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -176,9 +350,18 @@
     "trigger": "story_office_final_pre_boss",
     "mode": "random",
     "options": [
-      { "def": "office_final_pre_boss_text_01", "speaker": "heroine" },
-      { "def": "office_final_pre_boss_text_02", "speaker": "heroine" },
-      { "def": "office_final_pre_boss_text_03", "speaker": "heroine" }
+      {
+        "def": "office_final_pre_boss_text_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "office_final_pre_boss_text_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "office_final_pre_boss_text_03",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -186,9 +369,22 @@
     "trigger": "story_boss_victory",
     "mode": "random",
     "options": [
-      { "def": "boss_victory_heroine_final_text_01", "speaker": "heroine" },
-      { "def": "boss_victory_heroine_final_text_02", "speaker": "heroine" },
-      { "def": "boss_victory_heroine_final_text_03", "speaker": "heroine" }
+      {
+        "def": "boss_victory_heroine_final_text_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "boss_victory_heroine_final_text_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "boss_victory_heroine_final_text_03",
+        "speaker": "heroine"
+      },
+      {
+        "def": "boss_victory_heroine_final_text_04",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -196,9 +392,18 @@
     "trigger": "story_wave_clear_nonfinal",
     "mode": "random",
     "options": [
-      { "def": "common_wave_victory_none_01", "speaker": "heroine" },
-      { "def": "common_wave_victory_none_02", "speaker": "heroine" },
-      { "def": "common_wave_victory_none_03", "speaker": "heroine" }
+      {
+        "def": "common_wave_victory_none_01",
+        "speaker": "heroine"
+      },
+      {
+        "def": "common_wave_victory_none_02",
+        "speaker": "heroine"
+      },
+      {
+        "def": "common_wave_victory_none_03",
+        "speaker": "heroine"
+      }
     ]
   },
   {
@@ -206,15 +411,42 @@
     "trigger": "story_defeat_normal",
     "mode": "random",
     "options": [
-      { "def": "common_defeat_normal_none_01", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_02", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_03", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_04", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_05", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_06", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_07", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_08", "speaker": "narrator" },
-      { "def": "common_defeat_normal_none_09", "speaker": "narrator" }
+      {
+        "def": "common_defeat_normal_none_01",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_02",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_03",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_04",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_05",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_06",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_07",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_08",
+        "speaker": "narrator"
+      },
+      {
+        "def": "common_defeat_normal_none_09",
+        "speaker": "narrator"
+      }
     ]
   },
   {
@@ -222,10 +454,22 @@
     "trigger": "ending_self_lavender_raf",
     "mode": "sequence",
     "lines": [
-      { "def": "ending_self_lavender_raf_opening_text", "speaker": "narrator" },
-      { "def": "ending_self_lavender_raf_heroine_text", "speaker": "heroine" },
-      { "def": "ending_self_lavender_raf_monologue", "speaker": "heroine" },
-      { "def": "ending_self_lavender_raf_final_text", "speaker": "narrator" }
+      {
+        "def": "ending_self_lavender_raf_opening_text",
+        "speaker": "narrator"
+      },
+      {
+        "def": "ending_self_lavender_raf_heroine_text",
+        "speaker": "heroine"
+      },
+      {
+        "def": "ending_self_lavender_raf_monologue",
+        "speaker": "heroine"
+      },
+      {
+        "def": "ending_self_lavender_raf_final_text",
+        "speaker": "narrator"
+      }
     ]
   },
   {
@@ -233,10 +477,22 @@
     "trigger": "ending_bad_final_version",
     "mode": "sequence",
     "lines": [
-      { "def": "ending_bad_final_version_opening_text", "speaker": "narrator" },
-      { "def": "ending_bad_final_version_heroine_text", "speaker": "heroine" },
-      { "def": "ending_bad_final_version_monologue", "speaker": "heroine" },
-      { "def": "ending_bad_final_version_final_text", "speaker": "narrator" }
+      {
+        "def": "ending_bad_final_version_opening_text",
+        "speaker": "narrator"
+      },
+      {
+        "def": "ending_bad_final_version_heroine_text",
+        "speaker": "heroine"
+      },
+      {
+        "def": "ending_bad_final_version_monologue",
+        "speaker": "heroine"
+      },
+      {
+        "def": "ending_bad_final_version_final_text",
+        "speaker": "narrator"
+      }
     ]
   }
 ]
