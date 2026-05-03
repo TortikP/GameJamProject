@@ -267,7 +267,13 @@ func _do_rebuild() -> void:
 		if i < _level.waves.size() - 1 and ttn > 0:
 			_add_turns_label(i, x + ttn * PIXELS_PER_TURN * 0.5, ttn)
 		x += float(ttn) * PIXELS_PER_TURN
-	_bar_end_x = x
+	# 049b / T045: bar trough must end EXACTLY on the last anchor's centre.
+	# Loop above unconditionally adds the last wave's `turns_to_next` to x,
+	# so x post-loop is past the last anchor by `last_ttn * PIXELS_PER_TURN`.
+	# Trough then visibly extended past the big active-wave circle. Pin to
+	# the last anchor's stored position instead.
+	_bar_end_x = _anchor_positions[_anchor_positions.size() - 1] \
+			if not _anchor_positions.is_empty() else PADDING_LEFT
 
 	# Add-wave button at the right end (EDIT mode only).
 	if mode == Mode.EDIT:

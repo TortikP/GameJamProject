@@ -249,3 +249,23 @@ in there" but no way to compare what you're losing vs gaining. Egor:
       access from delayed signals (Godot 4.6 trap).
   Localization: `skill_offer.replace.hover_hint` + `.empty_slot` added
   to en + ru.
+
+### Issue 7 (round-3) — wave bar + status icons + asset inventory
+
+- [x] **T045** — `scripts/presentation/ui/wave_timeline.gd` `_do_rebuild`:
+  loop unconditionally added the last wave's `turns_to_next` to `x` after
+  appending the last anchor, so `_bar_end_x = x` overshot the last
+  anchor's centre by `last_ttn × PIXELS_PER_TURN`. Trough rect visibly
+  ran past the right edge of the active-wave circle. Pin to
+  `_anchor_positions[-1]` instead.
+- [x] **T046** — `scripts/presentation/status_icon_strip.gd` `_make_pill`:
+  - icon Label fallback now shows first letter of the localised status
+    name (`Localization.t("status_<id>_name")[0]`) instead of the family
+    glyph. Family had only 5 buckets — per-status letter discriminates.
+  - native Godot tooltip via `pill.tooltip_text = "<NAME>\n<desc>"`
+    sourced from `status_<id>_name` + `status_<id>_desc` localization
+    keys. Hover surfaces the full description on PSP, EnemyDetailsPanel,
+    and any future StatusIconStrip embedder.
+- [x] **T047** — `specs/049-ux-rehaul/asset_inventory.md`: 12 statuses +
+  51 production skills + asset paths + letter-fallback table. For
+  Katya / hand-off doc.
