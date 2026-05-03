@@ -145,3 +145,18 @@ signal campaign_cutscene_requested(cutscene_id: StringName, on_done: Callable)
 signal campaign_level_started(index: int, map_path: String)
 signal campaign_finished(total_score: int)
 signal campaign_defeated(map_index: int, wave_index: int, is_final_boss_wave: bool)
+
+# 048-corpse-absorption — corpse lifecycle (presentation-only entities,
+# spawned by CorpseManager autoload on EventBus.actor_died, NOT in ActorRegistry).
+# actor_corpse_spawned: emitted right after Corpse node mounted under grid/Corpses
+# and play_death() kicked off. coord = hex coord at time of death (Vector2i.MAX
+# if unknown — spawner outside grid context). corpse_node = the Corpse Node2D
+# itself (presentation listeners can hook absorbed_arrived directly if needed).
+# corpses_absorbing_started: emitted at the start of CorpseManager.play_absorption_ritual.
+# count = current corpse count at start (0 allowed — heroine FX still play, D-4).
+# total_sec = fixed total ritual duration (audio sync — same value for any count).
+# corpses_absorbed: emitted after total_sec elapsed. WaveController awaits this
+# before skill_offer / level_completed on the final wave.
+signal actor_corpse_spawned(coord: Vector2i, corpse_node: Node)
+signal corpses_absorbing_started(count: int, total_sec: float)
+signal corpses_absorbed

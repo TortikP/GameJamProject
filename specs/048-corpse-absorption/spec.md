@@ -201,14 +201,14 @@ absorption_particle_tint_mix=0.65         ; 0=pure ABSORPTION_PARTICLE_COLOR, 1=
 - **AC-12 (no corpses → empty ritual).** Если на финальной волне корпсов нет — `play_absorption_ritual` всё равно играет heroine-side эффекты (pulse + particles + shake) полную длительность `absorption_total_sec`, без полёта корпсов. `corpses_absorbing_started(0, total_sec)` эмитится в начале, `corpses_absorbed` — после `total_sec`. Звук кладётся одинаково в оба варианта.
 - **AC-13 (GameSpeed).** Все длительности и амплитуды читаются через `GameSpeed.get_value("fx", "...")`. F5 (live reload) применяется к **следующей** death-/absorption-итерации; уже играющие tween'ы доигрывают со старыми значениями. Никаких bare `create_timer(N)`.
 - **AC-14 (touch budget).** Изменения вне новых файлов:
-  - `scripts/runtime/wave_controller.gd` — ≤8 строк (сигнатуры + 1 await + 1 helper).
+  - `scripts/runtime/wave_controller.gd` — ≤14 функц. строк (`_is_final_wave` helper + final-wave await блок + input-lock через `_is_transitioning` для AC-6).
   - `scripts/infrastructure/event_bus.gd` — 3 новых signal.
-  - `scripts/presentation/godmode/godmode_controller.gd` — 0 строк (убран `actor.queue_free()` НЕ трогаем — корпс это **отдельный** узел, актёр queue_free'ится как раньше).
-  - `scripts/presentation/godmode/godmode_camera.gd` — ≤25 строк (метод `shake()` + два-канала аккумулятор + per-frame offset apply).
-  - `scripts/runtime/actor_registry.gd` — 1 строка (`add_to_group(&"actor_registry")`).
+  - `scripts/presentation/godmode/godmode_controller.gd` — 0 строк (актёр queue_free как раньше; корпс — отдельный узел).
+  - `scripts/presentation/godmode/godmode_camera.gd` — ≤45 функц. строк: multi-layer аддитивный shake (D-2 требует burst-shake поверх monotonic, реализация дороже single-timer плана) + group registration.
+  - `scripts/runtime/actor_registry.gd` — 1 функц. строка (`add_to_group(&"actor_registry")`) + `_ready()` обёртка.
   - `project.godot` — 1 строка autoload.
   - `config/game_speed.cfg` — раздел `[fx]` пополняется (см. §7 plan.md).
-  - `scripts/presentation/ui_theme.gd` — 2 константы (`ABSORPTION_PARTICLE_COLOR`, `BIOME_TINTS` Dictionary).
+  - `scripts/presentation/ui_theme.gd` — 2 константы (`ABSORPTION_PARTICLE_COLOR`, `BIOME_TINTS` Dictionary) + `biome_tint_for()` helper.
 - **AC-15 (corpse inertia / indestructibility).** Корпс — только presentation-узел под `grid/Corpses`. Не присутствует в `ActorRegistry`, не лежит в `HexGrid._tiles[*].actor_id`, не реагирует на ввод/коллизии/area2d. Следствия (тестируем):
   - Pathfinder через гекс с корпсом проходит как через пустой (move_cost не меняется).
   - AOE-спеллы / тайл-эффекты (lava `damage_zone`, ice slow, и т.п.) не могут «убить» / удалить / повредить корпс — он не принадлежит damage-системе.

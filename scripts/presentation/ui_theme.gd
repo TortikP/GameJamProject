@@ -218,6 +218,29 @@ static func team_color(team: StringName) -> Color:
 	return TEAM_NEUTRAL
 
 
+# 048-corpse-absorption — palette for absorption ritual.
+# ABSORPTION_PARTICLE_COLOR — neutral fallback for GPUParticles2D modulate
+# (used when no biome dominates / arena is empty). Soft teal-tinted white.
+const ABSORPTION_PARTICLE_COLOR := Color(0.85, 0.95, 1.0, 0.9)
+
+# Per-biome aspect tint, keyed by tile_kind StringName. Used to recolor
+# heroine flash and absorption particles toward the dominant biome of the
+# arena. Unknown / empty kind → WHITE (neutral). Pure colours — final
+# applied tint is lerped against neutral via per-channel mix ratios in
+# GameSpeed [fx] so designers can tune saturation without patching this dict.
+const BIOME_TINTS: Dictionary = {
+	&"forest": Color(0.55, 0.85, 0.45),
+	&"heaven": Color(0.85, 0.92, 1.00),
+	&"lava":   Color(1.00, 0.45, 0.20),
+	&"ice":    Color(0.55, 0.80, 1.00),
+}
+
+
+## Returns biome tint by tile_kind. Unknown / empty → WHITE.
+static func biome_tint_for(kind: StringName) -> Color:
+	return BIOME_TINTS.get(kind, Color.WHITE)
+
+
 ## Returns semantic color by effect-type tag (forward-compat with 007).
 ## Unknown tag → neutral text color.
 static func semantic_color(tag: StringName) -> Color:
