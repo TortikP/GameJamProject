@@ -84,3 +84,27 @@ static func apply_to_actor(actor: Actor, enemy_id: StringName) -> Dictionary:
 			hints["sprite"] = "res://" + sprite_rel
 
 	return hints
+
+
+## Spec 050 rev3: lightweight reader for just the sprite path. Used by
+## SpawnerPlaceholder which previews an enemy without instantiating it as
+## an Actor — apply_to_actor would be overkill (parses skills, behaviors,
+## etc just to get one string). Returns res://-prefixed path, or "" if the
+## file/field is missing/malformed.
+static func get_sprite_path(enemy_id: StringName) -> String:
+	if enemy_id == &"":
+		return ""
+	var path: String = ENEMIES_DIR + str(enemy_id) + ".json"
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return ""
+	var text := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return ""
+	var data: Dictionary = parsed
+	var sprite_rel: String = String(data.get("sprite", ""))
+	if sprite_rel == "":
+		return ""
+	return "res://" + sprite_rel

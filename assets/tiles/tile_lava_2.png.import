@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xf7uoooe5sr5"
-path="res://.godot/imported/stapler.png-51312a8d48071845b393ec56f5d3ba14.ctex"
+uid="uid://cc6nkrcv7ei4g"
+path="res://.godot/imported/tile_lava_2.png-f7322bb99cca2eafa0c05a7da39030d1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/enemies/stapler.png"
-dest_files=["res://.godot/imported/stapler.png-51312a8d48071845b393ec56f5d3ba14.ctex"]
+source_file="res://assets/tiles/tile_lava_2.png"
+dest_files=["res://.godot/imported/tile_lava_2.png-f7322bb99cca2eafa0c05a7da39030d1.ctex"]
 
 [params]
 
