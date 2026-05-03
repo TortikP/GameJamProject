@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "monkey_time_buff",
-      "sound_start": "monkey_time_buff/monkey_time_buff_start.wav",
+      "sound_start": "monkey_time_buff_sound_start",
       "collision_effect": "buff_neutral",
-      "sound_end": "monkey_time_buff/monkey_time_buff_end.wav",
+      "sound_end": "monkey_time_buff_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "self"
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(2,10,5); shielded(2,1,2)"
+          "status_id": "strong(2,8,3); shielded(2,1,2)"
         }
       ]
     }
