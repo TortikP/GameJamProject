@@ -117,6 +117,13 @@ func _center_on_target() -> void:
 		target = get_tree().root.find_child("Player", true, false) as Node2D
 	if target != null:
 		global_position = target.global_position
+		# 045: position_smoothing_enabled=true (set in godmode.tscn) makes
+		# global_position assignment lerp from the previous value — which is
+		# (0,0) on a fresh scene load. That causes a visible camera-drift
+		# from the top-left corner toward the player at the start of every
+		# level. reset_smoothing() snaps the smoothed transform to the
+		# current position so the next frame renders on the player exactly.
+		reset_smoothing()
 
 
 func _unhandled_input(event: InputEvent) -> void:

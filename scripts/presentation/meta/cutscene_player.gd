@@ -154,7 +154,15 @@ func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = 
 		# through the monitor, not dissolve in place.
 		var have_scale_tween: bool = false
 		if _last_frame_rect != null and is_instance_valid(_last_frame_rect) and not is_equal_approx(zoom_to, 1.0):
+			# Important: Frame1/Frame2 have anchors_preset=15 (fill parent),
+			# so their .size matches the viewport size after layout. But on
+			# the first dismiss tick the value can briefly be (0,0) if
+			# nothing forced a layout pass. Force it now and fall back to
+			# viewport size if Control hasn't latched yet.
 			var rect_size: Vector2 = _last_frame_rect.size
+			if rect_size.x < 1.0 or rect_size.y < 1.0:
+				rect_size = get_viewport().get_visible_rect().size
+				GameLogger.info("CutscenePlayer", "rect.size was (0,0); using viewport size: %s" % str(rect_size))
 			_last_frame_rect.pivot_offset = Vector2(rect_size.x * zoom_pivot.x, rect_size.y * zoom_pivot.y)
 			var current_scale: float = _last_frame_rect.scale.x
 			var tw_scale := create_tween()
@@ -162,7 +170,7 @@ func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = 
 			tw_scale.tween_property(_last_frame_rect, "scale", Vector2(zoom_to, zoom_to), duration)
 			# Frame fades out at the very end so the transition into live game is clean
 			tw_scale.parallel().tween_property(_last_frame_rect, "modulate:a", 0.0, duration * 0.5).set_delay(duration * 0.5)
-			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f over %.2fs (pivot in pixels: %s)" % [current_scale, zoom_to, duration, str(_last_frame_rect.pivot_offset)])
+			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f over %.2fs (pivot in pixels: %s, rect_size=%s)" % [current_scale, zoom_to, duration, str(_last_frame_rect.pivot_offset), str(rect_size)])
 			have_scale_tween = true
 
 		# Fade backdrop separately so it doesn't drag the frame's alpha down.
@@ -279,7 +287,12 @@ func _apply_pivot(rect: TextureRect, frame: Dictionary) -> void:
 	var pivot_arr: Array = frame.get("pivot", [0.5, 0.5]) as Array
 	var px: float = float(pivot_arr[0]) if pivot_arr.size() > 0 else 0.5
 	var py: float = float(pivot_arr[1]) if pivot_arr.size() > 1 else 0.5
-	rect.pivot_offset = Vector2(rect.size.x * px, rect.size.y * py)
+	# anchors_preset=15 means rect should be viewport-sized after layout, but
+	# .size can be (0,0) on first access. Fall back to viewport size.
+	var sz: Vector2 = rect.size
+	if sz.x < 1.0 or sz.y < 1.0:
+		sz = get_viewport().get_visible_rect().size
+	rect.pivot_offset = Vector2(sz.x * px, sz.y * py)
 
 
 func _await_or_skip(seconds: float) -> bool:
