@@ -5,7 +5,7 @@
 		{
 			"map_path": "res://data/maps/office_intro.json",
 			"display_name": "Office",
-			"cutscene_id": "intro_office",
+			"cutscene_id": "",
 			"is_intro": true
 		},
 		{
