@@ -102,6 +102,12 @@ func _ready() -> void:
 		# 048: extra safety net — if wave_cleared on final wave is missed for
 		# any reason, level_completed still freezes the cursor.
 		EventBus.level_completed.connect(_on_level_completed)
+		# 051d: in battle/HUD this widget is purely visual — never eat input.
+		# .tscn root has mouse_filter = STOP (needed for EDIT-mode anchor
+		# clicks); flip to IGNORE in RUNTIME so clicks on the top strip fall
+		# through to the hex grid below. Children get the same treatment in
+		# _do_rebuild via _propagate_mouse_filter_ignore.
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Apply theme stylebox to the widget background.
 	_apply_theme()
 	# Default size -- widget grows to fit content on bind_level / runtime
@@ -281,7 +287,22 @@ func _do_rebuild() -> void:
 		x += PLUS_BUTTON_OFFSET_X + 80.0  # rough button width
 
 	custom_minimum_size = Vector2(x + PADDING_RIGHT, 64)
+	# 051d: dynamic children (W-labels, turn-count Labels) are added every
+	# rebuild and default to MOUSE_FILTER_STOP — must re-mute every pass.
+	# EDIT mode keeps the LineEdits / +button responsive (skipped here).
+	if mode == Mode.RUNTIME:
+		_propagate_mouse_filter_ignore(self)
 	queue_redraw()
+
+
+# 051d: Walk every Control descendant and force MOUSE_FILTER_IGNORE so the
+# whole subtree falls through. Same hammer pattern as 049b T048 used on
+# skill_offer_card. Skips self if called externally on root (caller's job).
+func _propagate_mouse_filter_ignore(n: Node) -> void:
+	for child in n.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_propagate_mouse_filter_ignore(child)
 
 
 func _add_wave_index_label(wave_idx: int, x: float) -> void:
