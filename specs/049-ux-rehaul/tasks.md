@@ -78,3 +78,66 @@ Order: A → B → C → D. Phases A (formatter) and B (telegraph icon + grey-ou
 
 - 029-feedback-polish/spec.md — отметить req-6 как «закрыто 049» (можно при следующей правке Andrey'я).
 - Иконки скиллов от Кати, когда придут, — drop в `assets/icons/skills/<id>.png`, JSON уже указывает путь, SkillIconResolver сам подхватит.
+
+## Phase G — 049b follow-ups (Egor feedback after first pass)
+
+Three issues surfaced on first review of the merged 049 work; tracked as
+follow-up tasks rather than amending the original AC list.
+
+### Issue 1 — Description fonts too small / no colour cue
+
+Spell description in PSP and the consequence column in HexTooltip read
+as the dimmest things on screen. Player has to lean toward the monitor
+to parse them — violates the visibility doctrine in CLAUDE.md.
+
+- [x] **T035** — `scripts/presentation/skill_formatter.gd`: добавить
+  `static func consequence_color(skill) -> Color`. Effect-priority order
+  matches `format_consequence`: damage→SEM_DAMAGE, heal→SEM_HEAL,
+  status→SEM_DEBUFF, move→SEM_MOVE, create→SEM_BUFF, default→TEXT.
+  `scripts/presentation/hex_tooltip.gd`: bump label kinds — actor/skill
+  body/header (was small/body), consequence body (was small). Apply
+  `consequence_color(skill)` as `font_color` override per row.
+  `scripts/presentation/player_status_panel.gd`: `_spell_desc` kind
+  small→body + `autowrap_mode = WORD_SMART`. Tint `_spell_name` and
+  `_spell_desc` with `consequence_color(skill)` for read-at-a-glance
+  type cue. Bare-Ability path stays neutral TEXT.
+
+### Issue 2 — Tooltip stale on invalid target / after slot toggle off
+
+Two related symptoms:
+  a) Hovering a hex inside the active ability's range circle but where
+     the cast wouldn't actually land (no actor of right team / blocked /
+     out-of-LOS) still surfaced a player-preview row.
+  b) Pressing the active slot key again to deselect didn't clear the
+     tooltip's player-preview row until the cursor moved to a new hex.
+
+- [x] **T036** — `scripts/presentation/godmode/hover_dispatcher.gd`:
+  `_coord_in_ability_effect` now adds a step-2 validity gate via
+  `ability.target.resolve(caster, per_hex_ctx)` (same shape as
+  CastRangeOverlay's AC-6 grey-out). Step 1 is range_hexes membership;
+  step 3 is area expansion (only when `ability.area != null`).
+- [x] **T037** — `scripts/presentation/godmode/hover_dispatcher.gd`:
+  `refresh_hex_tooltip` ditches the `_last_hex_tooltip_coord` guard.
+  Rebuild rows every frame — guard was a mistake because slot toggle
+  off (and other intent changes) don't shift the hovered coord. Cost
+  is trivial (~10 actors × O(1)). Field removed.
+
+### Issue 3 — Enemy telegraph colour-coded by skill type, not threat
+
+Telegraph hex was tinted by `behaviour_tags[0]` (heal-cast = green hex,
+control = purple hex, etc.). Goal of the telegraph is "this hex is a
+threat from an enemy" — a uniform red read better. Skill-type info now
+lives in the icon (049 AC-5) and the hex-tooltip consequence colour
+(049b T035), so dropping it from the hex itself is no information loss.
+Also: secondary AoE hexes were too easy to miss against busy biome
+tiles — outline-only with α0.55, 1.5px.
+
+- [x] **T038** — `scripts/presentation/godmode/telegraph_renderer.gd`:
+  primary + secondary `TelegraphHex.semantic_tag = &"damage"` regardless
+  of underlying skill. Original `tag` is still tracked in `by_coord` for
+  the damage-aggregation sum upstream.
+- [x] **T039** — `scripts/presentation/telegraph_hex.gd`: `outline_only`
+  mode now draws a faint α0.18 fill in addition to the boundary, and
+  outline weight bumped 1.5px α0.55 → 2.0px α0.85. Primary/secondary
+  distinction now lives in fill density (0.42 vs 0.18) instead of in
+  outline weight where it disappeared on busy frames.

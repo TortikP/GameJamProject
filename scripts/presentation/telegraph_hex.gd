@@ -84,23 +84,33 @@ func _get_frame_color() -> Color:
 func _draw() -> void:
 	var tile_size: Vector2 = _resolve_tile_size()
 	var pts: PackedVector2Array = HexGeometry.flat_top_polygon(tile_size)
-	# Hex polygon (matches grid hex orientation: flat-top, vertex on right)
-	if not outline_only:
+	# Hex polygon fill — primary mode (full-strength fill) plus, in 049b
+	# T039, a faint version for outline_only secondaries so the affected
+	# AoE region reads as a coloured zone, not just a wireframe.
+	var base: Color = UiTheme.SEM_DAMAGE if semantic_tag == &"" else UiTheme.semantic_color(semantic_tag)
+	if outline_only:
+		# 049b / T039: faint fill on AoE-shape hexes. ~0.18 alpha keeps the
+		# tile underneath readable but turns the "this whole zone will be
+		# hit" boundary into a region. Was outline-only with no fill; in
+		# practice the thin red border vanished against busy biome tiles.
+		draw_colored_polygon(pts, Color(base.r, base.g, base.b, 0.18))
+	else:
 		draw_colored_polygon(pts, _get_fill_color())
-	# Outline — secondary hexes use a thinner, dimmer line so the AoE shape
-	# reads without overwhelming the primary telegraph hex sitting on top of
-	# the damage source.
+	# Outline. 049b / T039: secondary outline bumped from 1.5px α0.55 to
+	# 2.0px α0.85 — same vibe as the primary frame, so primary vs secondary
+	# distinction now lives in fill density (0.42 vs 0.18) instead of in
+	# outline weight where it disappeared.
 	var frame_col: Color = _get_frame_color()
 	var line_w: float = 2.0
 	if outline_only:
-		frame_col = Color(frame_col.r, frame_col.g, frame_col.b, 0.55)
-		line_w = 1.5
+		frame_col = Color(frame_col.r, frame_col.g, frame_col.b, 0.85)
+		line_w = 2.0
 	for i in 6:
 		var a: Vector2 = pts[i]
 		var b: Vector2 = pts[(i + 1) % 6]
 		draw_line(a, b, frame_col, line_w, true)
 	# Outline-only mode: no icon, no damage label. AoE shape outlines must
-	# stay visually quiet vs primary hex.
+	# stay visually quiet vs primary hex (icon + number live on the source).
 	if outline_only:
 		return
 	_draw_icon()

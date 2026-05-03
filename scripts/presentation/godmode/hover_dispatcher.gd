@@ -17,10 +17,10 @@ const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 
 var _ctrl: Node = null
 
-# 049 / AC-2 + AC-4: state guards so hover dispatches only re-render on
-# transitions (cursor enters new hex / new enemy). Avoids rebuilding the
-# tooltip rows or enemy panel every frame while the cursor is stationary.
-var _last_hex_tooltip_coord: Vector2i = Vector2i(-9999, -9999)
+# 049 / AC-4: state guard on the enemy-details panel — re-binding the same
+# actor would trip signal disconnect/reconnect cycles, so we only call
+# bind/unbind on transitions. (Hex-tooltip dropped its similar guard in
+# 049b T037 — see refresh_hex_tooltip.)
 var _last_enemy_details_id: StringName = &""
 
 
@@ -169,24 +169,25 @@ func refresh_hover_path(hover_coord: Vector2i) -> void:
 	overlay.set_hover_path(typed)
 
 
-# 049 / AC-2 / T018: hex-tooltip dispatch. Builds the row list (player
-# preview when active slot's ability would land here, plus every enemy
-# whose intent's primary or AoE area covers `coord`) and pushes to the
-# HexTooltip widget. State-guarded — same coord, same view.
+# 049 / AC-2 / T018 + 049b / T037: hex-tooltip dispatch. Builds the row list
+# (player preview when active slot's ability would land here, plus every
+# enemy whose intent's primary or AoE area covers `coord`) and pushes to the
+# HexTooltip widget.
+#
+# 049b note on guarding: we deliberately rebuild every frame rather than
+# state-guarding on `coord`. Slot toggle-off (player presses Q again to
+# deselect) doesn't change the hovered coord but DOES change the rows
+# (player preview row should disappear), and the per-frame cost is trivial
+# (≤10 actors × O(1) checks). Same applies to enemy intent changes mid-frame.
 func refresh_hex_tooltip(coord: Vector2i) -> void:
 	var tip: Node = get_node_or_null("../../HUD/HexTooltip")
 	if tip == null:
 		return
-	# Off-grid → instant hide. Don't even rebuild.
+	# Off-grid → instant hide.
 	if coord == Vector2i(-1, -1):
-		if coord != _last_hex_tooltip_coord:
-			_last_hex_tooltip_coord = coord
-			if tip.has_method("hide_tooltip"):
-				tip.hide_tooltip()
+		if tip.has_method("hide_tooltip"):
+			tip.hide_tooltip()
 		return
-	if coord == _last_hex_tooltip_coord:
-		return
-	_last_hex_tooltip_coord = coord
 	var rows: Array = _build_hex_tooltip_rows(coord)
 	if rows.is_empty():
 		if tip.has_method("hide_tooltip"):
@@ -248,23 +249,45 @@ func _build_hex_tooltip_rows(coord: Vector2i) -> Array:
 	return rows
 
 
-# True if the player casting `ability` with cursor on `coord` would land an
-# effect on `coord` itself — i.e. coord ∈ ability.area.get_affected_hexes
-# anchored at the cursor coord. Single-target / single-hex areas reduce to
-# `coord == anchor`.
+# 049 / AC-2 + 049b / T036: would the player's active ability ACTUALLY land
+# on `coord` if cast right now? We need three things, all true:
+#   1. coord ∈ ability.target.get_range_hexes (= reachable at all).
+#   2. ability.target.resolve(caster, ctx) != null for the *cursor* coord
+#      (= the cast would commit, not just visually be in range — e.g. the
+#      hex has a valid actor of the right team, not blocked, not out-of-LOS).
+#      This is the same check CastRangeOverlay uses for AC-6 grey-out.
+#   3. coord ∈ ability.area.affected (when area exists; otherwise step 2 is
+#      sufficient — coord is the anchor and we already know it's valid).
+#
+# Without step 2 the tooltip used to surface a player-preview row over
+# blocked / off-team hexes inside the ability's range circle (e.g. ranged
+# damage on an empty grass tile). 049b T036 adds the resolve gate.
 func _coord_in_ability_effect(caster: Actor, ability: Ability, coord: Vector2i) -> bool:
 	if ability == null or ability.target == null:
 		return false
 	var grid: HexGrid = _ctrl.grid
+	var registry: ActorRegistry = _ctrl.registry
 	var caster_coord: Vector2i = grid.get_coord(caster.actor_id)
 	if caster_coord == Vector2i(-1, -1):
 		return false
-	# Range gate first — coord must be inside the ability's reachable set.
+	# Step 1: range gate. Cursor must be on a hex the ability can reach.
 	var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, grid)
 	if not (coord in range_hexes):
 		return false
-	# Anchor + area expansion. Null area means "primary hex only" — covered
-	# by the range check above.
+	# Step 2: validity gate. Mirror CastRangeOverlay's per-hex resolve check
+	# (049 AC-6) — same ctx shape (registry / grid / target_id / target_coord).
+	# actors_node + resolver are only needed at apply-time (CreateEffect),
+	# which we never run here — resolve() is pure inspection.
+	var ctx: Dictionary = {
+		"registry":     registry,
+		"grid":         grid,
+		"target_id":    grid.get_actor_at(coord),
+		"target_coord": coord,
+	}
+	if ability.target.resolve(caster, ctx) == null:
+		return false
+	# Step 3: area expansion. Single-target / null-area abilities terminate
+	# at step 2 — coord is the anchor and it's valid.
 	if ability.area == null:
 		return true
 	var anchor: Vector2i = ability.target.preview_anchor_coord(caster_coord, coord)

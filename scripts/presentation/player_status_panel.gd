@@ -41,7 +41,15 @@ func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_hp_value, "num_large")
 	UiTheme.apply_label_kind(_spell_header, "small")
 	UiTheme.apply_label_kind(_spell_name, "header")
-	UiTheme.apply_label_kind(_spell_desc, "small")
+	# 049b / T035: spell description bumped from "small" to "body" — was
+	# barely-readable at default zoom. autowrap stays on (set in .tscn) so
+	# longer authored tooltips still fit the column without jittering the
+	# panel width. Per-skill semantic tint applied in _refresh_spell_section.
+	UiTheme.apply_label_kind(_spell_desc, "body")
+	# 049b / T035: enable autowrap programmatically in case the .tscn
+	# doesn't have it set — tooltip strings can be 80–120 chars and the PSP
+	# column is fixed-width.
+	_spell_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 ## Bind to player actor. Auto-listens to damaged and statuses_changed
@@ -138,8 +146,19 @@ func _refresh_spell_section() -> void:
 	var has_abilities: bool = "abilities" in s
 	if has_abilities:
 		_spell_desc.text = SkillFormatter.format_skill_human(s)
+		# 049b / T035: tint the description (and the name) by the skill's
+		# dominant semantic — damage red, heal green, control purple, etc.
+		# Read-at-a-glance "what kind of spell is this" before parsing the
+		# words. Falls through to TEXT for skills with no recognised first
+		# effect, which keeps the legacy look on broken/unfilled skills.
+		var col: Color = SkillFormatter.consequence_color(s)
+		_spell_name.add_theme_color_override("font_color", col)
+		_spell_desc.add_theme_color_override("font_color", col)
 	else:
 		_spell_desc.text = "\n".join(SkillFormatter.format_ability(s))
+		# Plain Ability legacy path — keep neutral TEXT.
+		_spell_name.add_theme_color_override("font_color", UiTheme.TEXT)
+		_spell_desc.add_theme_color_override("font_color", UiTheme.TEXT)
 	_spell_section.visible = true
 
 

@@ -93,6 +93,30 @@ static func format_consequence(skill) -> String:
 	return ""
 
 
+## 049b / T035: semantic color for the consequence text — read at a glance.
+## Mirrors the effect-priority order of format_consequence so the colour
+## matches what the string actually says (no risk of "+15 HP" coming back
+## red because the next effect is damage).
+static func consequence_color(skill) -> Color:
+	if skill == null or skill.abilities.is_empty():
+		return UiTheme.TEXT
+	var ab = skill.abilities[0]
+	if ab == null:
+		return UiTheme.TEXT
+	for eff in ab.effects:
+		if eff is DamageEffect:
+			return UiTheme.SEM_DAMAGE
+		if eff is HealEffect:
+			return UiTheme.SEM_HEAL
+		if eff is StatusEffect:
+			return UiTheme.SEM_DEBUFF
+		if eff is MoveEffect:
+			return UiTheme.SEM_MOVE
+		if eff is CreateEffect:
+			return UiTheme.SEM_BUFF
+	return UiTheme.TEXT
+
+
 ## Legacy structural format. Now debug/dev-only — public UI must use
 ## format_skill_human. Kept for ActorInspector-class debug surfaces and
 ## for unit-test parity until those callers are removed in their own PRs.

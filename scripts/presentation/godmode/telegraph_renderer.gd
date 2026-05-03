@@ -163,12 +163,21 @@ func refresh() -> void:
 					_intent_arrows[enemy.actor_id] = path_node
 
 	# Render one telegraph hex per threatened coord.
+	# 049b / T038: force semantic_tag = &"damage" on EVERY enemy telegraph
+	# hex, regardless of the underlying skill's behaviour tag. Rationale —
+	# the player needs a single visual language for "this hex is a threat"
+	# (red) independent of skill type. Type-of-skill information now lives
+	# in the icon (049 / AC-5) and the hex-tooltip consequence column
+	# (049b / T035, also semantically coloured). Splitting "incoming hex
+	# colour" by buff/control/heal etc. used to mute the threat read for
+	# debuff/control casts that hit the player just as hard. The original
+	# tag stays in by_coord.tag for the damage-aggregation sum at line ~113.
 	for coord in by_coord.keys():
 		var hex: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		hex.position = grid.tile_map_layer.map_to_local(coord)
 		hex.z_index = 3
 		var entry: Dictionary = by_coord[coord]
-		hex.set("semantic_tag", entry.tag)
+		hex.set("semantic_tag", &"damage")
 		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
 		# 049 / AC-5: skill ref drives icon (texture or letter fallback) at hex
 		# center. Null skill (legacy / non-skill telegraph) → TelegraphHex skips
@@ -177,16 +186,18 @@ func refresh() -> void:
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
 
-	# 029 / req-6: secondary AoE-shape hexes — outline-only so they read as
-	# "the spell will sweep through here" without competing with the primary
-	# damage-bearing hex. Skip coords already painted as primary.
+	# 029 / req-6 + 049b / T038-T039: secondary AoE-shape hexes — outline +
+	# faint red fill so the affected area reads as a region not just a
+	# border. Bumped from 029's thin-outline-only when it became clear the
+	# affected hexes were too easy to miss against busy tiles. Forced to
+	# &"damage" semantic for the same reason as primary above.
 	for area_coord in area_coords.keys():
 		if _telegraph_hexes.has(area_coord):
 			continue
 		var sec: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		sec.position = grid.tile_map_layer.map_to_local(area_coord)
 		sec.z_index = 3
-		sec.set("semantic_tag", area_coords[area_coord])
+		sec.set("semantic_tag", &"damage")
 		sec.set("outline_only", true)
 		grid.add_child(sec)
 		_telegraph_hexes[area_coord] = sec

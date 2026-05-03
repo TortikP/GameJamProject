@@ -23,6 +23,7 @@ extends PanelContainer
 ## treated as authoritative.
 
 const SkillIconResolver = preload("res://scripts/presentation/skill_icon_resolver.gd")
+const SkillFormatter    = preload("res://scripts/presentation/skill_formatter.gd")
 
 @onready var _rows_vbox: VBoxContainer = $VBox/RowsVBox
 
@@ -92,38 +93,43 @@ func _ensure_rows(n: int) -> void:
 
 # Skeleton: HBox of [ActorLabel, IconRect, SkillLabel, ConsequenceLabel].
 # Children built once and reused — _populate_row writes text/textures.
+#
+# 049b / T035: fonts bumped from small/body to body/header so the tooltip
+# stays readable at default zoom on a busy frame. Consequence label gets
+# a semantic color in _populate_row (red damage / green heal / etc) for a
+# read-at-a-glance affordance.
 func _build_row_skeleton() -> HBoxContainer:
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", UiTheme.SP_2)
-	# Actor name — small caps style, keeps width predictable.
+	# Actor name — body kind (was small) so it's not the dimmest thing on
+	# screen. Width still fixed for column alignment across rows.
 	var actor_label := Label.new()
-	UiTheme.apply_label_kind(actor_label, "small")
-	actor_label.custom_minimum_size = Vector2(80, 0)
+	UiTheme.apply_label_kind(actor_label, "body")
+	actor_label.custom_minimum_size = Vector2(96, 0)
 	hbox.add_child(actor_label)
-	# Icon rect — 16×16, fixed size so rows align even when fallback letter
-	# is used in another row. Letter fallback piggybacks on the same slot:
-	# hidden TextureRect, visible Label sibling.
+	# Icon rect — bumped 16×16 → 22×22 to match the heavier surrounding text.
 	var icon_box := CenterContainer.new()
-	icon_box.custom_minimum_size = Vector2(16, 16)
+	icon_box.custom_minimum_size = Vector2(22, 22)
 	var icon_rect := TextureRect.new()
 	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon_rect.custom_minimum_size = Vector2(16, 16)
+	icon_rect.custom_minimum_size = Vector2(22, 22)
 	var icon_letter := Label.new()
-	UiTheme.apply_label_kind(icon_letter, "body")
+	UiTheme.apply_label_kind(icon_letter, "header")
 	icon_letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	icon_box.add_child(icon_rect)
 	icon_box.add_child(icon_letter)
 	hbox.add_child(icon_box)
-	# Skill name — body kind, expandable so it pushes the consequence to the
-	# right edge.
+	# Skill name — header kind (was body). Most "load-bearing" text in the
+	# tooltip; this is what the player reads to recognise the action.
 	var skill_label := Label.new()
-	UiTheme.apply_label_kind(skill_label, "body")
+	UiTheme.apply_label_kind(skill_label, "header")
 	skill_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(skill_label)
-	# Consequence — small kind, right-aligned.
+	# Consequence — body kind (was small). Right-aligned. Color overridden
+	# per row in _populate_row via SkillFormatter.consequence_color.
 	var conseq_label := Label.new()
-	UiTheme.apply_label_kind(conseq_label, "small")
+	UiTheme.apply_label_kind(conseq_label, "body")
 	conseq_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hbox.add_child(conseq_label)
 	return hbox
@@ -165,6 +171,12 @@ func _populate_row(hbox: HBoxContainer, data: Dictionary) -> void:
 	else:
 		skill_label.text = ""
 	conseq_label.text = String(data.get("consequence", ""))
+	# 049b / T035: paint consequence in semantic colour. Default falls back
+	# to TEXT inside consequence_color, so empty/unknown skills stay neutral.
+	# Colour applied as override (apply_label_kind sets a baseline TEXT color
+	# in _build_row_skeleton; this layers on top per row).
+	conseq_label.add_theme_color_override("font_color",
+			SkillFormatter.consequence_color(skill))
 
 
 # Place the tooltip glued to the cursor. Above-right of the pointer is the
