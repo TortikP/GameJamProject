@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "teapot_low_possibility_invisibility",
-      "sound_start": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_start.wav",
+      "sound_start": "teapot_low_possibility_invisibility_sound_start",
       "collision_effect": "buff_burnout",
-      "sound_end": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_end.wav",
+      "sound_end": "teapot_low_possibility_invisibility_sound_end",
       "animation": "cast_burnout",
       "target": {
         "kind": "self"
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "invisible(3)"
+          "status_id": "invisible(2)"
         }
       ]
     }
