@@ -19,6 +19,13 @@ const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 
 var _actor: Actor = null
 
+# 049 / AC-8: hover beats active. Slot bar emits slot_hovered/_unhovered;
+# controller pipes into set_hover_spell. set_active_spell is unchanged callsite-
+# wise (slot_activated). Both targets feed _refresh_spell_section so toggling
+# either updates the visible text.
+var _active_skill = null
+var _hover_skill = null
+
 
 func _ready() -> void:
 	_apply_theme()
@@ -89,30 +96,50 @@ func set_active_spell(skill_or_ability) -> void:
 	if not is_node_ready():
 		ready.connect(set_active_spell.bind(skill_or_ability), CONNECT_ONE_SHOT)
 		return
-	if skill_or_ability == null:
+	_active_skill = skill_or_ability
+	_refresh_spell_section()
+
+
+## 049 / AC-8: per-slot hover description. Hovered skill takes priority over
+## active selection — moving the cursor across slots previews each spell
+## without committing. Pass null on mouse_exited to fall back to active.
+func set_hover_spell(skill) -> void:
+	if not is_node_ready():
+		ready.connect(set_hover_spell.bind(skill), CONNECT_ONE_SHOT)
+		return
+	_hover_skill = skill
+	_refresh_spell_section()
+
+
+## 049: shared rebuild path for active + hover. Hover beats active; both
+## null hides the section.
+func _refresh_spell_section() -> void:
+	var s = _hover_skill if _hover_skill != null else _active_skill
+	if s == null:
 		_spell_section.visible = false
 		return
-	# Skill has .abilities[]; bare Ability does not.
-	var has_abilities: bool = "abilities" in skill_or_ability
-	_spell_name.text = String(skill_or_ability.id)
+	# Header — localised name + CD when active. Same compact "name (CD x/y)"
+	# convention format_skill uses on its first line, kept inline because
+	# format_skill_human bakes CD into the body string and the header label
+	# wants name-only.
+	var display_name: String = Localization.t(String(s.name), String(s.id))
+	if "cooldown" in s and s.cooldown > 0:
+		var cd_remaining: int = int(s.get("_cd_remaining"))
+		if cd_remaining > 0:
+			display_name += "  (CD %d/%d)" % [cd_remaining, s.cooldown]
+		else:
+			display_name += "  (CD %d)" % s.cooldown
+	_spell_name.text = display_name
+	# Body — human-readable per AC-1. format_skill_human collapses to the
+	# Localization.t(skill.tooltip) string (or [ДОБАВИТЬ] placeholder when
+	# the key is missing) so designers see un-authored skills immediately.
+	# Bare-Ability legacy callers (no .abilities[]) still fall through to
+	# the structural format_ability path so they don't 500.
+	var has_abilities: bool = "abilities" in s
 	if has_abilities:
-		# Skill path — full multi-ability dump via formatter.
-		var lines: Array[String] = []
-		for ab in skill_or_ability.abilities:
-			for l in SkillFormatter.format_ability(ab):
-				lines.append(l)
-		_spell_desc.text = "\n".join(lines)
-		# Cooldown indicator in the header line.
-		if skill_or_ability.cooldown > 0:
-			var cd_remaining: int = int(skill_or_ability.get("_cd_remaining"))
-			if cd_remaining > 0:
-				_spell_name.text += "  (CD %d/%d)" % [cd_remaining, skill_or_ability.cooldown]
-			else:
-				_spell_name.text += "  (CD %d)" % skill_or_ability.cooldown
+		_spell_desc.text = SkillFormatter.format_skill_human(s)
 	else:
-		# Plain Ability path — mostly for legacy / direct ability passes.
-		var lines: Array[String] = SkillFormatter.format_ability(skill_or_ability)
-		_spell_desc.text = "\n".join(lines)
+		_spell_desc.text = "\n".join(SkillFormatter.format_ability(s))
 	_spell_section.visible = true
 
 

@@ -5,13 +5,98 @@ extends RefCounted
 ##
 ## Used via explicit preload (no class_name, no autoload):
 ##   const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
-##   var lines := SkillFormatter.format_skill(skill)
+##   var human := SkillFormatter.format_skill_human(skill)
 ##
 ## Modifier-aware: applies ParameterModifier list to a duplicated Effect/Area
 ## before formatting — same path Ability.cast() uses, so the text reflects
 ## final (post-modifier) numbers, not base. (Mirrors AC-M5 formula.)
+##
+## 049: prefer `format_skill_human` (uses Localization.t(skill.tooltip)) over
+## the legacy structural `format_skill`. Legacy retained for dev/debug callers.
 
 
+## 049 / AC-1: human-readable skill description sourced from
+## Localization.t(skill.tooltip). When the tooltip key is missing or empty
+## (Localization.t returns the key itself = sentinel for missing) we surface
+## a visible placeholder so designers immediately spot un-authored skills,
+## rather than hiding behind structural debug text. Cooldown indicator is
+## appended verbatim from format_skill semantics.
+##
+## NOTE: this is the source of truth for PSP SpellDesc, HexTooltip rows,
+## EnemyDetailsPanel ability hover. format_skill below is now
+## debug/dev-mode-only and must not be wired into player-visible UI.
+const _DESC_PLACEHOLDER := "[ДОБАВИТЬ]"
+
+static func format_skill_human(skill) -> String:
+	if skill == null:
+		return ""
+	var key: String = String(skill.tooltip)
+	var body: String = ""
+	if key != "":
+		# Localization.t returns `fallback` when the key didn't translate
+		# (i.e. translated == key_or_source). We pass the placeholder as
+		# fallback so missing/unauthored keys are visible to designers.
+		body = Localization.t(key, _DESC_PLACEHOLDER)
+	else:
+		body = _DESC_PLACEHOLDER
+	# Append CD indicator (matches format_skill).
+	if skill.cooldown > 0:
+		var cd_remaining: int = int(skill.get("_cd_remaining"))
+		if cd_remaining > 0:
+			body += " " + Localization.tf("ui_skill_cooldown_remaining",
+					[cd_remaining, skill.cooldown], "(CD %d/%d)")
+		else:
+			body += " " + Localization.tf("ui_skill_cooldown",
+					[skill.cooldown], "(CD %d)")
+	return body
+
+
+## 049 / AC-2: short consequence string for HexTooltip's 3rd column.
+## Looks at the *first* ability's *first* meaningful effect — same heuristic
+## the telegraph damage label uses (one number per skill, even if multi-effect).
+## Modifier-naive on purpose: the tooltip is a quick affordance during cast
+## planning; once the spell actually fires, floating numbers / hp bar deltas
+## tell the precise post-modifier story. ≤30 chars target.
+static func format_consequence(skill) -> String:
+	if skill == null or skill.abilities.is_empty():
+		return ""
+	var ab = skill.abilities[0]
+	if ab == null:
+		return ""
+	for eff in ab.effects:
+		if eff is DamageEffect:
+			return Localization.tf("ui_consequence_damage",
+					[(eff as DamageEffect).damage], "-%d HP")
+		if eff is HealEffect:
+			return Localization.tf("ui_consequence_heal",
+					[(eff as HealEffect).heal], "+%d HP")
+		if eff is StatusEffect:
+			var se: StatusEffect = eff
+			if se.status_id == &"":
+				continue
+			var status_name: String = Localization.t(
+					"status_%s_name" % String(se.status_id),
+					String(se.status_id).capitalize())
+			# args[0] = duration (per StatusEffect doc).
+			var dur: int = se.args[0] if se.args.size() > 0 else 0
+			if dur > 0:
+				return Localization.tf("ui_consequence_status",
+						[status_name, dur], "%s (%dt)")
+			return status_name
+		if eff is MoveEffect:
+			var me: MoveEffect = eff
+			return Localization.tf("ui_consequence_move",
+					[String(me.move_type).capitalize(), me.move_distance],
+					"%s %d")
+		if eff is CreateEffect:
+			return Localization.t("ui_consequence_summon", "Summon")
+	return ""
+
+
+## Legacy structural format. Now debug/dev-only — public UI must use
+## format_skill_human. Kept for ActorInspector-class debug surfaces and
+## for unit-test parity until those callers are removed in their own PRs.
+##
 ## Format a Skill into a multi-line plain-text block.
 ## Returns "" on null. First line is the skill id, then per-ability blocks.
 static func format_skill(skill) -> String:

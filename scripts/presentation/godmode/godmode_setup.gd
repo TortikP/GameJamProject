@@ -95,6 +95,12 @@ func run() -> void:
 		_ctrl.slot_bar.slot_activated.connect(_ctrl._on_slot_activated)
 	if not campaign_mode and _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_right_clicked"):
 		_ctrl.slot_bar.slot_right_clicked.connect(_ctrl._on_slot_right_clicked)
+	# 049 / AC-8: hover preview wiring. Has-signal guard handles in-flight
+	# scenes that haven't reloaded slot_bar.gd post-rebase yet.
+	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_hovered"):
+		_ctrl.slot_bar.slot_hovered.connect(_ctrl._on_slot_hovered)
+	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_unhovered"):
+		_ctrl.slot_bar.slot_unhovered.connect(_ctrl._on_slot_unhovered)
 		_ctrl._build_ability_picker.call_deferred()
 
 	# Inspector + overlay — resolve

@@ -202,6 +202,22 @@ func _on_slot_activated(_index: int) -> void:
 		psp.set_active_spell(ability)
 
 
+# 049 / AC-8: hover-on-slot description preview. Hover beats active in PSP;
+# unhover restores active. Lightweight — PSP is the only consumer.
+func _on_slot_hovered(idx: int) -> void:
+	var psp: Node = _get_player_status_panel()
+	if psp == null or not psp.has_method("set_hover_spell"):
+		return
+	var sk: Skill = null if slot_bar == null else slot_bar.get_slot(idx) as Skill
+	psp.set_hover_spell(sk)
+
+
+func _on_slot_unhovered(_idx: int) -> void:
+	var psp: Node = _get_player_status_panel()
+	if psp != null and psp.has_method("set_hover_spell"):
+		psp.set_hover_spell(null)
+
+
 # ── Ability picker (RMB on slot) ───────────────────────────────────────────
 
 ## Builds a PopupMenu with all SkillDatabase IDs. Called once via call_deferred
