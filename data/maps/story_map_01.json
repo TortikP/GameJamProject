@@ -1469,11 +1469,11 @@
 				},
 				{
 					"coord": [
-						3,
-						-3
+						-3,
+						2
 					],
 					"kind": "enemy",
-					"ref": "bee",
+					"ref": "monkey",
 					"timer": 1
 				}
 			],
@@ -1798,7 +1798,7 @@
 						-3,
 						2
 					],
-					"source_id": 1
+					"source_id": 0
 				},
 				{
 					"atlas_coord": [
@@ -2847,16 +2847,15 @@
 					"object_id": "boulder"
 				}
 			],
+			"skill_offer": {
+				"allow_replace": true,
+				"allow_skip": false,
+				"allow_upgrade": false,
+				"count": 3.0,
+				"exclude_owned": true,
+				"pool": "basic"
+			},
 			"spawners": [
-				{
-					"coord": [
-						2,
-						3
-					],
-					"kind": "enemy",
-					"ref": "bee",
-					"timer": 2
-				},
 				{
 					"coord": [
 						5,
@@ -2868,11 +2867,11 @@
 				},
 				{
 					"coord": [
-						-3,
-						2
+						-1,
+						3
 					],
 					"kind": "enemy",
-					"ref": "bee",
+					"ref": "monkey",
 					"timer": 1
 				}
 			],
@@ -4253,6 +4252,14 @@
 					"object_id": "boulder"
 				}
 			],
+			"skill_offer": {
+				"allow_replace": true,
+				"allow_skip": false,
+				"allow_upgrade": false,
+				"count": 3.0,
+				"exclude_owned": true,
+				"pool": "basic"
+			},
 			"spawners": [
 				{
 					"coord": [
@@ -4261,24 +4268,6 @@
 					],
 					"kind": "enemy",
 					"ref": "bear",
-					"timer": 1
-				},
-				{
-					"coord": [
-						0,
-						-3
-					],
-					"kind": "enemy",
-					"ref": "bee",
-					"timer": 1
-				},
-				{
-					"coord": [
-						5,
-						-2
-					],
-					"kind": "enemy",
-					"ref": "bee",
 					"timer": 1
 				},
 				{
@@ -4297,6 +4286,15 @@
 					],
 					"kind": "enemy",
 					"ref": "mushroom_boar",
+					"timer": 1
+				},
+				{
+					"coord": [
+						5,
+						-2
+					],
+					"kind": "enemy",
+					"ref": "monkey",
 					"timer": 1
 				}
 			],
@@ -5689,11 +5687,20 @@
 				},
 				{
 					"coord": [
-						-3,
-						1
+						3,
+						2
 					],
 					"kind": "enemy",
-					"ref": "bee",
+					"ref": "bush",
+					"timer": 1
+				},
+				{
+					"coord": [
+						5,
+						-1
+					],
+					"kind": "enemy",
+					"ref": "bush",
 					"timer": 1
 				},
 				{
@@ -5702,16 +5709,7 @@
 						2
 					],
 					"kind": "enemy",
-					"ref": "bee",
-					"timer": 1
-				},
-				{
-					"coord": [
-						3,
-						2
-					],
-					"kind": "enemy",
-					"ref": "bush",
+					"ref": "mushroom_boar",
 					"timer": 1
 				}
 			],

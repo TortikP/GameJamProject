@@ -2232,6 +2232,15 @@
 					"kind": "enemy",
 					"ref": "lavender_lion",
 					"timer": 1
+				},
+				{
+					"coord": [
+						9,
+						3
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
 				}
 			],
 			"turns_to_next": 0
