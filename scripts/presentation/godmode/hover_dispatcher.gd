@@ -113,17 +113,34 @@ func update_castability() -> void:
 		if not (actor is Actor):
 			continue
 		var a: Actor = actor
-		if a.team != &"enemy":
-			continue
 		var hp_bar: Node = a.get_node_or_null("HealthBar")
 		if hp_bar == null or not hp_bar.has_method("set_preview_damage"):
 			continue
+		# 051b: dispatch enemies AND player. Enemy preview is the existing
+		# AoE behaviour (preview > 0 if in zone, else 0). Player preview
+		# fires only when player would actually be hit by their own spell
+		# (hex-target AoE landing on player.coord). Self-warning flag
+		# triggers the big red "!" glyph in HealthBar — visually distinct
+		# so the player can't miss the misclick before committing.
 		var dmg: int = 0
+		var self_warning: bool = false
 		if preview_active:
-			var enemy_coord: Vector2i = grid.get_coord(a.actor_id)
-			if zone_set.has(enemy_coord):
-				dmg = active_skill.predicted_damage_to(player, a, ctx)
-		hp_bar.set_preview_damage(dmg)
+			var coord_a: Vector2i = grid.get_coord(a.actor_id)
+			if zone_set.has(coord_a):
+				if a.team == &"enemy":
+					dmg = active_skill.predicted_damage_to(player, a, ctx)
+				elif a == player:
+					# Self-hit only meaningful when the spell deals damage
+					# AND friendly-fire is structurally possible. Caster
+					# exclusion (Self+Zone) drops victims pre-cast → preview
+					# without warning would lie. Conservative gate: damage
+					# > 0 AND ability.target is NOT a SelfTarget (those
+					# exclude caster from zone in Ability.resolve, see ability.gd).
+					var dmg_self: int = active_skill.predicted_damage_to(player, player, ctx)
+					if dmg_self > 0 and preview_ability != null and not (preview_ability.target is SelfTarget):
+						dmg = dmg_self
+						self_warning = true
+		hp_bar.set_preview_damage(dmg, self_warning)
 
 	# 029 / bonus-2: hover-path preview. Show the route the player would take
 	# IFF the cursor is over a reachable hex (within effective_speed) AND

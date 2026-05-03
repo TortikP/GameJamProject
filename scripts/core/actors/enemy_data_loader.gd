@@ -76,6 +76,13 @@ static func apply_to_actor(actor: Actor, enemy_id: StringName) -> Dictionary:
 				GameLogger.warn("EnemyDataLoader", "%s: unknown skill_id '%s' — skipped" % [enemy_id, sid])
 		actor.set_skills(skills)
 
+	# 051b: optional starting_hp — forwarded to view as a hint (NOT applied
+	# here). Actor._ready does `hp = max_hp` unconditionally, so any pre-
+	# super assignment would be clobbered. The view applies hp AFTER
+	# super._ready() runs. Absent field → hp stays at max_hp (current).
+	if data.has("starting_hp"):
+		hints["starting_hp"] = int(data["starting_hp"])
+
 	# View hints — sprite path. JSON stores repo-relative ("assets/sprites/..."),
 	# we prefix res:// once here so callers can pass straight to load().
 	if data.has("sprite"):

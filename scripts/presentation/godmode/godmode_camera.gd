@@ -25,6 +25,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 ## this to true in its scene to keep navigation. Battle/runtime scenes leave
 ## it false — pan during combat caused stale-cursor / off-screen click bugs
 ## (see HANDOFF §22).
+##
+## 051b: in godmode we DO want pan back, with a different model — pan is
+## allowed even while following a target, but it temporarily detaches the
+## follow-snap. Detach persists until `recenter_on_target()` is called
+## (manually via `C` or automatically at level-end / corpse absorption).
+## So allow_pan stays the gate ("scene opts in"), and the per-frame snap
+## learned a second condition: "and not detached".
 @export var allow_pan: bool = false
 
 var _zoom_target: Vector2 = Vector2.ONE
@@ -37,6 +44,12 @@ var _pan_last: Vector2 = Vector2.ZERO
 # Falls back to find_child("Player", ...) if no controller is present (e.g.
 # camera scene loaded standalone for debugging).
 var _follow_target: Node2D = null
+
+# 051b: follow-detach latch. While true, _process skips the per-frame snap
+# so the camera stays where the player panned it. Set on first MMB-drag,
+# cleared by recenter_on_target() (manual `C` or scripted hook like absorb
+# start / level transition).
+var _follow_detached: bool = false
 
 # 048-corpse-absorption — multi-layer additive shake. Each call to shake()
 # pushes a layer; _process sums offsets and removes expired layers. Channel
@@ -51,11 +64,16 @@ func _ready() -> void:
 	_center_on_target.call_deferred()
 	# 048: tag for CorpseManager (and future systems) to find via group lookup.
 	add_to_group(&"main_camera")
+	# 051b: hook absorb-start → recenter so the end-of-level VFX always plays
+	# with the player anchored, no matter where the user panned. Ignored on
+	# scenes without an active game (smoke / editor playtest).
+	EventBus.corpses_absorbing_started.connect(_on_corpses_absorbing_started)
 
 
 # 043-camera-follow: follow-mode is implicit — true iff target is set & alive.
+# 051b: detach latch suspends the snap without losing the target reference.
 func _is_following() -> bool:
-	return _follow_target != null and is_instance_valid(_follow_target)
+	return _follow_target != null and is_instance_valid(_follow_target) and not _follow_detached
 
 
 # 043-camera-follow: snap to target every frame in follow-mode.
@@ -65,6 +83,24 @@ func _process(delta: float) -> void:
 	if _is_following():
 		global_position = _follow_target.global_position
 	_apply_shake(delta)
+
+
+# 051b: external recenter — clears the pan-detach latch and snaps back
+# onto the followed target. Called by `C` keypress (player intent) and by
+# the corpse-absorbing-started signal (scripted level transition).
+func recenter_on_target() -> void:
+	_follow_detached = false
+	_panning = false
+	_center_on_target()
+
+
+func _on_corpses_absorbing_started(_count: int, _total_sec: float) -> void:
+	# Active-game gate: only auto-recenter during a real campaign run, not
+	# during the godmode F1 sandbox where the user may want to keep their
+	# panned view across smoke tests.
+	if not (ActiveGame and ActiveGame.has_active_game()):
+		return
+	recenter_on_target()
 
 
 # 048: queue an additive shake layer. Multiple concurrent calls stack.
@@ -132,19 +168,31 @@ func _unhandled_input(event: InputEvent) -> void:
 	if ActiveGame.has_active_game() and ActiveGame.current_is_intro():
 		return
 
+	# 051b: `C` — recenter on follow target. Cheap "I lost my player" escape
+	# hatch after panning; matches conventional RTS / MOBA control.
+	if event is InputEventKey:
+		var ke := event as InputEventKey
+		if ke.pressed and not ke.echo and ke.keycode == KEY_C and not (ke.ctrl_pressed or ke.alt_pressed or ke.meta_pressed):
+			if allow_pan and _follow_target != null:
+				recenter_on_target()
+				get_viewport().set_input_as_handled()
+				return
+
 	# --- MMB pan ---
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_MIDDLE:
-			# 043-camera-follow: pan is disabled while following a target.
-			# Battle camera should never drift from the player.
-			# 045: pan is also disabled scene-wide unless allow_pan is set
-			# (only the map editor opts in). Both gates are ANDed implicitly.
-			if _is_following() or not allow_pan:
+			# 051b: pan now works WITH a follow target — first MMB-drag
+			# detaches the follow latch, _process stops snapping, the
+			# user owns the camera until they hit `C` or the level ends.
+			# allow_pan is still the scene-level gate (godmode / map editor
+			# opt in; intro / cutscene scenes don't).
+			if not allow_pan:
 				return
 			_panning = mb.pressed
 			_pan_last = mb.position
 			if _panning:
+				_follow_detached = true
 				get_viewport().set_input_as_handled()
 			return
 

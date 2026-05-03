@@ -36,6 +36,13 @@ func _ready() -> void:
 			else:
 				body.texture = tex
 	super._ready()
+	# 051b: starting_hp hint — Actor._ready set hp=max_hp; if JSON wanted
+	# a different starting hp (e.g. bush 9/11), apply it here. Clamped
+	# to [1, max_hp] to keep the actor alive and within bounds even if
+	# JSON gives a silly value.
+	if hints.has("starting_hp"):
+		var sh: int = int(hints["starting_hp"])
+		hp = clampi(sh, 1, max_hp)
 	# Declare ability IDs from loaded skills so ActorInspector / MoveRangeOverlay
 	# can paint range overlays.
 	var ability_ids: Array[StringName] = []
