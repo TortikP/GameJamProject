@@ -15,13 +15,13 @@
   "abilities": [
     {
       "id": "burning_bear_summon_bear_summon_bear",
-      "sound_start": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_start.wav",
+      "sound_start": "burning_bear_summon_bear_summon_bear_sound_start",
       "collision_effect": "summon_tranquility",
-      "sound_end": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_end.wav",
+      "sound_end": "burning_bear_summon_bear_summon_bear_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "hex",
-        "range": -1
+        "range": 4
       },
       "area": {
         "kind": "chain",
