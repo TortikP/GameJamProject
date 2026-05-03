@@ -4,7 +4,7 @@
   "tooltip": "lavender_lion_roar_tooltip",
   "desc": "lavender_lion_roar_desc",
   "icon": "icons/skills/lavender_lion_roar.png",
-  "cooldown": 3,
+  "cooldown": 4,
   "behaviour_tags": [
     "buff"
   ],
@@ -15,9 +15,9 @@
   "abilities": [
     {
       "id": "lavender_lion_roar_buff_attack_around",
-      "sound_start": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around_start.wav",
+      "sound_start": "lavender_lion_roar_buff_attack_around_sound_start",
       "collision_effect": "buff_ascended",
-      "sound_end": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around_end.wav",
+      "sound_end": "lavender_lion_roar_buff_attack_around_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "self"
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(3,20,5)"
+          "status_id": "strong(2,10,3)"
         }
       ]
     }
