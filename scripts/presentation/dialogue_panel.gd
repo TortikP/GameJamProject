@@ -12,6 +12,20 @@ signal choice_picked(index: int)
 
 enum State { IDLE, TYPING, WAITING, CHOICES }
 
+# 052: mood-driven heroine portrait.
+# Speaker id, по которому распознаём главгероиню. Совпадает с ключом в
+# data/dialogues/_speakers.json и значением "speaker" в репликах.
+const PLAYER_SPEAKER: StringName = &"heroine"
+
+# Mood → portrait file (тематический маппинг, см. specs/052-mood-portrait).
+# `neutral` / `chimera` не указаны намеренно — у них нет mood-файла,
+# срабатывает fall-through на следующий шаг priority chain в _resolve_portrait.
+const MOOD_PORTRAIT: Dictionary = {
+	&"tranquility": "res://assets/portraits/aspect_forest.png",
+	&"burnout":     "res://assets/portraits/aspect_fire.png",
+	&"ascended":    "res://assets/portraits/aspect_heaven.png",
+}
+
 @onready var _panel    : Panel         = $Panel
 @onready var _portrait : TextureRect   = $Panel/MarginContainer/HBoxContainer/Portrait
 @onready var _name_lbl : Label         = $Panel/MarginContainer/HBoxContainer/VBoxContainer/Name
@@ -24,6 +38,12 @@ var _tween: Tween = null
 var _state: int = State.IDLE
 var _current_line: Object = null
 
+# 052: cached dominant mood from MoodTracker. Updated via
+# EventBus.player_mood_changed; read inside _resolve_portrait when
+# speaker == PLAYER_SPEAKER. Initial &"neutral" matches MoodTracker's
+# all-zero state — falls through to default_portrait when no signal yet.
+var _dominant_mood: StringName = &"neutral"
+
 
 func _ready() -> void:
 	_choices.hide()
@@ -31,6 +51,15 @@ func _ready() -> void:
 	set_process_input(false)
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
+	# 052: track player's dominant mood for heroine portrait swap.
+	EventBus.player_mood_changed.connect(_on_player_mood_changed)
+	# Sync once on startup in case MoodTracker emitted before our connect
+	# (autoload order is .gd-position-dependent in project.godot). Defensive
+	# under get_node_or_null — scenes without MoodTracker (smoke tests, dev
+	# scenes) just keep the &"neutral" default.
+	var mt: Node = get_node_or_null("/root/MoodTracker")
+	if mt != null and mt.has_method("get_dominant"):
+		_dominant_mood = mt.get_dominant()
 
 
 ## Re-applies UiTheme palette to all themable nodes in this panel. Idempotent.
@@ -170,14 +199,45 @@ func _input(event: InputEvent) -> void:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+# 052: cache dominant mood for next show_line(). Live update of an already-
+# rendered portrait is intentionally skipped — would flash mid-typewriter and
+# RMB-replace during an active dialogue is rare. Next line picks it up.
+func _on_player_mood_changed(_counts: Dictionary, dominant: StringName) -> void:
+	_dominant_mood = dominant
+
+
 func _resolve_portrait(line: Object, speaker_data: Dictionary) -> Texture2D:
-	var path: String = line.portrait
-	if path == "":
-		path = speaker_data.get("default_portrait", "")
-	if path != "":
-		var tex = _try_load_texture(path)
-		if tex != null:
-			return tex
+	# Priority chain (spec 052):
+	#   1. line.portrait        — explicit per-line override
+	#   2. mood-driven heroine  — only when speaker == PLAYER_SPEAKER
+	#   3. speaker default      — speaker_data.default_portrait
+	#   4. _make_placeholder    — global default_portrait.png / generated quad
+
+	# 1. Explicit per-line override wins.
+	if line.portrait != "":
+		var line_tex: Texture2D = _try_load_texture(line.portrait)
+		if line_tex != null:
+			return line_tex
+
+	# 2. Mood-driven heroine portrait.
+	# line.speaker is StringName (dialogue_line.gd:12) — direct compare.
+	# neutral/chimera intentionally absent from MOOD_PORTRAIT → .get() returns
+	# "" → step skipped → fall through to speaker default.
+	if line.speaker == PLAYER_SPEAKER:
+		var mood_path: String = MOOD_PORTRAIT.get(_dominant_mood, "")
+		if mood_path != "":
+			var mood_tex: Texture2D = _try_load_texture(mood_path)
+			if mood_tex != null:
+				return mood_tex
+
+	# 3. Speaker default.
+	var default_path: String = speaker_data.get("default_portrait", "")
+	if default_path != "":
+		var def_tex: Texture2D = _try_load_texture(default_path)
+		if def_tex != null:
+			return def_tex
+
+	# 4. Placeholder.
 	return _make_placeholder(str(line.speaker))
 
 
