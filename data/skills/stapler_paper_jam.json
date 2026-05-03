@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "stapler_paper_jam_ranged_damage",
-      "sound_start": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_start.wav",
+      "sound_start": "stapler_paper_jam_ranged_damage_sound_start",
       "collision_effect": "debuff_neutral",
-      "sound_end": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_end.wav",
+      "sound_end": "stapler_paper_jam_ranged_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "hex",
