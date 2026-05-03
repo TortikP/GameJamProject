@@ -1,7 +1,7 @@
 {
   "id": "object_on_chair",
   "level": 0,
-  "blocks_movement": true,
+  "blocks_movement": false,
   "sprite_path": "res://assets/tiles/object_on_chair.png",
 
   "breakable": false,

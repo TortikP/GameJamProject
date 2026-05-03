@@ -141,9 +141,18 @@ func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = 
 		GameLogger.info("CutscenePlayer", "dismiss called but not active — no-op")
 		return
 	GameLogger.info("CutscenePlayer", "dismiss '%s' (dur=%.2f zoom=%.2f pivot=%s)" % [_current_id, duration, zoom_to, str(zoom_pivot)])
+
 	if is_instance_valid(_overlay) and duration > 0.0:
 		var root: Control = _overlay.get_node_or_null("Root") as Control
+		var bg: ColorRect = root.get_node_or_null("Background") as ColorRect if root != null else null
+		var skip: Label = root.get_node_or_null("SkipLabel") as Label if root != null else null
+
 		# Scale tween on last frame — "fly into" effect when zoom_to > 1.
+		# We do NOT fade the frame itself — it stays fully opaque while it
+		# flies into the monitor. The black backdrop fades out behind it,
+		# revealing the live game. Result: the picture appears to dive
+		# through the monitor, not dissolve in place.
+		var have_scale_tween: bool = false
 		if _last_frame_rect != null and is_instance_valid(_last_frame_rect) and not is_equal_approx(zoom_to, 1.0):
 			var rect_size: Vector2 = _last_frame_rect.size
 			_last_frame_rect.pivot_offset = Vector2(rect_size.x * zoom_pivot.x, rect_size.y * zoom_pivot.y)
@@ -151,12 +160,26 @@ func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = 
 			var tw_scale := create_tween()
 			tw_scale.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 			tw_scale.tween_property(_last_frame_rect, "scale", Vector2(zoom_to, zoom_to), duration)
-			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f" % [current_scale, zoom_to])
-		# Fade root alpha to 0 in parallel.
-		if root != null:
-			var tw_fade := create_tween()
-			tw_fade.tween_property(root, "modulate:a", 0.0, duration)
-			await tw_fade.finished
+			# Frame fades out at the very end so the transition into live game is clean
+			tw_scale.parallel().tween_property(_last_frame_rect, "modulate:a", 0.0, duration * 0.5).set_delay(duration * 0.5)
+			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f over %.2fs (pivot in pixels: %s)" % [current_scale, zoom_to, duration, str(_last_frame_rect.pivot_offset)])
+			have_scale_tween = true
+
+		# Fade backdrop separately so it doesn't drag the frame's alpha down.
+		# The bg fades faster than the frame's late fade so the live world
+		# starts showing through halfway into the dismiss.
+		if bg != null:
+			var tw_bg := create_tween()
+			tw_bg.tween_property(bg, "modulate:a", 0.0, duration * 0.7)
+			GameLogger.info("CutscenePlayer", "dismiss bg fade: %.2fs" % (duration * 0.7))
+		if skip != null:
+			var tw_skip := create_tween()
+			tw_skip.tween_property(skip, "modulate:a", 0.0, duration * 0.3)
+
+		# Wait the full duration regardless of which tweens exist, so the
+		# visual finishes BEFORE we tear down the overlay and emit dismissed.
+		await get_tree().create_timer(duration).timeout
+
 	if is_instance_valid(_overlay):
 		_overlay.queue_free()
 	_overlay = null

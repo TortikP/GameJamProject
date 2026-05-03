@@ -398,16 +398,16 @@
         {
           "coord": [
             3,
-            2
+            1
           ],
-          "object_id": "object_on_chair"
+          "object_id": "object_computer"
         },
         {
           "coord": [
             3,
-            1
+            2
           ],
-          "object_id": "object_computer"
+          "object_id": "object_on_chair"
         },
         {
           "coord": [
@@ -415,20 +415,13 @@
             2
           ],
           "object_id": "object_cooler"
-        },
-        {
-          "coord": [
-            1,
-            2
-          ],
-          "object_id": "ball"
         }
       ],
       "spawners": [
         {
           "coord": [
             3,
-            3
+            2
           ],
           "kind": "player",
           "ref": "",

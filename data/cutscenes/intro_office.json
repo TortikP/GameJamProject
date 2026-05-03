@@ -3,18 +3,18 @@
   "frames": [
     {
       "image": "res://assets/sprites/cutscenes/cutscene_2.png",
-      "scale_from": 1.0,
-      "scale_to": 0.95,
-      "duration": 2.5,
-      "fade_in_sec": 0.5,
-      "cross_fade_to_next_sec": 0.7,
+      "scale_from": 2.2,
+      "scale_to": 1.0,
+      "duration": 2.2,
+      "fade_in_sec": 0.4,
+      "cross_fade_to_next_sec": 0.6,
       "pivot": [0.5, 0.22]
     },
     {
       "image": "res://assets/sprites/cutscenes/cutscene_1.png",
-      "scale_from": 0.95,
-      "scale_to": 0.92,
-      "duration": 1.5,
+      "scale_from": 1.0,
+      "scale_to": 0.9,
+      "duration": 1.4,
       "pivot": [0.5, 0.22]
     }
   ]
