@@ -1,20 +1,21 @@
-[gd_scene load_steps=5 format=3 uid="uid://main_menu_001"]
+[gd_scene format=3 uid="uid://sn5ccnfm8yvb"]
 
-[ext_resource type="Script" path="res://scripts/presentation/main_menu.gd" id="1_mm"]
+[ext_resource type="Script" uid="uid://swiyya1ue24i" path="res://scripts/presentation/main_menu.gd" id="1_mm"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_sp"]
 [ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="3_space"]
-[ext_resource type="Texture2D" path="res://assets/sprites/main_menu_sky.png" id="4_sky"]
+[ext_resource type="Texture2D" uid="uid://b80rkjbentfjs" path="res://assets/sprites/main_menu_sky.png" id="4_sky"]
 
-[node name="MainMenu" type="Control"]
-script = ExtResource("1_mm")
+[node name="MainMenu" type="Control" unique_id=425598775]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource("1_mm")
 
-[node name="SpaceBackground" parent="." instance=ExtResource("3_space")]
+[node name="SpaceBackground" parent="." unique_id=1300402446 instance=ExtResource("3_space")]
 
-[node name="SkyImage" type="TextureRect" parent="."]
-anchors_preset = 15
+[node name="SkyImage" type="TextureRect" parent="." unique_id=853682854]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
@@ -22,7 +23,7 @@ texture = ExtResource("4_sky")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1965336795]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -37,75 +38,70 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="VBox"]
+[node name="Title" type="Label" parent="VBox" unique_id=1753367747]
 layout_mode = 2
 text = "Polyabsorb"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="VBox"]
+[node name="Subtitle" type="Label" parent="VBox" unique_id=1739584152]
 layout_mode = 2
 text = "YOU ARE WHAT YOU EAT"
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="VBox"]
+[node name="StartButton" type="Button" parent="VBox" unique_id=1017721551]
 layout_mode = 2
 text = "Начать забег"
 
-[node name="ContinueButton" type="Button" parent="VBox"]
+[node name="ContinueButton" type="Button" parent="VBox" unique_id=96365709]
 layout_mode = 2
-text = "Continue"
 disabled = true
+text = "Continue"
 
-[node name="GodmodeButton" type="Button" parent="VBox"]
+[node name="GodmodeButton" type="Button" parent="VBox" unique_id=2058570593]
 layout_mode = 2
 text = "Godmode (dev)"
 
-[node name="MapEditorButton" type="Button" parent="VBox"]
+[node name="MapEditorButton" type="Button" parent="VBox" unique_id=1896317596]
 layout_mode = 2
 text = "Map Editor [Ctrl+E]"
 
-[node name="GameEditorButton" type="Button" parent="VBox"]
+[node name="GameEditorButton" type="Button" parent="VBox" unique_id=1241180300]
 layout_mode = 2
 text = "Game Editor"
 
-[node name="LoadGameButton" type="Button" parent="VBox"]
+[node name="LoadGameButton" type="Button" parent="VBox" unique_id=1943238625]
 layout_mode = 2
 text = "Load Game"
 
-[node name="LoadCustomLevelButton" type="Button" parent="VBox"]
+[node name="LoadCustomLevelButton" type="Button" parent="VBox" unique_id=250015659]
 layout_mode = 2
 text = "Load Custom Level"
 
-[node name="SettingsButton" type="Button" parent="VBox"]
+[node name="SettingsButton" type="Button" parent="VBox" unique_id=1020438414]
 layout_mode = 2
 text = "Settings"
 
-[node name="CreditsButton" type="Button" parent="VBox"]
+[node name="CreditsButton" type="Button" parent="VBox" unique_id=672007365]
 layout_mode = 2
 text = "Credits"
 
-[node name="QuitButton" type="Button" parent="VBox"]
+[node name="QuitButton" type="Button" parent="VBox" unique_id=1572392609]
 layout_mode = 2
 text = "Quit"
 
-[node name="SettingsPanel" parent="." instance=ExtResource("2_sp")]
+[node name="SettingsPanel" parent="." unique_id=1927933814 instance=ExtResource("2_sp")]
 
-[node name="LoadFileDialog" type="FileDialog" parent="."]
-title = "Open a Level"
+[node name="LoadFileDialog" type="FileDialog" parent="." unique_id=1700559758]
+title = "Open a File"
 size = Vector2i(720, 480)
 ok_button_text = "Open"
 file_mode = 0
-access = 0
-current_dir = "res://data/maps/"
 filters = PackedStringArray("*.json ; Map JSON files")
-use_native_dialog = false
 
-[node name="LoadGameFileDialog" type="FileDialog" parent="."]
-title = "Open a Game"
+[node name="LoadGameFileDialog" type="FileDialog" parent="." unique_id=900161688]
+title = "Open a File"
 size = Vector2i(720, 480)
 ok_button_text = "Open"
 file_mode = 0
 access = 2
-current_dir = "res://data/games/"
 filters = PackedStringArray("*.game.json ; Game files")
-use_native_dialog = false
