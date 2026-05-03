@@ -23,17 +23,32 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 # across SkillOfferCard, TelegraphHex, EnemyDetailsPanel, HexTooltip — hoisted
 # into a single static helper to keep behaviour identical everywhere.
 const SkillIconResolver = preload("res://scripts/presentation/skill_icon_resolver.gd")
+# 049b / T040: gameplay tooltip routed through the same human formatter the
+# PSP and HexTooltip use — single source of truth for "what does this skill
+# do" text. Lore stays on RichTextLabel (skill.desc) below it.
+const SkillFormatter    = preload("res://scripts/presentation/skill_formatter.gd")
 
-const CARD_MIN_SIZE: Vector2 = Vector2(200, 280)
+const CARD_MIN_SIZE: Vector2 = Vector2(220, 320)
 
 signal card_clicked(card_data: Dictionary)
 
 var _data: Dictionary = {}
 var _name_label: Label
 var _mode_badge: Label
-var _desc_label: RichTextLabel
+# 049b / T040: split into TWO description widgets. _gameplay_label holds the
+# Localization.t(skill.tooltip) string (primary read — what does it do
+# mechanically). _lore_label holds Localization.t(skill.desc) (flavour, dim
+# and small). Old single _desc_label was wired to skill.desc only — surfaced
+# lore on the offer screen and hid the gameplay numbers entirely.
+var _gameplay_label: RichTextLabel
+var _lore_label: RichTextLabel
 var _mood_row: HBoxContainer
 var _icon_rect: TextureRect
+# 049b / T040: letter-fallback Label sits next to _icon_rect inside an
+# icon container. Visible iff SkillIconResolver returns null (no asset
+# exists yet — Katya hasn't shipped the skill icon set). Mirrors the same
+# letter-fallback the TelegraphHex and HexTooltip rows use.
+var _icon_letter: Label
 var _hovered: bool = false
 
 
@@ -58,12 +73,26 @@ func _build_children() -> void:
 	vbox.offset_bottom = -UiThemeScript.SP_4
 	add_child(vbox)
 
+	# 049b / T040: icon container — TextureRect (visible when SkillIconResolver
+	# resolves) + letter Label fallback (visible otherwise). Same shape as
+	# the equivalent slot in HexTooltip rows / TelegraphHex draw — single
+	# behaviour everywhere. Centered in the card via SHRINK_CENTER.
+	var icon_box := CenterContainer.new()
+	icon_box.custom_minimum_size = Vector2(72, 72)
+	icon_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(icon_box)
 	_icon_rect = TextureRect.new()
 	_icon_rect.custom_minimum_size = Vector2(64, 64)
 	_icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	vbox.add_child(_icon_rect)
+	icon_box.add_child(_icon_rect)
+	_icon_letter = Label.new()
+	# Display kind = FS_DISPLAY (32). Bigger than header so the placeholder
+	# letter on a 64px icon slot reads as "this is a deliberate placeholder",
+	# not "the icon failed to render".
+	UiThemeScript.apply_label_kind(_icon_letter, "display")
+	_icon_letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_box.add_child(_icon_letter)
 
 	_name_label = Label.new()
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -81,14 +110,36 @@ func _build_children() -> void:
 	_mood_row.add_theme_constant_override("separation", UiThemeScript.SP_1)
 	vbox.add_child(_mood_row)
 
-	_desc_label = RichTextLabel.new()
-	_desc_label.bbcode_enabled = true
-	_desc_label.fit_content = true
-	_desc_label.scroll_active = false
-	_desc_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_desc_label.add_theme_font_size_override("normal_font_size", UiThemeScript.FS_BODY)
-	_desc_label.add_theme_color_override("default_color", UiThemeScript.TEXT)
-	vbox.add_child(_desc_label)
+	# 049b / T040: GAMEPLAY description (primary). Sourced from
+	# Localization.t(skill.tooltip) via SkillFormatter.format_skill_human —
+	# same text PSP and HexTooltip surface. Body kind, full TEXT colour, no
+	# fit_content cap (cards are 320px tall — let the lore fall below). On
+	# overflow autowrap takes over; if a tooltip is genuinely too long for
+	# 220px width it'll push the card vertically and the modal's HBox row
+	# alignment naturally re-centers (skill_offer_modal sets card_min_size
+	# but doesn't cap card_max_size).
+	_gameplay_label = RichTextLabel.new()
+	_gameplay_label.bbcode_enabled = true
+	_gameplay_label.fit_content = true
+	_gameplay_label.scroll_active = false
+	_gameplay_label.add_theme_font_size_override("normal_font_size", UiThemeScript.FS_BODY)
+	_gameplay_label.add_theme_color_override("default_color", UiThemeScript.TEXT)
+	vbox.add_child(_gameplay_label)
+
+	# 049b / T040: LORE description (secondary). Sourced from
+	# Localization.t(skill.desc) — Nikita's flavour copy. Smaller font
+	# (FS_SMALL), dim TEXT_DIM colour. Shrinks under gameplay to keep the
+	# focus where the player actually reads. SIZE_EXPAND_FILL on the lore
+	# rather than gameplay so a really long lore string scrolls/grows but
+	# doesn't push the gameplay text off-screen.
+	_lore_label = RichTextLabel.new()
+	_lore_label.bbcode_enabled = true
+	_lore_label.fit_content = true
+	_lore_label.scroll_active = false
+	_lore_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_lore_label.add_theme_font_size_override("normal_font_size", UiThemeScript.FS_SMALL)
+	_lore_label.add_theme_color_override("default_color", UiThemeScript.TEXT_DIM)
+	vbox.add_child(_lore_label)
 
 
 ## Bind a card_data Dictionary. Safe to call before or after _ready.
@@ -139,15 +190,38 @@ func _apply_data_to_children() -> void:
 			UiThemeScript.apply_label_kind(lbl, "small")
 			_mood_row.add_child(lbl)
 
-	# Desc — Skill.desc is a loc key per 021.
+	# 049b / T040: gameplay description goes in the primary slot. Sourced
+	# from format_skill_human (same as PSP / HexTooltip) — falls back to
+	# "[ДОБАВИТЬ]" placeholder when the tooltip key is missing, which is
+	# fine here too: designer-visible signal that something needs writing.
+	_gameplay_label.text = SkillFormatter.format_skill_human(skill)
+
+	# 049b / T040: lore description in the secondary slot. Localization.t
+	# of skill.desc with the same key as fallback so missing-key shows the
+	# raw key for designer attention. Was the only thing on the card pre-
+	# 049b — now it's flavour text underneath the mechanical answer.
 	var desc_key: String = String(skill.desc) if skill != null and "desc" in skill else ""
 	var desc_text: String = Localization.t(desc_key, desc_key) if desc_key != "" else ""
-	_desc_label.text = desc_text
+	_lore_label.text = desc_text
 
-	# Icon — Skill.icon is a StringName id; treat as path hint when it
-	# starts with "icons/" or "res:". No real IconDB yet; placeholder when
-	# we can't resolve. Don't crash on missing.
-	_icon_rect.texture = SkillIconResolver.resolve(skill)
+	# 049b / T040: icon — texture if SkillIconResolver finds one, else show
+	# the letter fallback Label (first letter of localised skill name, big).
+	# Same fallback strategy as TelegraphHex._draw_icon and HexTooltip rows;
+	# Katya's skill icons aren't in the repo yet, so the fallback is the
+	# default visible state until they land.
+	var tex: Texture2D = SkillIconResolver.resolve(skill)
+	if tex != null:
+		_icon_rect.texture = tex
+		_icon_rect.visible = true
+		_icon_letter.visible = false
+	else:
+		_icon_rect.texture = null
+		_icon_rect.visible = false
+		var letter: String = ""
+		if display_name != "":
+			letter = display_name.substr(0, 1).to_upper()
+		_icon_letter.text = letter
+		_icon_letter.visible = true
 
 
 # 049 / T005: _resolve_icon body moved to SkillIconResolver.resolve(). Method

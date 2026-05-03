@@ -141,3 +141,26 @@ tiles — outline-only with α0.55, 1.5px.
   outline weight bumped 1.5px α0.55 → 2.0px α0.85. Primary/secondary
   distinction now lives in fill density (0.42 vs 0.18) instead of in
   outline weight where it disappeared on busy frames.
+
+### Issue 4 — Skill offer card surfaces lore, hides gameplay; no icon
+
+The between-wave skill offer modal (040 territory) was wired to
+`skill.desc` (lore) only and never showed `skill.tooltip` (gameplay).
+`_resolve_icon` was called but the icon rect drew nothing when the
+texture didn't resolve — Katya's skill icon set isn't in the repo yet,
+so cards rendered with a blank 64×64 hole at the top. Egor screenshot.
+
+- [x] **T040** — `scripts/presentation/ui/skill_offer_card.gd`:
+  - Two RichTextLabels: `_gameplay_label` (FS_BODY, TEXT) sourced from
+    `SkillFormatter.format_skill_human(skill)` — same string PSP and
+    HexTooltip use; consistent across the whole game.
+  - `_lore_label` (FS_SMALL, TEXT_DIM) sourced from
+    `Localization.t(skill.desc)` — was the *only* desc pre-T040, now
+    flavour text underneath the mechanical answer.
+  - Icon container: `CenterContainer` with `_icon_rect` + `_icon_letter`
+    Label (FS_DISPLAY, FS_DISPLAY); show whichever the resolver picks.
+    Mirrors TelegraphHex / HexTooltip letter fallback so Katya's
+    eventual icon assets drop in without code changes (resolver picks
+    them up automatically by path pattern).
+  - `CARD_MIN_SIZE` 200×280 → 220×320 to give the second description
+    label vertical room. Modal `_cards_row` already auto-aligns.
