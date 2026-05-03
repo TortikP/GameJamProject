@@ -17,14 +17,17 @@ extends Node
 ## Palette is amber phosphor on near-black; semantic colors stay distinguishable
 ## but desaturated to a CGA-ish range. All `make_*_stylebox` corners are 0,
 ## panel drop-shadows removed (CRTs don't drop-shadow). Default font for every
-## Control is VT323 — wired via ThemeDB.fallback_font in _ready().
+## Control is Pixellari (pixel bitmap, full Cyrillic) — wired into the default
+## theme + fallback_font in _ready() with anti-aliasing forced off.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 # ── Default font (047) ───────────────────────────────────────
-# Wired into ThemeDB.fallback_font in _ready() so every Control without an
-# explicit font override picks up VT323 automatically.
-const _FONT_PATH := "res://assets/fonts/VT323-Regular.ttf"
+# Pixellari (Cyrillic edition by YuRaNnNzZZ, OFL-1.1, derived from Pixellari
+# by Zaccary Dempsey-Plante 2017). Bitmap-derived TTF — see _ready() below
+# for the pixel-perfect render settings that keep its glyphs crisp instead
+# of fuzzy-FreeType-default.
+const _FONT_PATH := "res://assets/fonts/Pixellari.ttf"
 # Typed as base Font (rather than FontFile) so the assignment survives if Godot
 # ever returns a different concrete subclass for an imported .ttf.
 var _default_font: Font
@@ -108,12 +111,14 @@ const SP_5 := 24
 const SP_6 := 32
 
 # ── Font sizes (px) ──────────────────────────────────────────
-# 047: FS_SMALL bumped 11 → 12 (VT323 readability floor; per Visibility
-# doctrine in CLAUDE.md, when a font is illegible at a size, the size
-# goes up — never the font down).
+# 047: FS_SMALL bumped 11 → 12 (pixel-font readability floor); FS_BODY
+# bumped 14 → 16 because Pixellari's bitmap source is 16px-tall and
+# renders crispest at multiples of 16. Per Visibility doctrine in
+# CLAUDE.md, when a font is illegible at a size, the size goes up —
+# never the font down.
 const FS_DISPLAY    := 32
 const FS_HEADER     := 18
-const FS_BODY       := 14
+const FS_BODY       := 16
 const FS_SMALL      := 12
 const FS_NUM_LARGE  := 24
 const FS_NUM_SMALL  := 12
@@ -125,9 +130,10 @@ const FS_NUM_HUGE   := 40
 # Visibility doctrine: world UI must read at default zoom without leaning in.
 # These are bigger than the original 30×4×9px bar — that was readable on a
 # screenshot but invisible during actual play.
-# 047: BAR_FONT_SIZE_OVERHEAD bumped 18→22. VT323 has thinner strokes than
-# OpenSans, and HP digits sit on top of grass/fire/blood — extra pixels per
-# glyph win the contrast fight (Visibility doctrine: bump size, never the font).
+# 047: BAR_FONT_SIZE_OVERHEAD bumped 18→22. Pixel fonts have thinner strokes
+# than OpenSans, and HP digits sit on top of grass/fire/blood — extra pixels
+# per glyph win the contrast fight (Visibility doctrine: bump size, never
+# the font).
 const BAR_WIDTH_OVERHEAD     := 64.0
 const BAR_HEIGHT_OVERHEAD    := 10.0
 const BAR_FONT_SIZE_OVERHEAD := 22
@@ -373,8 +379,8 @@ static func apply_button_styling(btn: Button) -> void:
 	btn.add_theme_font_size_override("font_size", FS_BODY)
 
 
-## 047: load VT323 once at autoload init and wire it as the global default
-## font.
+## 047: load Pixellari once at autoload init and wire it as the global
+## default font.
 ##
 ## Why this needs both knobs:
 ##  - `ThemeDB.fallback_font` is the absolute-last-resort font, used only
@@ -388,6 +394,13 @@ static func apply_button_styling(btn: Button) -> void:
 ##    directly when calling `draw_string()`. Setting both keeps those
 ##    paths consistent with the global theme.
 ##
+## Pixel-perfect rendering: Pixellari is a bitmap-derived TTF, so we force
+## antialiasing/hinting/subpixel-positioning OFF at runtime. Godot's
+## defaults antialias every TTF — fine for OpenSans, fuzzy garbage for a
+## pixel font. Setting these in code (rather than depending on a checked-in
+## `.import` file) makes the look survive a re-import or a Godot version
+## bump that changes the default `.import` template.
+##
 ## Failure mode: if the font file is missing or fails to load, log a warning
 ## and let the game start with Godot's built-in OpenSans. Better to ship
 ## with the wrong font than crash on boot.
@@ -395,6 +408,14 @@ func _ready() -> void:
 	var f := load(_FONT_PATH)
 	if f is Font:
 		_default_font = f
+		# Force pixel-perfect rendering on the FontFile (TTF-from-bitmap
+		# source — anti-aliasing destroys it).
+		if _default_font is FontFile:
+			var ff: FontFile = _default_font
+			ff.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+			ff.hinting = TextServer.HINTING_NONE
+			ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.force_autohinter = false
 		# (a) Replace the default theme's font — affects every Control globally.
 		var dt: Theme = ThemeDB.get_default_theme()
 		if dt != null:
@@ -404,9 +425,9 @@ func _ready() -> void:
 		# `ThemeDB.fallback_font` directly (HP bar overhead labels etc.).
 		ThemeDB.fallback_font = _default_font
 		ThemeDB.fallback_font_size = FS_BODY
-		GameLogger.info("UiTheme", "VT323 loaded as global default font (size %d)" % FS_BODY)
+		GameLogger.info("UiTheme", "Pixellari loaded as global default font (size %d, pixel-perfect)" % FS_BODY)
 	else:
-		GameLogger.warn("UiTheme", "VT323 font missing at %s — using Godot default" % _FONT_PATH)
+		GameLogger.warn("UiTheme", "Pixellari font missing at %s — using Godot default" % _FONT_PATH)
 
 
 ## Hot-reload trigger. Bound to F5 via _unhandled_input below.

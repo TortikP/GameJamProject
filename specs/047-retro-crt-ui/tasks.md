@@ -55,3 +55,48 @@ defensive grep audits. T07 is the manual smoke test (Andrey runs it).
   succeed).
 - T06 / T07 are independent grep audits, can run in any order.
 - T08 depends on everything else.
+
+## Post-merge revisions
+
+### Font swap: VT323 → Pixellari Cyrillic
+
+VT323 lacks Cyrillic glyphs entirely — Russian text rendered as `□□□`
+squares or fell back to OpenSans. Replaced with **Pixellari Cyrillic**
+(YuRaNnNzZZ, OFL-1.1, derived from Pixellari by Zaccary Dempsey-Plante,
+2017). Source: https://github.com/YuRaNnNzZZ/PixellariCyrillic.
+
+Coverage: full Latin + Latin Extended + Russian (Ё, А-Я, а-я, ё). Ukrainian
+diacritics not included (acceptable for jam scope).
+
+Changes:
+- Removed `assets/fonts/VT323-Regular.ttf` + `assets/fonts/VT323_OFL.txt`.
+- Added `assets/fonts/Pixellari.ttf`, `assets/fonts/Pixellari_OFL.txt`,
+  `assets/fonts/Pixellari_README.md` (last one carries the OFL-required
+  attribution to original + Cyrillic editor).
+- `_FONT_PATH` constant updated.
+- `_ready()` now also forces pixel-perfect render settings on the FontFile:
+  `antialiasing = NONE`, `hinting = NONE`, `subpixel_positioning = DISABLED`.
+  Without this Godot's default TTF anti-aliasing turns the bitmap glyphs
+  into mush. Done in code (not in `.import`) so the look survives reimport
+  or Godot version bumps.
+- `FS_BODY` bumped 14 → 16. Pixellari's bitmap source is 16px-tall —
+  multiples of 16 render crispest; 14 was an awkward in-between size.
+- Header doc-comment + overhead-bar size comment refreshed to mention
+  Pixellari instead of VT323.
+
+### Global font wiring fix
+
+`ThemeDB.fallback_font` only triggers when no theme in the cascade
+provides a font. Godot's built-in default theme always provides OpenSans,
+so the fallback never fired for normal Controls — only for code paths
+that read `ThemeDB.fallback_font` directly (e.g. `health_bar.gd:71`).
+Result: VT323 was visible on overhead HP labels but nowhere else.
+
+Fix: also assign `ThemeDB.get_default_theme().default_font`. Both knobs
+set; covers both cascade and direct-read paths.
+
+### Overhead HP size
+
+`BAR_FONT_SIZE_OVERHEAD` bumped 18 → 22. Pixel fonts have thinner strokes
+than OpenSans on the same px size; on busy backgrounds (grass, fire) the
+original 18 washed out. Per Visibility doctrine — bump size, never font.
