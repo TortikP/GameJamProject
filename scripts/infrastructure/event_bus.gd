@@ -45,8 +45,6 @@ signal actor_spawned(actor_id: StringName)
 # Run cycle
 signal run_started
 signal run_ended(reason: String)
-signal rewind_started
-signal rewind_finished
 
 # Dialogue
 signal dialogue_started(dialogue_id: StringName)
@@ -139,3 +137,4 @@ signal campaign_cutscene_requested(cutscene_id: StringName, on_done: Callable)
 # campaign_level_started / campaign_finished: read-only notifications.
 signal campaign_level_started(index: int, map_path: String)
 signal campaign_finished(total_score: int)
+signal campaign_defeated(map_index: int, wave_index: int, is_final_boss_wave: bool)

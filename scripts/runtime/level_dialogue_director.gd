@@ -207,8 +207,9 @@ func _conditions_pass(t: DialogueTrigger, event_name: StringName, args: Array) -
 func _try_fire(t: DialogueTrigger) -> void:
 	var ok: bool = false
 	if t.play_mode == "play":
-		if _is_chaining:
+		if _is_chaining or DialogueManager.is_playing():
 			_pending_plays.append(t.dialogue_id)
+			_is_chaining = true
 			ok = true
 		else:
 			ok = DialogueManager.play(t.dialogue_id)

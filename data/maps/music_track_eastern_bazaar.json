@@ -1,0 +1,586 @@
+{
+  "name": "Track: Eastern Bazaar",
+  "version": 2,
+  "tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
+  "waves": [
+    {
+      "index": 0,
+      "is_special": false,
+      "turns_to_next": 5,
+      "floor": [
+        {
+          "coord": [
+            0,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            0
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            1
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            2
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            3
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            4
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            0,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            1,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            2,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            3,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            4,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            5,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            6,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        },
+        {
+          "coord": [
+            7,
+            5
+          ],
+          "source_id": 0,
+          "atlas_coord": [
+            0,
+            0
+          ]
+        }
+      ],
+      "objects": [
+        {
+          "coord": [
+            4,
+            3
+          ],
+          "object_id": "mountain"
+        }
+      ],
+      "spawners": [
+        {
+          "coord": [
+            1,
+            2
+          ],
+          "kind": "player",
+          "ref": "",
+          "timer": 1
+        },
+        {
+          "coord": [
+            6,
+            3
+          ],
+          "kind": "enemy",
+          "ref": "manekin",
+          "timer": 2
+        }
+      ]
+    }
+  ],
+  "dialogue_triggers": [],
+  "music_config": {
+    "seed": 3003,
+    "bpm": 116,
+    "base_state": "calm",
+    "progression": "am_bb_f_e",
+    "scale": "phrygian",
+    "bars_per_chord": 2,
+    "drum_pattern": "tribal",
+    "bass_pattern": "walking",
+    "pad_voicing": "sus2",
+    "lead_density_calm": 0.5,
+    "pad_gain_db": -1,
+    "drums_gain_db": -2
+  }
+}

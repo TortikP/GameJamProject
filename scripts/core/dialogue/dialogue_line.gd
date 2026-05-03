@@ -18,7 +18,7 @@ var image: String           # path or ""
 var text_fx: String         # reserved, no-op + warn if set
 
 ## Audio
-var audio_layer: String     # "sfx" | "ai_voice" | "human" | ""
+var audio_layer: String     # tag for AudioDirector routing; default "sfx", "" = inherit speaker
 var audio_clip: String      # path or ""
 
 ## Selector metadata

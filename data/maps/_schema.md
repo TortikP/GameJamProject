@@ -218,3 +218,47 @@ guaranteed offer should keep waves short enough that clear-by-kill is the
 expected path.
 
 **Pool file format** — see `data/skill_offer_pools/_schema.md`.
+
+---
+
+## `music_config` (042 — proc-music, optional)
+
+Per-level procedural music configuration. All fields optional. Absent = defaults.
+
+```json
+{
+  "music_config": {
+    "preset":     "tense_arena",
+    "seed":       1234,
+    "bpm":        96,
+    "base_state": "calm",
+    "stings": {
+      "wave_clear": "blip_up",
+      "victory":    "fanfare",
+      "defeat":     "descending"
+    },
+    "lead_density_calm":   0.3,
+    "lead_density_battle": 0.7,
+    "pad_gain_db":   0,
+    "drums_gain_db": 0,
+    "muted": false
+  }
+}
+```
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `preset` | StringName | — | id from `data/music/presets.json`. Other fields below override. |
+| `seed` | int | `hash(level.name) & 0x7fffffff` | RNG seed for procedural patterns. |
+| `bpm` | float | 96 | clamped 40..200. |
+| `base_state` | string | "calm" | "calm" or "battle". |
+| `stings` | dict | — | sting id per event (`wave_clear`, `victory`, `defeat`). |
+| `lead_density_calm` | float | 0.3 | 0..1. |
+| `lead_density_battle` | float | 0.7 | 0..1. |
+| `pad_gain_db` | float | 0 | dB offset. |
+| `drums_gain_db` | float | 0 | dB offset. |
+| `muted` | bool | false | silences music for this level. |
+
+Resolution order: hardcoded defaults → preset → explicit fields.
+See `data/music/presets.json` for named presets. Use Music Lab
+(`scenes/dev/music_lab.tscn`, F6) for A/B tuning + Copy JSON.

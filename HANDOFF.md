@@ -40,8 +40,6 @@
 Пошаговая магическая арена со спелл-крафтом через модификаторы (как Ball x Pit / Brotato), QWER-style слоты заклинаний, гекс-арена, рогаликовая петля в стиле Megabonk. Полный концепт — в `jam-concept-pitch.md`.
 
 **Идентичность (не зависит от темы):**
-- Перемотка плёнки между петлями.
-- SFX → ИИ-голос → реальный человек по мере прогресса.
 - Community-style мета-ирония, переключаемая на Гайман-тон под серьёзную тему.
 
 ---
@@ -154,7 +152,7 @@ jam-project/
 │   ├── audio/
 │   │   ├── sfx/
 │   │   ├── music/
-│   │   └── voice/               # SFX-бормотание, AI-голоса, human-голоса
+│   │   └── voice/               # SFX-бормотание (Animal Crossing-style)
 │   └── fonts/
 └── tests/                       # GUT, опционально
 ```
@@ -211,7 +209,6 @@ upgrade_screen_min_display=2.0
 respawn_animation_duration=1.5
 
 [meta]
-rewind_effect_duration=0.8
 boss_intro_duration=3.0
 
 [clock]
@@ -254,8 +251,6 @@ signal actor_spawned(actor_id: StringName)
 # Run-цикл
 signal run_started
 signal run_ended(reason: String)
-signal rewind_started
-signal rewind_finished
 
 # Диалоги
 signal dialogue_started(dialogue_id)
@@ -285,7 +280,21 @@ func debug(tag: String, msg: String) -> void: log(Level.DEBUG, tag, msg)
 
 ### `AudioDirector` (`scripts/infrastructure/audio_director.gd`)
 
-Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями, поддержка эскалации SFX → AI → human.
+Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями (SFX-бормотание для диалогов, общий микс).
+
+### `MusicDirector` (`scripts/audio/music/music_director.gd`) — добавлен в 042
+
+Процедурный музыкальный движок. Real-time PCM через `AudioStreamGenerator`, без аудиоассетов в сорсе. Два состояния (`calm`/`battle`), JSON-конфигурируемые стинги (заменяемые на OGG без правки кода). Подписан на EventBus: `level_loaded`, `wave_started`, `wave_cleared`, `level_completed`, `run_ended`, `main_menu_entered`, `run_started_requested`.
+
+Архитектура (low→high): `Wavetables` → `ADSR` → `VoicePool` → `Conductor` + `Harmony` + `StateMixer` → `BassGen`/`PadGen`/`LeadGen`/`DrumsGen` → `MusicDirector` → `StingPlayer`.
+
+Per-level конфиг в `LevelData.music_config` (опциональный, `{}`=дефолты). Меню-конфиг в `data/music/main_menu.json`. Стинги в `data/music/stings.json` (swap OGG: `"kind":"stream","path":"res://..."` в одной строке JSON). Пресеты в `data/music/presets.json`.
+
+**Публичный API** (Music Lab и `_on_level_loaded`): `set_bpm`, `set_state`, `set_seed`, `set_layer_db(layer, db)`, `set_lead_density(calm, battle)`, `play_sting(name)`.
+
+**Music Lab**: `scenes/dev/music_lab.tscn` — F6 для запуска. Слайдеры (BPM, lead density, gain), A/B слоты, стинг-кнопки, «Copy JSON» в clipboard (готово к вставке в level.json). Что слышишь в лабе = что услышишь в игре с тем же конфигом.
+
+Полная архитектура: `specs/042-proc-music/`.
 
 ---
 
@@ -492,7 +501,7 @@ JSON-формат:
 }
 ```
 
-`audio_layer` — `sfx`, `ai_voice`, `human` — управляется AudioDirector.
+`audio_layer` — опциональный тег для аудио-роутинга AudioDirector'ом (default `sfx`).
 
 Под любую тему DialogueManager работает идентично — меняется только контент.
 
@@ -573,16 +582,13 @@ JSON-формат:
 - 4 заклинания, 10+ модификаторов в пуле.
 - Экран апгрейда между боями.
 - Несколько диалогов в run'е.
-- Перемотка плёнки на респауне.
 
 **Если играется — остаток дня = polish и контент.** Не новые фичи. Катя доделывает ассеты, Никита заливает диалоги, Стасян балансирует.
 
 ### Суббота днём
 
 - Финальные диалоги.
-- ИИ-голос на ключевых репликах (опционально).
 - Музыкальные слои (опционально).
-- Финальный приём (скип отключён + реальный голос) — если успели записать живой голос. Если не записали — без него, не страшно.
 
 ### Суббота вечер (последние 3 часа)
 

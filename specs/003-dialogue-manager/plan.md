@@ -106,7 +106,7 @@ func find_by_event(event: StringName, context: Dictionary, played: Dictionary) -
 Если portrait-файл не существует — placeholder (серый квадрат с именем). Не падаем.
 
 ### Audio layers
-`sfx | ai_voice | human` — соответствует `jam-concept-pitch.md` §«Звук — эскалация подлинности». DialogueManager резолвит layer так: `line.audio_layer ?? speaker.default_audio_layer ?? "sfx"`.
+`audio_layer` — опциональный тег для AudioDirector-роутинга. На джеме шипуем только `sfx` (Animal Crossing-style бормотание); поле оставлено расширяемым на случай будущих слоёв. DialogueManager резолвит layer так: `line.audio_layer ?? speaker.default_audio_layer ?? "sfx"`.
 
 ### Choice schema
 ```json

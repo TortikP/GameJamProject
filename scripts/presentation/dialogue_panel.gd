@@ -23,7 +23,6 @@ var _placeholder_cache: Dictionary = {}
 var _tween: Tween = null
 var _state: int = State.IDLE
 var _current_line: Object = null
-var _auto_timer: SceneTreeTimer = null
 
 
 func _ready() -> void:
@@ -59,7 +58,6 @@ func _apply_theme() -> void:
 func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_current_line = line
 	_state = State.IDLE   # reset before setup
-	_auto_timer = null
 
 	var speaker_fallback := String(speaker_data.get("display_name", str(line.speaker)))
 	_name_lbl.text = Localization.t("dialogues_speakers_%s_display_name" % str(line.speaker), speaker_fallback)
@@ -80,7 +78,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	_choices.hide()
 
 	_text_lbl.bbcode_enabled = true
-	_text_lbl.text = Localization.t("dialogues_%s_text" % str(line.id), line.text)
+	_text_lbl.text = Localization.t("dialogues_%s_text" % str(line.id), Localization.t(line.text, line.text))
 	# visible_ratio (0..1) handles bbcode correctly — tags are not counted.
 	# visible_characters tweening would also need visible_characters_behavior tuning;
 	# ratio sidesteps that entirely.
@@ -111,14 +109,6 @@ func _on_typewriter_done() -> void:
 		_state = State.CHOICES
 	else:
 		_state = State.WAITING
-		var delay: float = GameSpeed.get_value("ui", "dialogue_auto_advance_after_sec", 3.0)
-		_auto_timer = get_tree().create_timer(delay)
-		_auto_timer.timeout.connect(_on_auto_advance, CONNECT_ONE_SHOT)
-
-
-func _on_auto_advance() -> void:
-	if _state == State.WAITING:
-		_close()
 
 
 func _show_choices(choices: Array) -> void:
@@ -143,7 +133,6 @@ func _on_choice(index: int) -> void:
 
 func _close() -> void:
 	_state = State.IDLE
-	_auto_timer = null
 	set_process_input(false)
 	line_ended.emit()
 
@@ -168,7 +157,6 @@ func _input(event: InputEvent) -> void:
 			_on_typewriter_done()
 		State.WAITING:
 			get_viewport().set_input_as_handled()
-			_auto_timer = null
 			_close()
 		State.CHOICES:
 			pass  # buttons handle their own clicks

@@ -113,8 +113,18 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 			has_create = true
 			break
 
+	# 046: only ActorTarget / ObjectTarget semantically require a victim.
+	# SelfTarget describes "centered on me", HexTarget describes "centered
+	# on this tile", DirectionTarget describes a vector — for all three,
+	# an empty area is a valid cast (cooldown ticks, audio fires, no per-
+	# victim effects run). Without this gate, target=self + zone_circle
+	# bailed whenever no other actors stood in the radius (the
+	# exclude_caster strip below leaves victims=[]); target=hex + zone on
+	# an empty hex bailed at the pre-exclusion guard.
+	var target_requires_victims: bool = (target is ActorTarget) or (target is ObjectTarget)
+
 	var victims: Array = eff_area.resolve(caster, primary, ctx)
-	if victims.is_empty() and not has_create:
+	if victims.is_empty() and not has_create and target_requires_victims:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
 		return false
 
@@ -135,7 +145,7 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 			if v != caster:
 				filtered.append(v)
 		victims = filtered
-	if victims.is_empty() and not has_create:
+	if victims.is_empty() and not has_create and target_requires_victims:
 		GameLogger.info("Ability", "%s: no victims after caster exclusion" % id)
 		return false
 
