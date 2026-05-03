@@ -45,6 +45,10 @@ func game_name() -> String:
 	return _game.name
 
 
+func game_path() -> String:
+	return _game_path
+
+
 func total_levels() -> int:
 	if _game == null:
 		return 0
@@ -104,6 +108,13 @@ func load_game(path: String) -> bool:
 	GameLogger.info("ActiveGame", "Loaded game '%s' (%d levels) from %s" % [_game.name, _game.size(), path])
 	EventBus.campaign_level_started.emit(current_index, current_map_path())
 	return true
+
+
+func restart() -> bool:
+	if _game_path == "":
+		GameLogger.warn("ActiveGame", "restart: no game path")
+		return false
+	return load_game(_game_path)
 
 
 ## Advances to the next level. Caller (CampaignController) is responsible for

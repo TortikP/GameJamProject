@@ -87,7 +87,15 @@ func _on_restart() -> void:
 			Localization.t("ui_common_cancel", "Cancel"), true)
 	if ok:
 		close()
-		EventBus.run_started_requested.emit()
+		if ActiveGame.has_active_game():
+			EventBus.run_started_requested.emit()
+			if ActiveGame.restart():
+				get_tree().paused = false
+				get_tree().change_scene_to_file("res://scenes/dev/godmode.tscn")
+			else:
+				EventBus.ui_toast_requested.emit(Localization.t("ui_pause_restart_failed", "Restart failed"), 2.0, &"error")
+		else:
+			EventBus.run_started_requested.emit()
 
 
 func _on_settings() -> void:
@@ -114,6 +122,8 @@ func _on_main_menu() -> void:
 		# return us to a stale editor session.
 		ActiveLevel.clear_playtest_origin()
 		ActiveLevel.clear()
+		ActiveGame.clear()
+		get_tree().paused = false
 		close()
 		EventBus.main_menu_entered.emit()
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
