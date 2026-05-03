@@ -21,6 +21,11 @@ const SLOT_COUNT := 4
 
 signal slot_activated(index: int)
 signal slot_right_clicked(index: int)  # for ability picker popup
+# 049 / AC-8: per-slot hover signals so PSP can preview the hovered spell
+# description before the player commits via Q/W/E/R or LMB. Active selection
+# stays driven by slot_activated; hover is a separate, transient state.
+signal slot_hovered(index: int)
+signal slot_unhovered(index: int)
 
 ## Slot map: int index → Ability instance (or absent if empty).
 ## Dictionary intentionally — Godot 4.6 array element type-check fires
@@ -165,11 +170,15 @@ func _on_button_pressed(index: int) -> void:
 func _on_mouse_entered(index: int) -> void:
 	_hovered[index] = true
 	_refresh_visual(index)
+	# 049 / AC-8: forward to PSP via controller. _refresh_visual already does
+	# the brightness tweak; this is the descriptive-text channel.
+	slot_hovered.emit(index)
 
 
 func _on_mouse_exited(index: int) -> void:
 	_hovered[index] = false
 	_refresh_visual(index)
+	slot_unhovered.emit(index)
 
 
 func _on_button_gui_input(event: InputEvent, index: int) -> void:

@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://hex_tooltip_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/hex_tooltip.gd" id="1_ht"]
+
+[node name="HexTooltip" type="PanelContainer"]
+script = ExtResource("1_ht")
+visible = false
+mouse_filter = 2
+custom_minimum_size = Vector2(280, 0)
+top_level = true
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="RowsVBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2

@@ -72,7 +72,8 @@ func clear_all() -> void:
 	# tester keep playing after death without restarting the scene.
 	if _ctrl.player != null:
 		_ctrl.player.heal_to_full()
-	_ctrl.deselect_to_player()
+	# 049 / T024: removed deselect_to_player — selection is gone (AC-3).
+	# Player overlay refresh handled implicitly via downstream signals.
 	GameLogger.info("Godmode", "cleared %d manekins, player reset" % to_remove.size())
 
 

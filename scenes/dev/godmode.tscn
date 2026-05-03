@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=32 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
@@ -16,7 +16,6 @@
 [ext_resource type="Script" path="res://scripts/presentation/hex_cursor.gd" id="6_hexcursor"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_camera.gd" id="7_camera"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/move_range_overlay.gd" id="8_overlay"]
-[ext_resource type="PackedScene" path="res://scenes/dev/actor_inspector.tscn" id="9_inspector"]
 [ext_resource type="PackedScene" path="res://scenes/ui/player_status_panel.tscn" id="10_psp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/cast_range_overlay.tscn" id="11_cro"]
 [ext_resource type="PackedScene" path="res://scenes/ui/floating_number_layer.tscn" id="12_fnl"]
@@ -30,6 +29,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/score_corner.tscn" id="20_score"]
 [ext_resource type="PackedScene" path="res://scenes/ui/wave_timeline.tscn" id="21_wt"]
 [ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="22_space"]
+[ext_resource type="PackedScene" path="res://scenes/ui/enemy_details_panel.tscn" id="31_eds"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hex_tooltip.tscn" id="32_ht"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -69,7 +70,6 @@ script = ExtResource("2_controller")
 grid = NodePath("../HexGrid")
 registry = NodePath("../ActorRegistry")
 slot_bar_path = NodePath("../HUD/SlotBar")
-inspector_path = NodePath("../HUD/ActorInspector")
 overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 player_status_panel_path = NodePath("../HUD/PlayerStatusPanel")
 
@@ -125,8 +125,6 @@ grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
 
-[node name="ActorInspector" parent="HUD" instance=ExtResource("9_inspector")]
-
 [node name="PlayerStatusPanel" parent="HUD" instance=ExtResource("10_psp")]
 
 [node name="TooltipPanel" parent="HUD" instance=ExtResource("13_tt")]
@@ -134,6 +132,18 @@ alignment = 1
 [node name="CombatLog" parent="HUD" instance=ExtResource("18_cl")]
 
 [node name="ScoreCorner" parent="HUD" instance=ExtResource("20_score")]
+
+[node name="EnemyDetailsPanel" parent="HUD" instance=ExtResource("31_eds")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -640.0
+offset_top = 92.0
+offset_right = -16.0
+offset_bottom = 192.0
+grow_horizontal = 0
+
+[node name="HexTooltip" parent="HUD" instance=ExtResource("32_ht")]
 
 [node name="WaveTimeline" parent="HUD" instance=ExtResource("21_wt")]
 mode = 1
