@@ -59,18 +59,18 @@
 	],
 	"music_config": {
 		"_desc": "Heaven — uplifted, abstract, epic. Slow-changing modal chords with sus4 pad and stately halftime drums.",
-		"seed": 1202,
-		"bpm": 92,
+		"bars_per_chord": 4.0,
 		"base_state": "battle",
+		"bass_pattern": "root_fifth",
+		"bpm": 92.0,
+		"drum_pattern": "halftime",
+		"drums_gain_db": -2.0,
+		"lead_density_battle": 0.5,
+		"pad_gain_db": 3.0,
+		"pad_voicing": "sus4",
 		"progression": "am_c_g_em",
 		"scale": "dorian",
-		"bars_per_chord": 4,
-		"drum_pattern": "halftime",
-		"bass_pattern": "root_fifth",
-		"pad_voicing": "sus4",
-		"lead_density_battle": 0.5,
-		"pad_gain_db": 3,
-		"drums_gain_db": -2
+		"seed": 1202.0
 	},
 	"name": "Story Map 02",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
@@ -1117,17 +1117,6 @@
 					],
 					"coord": [
 						5,
-						3
-					],
-					"source_id": 1
-				},
-				{
-					"atlas_coord": [
-						2,
-						0
-					],
-					"coord": [
-						5,
 						4
 					],
 					"source_id": 1
@@ -1395,6 +1384,17 @@
 						3
 					],
 					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						3,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 1
 				}
 			],
 			"index": 1,
@@ -1444,24 +1444,6 @@
 					],
 					"kind": "enemy",
 					"ref": "lavender_lion",
-					"timer": 1
-				},
-				{
-					"coord": [
-						9,
-						3
-					],
-					"kind": "enemy",
-					"ref": "lavender_lion",
-					"timer": 1
-				},
-				{
-					"coord": [
-						5,
-						3
-					],
-					"kind": "enemy",
-					"ref": "bee",
 					"timer": 1
 				}
 			],
@@ -2140,24 +2122,6 @@
 				{
 					"coord": [
 						0,
-						1
-					],
-					"kind": "enemy",
-					"ref": "angel",
-					"timer": 1
-				},
-				{
-					"coord": [
-						0,
-						3
-					],
-					"kind": "enemy",
-					"ref": "angel",
-					"timer": 1
-				},
-				{
-					"coord": [
-						4,
 						1
 					],
 					"kind": "enemy",

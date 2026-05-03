@@ -59,18 +59,18 @@
 	],
 	"music_config": {
 		"_desc": "Forest, cute, calm — pastoral dorian, gentle drums, breathing pad.",
-		"seed": 1201,
-		"bpm": 88,
+		"bars_per_chord": 2.0,
 		"base_state": "calm",
+		"bass_pattern": "root_fifth",
+		"bpm": 88.0,
+		"drum_pattern": "halftime",
+		"drums_gain_db": -8.0,
+		"lead_density_calm": 0.45,
+		"pad_gain_db": 1.0,
+		"pad_voicing": "sus2",
 		"progression": "am_f_c_g",
 		"scale": "dorian",
-		"bars_per_chord": 2,
-		"drum_pattern": "halftime",
-		"bass_pattern": "root_fifth",
-		"pad_voicing": "sus2",
-		"lead_density_calm": 0.45,
-		"pad_gain_db": 1,
-		"drums_gain_db": -8
+		"seed": 1201.0
 	},
 	"name": "Story Map 01",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
@@ -3337,15 +3337,6 @@
 			"spawners": [
 				{
 					"coord": [
-						3,
-						3
-					],
-					"kind": "enemy",
-					"ref": "bear",
-					"timer": 1
-				},
-				{
-					"coord": [
 						-2,
 						2
 					],
@@ -4442,15 +4433,6 @@
 					],
 					"kind": "enemy",
 					"ref": "bear",
-					"timer": 1
-				},
-				{
-					"coord": [
-						3,
-						2
-					],
-					"kind": "enemy",
-					"ref": "bush",
 					"timer": 1
 				},
 				{

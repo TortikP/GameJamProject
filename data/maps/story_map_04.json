@@ -58,18 +58,18 @@
 	],
 	"music_config": {
 		"_desc": "Office boss — heavy, evil, harsh. Mid-tempo with crushing halftime drums, syncopated bass for weight, harmonic-minor cadence.",
-		"seed": 1204,
-		"bpm": 100,
+		"bars_per_chord": 2.0,
 		"base_state": "battle",
+		"bass_pattern": "syncopated",
+		"bpm": 100.0,
+		"drum_pattern": "halftime",
+		"drums_gain_db": 4.0,
+		"lead_density_battle": 0.7,
+		"pad_gain_db": -1.0,
+		"pad_voicing": "seven",
 		"progression": "am_dm_e_am",
 		"scale": "harmonic_minor",
-		"bars_per_chord": 2,
-		"drum_pattern": "halftime",
-		"bass_pattern": "syncopated",
-		"pad_voicing": "seven",
-		"lead_density_battle": 0.7,
-		"pad_gain_db": -1,
-		"drums_gain_db": 4
+		"seed": 1204.0
 	},
 	"name": "Story Map 04",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
@@ -1211,15 +1211,6 @@
 					"kind": "enemy",
 					"ref": "lavender_lion",
 					"timer": 1
-				},
-				{
-					"coord": [
-						2,
-						3
-					],
-					"kind": "enemy",
-					"ref": "fire_slime",
-					"timer": 2
 				},
 				{
 					"coord": [

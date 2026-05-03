@@ -59,18 +59,18 @@
 	],
 	"music_config": {
 		"_desc": "Hell — evil, dynamic, doom-style fast. Harmonic minor + walking bass + drive drums + dense lead.",
-		"seed": 1203,
-		"bpm": 144,
+		"bars_per_chord": 1.0,
 		"base_state": "battle",
+		"bass_pattern": "walking",
+		"bpm": 144.0,
+		"drum_pattern": "drive",
+		"drums_gain_db": 3.0,
+		"lead_density_battle": 0.85,
+		"pad_gain_db": -3.0,
+		"pad_voicing": "seven",
 		"progression": "am_dm_e_am",
 		"scale": "harmonic_minor",
-		"bars_per_chord": 1,
-		"drum_pattern": "drive",
-		"bass_pattern": "walking",
-		"pad_voicing": "seven",
-		"lead_density_battle": 0.85,
-		"pad_gain_db": -3,
-		"drums_gain_db": 3
+		"seed": 1203.0
 	},
 	"name": "Story Map 03",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
@@ -1825,26 +1825,8 @@
 				},
 				{
 					"coord": [
-						3,
-						0
-					],
-					"kind": "enemy",
-					"ref": "fire_slime",
-					"timer": 1
-				},
-				{
-					"coord": [
 						2,
 						6
-					],
-					"kind": "enemy",
-					"ref": "fire_slime",
-					"timer": 1
-				},
-				{
-					"coord": [
-						2,
-						5
 					],
 					"kind": "enemy",
 					"ref": "fire_slime",
