@@ -83,10 +83,34 @@ func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level:
 ## False means "no valid targets" — callers should NOT advance the turn.
 ##
 ## `level` is the Skill.level passed in by Skill.cast. 0 = identity (no scaling).
+##
+## 047-skill-fx-system: cast is now a thin back-compat wrapper around the
+## resolve / apply_resolved split. Call resolve() to get a plan, then
+## apply_resolved(plan, ...) to actually mutate state. Skill.cast inserts an
+## await on FxDirector between these two phases so visuals and sound land
+## BEFORE damage/heal numbers fly. Callers that don't need FX can keep using
+## cast() and stay synchronous — no behavioural change for them.
 func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
+	var plan: Dictionary = resolve(caster, ctx, level)
+	if plan.is_empty():
+		return false
+	return apply_resolved(plan, caster, ctx)
+
+
+## 047: pure target/area resolution. NO side effects — no signals emitted, no
+## effects applied, no actor mutations. Returns a plan dict consumed by
+## apply_resolved, or {} on bail.
+##
+## Plan shape:
+##   "primary":      Variant            — primary target as resolved
+##   "victims":      Array              — victims after caster-exclusion
+##   "has_create":   bool               — at least one CreateEffect in this ability
+##   "create_hexes": Array[Vector2i]    — affected hexes for hex-pass (only if has_create)
+##   "level":        int                — captured for apply_resolved consistency
+func resolve(caster: Actor, ctx: Dictionary, level: int = 0) -> Dictionary:
 	if target == null or area == null or effects.is_empty():
 		GameLogger.error("Ability", "%s: target / area / effects misconfigured" % id)
-		return false
+		return {}
 
 	# Duplicate target so apply_level mutates a copy, not the shared resource.
 	var target_dup: AbilityTarget = target.duplicate()
@@ -95,7 +119,7 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	var primary: Variant = target_dup.resolve(caster, ctx)
 	if primary == null:
 		GameLogger.info("Ability", "%s: no primary target" % id)
-		return false
+		return {}
 
 	# Duplicate area, scale by level, then layer modifiers.
 	var eff_area: AbilityArea = area.duplicate()
@@ -126,7 +150,7 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	var victims: Array = eff_area.resolve(caster, primary, ctx)
 	if victims.is_empty() and not has_create and target_requires_victims:
 		GameLogger.info("Ability", "%s: no victims in area" % id)
-		return false
+		return {}
 
 	# Caster is excluded from zone AoE only when (a) the ability is self-targeted
 	# (primary == caster, i.e. SelfTarget) AND (b) the area is a real zone that
@@ -147,7 +171,39 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 		victims = filtered
 	if victims.is_empty() and not has_create and target_requires_victims:
 		GameLogger.info("Ability", "%s: no victims after caster exclusion" % id)
+		return {}
+
+	var create_hexes: Array[Vector2i] = []
+	if has_create:
+		var grid: HexGrid = ctx.get("grid")
+		var caster_coord: Vector2i = Vector2i(-1, -1)
+		if grid != null and caster != null:
+			caster_coord = grid.get_coord(caster.actor_id)
+		create_hexes = eff_area.get_affected_hexes(caster_coord, primary, grid)
+
+	return {
+		"primary":      primary,
+		"victims":      victims,
+		"has_create":   has_create,
+		"create_hexes": create_hexes,
+		"level":        level,
+	}
+
+
+## 047: applies a previously-resolved plan. Mutates state, emits
+## EventBus.ability_cast at the end. Returns true if anything ran.
+##
+## Order matches pre-047 cast(): create-pass first (per-hex spawning),
+## then per-victim effect loop. This is unchanged for back-compat — the
+## only difference is that callers (Skill.cast) get to insert FX awaits
+## BETWEEN resolve() and this call.
+func apply_resolved(plan: Dictionary, caster: Actor, ctx: Dictionary) -> bool:
+	if plan.is_empty():
 		return false
+	var victims: Array = plan.get("victims", [])
+	var has_create: bool = plan.get("has_create", false)
+	var create_hexes: Array = plan.get("create_hexes", [])
+	var level: int = plan.get("level", 0)
 
 	var target_ids: Array = []
 
@@ -155,12 +211,7 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 	# spawn coord from area.get_affected_hexes() so an empty hex still fires
 	# and a multi-hex zone produces one entity per hex.
 	if has_create:
-		var grid: HexGrid = ctx.get("grid")
-		var caster_coord: Vector2i = Vector2i(-1, -1)
-		if grid != null and caster != null:
-			caster_coord = grid.get_coord(caster.actor_id)
-		var hexes: Array[Vector2i] = eff_area.get_affected_hexes(caster_coord, primary, grid)
-		for hex_coord in hexes:
+		for hex_coord in create_hexes:
 			var per_hex_ctx: Dictionary = ctx.duplicate()
 			per_hex_ctx["target_coord"] = hex_coord
 			for base_eff in effects:
