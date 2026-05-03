@@ -110,22 +110,22 @@ func _on_btn_add() -> void:
 
 func _on_btn_upgrade() -> void:
 	_clear_all_slots()
-	_seed_slot(0, &"ball_throw")
+	_seed_slot(0, &"bear_ball_throw")
 	_setup_offer({
 		"pool": "basic", "count": 3,
 		"allow_upgrade": true, "allow_replace": false,
 		"allow_skip": false, "exclude_owned": false,
 	})
-	_log("scenario 2: upgrade — slot 0 has ball_throw lv1; if ball_throw appears as UPGRADE card, click it → lv2")
+	_log("scenario 2: upgrade — slot 0 has bear_ball_throw lv1; if bear_ball_throw appears as UPGRADE card, click it → lv2")
 	_emit_wave_cleared(0)
 
 
 func _on_btn_replace() -> void:
 	_clear_all_slots()
-	_seed_slot(0, &"ball_throw")
-	_seed_slot(1, &"berry_throw")
-	_seed_slot(2, &"weaken")
-	_seed_slot(3, &"sting")
+	_seed_slot(0, &"bear_ball_throw")
+	_seed_slot(1, &"bush_berry_throw")
+	_seed_slot(2, &"mushroom_boar_weaken")
+	_seed_slot(3, &"bee_sting")
 	_setup_offer({
 		"pool": "basic", "count": 3,
 		"allow_upgrade": false, "allow_replace": true,
