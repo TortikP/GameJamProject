@@ -457,6 +457,14 @@ func _has_skill_offer_for(wave_index: int) -> bool:
 	return so != null and so is Dictionary
 
 
+## Counts actors that block wave clear / level completion. The filter is
+## strictly `team == &"enemy"` — friendly summons (CreateEffect copies
+## caster.team, so a player-summoned bee carries team=&"player") are
+## excluded by design and never block transitions. Dead actors are also
+## skipped (registry may still hold them briefly before unregister).
+## See specs/041-effect-create-entity/ for the team-copy contract and
+## SummonOutline (presentation/godmode/summon_outline.gd) for the
+## green/red ring that surfaces this distinction in-world.
 func _living_enemies_count() -> int:
 	if registry == null:
 		return 0

@@ -84,6 +84,21 @@ const TEAM_PLAYER  := Color("6090f0")
 const TEAM_ENEMY   := Color("e04040")
 const TEAM_NEUTRAL := Color("809090")
 
+# ── Summon outline ───────────────────────────────────────────
+# Drawn by SummonOutline (presentation/godmode/summon_outline.gd) as a
+# hex-shaped ring under any actor that carries the `summoned` status.
+# Distinct palette from TEAM_* — designer feedback (egor): a friendly
+# bee summoned via summon_bee was visually indistinguishable from a
+# bee enemy spawned by a wave, leading to "wave didn't switch" reports
+# even when the only blocker was an enemy summon. Green = mine, red =
+# theirs is the universal RTS convention; we follow it here even though
+# TEAM_PLAYER (HP-bar frame) is blue. Two channels = two questions:
+# "whose actor is this" (HP frame, blue/red) vs "is this a temporary
+# summoned thing I should plan around" (this ring, green/red).
+const SUMMON_OUTLINE_PLAYER := Color("60d070")  # green
+const SUMMON_OUTLINE_ENEMY  := Color("e04040")  # red (matches TEAM_ENEMY)
+const SUMMON_OUTLINE_THICKNESS: float = 3.0
+
 # ── HP bar ───────────────────────────────────────────────────
 # Stays green/orange/red rather than monochrome teal: teal HP at low
 # values would camouflage into the ambient teal UI and break pillar 1.
@@ -215,6 +230,17 @@ static func team_color(team: StringName) -> Color:
 		return TEAM_PLAYER
 	if team == &"enemy":
 		return TEAM_ENEMY
+	return TEAM_NEUTRAL
+
+
+## Returns the ring color drawn by SummonOutline. Decoupled from
+## team_color so HP-bar frames stay blue-vs-red while summon rings
+## use green-vs-red — see comment at SUMMON_OUTLINE_* constants.
+static func summon_outline_color(team: StringName) -> Color:
+	if team == &"player":
+		return SUMMON_OUTLINE_PLAYER
+	if team == &"enemy":
+		return SUMMON_OUTLINE_ENEMY
 	return TEAM_NEUTRAL
 
 
