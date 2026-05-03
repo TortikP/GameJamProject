@@ -231,12 +231,18 @@ func _draw() -> void:
 			draw_line(cen + corners[i], cen + corners[(i + 1) % 6],
 					attack_line, 1.5, true)
 
-	# 5) AoE preview — per-hex thin outlines, slightly brighter alpha than
-	#    attack range so the cursor-anchored preview pops over the static
-	#    range overlay underneath.
+	# 5) AoE preview — залитые гексы (051) + outline. Fill даёт честную
+	#    видимость всей зоны (Pillar 1), outline сохраняет границу при
+	#    наложениях. Alpha 0.22 fill — ниже tile content, alpha 0.80
+	#    outline — ярче, граница читается.
+	var aoe_fill: Color = Color(_zone_preview_color.r, _zone_preview_color.g, _zone_preview_color.b, 0.22)
 	var aoe_line: Color = Color(_zone_preview_color.r, _zone_preview_color.g, _zone_preview_color.b, 0.80)
 	for c in _zone_preview:
 		var cen: Vector2 = layer.map_to_local(c)
+		var poly := PackedVector2Array()
+		for i in 6:
+			poly.append(cen + corners[i])
+		draw_colored_polygon(poly, aoe_fill)
 		for i in 6:
 			draw_line(cen + corners[i], cen + corners[(i + 1) % 6],
 					aoe_line, 2.0, true)

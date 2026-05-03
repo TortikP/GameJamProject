@@ -57,9 +57,7 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {
-
-	},
+	"music_config": {},
 	"name": "Story Map 02",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
@@ -713,27 +711,6 @@
 						2
 					],
 					"object_id": "column"
-				},
-				{
-					"coord": [
-						8,
-						2
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						10,
-						3
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						-5,
-						2
-					],
-					"object_id": "heal_fountain"
 				}
 			],
 			"skill_offer": {
@@ -1443,27 +1420,6 @@
 						2
 					],
 					"object_id": "column"
-				},
-				{
-					"coord": [
-						8,
-						2
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						10,
-						3
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						-5,
-						2
-					],
-					"object_id": "heal_fountain"
 				}
 			],
 			"spawners": [
@@ -2164,27 +2120,6 @@
 						2
 					],
 					"object_id": "column"
-				},
-				{
-					"coord": [
-						8,
-						2
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						10,
-						3
-					],
-					"object_id": "crystal"
-				},
-				{
-					"coord": [
-						-5,
-						2
-					],
-					"object_id": "heal_fountain"
 				}
 			],
 			"spawners": [
@@ -2231,6 +2166,15 @@
 					],
 					"kind": "enemy",
 					"ref": "lavender_lion",
+					"timer": 1
+				},
+				{
+					"coord": [
+						9,
+						3
+					],
+					"kind": "enemy",
+					"ref": "bee",
 					"timer": 1
 				}
 			],

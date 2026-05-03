@@ -22,7 +22,7 @@
       "sound_end": "default_ranged_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
-        "kind": "actor",
+        "kind": "hex",
         "range": 4
       },
       "area": {

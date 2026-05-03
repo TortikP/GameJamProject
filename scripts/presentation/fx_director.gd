@@ -8,12 +8,17 @@ extends Node
 ##
 ## Per-cast timeline:
 ##   t0       — play_cast(caster, ability, mood)
-##              ↳ AudioDirector.play_sfx(sound_start, caster_pos)  fire-and-forget
+##              ↳ AudioDirector.play_ability_sfx(ability.id, &"start", caster_pos) fire-and-forget
 ##              ↳ caster.Body shader-flash from cast_flash registry  awaitable
 ##   tA       — play_collisions(caster, ability, plan, ctx, mood)
 ##              ↳ shader from per-context registry (swipe/impact_ring/...)  awaitable
 ##   tA+B     — apply_resolved (effects emit damage_dealt / heal_done here)
 ##   tA+B     — play_sound_end(primary_pos, ability)               fire-and-forget
+##              ↳ AudioDirector.play_ability_sfx(ability.id, &"end", world_pos)
+##
+## 051 addendum: sound_start / sound_end JSON fields are gates only — their
+## value is ignored. Files are resolved per-ability_id from the staging folder
+## tree. See AudioDirector.play_ability_sfx for the lookup rules.
 ##
 ## All channels are individually null-safe: empty StringName → no-op, no delay.
 ## A fully-empty ability collapses to synchronous apply (back-compat).
@@ -149,8 +154,9 @@ func play_cast(caster: Actor, ability: Ability, mood: StringName = DEFAULT_MOOD)
 	stop_telegraph_loop(caster.actor_id)
 
 	# Sound first — starts in parallel with the flash (or alone if no anim).
+	# 051: dispatch by ability.id; sound_start field is just a gate.
 	if ability.sound_start != &"":
-		AudioDirector.play_sfx(ability.sound_start, caster.global_position)
+		AudioDirector.play_ability_sfx(ability.id, &"start", caster.global_position)
 
 	if ability.animation == &"":
 		return  # nothing to await
@@ -198,10 +204,11 @@ func play_collisions(
 
 
 ## Fire-and-forget end-of-cast SFX cue at primary impact position.
+## 051: dispatch by ability.id; sound_end field is just a gate.
 func play_sound_end(world_pos: Vector2, ability: Ability) -> void:
 	if ability == null or ability.sound_end == &"":
 		return
-	AudioDirector.play_sfx(ability.sound_end, world_pos)
+	AudioDirector.play_ability_sfx(ability.id, &"end", world_pos)
 
 
 # ── Telegraph loop sync (called from telegraph_renderer.refresh) ─────────────
