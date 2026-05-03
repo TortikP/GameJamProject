@@ -1,0 +1,30 @@
+{
+	"name": "Story Campaign",
+	"version": 1,
+	"levels": [
+		{
+			"map_path": "res://data/maps/story_map_01.json",
+			"display_name": "Gate One",
+			"cutscene_id": "story_intro",
+			"is_intro": true
+		},
+		{
+			"map_path": "res://data/maps/story_map_02.json",
+			"display_name": "Gate Two",
+			"cutscene_id": "",
+			"is_intro": false
+		},
+		{
+			"map_path": "res://data/maps/story_map_03.json",
+			"display_name": "Gate Three",
+			"cutscene_id": "",
+			"is_intro": false
+		},
+		{
+			"map_path": "res://data/maps/story_map_04.json",
+			"display_name": "Gate Four",
+			"cutscene_id": "",
+			"is_intro": false
+		}
+	]
+}

@@ -43,6 +43,9 @@ var _callback_fired: bool = false
 # lost otherwise.
 var last_campaign_total: int = 0
 var _running_total: int = 0
+var _current_wave_index: int = -1
+var _current_level_wave_count: int = 0
+var _defeat_in_progress: bool = false
 
 
 func _ready() -> void:
@@ -50,6 +53,9 @@ func _ready() -> void:
 	EventBus.scene_ready.connect(_on_scene_ready)
 	EventBus.main_menu_entered.connect(_on_main_menu_entered)
 	EventBus.campaign_level_started.connect(_on_campaign_level_started)
+	EventBus.level_loaded.connect(_on_level_loaded)
+	EventBus.wave_started.connect(_on_wave_started)
+	EventBus.actor_died.connect(_on_actor_died)
 
 
 func _on_main_menu_entered() -> void:
@@ -57,6 +63,7 @@ func _on_main_menu_entered() -> void:
 	# a back-to-menu mid-flow would trigger fade-in next time godmode loads.
 	_pending_fade_in = false
 	_callback_fired = true  # latch any in-flight upgrade/cutscene awaits
+	_defeat_in_progress = false
 
 
 func _on_campaign_level_started(index: int, _map_path: String) -> void:
@@ -66,11 +73,25 @@ func _on_campaign_level_started(index: int, _map_path: String) -> void:
 	if index == 0:
 		_running_total = 0
 		last_campaign_total = 0
+		_defeat_in_progress = false
+	_current_wave_index = -1
+	_current_level_wave_count = 0
+
+
+func _on_level_loaded(level: LevelData) -> void:
+	_current_level_wave_count = level.waves.size() if level != null else 0
+	_current_wave_index = -1
+
+
+func _on_wave_started(index: int, _is_special: bool) -> void:
+	_current_wave_index = index
 
 
 # ── level_completed flow ────────────────────────────────────────────────────
 
 func _on_level_completed(total_score: int) -> void:
+	if _defeat_in_progress:
+		return
 	# 035 — Diagnostic. If this fires but transition doesn't follow, the next
 	# log line tells us whether it's a campaign-aware test or a single-map
 	# playtest (Map Editor Playtest, Load Custom Level).
@@ -95,9 +116,11 @@ func _on_level_completed(total_score: int) -> void:
 
 
 func _run_post_level_flow(total_score: int) -> void:
+	await _await_dialogue_idle()
 	# 1. Upgrade screen (or stub).
 	GameLogger.info("CampaignController", "post-level flow: awaiting upgrade")
 	await _await_upgrade(total_score)
+	await _await_continue_input()
 	GameLogger.info("CampaignController", "upgrade done — playing transition out")
 
 	# 2. Transition out — but only if we're still in a scene that has a tree
@@ -123,6 +146,38 @@ func _run_post_level_flow(total_score: int) -> void:
 			ActiveGame.current_index, ActiveGame.current_map_path()
 		])
 		get_tree().change_scene_to_file(GODMODE_SCENE)
+
+
+func _on_actor_died(actor_id: StringName) -> void:
+	if actor_id != &"player":
+		return
+	if not ActiveGame.has_active_game() or _defeat_in_progress:
+		return
+	_defeat_in_progress = true
+	var is_final_boss_wave: bool = (
+		ActiveGame.is_last_level()
+		and _current_level_wave_count > 0
+		and _current_wave_index == _current_level_wave_count - 1
+	)
+	GameLogger.info("CampaignController", "campaign defeated: map=%d wave=%d final_boss=%s" % [
+		ActiveGame.current_index, _current_wave_index, str(is_final_boss_wave)
+	])
+	EventBus.campaign_defeated.emit(ActiveGame.current_index, _current_wave_index, is_final_boss_wave)
+	EventBus.battle_ended.emit(false)
+	call_deferred("_run_defeat_flow", is_final_boss_wave)
+
+
+func _run_defeat_flow(is_final_boss_wave: bool) -> void:
+	var dialogue_id: StringName = &"ending_bad_final_version" if is_final_boss_wave else &"story_defeat_normal"
+	if DialogueDB.has_line(dialogue_id):
+		DialogueManager.play(dialogue_id, true)
+		await _await_dialogue_idle()
+	ActiveGame.clear()
+	ActiveLevel.clear()
+	_pending_fade_in = false
+	get_tree().paused = false
+	EventBus.main_menu_entered.emit()
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ── scene_ready flow ────────────────────────────────────────────────────────
@@ -199,6 +254,23 @@ func _on_upgrade_done() -> void:
 	_callback_fired = true
 
 
+func _await_dialogue_idle() -> void:
+	while DialogueManager.is_playing():
+		await EventBus.dialogue_finished
+
+
+func _await_continue_input() -> void:
+	EventBus.ui_toast_requested.emit(Localization.t("ui_campaign_continue_hint", "Click to continue"), 1.5, &"info")
+	await get_tree().create_timer(0.35).timeout
+	while true:
+		await get_tree().process_frame
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) \
+				or Input.is_key_pressed(KEY_SPACE) \
+				or Input.is_key_pressed(KEY_ENTER) \
+				or Input.is_key_pressed(KEY_KP_ENTER):
+			return
+
+
 func _play_transition_out() -> void:
 	var overlay := TRANSITION_SCENE.instantiate() as LevelTransition
 	if overlay == null:
@@ -223,6 +295,6 @@ func _play_transition_in() -> void:
 	var current_scene: Node = get_tree().current_scene
 	if current_scene == null:
 		return
-	current_scene.add_child(overlay)
+	current_scene.call_deferred("add_child", overlay)
 	# Fire-and-forget: scene is already up, fade-in just decorates it.
-	overlay.play_in()
+	overlay.call_deferred("play_in")

@@ -9,6 +9,11 @@
     "default_portrait": "res://assets/portraits/rival_neutral.png",
     "default_audio_layer": "sfx"
   },
+  "heroine": {
+    "display_name": "Heroine",
+    "default_portrait": "res://assets/portraits/heroine_neutral.png",
+    "default_audio_layer": "sfx"
+  },
   "merchant": {
     "display_name": "Merchant",
     "default_portrait": "res://assets/portraits/merchant_neutral.png",

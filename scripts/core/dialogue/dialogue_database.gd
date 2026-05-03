@@ -10,6 +10,7 @@ const SPEAKERS_FILE  := "res://data/dialogues/_speakers.json"
 
 var _lines:   Dictionary = {}   # StringName -> DialogueLine
 var _speakers: Dictionary = {}  # StringName -> Dictionary
+var _story_triggers: Dictionary = {}  # StringName trigger -> Array[StringName] start ids
 
 
 func _ready() -> void:
@@ -32,6 +33,7 @@ func _load_speakers() -> void:
 
 
 func _scan_dialogues() -> void:
+	_story_triggers.clear()
 	var dir := DirAccess.open(DIALOGUES_DIR)
 	if dir == null:
 		GameLogger.warn("DialogueDB", "cannot open '%s'" % DIALOGUES_DIR)
@@ -69,6 +71,9 @@ func _load_file(path: String) -> void:
 		if not entry is Dictionary:
 			GameLogger.warn("DialogueDB", "non-dict entry in '%s' — skip" % path)
 			continue
+		if entry.has("trigger") and entry.has("mode"):
+			_load_story_entry(entry, path)
+			continue
 		var line = DialogueLine.from_dict(entry)
 		if line == null:
 			continue
@@ -80,17 +85,27 @@ func _load_file(path: String) -> void:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 func get_line(id: StringName) -> Object:  # DialogueLine | null
+	if _story_triggers.has(id):
+		var starts: Array = _story_triggers[id]
+		if starts.is_empty():
+			return null
+		var picked: StringName = starts[randi() % starts.size()]
+		return _lines.get(picked, null)
 	return _lines.get(id, null)
 
 
 func has_line(id: StringName) -> bool:
-	return _lines.has(id)
+	return _lines.has(id) or _story_triggers.has(id)
 
 
 func get_all_ids() -> Array:
 	# Used by dialogue_preview and other dev tools.
 	# Returned array is a copy — caller may sort/filter without affecting DB.
-	return _lines.keys()
+	var ids: Array = _lines.keys()
+	for trigger in _story_triggers.keys():
+		if trigger not in ids:
+			ids.append(trigger)
+	return ids
 
 
 func get_speaker(id: StringName) -> Dictionary:
@@ -165,3 +180,80 @@ func find_by_event(event: StringName, context: Dictionary, played: Dictionary) -
 			top.append(c)
 
 	return top[randi() % top.size()]
+
+
+func _load_story_entry(entry: Dictionary, path: String) -> void:
+	var id: String = str(entry.get("id", "")).strip_edges()
+	var trigger: StringName = StringName(str(entry.get("trigger", id)))
+	var mode: String = str(entry.get("mode", "sequence"))
+	if id == "" or trigger == &"":
+		GameLogger.warn("DialogueDB", "story entry in '%s' missing id/trigger" % path)
+		return
+
+	match mode:
+		"sequence":
+			var start: StringName = _register_story_sequence(id, trigger, entry.get("lines", []), "seq", path)
+			if start != &"":
+				_story_triggers[trigger] = [start]
+		"random":
+			var starts: Array[StringName] = []
+			var options: Array = entry.get("options", [])
+			for i in options.size():
+				var line_dict: Dictionary = options[i] if options[i] is Dictionary else {}
+				var start: StringName = _register_story_sequence(id, trigger, [line_dict], "opt_%d" % i, path)
+				if start != &"":
+					starts.append(start)
+			if not starts.is_empty():
+				_story_triggers[trigger] = starts
+		"random_sequence":
+			var starts: Array[StringName] = []
+			var options: Array = entry.get("options", [])
+			for i in options.size():
+				var opt: Dictionary = options[i] if options[i] is Dictionary else {}
+				var start: StringName = _register_story_sequence(id, trigger, opt.get("lines", []), "opt_%d" % i, path)
+				if start != &"":
+					starts.append(start)
+			if not starts.is_empty():
+				_story_triggers[trigger] = starts
+		_:
+			GameLogger.warn("DialogueDB", "story entry '%s' has unknown mode '%s'" % [id, mode])
+
+
+func _register_story_sequence(base_id: String, trigger: StringName, raw_lines: Variant,
+		variant: String, path: String) -> StringName:
+	if not (raw_lines is Array) or raw_lines.is_empty():
+		GameLogger.warn("DialogueDB", "story entry '%s' in '%s' has no lines" % [base_id, path])
+		return &""
+	var start_id: StringName = &""
+	var previous_id: StringName = &""
+	var lines: Array = raw_lines
+	for i in lines.size():
+		if not (lines[i] is Dictionary):
+			continue
+		var src: Dictionary = lines[i]
+		var def_key: String = str(src.get("def", "")).strip_edges()
+		var speaker: String = str(src.get("speaker", "")).strip_edges()
+		if def_key == "" or speaker == "":
+			GameLogger.warn("DialogueDB", "story line in '%s' missing def/speaker" % base_id)
+			continue
+		var line_id: StringName = StringName("%s__%s_%d" % [base_id, variant, i])
+		var line_dict := {
+			"id": String(line_id),
+			"speaker": speaker,
+			"text": def_key,
+			"tags": [String(trigger)] if i == 0 else [],
+			"priority": int(src.get("priority", 100)),
+			"once_per_run": bool(src.get("once_per_run", false)),
+			"once_per_session": bool(src.get("once_per_session", false)),
+			"next": "",
+		}
+		var line = DialogueLine.from_dict(line_dict)
+		if line == null:
+			continue
+		_lines[line.id] = line
+		if start_id == &"":
+			start_id = line.id
+		if previous_id != &"" and _lines.has(previous_id):
+			_lines[previous_id].next = line.id
+		previous_id = line.id
+	return start_id

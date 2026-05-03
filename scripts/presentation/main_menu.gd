@@ -14,6 +14,7 @@ extends Control
 ##   Quit         — get_tree().quit()
 
 const RUN_SCENE: String = "res://scenes/dev/godmode.tscn"
+const STORY_CAMPAIGN_PATH: String = "res://data/games/story_campaign.game.json"
 
 @onready var _title: Label = $VBox/Title
 @onready var _subtitle: Label = $VBox/Subtitle
@@ -78,6 +79,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_start() -> void:
 	EventBus.run_started_requested.emit()
+	if not ActiveGame.load_game(STORY_CAMPAIGN_PATH):
+		EventBus.ui_toast_requested.emit(Localization.t("ui_main_menu_start_campaign_failed", "Failed to start campaign (see log)"), 3.0, &"error")
+		return
 	get_tree().change_scene_to_file(RUN_SCENE)
 
 
