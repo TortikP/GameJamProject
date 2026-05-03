@@ -179,6 +179,46 @@ at runtime (warn-once if signal not found, remaining triggers still work).
 `play_mode`: `"play"` forces a specific dialogue id; `"request"` runs the
 selector in DialogueManager (picks by tag/conditions/played-set).
 
+## waves[i].skill_offer (added in 040)
+
+Optional. When present on a wave, the runtime opens a Hades-style "pick a
+skill" modal **after that wave clears** (all enemies dead, no pending
+spawners) and **before the next wave's snapshot applies**. Absent / null →
+no offer, transition is silent.
+
+```json
+{
+  "skill_offer": {
+    "pool": "basic",
+    "count": 3,
+    "allow_upgrade": true,
+    "allow_replace": true,
+    "allow_skip": false,
+    "exclude_owned": false
+  }
+}
+```
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `pool` | string | required | id of a JSON file in `data/skill_offer_pools/` (without `.json`). |
+| `count` | int | 3 | how many cards to show. Pool may yield fewer if filters cut deeper than expected. |
+| `allow_upgrade` | bool | true | a card for an already-owned skill becomes "upgrade level → N+1" instead of being dropped. |
+| `allow_replace` | bool | true | when slots are full, card can offer to replace a chosen slot. Triggers a sub-screen with slot picker. |
+| `allow_skip` | bool | false | shows a Skip button. `mode=&"skipped"` on the closed signal. |
+| `exclude_owned` | bool | false | filters owned skill ids from the pool entirely (regardless of allow_upgrade/replace). |
+
+**Last wave.** Putting `skill_offer` on the final wave is allowed — the modal
+opens before `level_completed`. Useful for "boss reward" framing.
+
+**Turn runout.** v1 only fires offers when the wave clears via kill-all
+(emits `wave_cleared`). If the player exhausts `turns_to_next` with enemies
+still alive, the next wave applies without an offer. Designers wanting a
+guaranteed offer should keep waves short enough that clear-by-kill is the
+expected path.
+
+**Pool file format** — see `data/skill_offer_pools/_schema.md`.
+
 ---
 
 ## `music_config` (042 — proc-music, optional)
@@ -188,23 +228,37 @@ Per-level procedural music configuration. All fields optional. Absent = defaults
 ```json
 {
   "music_config": {
-    "preset":     "tense_arena",   // StringName — id from data/music/presets.json. Fields below override.
-    "seed":       1234,            // int. Default = hash(level.name) & 0x7fffffff
-    "bpm":        96,              // float, 40..200. Default 96.
-    "base_state": "calm",          // "calm" | "battle". Default "calm".
-    "stings": {                    // Override sting id per event.
+    "preset":     "tense_arena",
+    "seed":       1234,
+    "bpm":        96,
+    "base_state": "calm",
+    "stings": {
       "wave_clear": "blip_up",
       "victory":    "fanfare",
       "defeat":     "descending"
     },
-    "lead_density_calm":   0.3,    // float 0..1. Default 0.3.
-    "lead_density_battle": 0.7,    // float 0..1. Default 0.7.
-    "pad_gain_db":   0,            // float. Default 0.
-    "drums_gain_db": 0,            // float. Default 0.
-    "muted": false                 // bool. Silences music for this level. Default false.
+    "lead_density_calm":   0.3,
+    "lead_density_battle": 0.7,
+    "pad_gain_db":   0,
+    "drums_gain_db": 0,
+    "muted": false
   }
 }
 ```
 
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `preset` | StringName | — | id from `data/music/presets.json`. Other fields below override. |
+| `seed` | int | `hash(level.name) & 0x7fffffff` | RNG seed for procedural patterns. |
+| `bpm` | float | 96 | clamped 40..200. |
+| `base_state` | string | "calm" | "calm" or "battle". |
+| `stings` | dict | — | sting id per event (`wave_clear`, `victory`, `defeat`). |
+| `lead_density_calm` | float | 0.3 | 0..1. |
+| `lead_density_battle` | float | 0.7 | 0..1. |
+| `pad_gain_db` | float | 0 | dB offset. |
+| `drums_gain_db` | float | 0 | dB offset. |
+| `muted` | bool | false | silences music for this level. |
+
 Resolution order: hardcoded defaults → preset → explicit fields.
-See `data/music/presets.json` for named presets. Use Music Lab (`scenes/dev/music_lab.tscn`, F6) for A/B tuning + Copy JSON.
+See `data/music/presets.json` for named presets. Use Music Lab
+(`scenes/dev/music_lab.tscn`, F6) for A/B tuning + Copy JSON.

@@ -101,6 +101,16 @@ signal main_menu_entered
 signal run_started_requested
 signal pause_toggled(paused: bool)
 
+# 040-wave-skill-choice: between-wave skill pick modal lifecycle.
+# Emitted by SkillOfferController autoload. wave_index = the wave that
+# just cleared (offer happens AFTER it, BEFORE the next wave snapshot).
+# mode ∈ {&"add", &"upgrade", &"replace", &"skipped"}; picked_skill_id is
+# &"" on skipped. WaveController awaits skill_offer_closed in
+# _check_auto_clear before _advance_wave when the cleared wave has a
+# skill_offer.
+signal skill_offer_about_to_open(wave_index: int, count: int, pool_id: StringName)
+signal skill_offer_closed(wave_index: int, picked_skill_id: StringName, mode: StringName)
+
 # 038: narrative mood tracker — emitted by MoodTracker on every recompute
 # (driven from godmode_controller.sync_player_skills_from_slots after
 # player.set_skills). Consumer: future DialogueManager line picker. Counts

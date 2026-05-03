@@ -1,0 +1,15 @@
+{
+  "id": "basic",
+  "label_key": "skill_offer.pool.basic.name",
+  "skills": [
+    "ball_throw",
+    "berry_throw",
+    "honey_cold",
+    "spores",
+    "summon_bee",
+    "weaken",
+    "nice_smell",
+    "sting"
+  ],
+  "tags": ["starter"]
+}

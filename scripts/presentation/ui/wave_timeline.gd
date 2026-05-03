@@ -61,6 +61,14 @@ var _edit_active_wave: int = 0
 var _trigger_markers: Array = []
 signal dialogue_trigger_marker_clicked(trigger_id: StringName)
 
+# 040: skill-offer markers. Visible in BOTH modes (EDIT for designers,
+# RUNTIME for player planning). Each entry: {wave_index, x, y, label}.
+# Position: in the gap between waves[i] and waves[i+1], pinned closer to
+# anchor[i+1] so it visually announces "after wave i, next wave brings an
+# offer". On the final wave with offer — placed to the right of its anchor.
+var _skill_offer_markers: Array = []
+signal skill_offer_marker_clicked(wave_index: int)
+
 # Track per-anchor screen positions so the right-click handler can map
 # screen_pos -> wave_idx without re-walking layout.
 var _anchor_positions: Array[float] = []  # x coordinates of each anchor
@@ -100,6 +108,10 @@ func _ready() -> void:
 func bind_level(level: LevelData) -> void:
 	_level = level
 	_rebuild()
+	# 040: skill-offer markers depend on _anchor_positions which are
+	# computed inside the deferred _do_rebuild. Layout once anchors are
+	# fresh — call on the same deferred channel so order is stable.
+	_layout_skill_offer_markers.call_deferred()
 
 
 ## Pull active wave from EDIT-side controllers. Triggers redraw of the
@@ -128,6 +140,43 @@ func set_dialogue_trigger_markers(triggers: Array, level: LevelData) -> void:
 		queue_redraw()
 		return
 	_trigger_markers = _layout_trigger_markers(triggers, level)
+	queue_redraw()
+
+
+# 040: layout skill_offer markers from _level.waves. No external trigger
+# list — markers are intrinsic to the level data. Called from bind_level
+# after _do_rebuild has populated _anchor_positions.
+func _layout_skill_offer_markers() -> void:
+	_skill_offer_markers.clear()
+	if _level == null:
+		queue_redraw()
+		return
+	for i in _level.waves.size():
+		var w: Dictionary = _level.waves[i]
+		if not w.has("skill_offer") or w["skill_offer"] == null:
+			continue
+		if i >= _anchor_positions.size():
+			continue
+		# Position: 85% of the way from anchor[i] to anchor[i+1] for
+		# inter-wave offers; just-right-of-anchor for offer on final wave.
+		var x: float
+		var anchor_x: float = _anchor_positions[i]
+		if i < _level.waves.size() - 1 and i + 1 < _anchor_positions.size():
+			var next_x: float = _anchor_positions[i + 1]
+			x = anchor_x + (next_x - anchor_x) * 0.85
+		else:
+			x = anchor_x + 16.0
+		var y: float = BAR_Y - UiThemeScript.WAVE_ANCHOR_RADIUS - 6.0
+		var so: Dictionary = w["skill_offer"]
+		var pool_id: String = str(so.get("pool", ""))
+		var count_n: int = int(so.get("count", 3))
+		var label: String = "Offer %d from %s" % [count_n, pool_id]
+		_skill_offer_markers.append({
+			"wave_index": i,
+			"x": x,
+			"y": y,
+			"label": label,
+		})
 	queue_redraw()
 
 
@@ -348,6 +397,17 @@ func _draw() -> void:
 			draw_circle(Vector2(m.x, m.y), UiThemeScript.DIALOGUE_TRIGGER_MARKER_RADIUS,
 					UiThemeScript.DIALOGUE_TRIGGER_MARKER_COLOR)
 
+	# 040: skill-offer markers (BOTH modes — see Mode-comment above).
+	# Disc with the SKILL_OFFER_MARKER_GLYPH centered. Offset Y from any
+	# dialogue triggers stacked at the same x by drawing slightly higher.
+	for m in _skill_offer_markers:
+		var pos: Vector2 = Vector2(m.x, m.y)
+		draw_circle(pos, UiThemeScript.SKILL_OFFER_MARKER_RADIUS,
+				UiThemeScript.SKILL_OFFER_MARKER_COLOR)
+		# Outline ring so it reads against busy bg + dialogue trigger overlap.
+		draw_arc(pos, UiThemeScript.SKILL_OFFER_MARKER_RADIUS, 0.0, TAU, 18,
+				UiThemeScript.WAVE_ANCHOR_OUTLINE, 1.5, true)
+
 
 func _anchor_color_for(wave_idx: int) -> Color:
 	if mode == Mode.EDIT:
@@ -371,6 +431,15 @@ func _gui_input(event: InputEvent) -> void:
 	if not mb.pressed:
 		return
 	var local_pos: Vector2 = mb.position
+	# 040: hit-test skill-offer markers first (small + on top, both modes).
+	# Click only emits in EDIT — RUNTIME marker is read-only display.
+	if mb.button_index == MOUSE_BUTTON_LEFT:
+		for m in _skill_offer_markers:
+			var d_so: float = local_pos.distance_to(Vector2(m.x, m.y))
+			if d_so <= UiThemeScript.SKILL_OFFER_MARKER_RADIUS + 4.0:
+				accept_event()
+				skill_offer_marker_clicked.emit(int(m.wave_index))
+				return
 	# 039: hit-test dialogue trigger markers first (smaller targets, on top).
 	if mb.button_index == MOUSE_BUTTON_LEFT:
 		for m in _trigger_markers:

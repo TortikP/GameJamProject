@@ -1143,6 +1143,11 @@ func _wire_wave_panel() -> void:
 		_wave_panel.toggle_special_pressed.connect(_on_wave_toggle_special)
 	if _wave_panel.has_signal("delete_wave_pressed"):
 		_wave_panel.delete_wave_pressed.connect(_on_wave_delete_active)
+	# 040: skill-offer section signals.
+	if _wave_panel.has_signal("skill_offer_changed"):
+		_wave_panel.skill_offer_changed.connect(_on_skill_offer_changed)
+	if _wave_panel.has_signal("skill_offer_marker_clicked"):
+		_wave_panel.skill_offer_marker_clicked.connect(_on_skill_offer_marker_clicked)
 	# Initial bind so the panel reflects the default _level (single empty wave).
 	if _wave_panel.has_method("bind_level"):
 		_wave_panel.bind_level(_level)
@@ -1224,6 +1229,28 @@ func _on_dlg_trigger_selected(trigger_id: StringName) -> void:
 	# Timeline marker -> highlight; click on list row -> (already highlighted by panel).
 	# Nothing to do in controller for now -- panel handles its own selection state.
 	pass
+
+
+# -- 040-wave-skill-choice -- editor handlers --------------------------------
+# AC-S22: editor controller delta is ≤30 lines. Preview spawn lives in
+# WavePanel itself (no controller hop); marker click switches active wave.
+
+func _on_skill_offer_changed(wave_index: int, offer: Variant) -> void:
+	if _level == null or wave_index < 0 or wave_index >= _level.waves.size():
+		return
+	_history.push(_level)
+	if offer == null:
+		_level.waves[wave_index].erase("skill_offer")
+	else:
+		_level.waves[wave_index]["skill_offer"] = (offer as Dictionary).duplicate(true)
+	_refresh_wave_panel()
+	_mark_dirty()
+
+
+func _on_skill_offer_marker_clicked(wave_index: int) -> void:
+	if _level == null:
+		return
+	_switch_to_wave(wave_index)
 
 
 # Signal handlers -- each routes through _level + dirties + autosaves.

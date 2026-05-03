@@ -842,3 +842,44 @@ Director подключится к ним автоматически когда 
 - Editor: ConfirmModal не задействован для Delete (прямой emit сигнала). Добавить при наличии времени.
 - Markers: tooltip при hover — не реализован (P3, cut из scope). Позиция marker Y считается от `BAR_Y - ANCHOR_RADIUS - 6` — если добавятся anchors другого размера, пересмотреть.
 - `_refresh_timeline_dialogue_markers()` ищет Timeline по hardcoded path `VBox/TimelineRow/Timeline` внутри WavePanel — хрупко если WavePanel перестроится.
+
+## 21. 040-wave-skill-choice — точки интеграции
+
+**Статус (2026-05-03):** ветка `andrey/040-wave-skill-choice`, готов к ревью / merge в staging.
+
+### Что добавлено
+
+- **Schema:** `LevelData.waves[i].skill_offer` — optional Dictionary, поля `pool/count/allow_upgrade/allow_replace/allow_skip/exclude_owned`. `validate()` правила, `to_dict` + `_wave_dict_from_arr` round-trip. Backward-compat: старые JSON без поля грузятся как «нет offer'а».
+- **EventBus:** `skill_offer_about_to_open(wave_index, count, pool_id)`, `skill_offer_closed(wave_index, picked_skill_id, mode)`. mode ∈ {add, upgrade, replace, skipped}.
+- **Pool format:** `data/skill_offer_pools/*.json` — id, label_key, skills[], optional weights{}, tags[]. `_schema.md` рядом. Sample: `basic.json` (8 скиллов из data/skills).
+- **`scripts/runtime/skill_offer_controller.gd`** (autoload, после `SkillDatabase`): pool scan на `_ready`, listener на `wave_cleared`, weighted-unique sampling, mode resolution против owned set, modal flow с `await dialogue_finished` → `paused=true` → `await player_picked` → `_apply_pick` → `_emit_closed_safely`. Public: `has_offer_for_wave`, `has_pool`, `get_pool_ids`, `get_pool_label`.
+- **`scripts/runtime/player_skill_adapter.gd`** — static wrapper. SlotBar (`set_slot/get_slot`) + `GodmodeController.sync_player_skills_from_slots()` mirror. Methods: `add_skill / upgrade_skill / replace_slot / owned_skills_array / owned_skills_dict / can_upgrade / has_skill / first_empty_slot / filled_slot_indices / peek_slot`. Lazy GodmodeController lookup; warn-once on absence (smoke / map editor).
+- **`scenes/ui/skill_offer_modal.tscn`** + `skill_offer_modal.gd` (CanvasLayer=25): backdrop, header, cards row, optional Skip. Replace-mode submenu — second screen с Q/W/E/R picker, Cancel button. `process_mode=ALWAYS` для работы под `paused=true`.
+- **`scenes/ui/skill_offer_card.tscn`** + `skill_offer_card.gd`: PanelContainer с icon / name / mode-badge / mood / desc. Click → `card_clicked(card_data)`.
+- **`WaveController._check_auto_clear`**: после `wave_cleared.emit` — `await EventBus.skill_offer_closed` если у волны `skill_offer != null`. Функция теперь coroutine; все callers fire-and-forget.
+- **WavePanel:** новая секция `SkillOfferSection` (программно собирается в `_build_skill_offer_section`), enable checkbox + pool dropdown + count spinbox + 4 toggle CheckBoxes + Preview button. Сигналы `skill_offer_changed(wave_idx, offer | null)`, `skill_offer_marker_clicked(wave_idx)`, `skill_offer_preview_requested(wave_idx)` (preview spawn — внутри панели сама, не через controller).
+- **WaveTimeline:** `_layout_skill_offer_markers` + `_draw` маркеры (mint-teal) — видны в EDIT и RUNTIME. LMB hit-test (только EDIT) → `skill_offer_marker_clicked(wave_idx)`.
+- **MapEditorController:** +27 строк (укладывается в AC-S22 budget ≤30). Handlers: `_on_skill_offer_changed` (history push + dict write/erase + mark_dirty), `_on_skill_offer_marker_clicked` (switch active wave).
+- **UiTheme:** `SKILL_OFFER_MARKER_COLOR` (`#4dd6c1`), `SKILL_OFFER_MARKER_RADIUS` 6.0, `SKILL_OFFER_MARKER_GLYPH`.
+- **Sample:** `data/maps/sample_skill_offer.json` — 3 волны, offer на волне 1, allow_skip on.
+
+### Точка интеграции с 039-dialogue-triggers
+
+039 Director уже знает про `skill_offer_about_to_open` / `skill_offer_closed` (см. wave_timeline `_layout_trigger_markers` events list, `data/maps/_schema.md` curated events). После мержа 040: триггеры `event="skill_offer_about_to_open"` срабатывают **перед** открытием модалки (controller `await EventBus.dialogue_finished` если DialogueManager.is_playing()), `event="skill_offer_closed"` — после закрытия.
+
+### Известные ограничения / cuts deferred
+
+- **Turn-runout без offer.** Если игрок исчерпал `turns_to_next` с живыми врагами — следующая волна стартует без модалки (controller hook на `wave_cleared`, который fires только при kill-clear). Документировано в `data/maps/_schema.md`.
+- **No icon DB.** Skill.icon рендерится через path-search (`assets/icons/...`); если файла нет — placeholder. Реальный IconDB — отдельная фича.
+- **Weights в editor не правятся.** Hand-edit JSON. См. OQ-4 в spec.
+- **Tooltip над маркером** — не реализован, только текстовый label в editor controller (через layout). P3, cut.
+- **Theme reload не пересобирает SkillOfferSection** — section building в `_ready` only. Fire UiTheme reload → старые styleboxes остаются. Не критично для джема (theme reloads редки).
+- **AC-S15 chained dialog interplay** — реализовано (`await EventBus.dialogue_finished` if `DialogueManager.is_playing()`), но manual-smoke testing pending.
+
+### Pending Andrey (manual smoke)
+
+T009, T012, T020, T030 в `tasks.md`:
+1. Загрузить `sample_skill_offer.json` через Load Custom Level → Playtest → клир волны 1 → пауза → 3 cards → выбор → волна 2 стартует с новым скиллом.
+2. Обе ветки flow: add (свободный слот) и replace (заняты все 4) → submenu выбора слота.
+3. 039 trigger на `skill_offer_about_to_open` `play_mode=play` → диалог играется ДО модалки.
+4. Edge: pool < count (filter exclude_owned + 6 owned из 8) → меньше карточек, UI не падает.

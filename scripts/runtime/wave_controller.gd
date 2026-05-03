@@ -409,8 +409,31 @@ func _check_auto_clear() -> void:
 	if unused > 0:
 		RunScore.add(unused)
 	GameLogger.info("WaveController", "wave_cleared %d (unused=%d)" % [_current_wave_index, unused])
-	EventBus.wave_cleared.emit(_current_wave_index, unused)
+	var cleared_idx: int = _current_wave_index
+	EventBus.wave_cleared.emit(cleared_idx, unused)
+	# 040: if this wave has a skill_offer, wait for SkillOfferController
+	# to run the modal flow before advancing. SkillOfferController is an
+	# autoload; it always emits skill_offer_closed exactly once when
+	# wave_cleared fires on a wave that has the field — we rely on its
+	# emit-guard for that contract. Without this await, _advance_wave
+	# would apply the next wave's snapshot (clearing enemies, painting
+	# floor) while the modal is still up — visually broken.
+	if _has_skill_offer_for(cleared_idx):
+		await EventBus.skill_offer_closed
 	_advance_wave()
+
+
+# 040: cheap local check so WaveController doesn't reach into the autoload
+# to ask "do we have an offer for this wave". Reads the same field that
+# SkillOfferController will read.
+func _has_skill_offer_for(wave_index: int) -> bool:
+	if _level == null:
+		return false
+	if wave_index < 0 or wave_index >= _level.waves.size():
+		return false
+	var w: Dictionary = _level.waves[wave_index]
+	var so: Variant = w.get("skill_offer", null)
+	return so != null and so is Dictionary
 
 
 func _living_enemies_count() -> int:
