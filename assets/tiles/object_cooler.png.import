@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://idkwnnhj7xvg0"
-path="res://.godot/imported/object_cooler.png-26fa8adc30543fe5a6e743849e63f810.ctex"
+uid="uid://mq6hjm13j4xh"
+path="res://.godot/imported/object_cooler.png-e9d7c5c20452644c8e16ce0e79a2b5af.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/object_cooler.png"
-dest_files=["res://.godot/imported/object_cooler.png-26fa8adc30543fe5a6e743849e63f810.ctex"]
+dest_files=["res://.godot/imported/object_cooler.png-e9d7c5c20452644c8e16ce0e79a2b5af.ctex"]
 
 [params]
 

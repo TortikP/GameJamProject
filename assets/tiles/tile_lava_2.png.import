@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://j20equ6fcsamy"
-path="res://.godot/imported/tile_lava_2.png-036b61184c0d95bc1d91e6476ce21db6.ctex"
+uid="uid://cc6nkrcv7ei4g"
+path="res://.godot/imported/tile_lava_2.png-f7322bb99cca2eafa0c05a7da39030d1.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/tile_lava_2.png"
-dest_files=["res://.godot/imported/tile_lava_2.png-036b61184c0d95bc1d91e6476ce21db6.ctex"]
+dest_files=["res://.godot/imported/tile_lava_2.png-f7322bb99cca2eafa0c05a7da39030d1.ctex"]
 
 [params]
 

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xaji0y6dpbhsa"
-path="res://.godot/imported/object_computer.png-3a839c0cb52f511d9cb8f68d9d9b0341.ctex"
+uid="uid://dxh52pk3va30g"
+path="res://.godot/imported/object_computer.png-9b146f214c57a1dd40e31785d2cef551.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/object_computer.png"
-dest_files=["res://.godot/imported/object_computer.png-3a839c0cb52f511d9cb8f68d9d9b0341.ctex"]
+dest_files=["res://.godot/imported/object_computer.png-9b146f214c57a1dd40e31785d2cef551.ctex"]
 
 [params]
 

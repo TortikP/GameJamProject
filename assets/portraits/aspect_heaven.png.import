@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ncl2brb75p0w0"
-path="res://.godot/imported/aspect_heaven.png-c22d8390fd5a83591e6627ffad7834ab.ctex"
+uid="uid://bqegjlkhg4enp"
+path="res://.godot/imported/aspect_heaven.png-73528c557ee3470f6aa4955967a8a41a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/portraits/aspect_heaven.png"
-dest_files=["res://.godot/imported/aspect_heaven.png-c22d8390fd5a83591e6627ffad7834ab.ctex"]
+dest_files=["res://.godot/imported/aspect_heaven.png-73528c557ee3470f6aa4955967a8a41a.ctex"]
 
 [params]
 

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5pgpr9nfztdkr"
-path="res://.godot/imported/object_heal.png-7f96fb9546c26f5a42eefb602f51fa41.ctex"
+uid="uid://dnlmnu7n2e8af"
+path="res://.godot/imported/object_heal.png-28545c38bb39778751f60ac86ab48490.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/object_heal.png"
-dest_files=["res://.godot/imported/object_heal.png-7f96fb9546c26f5a42eefb602f51fa41.ctex"]
+dest_files=["res://.godot/imported/object_heal.png-28545c38bb39778751f60ac86ab48490.ctex"]
 
 [params]
 

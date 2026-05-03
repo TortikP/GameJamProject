@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kom1u607bkb3j"
-path="res://.godot/imported/tile_heaven_2.png-83efcb045f7b88d20f3fcb4cef4ca486.ctex"
+uid="uid://cxtbo26o55kk0"
+path="res://.godot/imported/tile_heaven_2.png-3b34f37b5e8d2a970ffeadd2d36a6cd2.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/tile_heaven_2.png"
-dest_files=["res://.godot/imported/tile_heaven_2.png-83efcb045f7b88d20f3fcb4cef4ca486.ctex"]
+dest_files=["res://.godot/imported/tile_heaven_2.png-3b34f37b5e8d2a970ffeadd2d36a6cd2.ctex"]
 
 [params]
 

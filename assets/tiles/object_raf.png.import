@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://x4vge066sd2cq"
-path="res://.godot/imported/stepler.png-d29b615710824274ba53777cc426620a.ctex"
+uid="uid://bhq3xo7brr1lk"
+path="res://.godot/imported/object_raf.png-331507bc419002068c153100177011ac.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/enemies/stepler.png"
-dest_files=["res://.godot/imported/stepler.png-d29b615710824274ba53777cc426620a.ctex"]
+source_file="res://assets/tiles/object_raf.png"
+dest_files=["res://.godot/imported/object_raf.png-331507bc419002068c153100177011ac.ctex"]
 
 [params]
 

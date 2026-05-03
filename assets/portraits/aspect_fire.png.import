@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://i6zpthkwa31kp"
-path="res://.godot/imported/aspect_fire.png-e01a17e665b4739654150c4eaf5965ca.ctex"
+uid="uid://bg6yndqe5pa16"
+path="res://.godot/imported/aspect_fire.png-e9dc63f4fbc83bd96c2bd047fd8121d2.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/portraits/aspect_fire.png"
-dest_files=["res://.godot/imported/aspect_fire.png-e01a17e665b4739654150c4eaf5965ca.ctex"]
+dest_files=["res://.godot/imported/aspect_fire.png-e9dc63f4fbc83bd96c2bd047fd8121d2.ctex"]
 
 [params]
 
