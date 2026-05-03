@@ -4,7 +4,7 @@
   "tooltip": "lavender_lion_bite_tooltip",
   "desc": "lavender_lion_bite_desc",
   "icon": "icons/skills/lavender_lion_bite.png",
-  "cooldown": 1,
+  "cooldown": 2,
   "behaviour_tags": [
     "melee",
     "damage"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "lavender_lion_bite_heavy_melee_damage",
-      "sound_start": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage_start.wav",
+      "sound_start": "lavender_lion_bite_heavy_melee_damage_sound_start",
       "collision_effect": "melee_ascended",
-      "sound_end": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage_end.wav",
+      "sound_end": "lavender_lion_bite_heavy_melee_damage_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "actor",
@@ -30,15 +30,15 @@
       },
       "effects": [
         {
-          "damage": 25
+          "damage": 16
         }
       ]
     },
     {
       "id": "lavender_lion_bite_self_heal_small",
-      "sound_start": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small_start.wav",
+      "sound_start": "lavender_lion_bite_self_heal_small_sound_start",
       "collision_effect": "heal_ascended",
-      "sound_end": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small_end.wav",
+      "sound_end": "lavender_lion_bite_self_heal_small_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "self"
@@ -48,7 +48,7 @@
       },
       "effects": [
         {
-          "heal": 10
+          "heal": 6
         }
       ]
     }
