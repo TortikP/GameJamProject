@@ -12,33 +12,47 @@ extends Node
 ##
 ## Don't reach for Color() inline anywhere in scripts/presentation/ — palette comes
 ## through this single file. PRs with inline Color() in UI code get bounced.
+##
+## --- Spec 047 (retro CRT) ---
+## Palette is amber phosphor on near-black; semantic colors stay distinguishable
+## but desaturated to a CGA-ish range. All `make_*_stylebox` corners are 0,
+## panel drop-shadows removed (CRTs don't drop-shadow). Default font for every
+## Control is VT323 — wired via ThemeDB.fallback_font in _ready().
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-# ── Surfaces ─────────────────────────────────────────────────
-const BG_SCREEN    := Color("0c0e12")
-const BG_PANEL     := Color("161a22")
-const BG_PANEL_2   := Color("1f2530")
-const BG_ELEVATED  := Color("2a313e")
-const OVERLAY      := Color(0, 0, 0, 0.55)
+# ── Default font (047) ───────────────────────────────────────
+# Wired into ThemeDB.fallback_font in _ready() so every Control without an
+# explicit font override picks up VT323 automatically.
+const _FONT_PATH := "res://assets/fonts/VT323-Regular.ttf"
+# Typed as base Font (rather than FontFile) so the assignment survives if Godot
+# ever returns a different concrete subclass for an imported .ttf.
+var _default_font: Font
 
-# ── Borders ──────────────────────────────────────────────────
-const BORDER        := Color("2c3340")
-const BORDER_STRONG := Color("465062")
+# ── Surfaces — warm near-black, no pure #000 ─────────────────
+const BG_SCREEN    := Color("0a0807")
+const BG_PANEL     := Color("14100c")
+const BG_PANEL_2   := Color("1c1812")
+const BG_ELEVATED  := Color("241e16")
+const OVERLAY      := Color(0, 0, 0, 0.65)
 
-# ── Text ─────────────────────────────────────────────────────
-const TEXT           := Color("e8ecf3")
-const TEXT_DIM       := Color("9aa3b2")
-const TEXT_FAINT     := Color("5e6776")
-const TEXT_ON_ACCENT := Color("0c0e12")
+# ── Borders — dim/medium amber, hard 1–2px lines ─────────────
+const BORDER        := Color("5a4622")
+const BORDER_STRONG := Color("8a6e2e")
+
+# ── Text — amber phosphor ────────────────────────────────────
+const TEXT           := Color("f5b943")
+const TEXT_DIM       := Color("b58530")
+const TEXT_FAINT     := Color("6a4f1c")
+const TEXT_ON_ACCENT := Color("0a0807")
 
 # ── State ────────────────────────────────────────────────────
-const FOCUS    := Color("f5d97a")
-const DISABLED := Color("3a414e")
+const FOCUS    := Color("ffce5e")
+const DISABLED := Color("3a2f18")
 
 # Slot focus / hover modulation (009/T044+ slot_bar). Pre-baked from FOCUS so
 # slot_bar doesn't recompute Color(focus.r * 1.3, ...) per state change.
-# Active slot when castable: FOCUS yellow brightened ×1.3, blue knocked to ×0.5
+# Active slot when castable: FOCUS amber brightened ×1.3, blue knocked to ×0.5
 # (hue shift toward gold).
 const FOCUS_ACTIVE_CASTABLE := Color(FOCUS.r * 1.3, FOCUS.g * 1.3, FOCUS.b * 0.5, 1.0)
 # Active slot when not castable (out of range / cooldown): FOCUS desaturated.
@@ -47,37 +61,41 @@ const FOCUS_ACTIVE_DISABLED := Color(FOCUS.r,       FOCUS.g,       FOCUS.b * 0.7
 const HOVER_BRIGHTEN        := Color(1.10, 1.10, 1.10)
 
 # ── Semantic (effect types) ──────────────────────────────────
-const SEM_DAMAGE  := Color("d94b4b")
-const SEM_HEAL    := Color("4cc987")
-const SEM_CONTROL := Color("9b6bd1")
-const SEM_BUFF    := Color("5aa9e6")
-const SEM_DEBUFF  := Color("e09b3a")
-const SEM_MOVE    := Color("cfd3da")
-const SEM_CREATE  := Color("b6936a")
+# Desaturated CGA-ish palette — keeps pillar 1 distinguishability without
+# fighting the amber UI surround.
+const SEM_DAMAGE  := Color("d04020")
+const SEM_HEAL    := Color("88a040")
+const SEM_CONTROL := Color("8060c0")
+const SEM_BUFF    := Color("4080a0")
+const SEM_DEBUFF  := Color("c08030")
+const SEM_MOVE    := Color("a09080")
+const SEM_CREATE  := Color("806040")
 
 # ── Team ─────────────────────────────────────────────────────
-const TEAM_PLAYER  := Color("5fb6f5")
-const TEAM_ENEMY   := Color("d94b4b")
-const TEAM_NEUTRAL := Color("9aa3b2")
+const TEAM_PLAYER  := Color("4080c0")
+const TEAM_ENEMY   := Color("c04040")
+const TEAM_NEUTRAL := Color("806e58")
 
 # ── HP bar ───────────────────────────────────────────────────
-const HP_FILL    := Color("62c970")
-const HP_LOW     := Color("e09b3a")
-const HP_CRIT    := Color("d94b4b")
-const HP_PREVIEW := Color("d94b4b")
-const HP_BG      := Color("1a1d24")
+# Stays green/amber/red instead of mono-amber: amber HP at low values
+# would camouflage into the ambient amber UI and break pillar 1.
+const HP_FILL    := Color("60a040")
+const HP_LOW     := Color("c08030")
+const HP_CRIT    := Color("c04040")
+const HP_PREVIEW := Color("c04040")
+const HP_BG      := Color("14100c")
 const HP_LOW_THRESHOLD  := 0.30
 const HP_CRIT_THRESHOLD := 0.15
 
 # 039-dialogue-triggers: WaveTimeline marker for dialogue trigger anchors (EDIT mode).
-const DIALOGUE_TRIGGER_MARKER_COLOR  := Color("a78bfa")   # soft violet
+# Muted violet — distinct from amber UI, FOCUS gold, and skill-offer teal.
+const DIALOGUE_TRIGGER_MARKER_COLOR  := Color("b080c0")
 const DIALOGUE_TRIGGER_MARKER_RADIUS := 5.0
 
 # 040-wave-skill-choice: WaveTimeline marker for skill offer anchors (EDIT + RUNTIME).
 # Visible in both modes — players plan around offers, designers see them while editing.
-# Colour distinct from dialogue triggers (violet) and special-wave focus (yellow); pick
-# a teal/cyan that reads on the dark trough without competing with the cursor pointer.
-const SKILL_OFFER_MARKER_COLOR  := Color("4dd6c1")        # mint-teal
+# Period teal — readable on amber-tinted dark, distinct from violet/yellow.
+const SKILL_OFFER_MARKER_COLOR  := Color("40b8a8")
 const SKILL_OFFER_MARKER_RADIUS := 6.0
 const SKILL_OFFER_MARKER_GLYPH  := "★"                     # rendered next to the disc
 
@@ -90,10 +108,13 @@ const SP_5 := 24
 const SP_6 := 32
 
 # ── Font sizes (px) ──────────────────────────────────────────
+# 047: FS_SMALL bumped 11 → 12 (VT323 readability floor; per Visibility
+# doctrine in CLAUDE.md, when a font is illegible at a size, the size
+# goes up — never the font down).
 const FS_DISPLAY    := 32
 const FS_HEADER     := 18
 const FS_BODY       := 14
-const FS_SMALL      := 11
+const FS_SMALL      := 12
 const FS_NUM_LARGE  := 24
 const FS_NUM_SMALL  := 12
 # `num_huge` is for in-world combat text crits — has to read from across the
@@ -111,6 +132,7 @@ const BAR_FONT_SIZE_OVERHEAD := 18
 # ── Outline / shadow for in-world text ───────────────────────
 # Combat text and HP digits sit on top of arbitrary backgrounds (grass, fire,
 # blood, UI panels). Without a strong outline they vanish on busy frames.
+# Kept for pillar 1 (visibility) — overrides stylistic CRT purity.
 const WORLD_TEXT_OUTLINE_SIZE  := 4
 const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 
@@ -118,27 +140,30 @@ const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 # Lighter than the world-text outline (alpha 0.55 vs 0.95). For arrow shadows,
 # panel elevations, intent telegraphs — anywhere a shadow should sit behind
 # the foreground without competing with it.
+# 047: panel styleboxes no longer use this (CRT panels don't drop-shadow),
+# but the constant stays — other consumers (e.g. arrow shadows) still reference it.
 const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
 
 # ── 024-wave-editor — wave timeline visuals ──────────────────
 # Used by scenes/ui/wave_timeline.tscn in both EDIT and RUNTIME modes.
-const WAVE_BAR_BG                   := Color("16202c")  # bar trough
+const WAVE_BAR_BG                   := Color("14100c")  # bar trough (= BG_PANEL)
 const WAVE_BAR_HEIGHT               := 6.0              # px (drawn line thickness)
-const WAVE_ANCHOR_FILL              := Color("dceaff")  # default anchor disc
-const WAVE_ANCHOR_PASSED            := Color("4a5870")  # waves before current
-const WAVE_ANCHOR_CURRENT           := Color("f5d97a")  # active wave (FOCUS yellow)
-const WAVE_ANCHOR_OUTLINE           := Color("0c0e12")  # 1px ring around every disc
+const WAVE_ANCHOR_FILL              := Color("c8b896")  # warm parchment, not bright white
+const WAVE_ANCHOR_PASSED            := Color("5a4622")  # waves before current (= BORDER)
+const WAVE_ANCHOR_CURRENT           := Color("ffce5e")  # active wave (= FOCUS)
+const WAVE_ANCHOR_OUTLINE           := Color("0a0807")  # 1px ring around every disc (= BG_SCREEN)
 const WAVE_ANCHOR_RADIUS            := 10.0             # px radius for normal anchor
 const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
 const WAVE_NUMBER_FONT_SIZE         := 18
-const WAVE_NUMBER_COLOR             := Color("e8ecf3")  # turns_to_next digit
-const WAVE_CURSOR_COLOR             := Color("f5d97a")  # runtime "now" pointer
+const WAVE_NUMBER_COLOR             := Color("f5b943")  # turns_to_next digit (= TEXT)
+const WAVE_CURSOR_COLOR             := Color("ffce5e")  # runtime "now" pointer (= FOCUS)
 const WAVE_CURSOR_HEIGHT            := 22.0             # px tall
 
 # 024 / T83 — wave-diff highlight (new-this-wave overlay in editor).
 # Subtle — designer should be able to ignore it during normal editing.
 # Applied to floor cells / objects / spawners that exist in waves[active]
 # but not in waves[active-1] at the same coord. Wave 0 → highlight off.
+# Kept as CGA green (rather than amber) so it stays semantically "additive/positive".
 const WAVE_DIFF_FILL                := Color(0.34, 0.78, 0.55, 0.18)  # green-ish fill
 const WAVE_DIFF_OUTLINE             := Color(0.34, 0.78, 0.55, 0.85)  # ring
 
@@ -187,25 +212,23 @@ static func semantic_color(tag: StringName) -> Color:
 ## Builds a fresh StyleBoxFlat for a panel surface.
 ## Each call returns a NEW instance — do not share between nodes
 ## (their bg_color is mutable and sharing leaks state).
+##
+## 047: corner_radius=0 (CRT panels are rectangular), no soft drop-shadow,
+## uniform 1px border (no left-spine accent — feels more "boxed by the screen").
 static func make_panel_stylebox(elevated: bool = false) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BG_ELEVATED if elevated else BG_PANEL
-	# Slightly stronger border on the left edge — visual "spine" without
-	# being heavy on every side. Other sides keep the muted BORDER.
 	sb.border_color = BORDER
-	sb.border_width_left   = 2
+	sb.border_width_left   = 1
 	sb.border_width_right  = 1
 	sb.border_width_top    = 1
 	sb.border_width_bottom = 1
-	sb.corner_radius_top_left     = 6
-	sb.corner_radius_top_right    = 6
-	sb.corner_radius_bottom_left  = 6
-	sb.corner_radius_bottom_right = 6
-	# Soft drop-shadow — lifts the panel off the dark canvas without
-	# competing with the content. Cheap (no blur), Godot stretches the box.
-	sb.shadow_color = Color(0, 0, 0, 0.35)
-	sb.shadow_size = 4
-	sb.shadow_offset = Vector2(0, 2)
+	sb.corner_radius_top_left     = 0
+	sb.corner_radius_top_right    = 0
+	sb.corner_radius_bottom_left  = 0
+	sb.corner_radius_bottom_right = 0
+	# No drop shadow on CRT panels.
+	sb.shadow_size = 0
 	sb.content_margin_left   = SP_3
 	sb.content_margin_right  = SP_3
 	sb.content_margin_top    = SP_2
@@ -269,6 +292,8 @@ static func make_button_stylebox(state: String = "normal") -> StyleBoxFlat:
 ## Builds a pill stylebox for status-icon strips and similar tag-colored chips.
 ## family is one of the semantic tags accepted by `semantic_color` (damage/heal/...).
 ## Each call returns a NEW StyleBoxFlat — do not share across pills.
+##
+## 047: corners squared off; pills become small flat rectangles.
 static func make_pill_stylebox(family: StringName) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	var col: Color = semantic_color(family)
@@ -279,10 +304,10 @@ static func make_pill_stylebox(family: StringName) -> StyleBoxFlat:
 	sb.border_width_right = 1
 	sb.border_width_top = 1
 	sb.border_width_bottom = 1
-	sb.corner_radius_top_left = 3
-	sb.corner_radius_top_right = 3
-	sb.corner_radius_bottom_left = 3
-	sb.corner_radius_bottom_right = 3
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	sb.content_margin_left = SP_1
 	sb.content_margin_right = SP_1
 	sb.content_margin_top = 2
@@ -343,6 +368,24 @@ static func apply_button_styling(btn: Button) -> void:
 	btn.add_theme_color_override("font_disabled_color", TEXT_FAINT)
 	btn.add_theme_color_override("font_focus_color",    TEXT)
 	btn.add_theme_font_size_override("font_size", FS_BODY)
+
+
+## 047: load VT323 once at autoload init and wire it as the global default
+## font. Every Control without an explicit font override picks it up via
+## ThemeDB.fallback_font. No per-control change required.
+##
+## Failure mode: if the font file is missing or fails to load, log a warning
+## and let the game start with Godot's built-in default (OpenSans). Better to
+## ship with the wrong font than crash on boot.
+func _ready() -> void:
+	var f := load(_FONT_PATH)
+	if f is Font:
+		_default_font = f
+		ThemeDB.fallback_font = _default_font
+		ThemeDB.fallback_font_size = FS_BODY
+		GameLogger.info("UiTheme", "VT323 loaded as fallback font (size %d)" % FS_BODY)
+	else:
+		GameLogger.warn("UiTheme", "VT323 font missing at %s — using Godot default" % _FONT_PATH)
 
 
 ## Hot-reload trigger. Bound to F5 via _unhandled_input below.

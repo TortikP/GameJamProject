@@ -9,7 +9,7 @@ defensive grep audits. T07 is the manual smoke test (Andrey runs it).
 - [x] **T04a** Drop `assets/fonts/VT323-Regular.ttf` (sourced from
       `github.com/google/fonts/ofl/vt323`, OFL).
 - [x] **T04b** Drop `assets/fonts/VT323_OFL.txt` license file.
-- [ ] **T05** Edit `scripts/presentation/ui_theme.gd`:
+- [x] **T05** Edit `scripts/presentation/ui_theme.gd`:
   - Replace surface, border, text, state, semantic, team, HP, wave-timeline,
     and editor-marker color values per `plan.md` palette table. Constant
     *names* unchanged.
@@ -25,17 +25,23 @@ defensive grep audits. T07 is the manual smoke test (Andrey runs it).
     `ThemeDB.fallback_font_size = FS_BODY`. Log via `GameLogger.info` on
     success; `GameLogger.warn` on missing file (don't crash — let the game
     start with the default Godot font as a fallback).
-- [ ] **T06** Defensive grep — verify nothing in `scripts/presentation/`
-      uses inline `Color(...)` literals that would dodge the new palette.
-      `grep -RnE 'Color\(' scripts/presentation/ | grep -v ui_theme.gd | grep -v '#'`.
-      Any hit → file an issue, do not fix in this PR (architecture
-      violation tracked separately).
-- [ ] **T07** Defensive grep — find existing per-control font overrides
-      that would NOT pick up VT323 via `ThemeDB.fallback_font`.
-      `grep -RnE 'add_theme_font_override|theme_override_fonts/font' scripts scenes`.
-      Expectation: zero or near-zero hits. If hits exist, list them in PR
-      description; Andrey decides case-by-case (some may be intentional —
-      e.g. a logo font).
+- [x] **T06** Defensive grep — inline `Color(...)` in `scripts/presentation/`.
+      Findings: 30 hits, but ~25 are `Color(UiTheme.X.r, .g, .b, alpha)` —
+      legal pattern (alpha-modulating a UiTheme color, not bypassing the
+      palette). Real palette-bypassing literals (won't update with new theme):
+      - `runtime/spawner_placeholder.gd:80` — pure white at 45% (editor placeholder)
+      - `ui/skill_offer_modal.gd:70` — should be `UiTheme.OVERLAY`
+      - `dev/spawners_overlay.gd:47,57` — should be `UiTheme.WORLD_TEXT_OUTLINE_COLOR`
+      - `dev/objects_overlay.gd:155,159,161` — three hardcoded hexes (`#4a7d4a`
+        forest green, `#9aa3b2` silvery, `#8a6d3b` warm brown) for object kind
+        glyphs — visible only in dev/object overlay
+      All pre-existing tech debt, not introduced by this PR. Filed as
+      follow-up — out of scope here per spec §"Out of scope".
+- [x] **T07** Defensive grep — per-control font overrides.
+      `add_theme_font_override` / `theme_override_fonts/font` /
+      `font = ExtResource` / `theme = ExtResource` across `scripts/` and
+      `scenes/`: **0 hits**. ThemeDB.fallback_font will catch every Control
+      cleanly. No per-scene fixes needed.
 - [ ] **T08** Smoke test (Andrey runs locally):
   1. `Godot 4.6.2` opens the project, no errors in Output panel.
   2. Main menu renders in amber-on-black with sharp corners.
