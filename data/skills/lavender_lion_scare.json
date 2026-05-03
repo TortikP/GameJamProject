@@ -1,0 +1,38 @@
+{
+  "id": "lavender_lion_scare",
+  "name": "lavender_lion_scare_name",
+  "tooltip": "lavender_lion_scare_tooltip",
+  "desc": "lavender_lion_scare_desc",
+  "icon": "icons/skills/lavender_lion_scare.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "debuff"
+  ],
+  "mood": [
+    "ascended"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "lavender_lion_scare_apply_fear_area",
+      "sound_start": "lavender_lion_scare_apply_fear_area_sound_start",
+      "collision_effect": "debuff_ascended",
+      "sound_end": "lavender_lion_scare_apply_fear_area_sound_end",
+      "animation": "cast_ascended",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "feared(1)"
+        }
+      ]
+    }
+  ]
+}
