@@ -18,6 +18,7 @@ extends PanelContainer
 @onready var _wave_label: Label    = $HBox/WaveLabel
 @onready var _timer_label: Label   = $HBox/TimerLabel
 @onready var _pause_button: Button = $HBox/PauseButton
+@onready var _help_button: Button  = $HBox/HelpButton
 
 
 func _ready() -> void:
@@ -30,6 +31,7 @@ func _ready() -> void:
 	if TurnManager and TurnManager.has_method("current"):
 		set_turn(TurnManager.current())
 	_pause_button.pressed.connect(_on_pause_pressed)
+	_help_button.pressed.connect(_on_help_pressed)
 
 
 func _apply_theme() -> void:
@@ -38,6 +40,7 @@ func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_wave_label, "header")
 	UiTheme.apply_label_kind(_timer_label, "num_large")
 	UiTheme.apply_button_styling(_pause_button)
+	UiTheme.apply_button_styling(_help_button)
 
 
 func set_turn(n: int) -> void:
@@ -64,3 +67,7 @@ func _on_world_turn(turn: int) -> void:
 
 func _on_pause_pressed() -> void:
 	EventBus.pause_toggled.emit(true)
+
+
+func _on_help_pressed() -> void:
+	EventBus.help_dropdown_toggle_requested.emit()

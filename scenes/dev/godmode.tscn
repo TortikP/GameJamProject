@@ -31,6 +31,7 @@
 [ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="22_space"]
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_details_panel.tscn" id="31_eds"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hex_tooltip.tscn" id="32_ht"]
+[ext_resource type="PackedScene" path="res://scenes/ui/help_dropdown.tscn" id="33_hd"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -152,6 +153,8 @@ offset_left = 16.0
 offset_top = 96.0
 offset_right = 480.0
 offset_bottom = 168.0
+
+[node name="HelpDropdown" parent="HUD" instance=ExtResource("33_hd")]
 
 [node name="ToastLayer" parent="." instance=ExtResource("16_tl")]
 

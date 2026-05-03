@@ -34,3 +34,10 @@ layout_mode = 2
 text = "II"
 focus_mode = 0
 custom_minimum_size = Vector2(36, 28)
+
+[node name="HelpButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "?"
+focus_mode = 0
+custom_minimum_size = Vector2(36, 28)
+tooltip_text = "Show keybinds"
