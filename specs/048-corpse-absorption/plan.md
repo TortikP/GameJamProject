@@ -60,9 +60,10 @@ CorpseManager (autoload)    godmode_controller._on_actor_died_for_cleanup
 
 - `scripts/infrastructure/event_bus.gd` — +3 signals (`actor_corpse_spawned`, `corpses_absorbing_started`, `corpses_absorbed`), +1 секционный комментарий.
 - `scripts/runtime/wave_controller.gd` — +helper `_is_final_wave`, +5 строк в `_check_auto_clear` (await блок). Strict ≤8 строк туда.
-- `scripts/presentation/godmode/godmode_camera.gd` — public `shake(amp_px: float, freq: float, duration_sec: float) -> void`, internal per-frame `_shake_offset` apply в `_process`. ≤15 строк.
+- `scripts/presentation/godmode/godmode_camera.gd` — public `shake(amp_px: float, freq: float, duration_sec: float) -> void` (multi-layer аддитивный), `_shake_layers` array, `_shake_clock` float, per-frame `_process` apply. ≤25 строк.
+- `scripts/runtime/actor_registry.gd` — +1 строка `add_to_group(&"actor_registry")` в `_ready()` для CorpseManager lookup.
 - `config/game_speed.cfg` — пополняется `[fx]` (см. spec §7).
-- `scripts/presentation/ui_theme.gd` — `const ABSORPTION_PARTICLE_COLOR := Color(...)`.
+- `scripts/presentation/ui_theme.gd` — `const ABSORPTION_PARTICLE_COLOR := Color(...)`, `const BIOME_TINTS: Dictionary` (forest/heaven/lava/ice → Color), `static func biome_tint_for(kind: StringName) -> Color`.
 - `project.godot` — autoload registration `CorpseManager` после `EventBus`.
 
 ## API contracts
@@ -128,18 +129,13 @@ func corpse_positions() -> Array[Vector2]    # for debug overlay (no implementat
 
 ## Plays absorption animation for all alive corpses. Emits started/absorbed.
 ## target_provider — Callable returning Vector2 (heroine global_position).
-## Coroutine: await this for the full duration.
-func play_absorption_ritual(target_provider: Callable) -> void
+## grid — optional, for biome tint resolution (Color.WHITE if null).
+## Coroutine: await this for the full duration. Plays full duration even on
+## empty corpse list (heroine-side FX still run; D-4 / AC-12).
+func play_absorption_ritual(target_provider: Callable, grid: HexGrid = null) -> void
 
 ## Immediate dispose of all corpses (no animation). For reset / scene exit.
 func clear_all() -> void
-
-# Internal ───────────────────────────────────────────────────────────────
-
-func _on_actor_died(id: StringName) -> void
-# 1. Filter: id == "" or id == "player" → return
-# 2. registry = get_node_or_null("/root/...") -- actor lookup (see below)
-# 3. Snapshot {texture, pos, flip, scale} → spawn Corpse → mount → play_death()
 
 func _resolve_registry() -> ActorRegistry
 # Looks up via current battle scene root. Cached after first hit.
@@ -167,6 +163,18 @@ Option 1 is cleanest. If ActorRegistry isn't currently in a group — adding it 
 
 **Connection ordering**: autoload `_ready` runs before scene-tree `_ready`. CorpseManager autoload connects to `actor_died` first; godmode_setup connects cleanup later. Godot calls handlers in connection order → CorpseManager runs BEFORE the actor is freed. ✓
 
+#### Inertia / indestructibility (D-5)
+
+Корпсы — ТОЛЬКО presentation-узлы под `grid/Corpses`. Точки в коде где это надо удержать инвариантно:
+
+1. `Corpse.init()` — НЕ вызывает `registry.register(...)` и НЕ пишет в `HexGrid._tiles[*].actor_id`.
+2. `_resolve_corpse_root()` — создаёт sibling-узел `Corpses` РЯДОМ с `Actors`, не наоборот. Sibling, чтобы корпсы лежали под тем же преобразованием камеры/zoom'а, но не были путём итерируемыми когда кто-то ходит по `Actors.get_children()`.
+3. `_apply_wave_snapshot` (WaveController) — НЕ трогает `Corpses` Node. Только `floor` (через grid API), `objects` (registry), `spawners` (своё). Корпсы переживут переход N→N+1 автоматически, потому что они под другим узлом.
+4. Damage / spell / tile_effect resolution идёт через `registry.get_actor(id)` — где id берётся из `grid.get_actor_at(coord)` или прямого target-pick. Ни один из этих путей не возвращает Corpse, потому что Corpse не зарегистрирован.
+5. Tween'ы внутри корпса обрабатываются `process_mode = PROCESS_MODE_PAUSABLE` — на паузе спят, на снятии паузы возобновляются. Не сбиваются wave-transition-паузой.
+
+Тестируем эти инварианты в **T021b** (новый).
+
 ### `WaveController` diff (scripts/runtime/wave_controller.gd)
 
 Around line 411–423 (current `_check_auto_clear` tail):
@@ -177,12 +185,12 @@ var cleared_idx: int = _current_wave_index
 EventBus.wave_cleared.emit(cleared_idx, unused)
 
 # 048-corpse-absorption — final-wave ritual BEFORE skill_offer/dialogue.
-# CorpseManager emits corpses_absorbed even on no-op (empty corpse list).
+# CorpseManager plays full-duration ritual even on empty corpse list (D-4).
 if _is_final_wave(cleared_idx):
     var heroine_provider := func() -> Vector2:
         var p: Actor = registry.get_actor(&"player") if registry else null
         return p.global_position if p else Vector2.ZERO
-    CorpseManager.play_absorption_ritual(heroine_provider)
+    CorpseManager.play_absorption_ritual(heroine_provider, grid)
     await EventBus.corpses_absorbed
 
 if _has_skill_offer_for(cleared_idx):
@@ -200,33 +208,83 @@ func _is_final_wave(cleared_idx: int) -> bool:
 
 ### `GodmodeCamera` diff (scripts/presentation/godmode/godmode_camera.gd)
 
-Add module state and method:
+Поддерживает **два независимых канала** shake — фоновый (один большой длительный) и burst (несколько коротких накладывающихся). Реализуем через массив активных шейков, в `_process` суммируем offsets.
 
 ```gdscript
-var _shake_amp: float = 0.0
-var _shake_freq: float = 0.0
-var _shake_t: float = 0.0
-var _shake_total: float = 0.0
+# 048: shake state — array of active layers, summed each frame.
+# Layer = {amp: float, freq: float, t_started: float, duration: float, phase_seed: float}
+var _shake_layers: Array[Dictionary] = []
+var _shake_clock: float = 0.0
 
 func shake(amp_px: float, freq: float, duration_sec: float) -> void:
-    _shake_amp = amp_px
-    _shake_freq = freq
-    _shake_t = 0.0
-    _shake_total = max(0.0001, duration_sec)
+    if amp_px <= 0.0 or duration_sec <= 0.0:
+        return
+    _shake_layers.append({
+        "amp": amp_px,
+        "freq": freq,
+        "t_started": _shake_clock,
+        "duration": duration_sec,
+        "phase_seed": randf() * TAU,
+    })
 
 func _process(delta: float) -> void:
-    # ... existing follow / zoom logic ...
-    if _shake_total > 0.0 and _shake_t < _shake_total:
-        _shake_t += delta
-        var atten: float = 1.0 - (_shake_t / _shake_total)        # linear decay; cosine if needed
-        var phase: float = _shake_t * _shake_freq * TAU
-        offset = Vector2(sin(phase) * 0.7, cos(phase * 1.31)) * _shake_amp * atten
-    elif _shake_total > 0.0:
+    # ... existing follow / zoom logic stays unchanged ...
+    _shake_clock += delta
+    if _shake_layers.is_empty():
         offset = Vector2.ZERO
-        _shake_total = 0.0
+        return
+    var sum := Vector2.ZERO
+    var i: int = _shake_layers.size() - 1
+    while i >= 0:
+        var L: Dictionary = _shake_layers[i]
+        var t_local: float = _shake_clock - float(L["t_started"])
+        if t_local >= float(L["duration"]):
+            _shake_layers.remove_at(i)
+        else:
+            var atten: float = 1.0 - (t_local / float(L["duration"]))
+            var phase: float = float(L["phase_seed"]) + t_local * float(L["freq"]) * TAU
+            sum += Vector2(sin(phase) * 0.7, cos(phase * 1.31)) * float(L["amp"]) * atten
+        i -= 1
+    offset = sum
 ```
 
-Audit current `_process` to make sure shake-offset doesn't fight follow-mode's `position` writes — shake writes `offset` (Camera2D's secondary), follow writes `position`. Independent in Godot 4.6 Camera2D math. ✓
+Аддитивная сумма каналов: monotonic shake (одна большая запись на 2.5с) + N мини-burst'ов (≤0.12с каждый) — складываются естественно. На пустом списке — `offset = Vector2.ZERO`, никакого shake.
+
+## Biome aspect (D-3)
+
+CorpseManager в начале `play_absorption_ritual` определяет доминирующий tile_kind арены через grid:
+
+```gdscript
+const _BIOME_TINT: Dictionary = {
+    &"forest":  Color(0.55, 0.85, 0.45),  # green
+    &"heaven":  Color(0.85, 0.92, 1.00),  # pale cyan-white
+    &"lava":    Color(1.00, 0.45, 0.20),  # red-orange
+    &"ice":     Color(0.55, 0.80, 1.00),  # cyan-blue
+}
+
+func _resolve_biome_tint(grid: HexGrid) -> Color:
+    if grid == null:
+        return Color.WHITE
+    var counts: Dictionary = {}
+    for c in grid.get_all_walkable_coords():
+        var k: StringName = grid.get_tile_kind(c)
+        if k == &"":
+            continue
+        counts[k] = int(counts.get(k, 0)) + 1
+    if counts.is_empty():
+        return Color.WHITE
+    var top_kind: StringName = &""
+    var top_count: int = 0
+    for k in counts.keys():
+        if counts[k] > top_count:
+            top_count = counts[k]
+            top_kind = k
+    return _BIOME_TINT.get(top_kind, Color.WHITE)
+```
+
+Сложность — O(walkable_cells), однократно за ритуал. На джем-аренах ≤256 гексов — мгновенно.
+
+Дублирование таблицы `_BIOME_TINT` между manager'ом и UiTheme — нет: переносим в UiTheme как `const BIOME_TINTS: Dictionary` и вызываем `UiTheme.biome_tint_for(kind)` (helper, чтобы инкапсулировать дефолт `Color.WHITE`). Пополняется при появлении новых tile_kind'ов.
 
 ## Bezier math (in corpse.gd)
 

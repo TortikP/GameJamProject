@@ -163,8 +163,14 @@ absorption_blink_intensity=0.55
 absorption_corpse_shrink_to=0.0           ; final scale at arrival
 absorption_heroine_pulse_count=4
 absorption_heroine_scale_punch=1.06
-absorption_screen_shake_amp_px=4.0
+absorption_heroine_tint_mix=0.5           ; 0=pure white, 1=pure biome tint (heroine flash)
+absorption_screen_shake_amp_px=4.0        ; monotonic background
 absorption_screen_shake_freq=22.0
+absorption_arrival_shake_amp_px=2.5       ; per-arrival mini-burst
+absorption_arrival_shake_freq=30.0
+absorption_arrival_shake_sec=0.12
+absorption_particle_amount=64
+absorption_particle_tint_mix=0.65         ; 0=pure ABSORPTION_PARTICLE_COLOR, 1=pure biome tint
 ```
 
 ### 8. Дрожание экрана
@@ -188,27 +194,39 @@ absorption_screen_shake_freq=22.0
 - **AC-6 (input lock).** На время absorption-ритуала игрок не может двигаться/кастовать/паузить. Реализовать через `WaveController._is_transitioning = true` на старте ритуала + clear на `corpses_absorbed`. Owners (`godmode_controller._unhandled_input`) уже читают `wave_controller.is_transitioning()`.
 - **AC-7 (fixed duration).** `absorption_total_sec` уважается с точностью ≤ 1 кадр на любом числе корпсов. Полная анимация (включая последний прибывший) укладывается в `total_sec` ровно. Нужна для будущего звуко-наложения (`AudioDirector.play_sfx("absorption_ritual", heroine_pos)` с длительностью ≈ `total_sec`).
 - **AC-8 (Bezier feel).** Каждый корпс летит по Безье (slow-fast-slow), с per-corpse jitter старта (`±absorption_per_corpse_jitter_sec`) и скорости (`speed_factor ∈ [1-x, 1+x]`). Веер траекторий (perpendicular-offset со случайным знаком). Корпсы уменьшаются по ходу полёта (linear scale до `absorption_corpse_shrink_to`) и пульсируют через flash.gdshader (`absorption_blink_*` — частота заметно выше, чем у death-blink, чтобы визуально отличался).
-- **AC-9 (heroine reaction).** Героиня пульсирует через flash на каждый период (`absorption_heroine_pulse_count` равных интервалов в течение `total_sec`), на каждое «прибытие» корпса — scale-punch до `absorption_heroine_scale_punch` и обратно (~80мс, через Tween).
-- **AC-10 (screen shake).** В начале absorption камера получает `shake(absorption_screen_shake_amp_px, absorption_screen_shake_freq, absorption_total_sec)`. Угасает к нулю к концу.
-- **AC-11 (particles).** Над героиней спавнится `GPUParticles2D` (`amount=64`, lifetime ≈ `total_sec`) на старте absorption. Удаляется (`queue_free`) через `total_sec + 0.5` для естественного fadeout.
-- **AC-12 (no corpses, no ritual).** Если на финальной волне корпсов нет (например, игрок убил последнего моба тайл-эффектом, корпс по-какой-то-причине не успел заспавниться) — `play_absorption_ritual` no-op'ит, `corpses_absorbed` всё равно эмитится в той же фрейм-итерации (sentinel-эмит). WaveController не зависает.
+- **AC-9 (heroine reaction).** Героиня пульсирует через flash на каждый период (`absorption_heroine_pulse_count` равных интервалов в течение `total_sec`). Цвет flash = `lerp(WHITE, biome_tint, absorption_heroine_tint_mix)` где `biome_tint` — цвет доминирующего `tile_kind` арены (см. D-3, plan §"Biome aspect"), `absorption_heroine_tint_mix ∈ [0,1]` (config-key, дефолт 0.5 — половина от чистого biome). На каждое «прибытие» корпса — scale-punch до `absorption_heroine_scale_punch` и обратно (~80мс, через Tween).
+- **AC-9b (no biome → neutral).** Если арена не содержит ни одного walkable тайла **или** доминирующий kind = `&""` / неизвестен — `biome_tint = WHITE`, эффективный flash остаётся нейтральным. AC не блокируется.
+- **AC-10 (screen shake).** На старте absorption камера получает монотонный `shake(absorption_screen_shake_amp_px, absorption_screen_shake_freq, absorption_total_sec)` — фоновый, угасает к нулю. Дополнительно: на каждое `corpse.absorbed_arrived` — мини-burst `shake(absorption_arrival_shake_amp_px, absorption_arrival_shake_freq, absorption_arrival_shake_sec)` (низкая амплитуда, короткая длительность, ~0.12с). Burst-shake накладывается аддитивно на фоновый через тот же `offset` канал — оба активны параллельно, реализация в `GodmodeCamera.shake()` поддерживает совмещение (см. plan.md).
+- **AC-11 (particles).** Над героиней спавнится `GPUParticles2D` (`amount=64`, lifetime ≈ `total_sec`) на старте absorption. `modulate = lerp(UiTheme.ABSORPTION_PARTICLE_COLOR, biome_tint, absorption_particle_tint_mix)` (config-key, дефолт 0.65 — biome-tint доминирует). Удаляется (`queue_free`) через `total_sec + 0.5` для естественного fadeout.
+- **AC-12 (no corpses → empty ritual).** Если на финальной волне корпсов нет — `play_absorption_ritual` всё равно играет heroine-side эффекты (pulse + particles + shake) полную длительность `absorption_total_sec`, без полёта корпсов. `corpses_absorbing_started(0, total_sec)` эмитится в начале, `corpses_absorbed` — после `total_sec`. Звук кладётся одинаково в оба варианта.
 - **AC-13 (GameSpeed).** Все длительности и амплитуды читаются через `GameSpeed.get_value("fx", "...")`. F5 (live reload) применяется к **следующей** death-/absorption-итерации; уже играющие tween'ы доигрывают со старыми значениями. Никаких bare `create_timer(N)`.
 - **AC-14 (touch budget).** Изменения вне новых файлов:
   - `scripts/runtime/wave_controller.gd` — ≤8 строк (сигнатуры + 1 await + 1 helper).
   - `scripts/infrastructure/event_bus.gd` — 3 новых signal.
   - `scripts/presentation/godmode/godmode_controller.gd` — 0 строк (убран `actor.queue_free()` НЕ трогаем — корпс это **отдельный** узел, актёр queue_free'ится как раньше).
-  - `scripts/presentation/godmode/godmode_camera.gd` — ≤15 строк (метод `shake()` + per-frame offset apply).
+  - `scripts/presentation/godmode/godmode_camera.gd` — ≤25 строк (метод `shake()` + два-канала аккумулятор + per-frame offset apply).
+  - `scripts/runtime/actor_registry.gd` — 1 строка (`add_to_group(&"actor_registry")`).
   - `project.godot` — 1 строка autoload.
   - `config/game_speed.cfg` — раздел `[fx]` пополняется (см. §7 plan.md).
-  - `scripts/presentation/ui_theme.gd` — 1 константа `ABSORPTION_PARTICLE_COLOR`.
+  - `scripts/presentation/ui_theme.gd` — 2 константы (`ABSORPTION_PARTICLE_COLOR`, `BIOME_TINTS` Dictionary).
+- **AC-15 (corpse inertia / indestructibility).** Корпс — только presentation-узел под `grid/Corpses`. Не присутствует в `ActorRegistry`, не лежит в `HexGrid._tiles[*].actor_id`, не реагирует на ввод/коллизии/area2d. Следствия (тестируем):
+  - Pathfinder через гекс с корпсом проходит как через пустой (move_cost не меняется).
+  - AOE-спеллы / тайл-эффекты (lava `damage_zone`, ice slow, и т.п.) не могут «убить» / удалить / повредить корпс — он не принадлежит damage-системе.
+  - Wave-transition (`_apply_wave_snapshot`) **не очищает** корпсы — снапшот меняет floor/objects/spawners, но Corpses-узел отдельный.
+  - Ability targeting (single-target, AOE-pick, line) не предлагает корпс как цель и не считает его за occupant'а.
+  - Корпс исчезает только через (a) `play_absorption` → `dispose`, (b) `clear_all` (ресет). Других путей нет.
 
-## Open questions
+## Resolved decisions (clarify-round 1, Egor)
 
-- **OQ-1 (final-wave skill_offer ordering).** Если на финальной волне сконфигурирован `skill_offer` — спецификация в AC-5 ставит absorption ПЕРЕД skill_offer (heroine «впитывает» врагов → потом получает буст). Альтернатива: skill_offer (выбор апгрейда) ПЕРЕД absorption (выбранный скилл «активирует» поглощение). Egor — confirm. Default: absorption первым (соответствует «перед вызовом диалога и повышения уровня скиллов»).
-- **OQ-2 (corpse persistence через map_editor playtest reset).** Если playtest перезапускает уровень — корпсы должны очищаться. Сейчас `clear_all()` цепляется на `EventBus.scene_ready`/`run_started`. Но editor-режим может не эмитить эти сигналы. Audit на pass T010, тогда же фиксим если что.
-- **OQ-3 (camera shake — per-arrival vs continuous).** Текущий план — один `shake()` на всю длительность, амплитуда монотонно угасает. Альтернатива: маленький burst-shake **на каждое прибытие корпса** (количество ≤ N корпсов → может стать неприятно при 10+ трупах). Рекомендация: монотонный (AC-10 как написан). Confirm.
-- **OQ-4 (heroine pulse — neutral white или mood-tinted).** План — нейтральный белый flash на героине (как у обычных skill-anim'ов через FxDirector). Альтернатива — цвет от mood'а игрока (`MoodTracker.get_dominant()`) или от skill_offer pool'а на следующей волне. Mood-tint возможен (FxDirector умеет mood-flash), но добавляет coupling. Рекомендация: нейтральный белый, mood-tint — отдельный полиш.
-- **OQ-5 (когда «впитывание» начинается с пустой ареной — играть «короткий» ритуал или скипать).** AC-12 говорит — если `has_corpses() == false`, ритуал no-op. Альтернатива: всё равно играть «пустой» эффект на героине (партиклы + shake) для атмосферы перед победой. Рекомендация: no-op (быстрее → игрок видит результат сразу). Confirm.
+- **D-1 (skill_offer ordering on final wave).** Absorption играется **первым** до конца, потом skill_offer / level-completion-диалог. Соответствует AC-5.
+- **D-2 (camera shake).** План — монотонный shake на всю длительность ритуала **+** мини-burst-shake на каждое прибытие корпса (короткий, низкая амплитуда, см. plan.md). Оба вкладываются в `offset` через тот же канал — мини-burst складывается с монотонным фоном.
+- **D-3 (heroine pulse colour).** Нейтральный белый flash **+** biome-aspect tint текущей арены: считаем доминирующий `tile_kind` по всем walkable-гексам через `grid.get_all_walkable_coords()` + `grid.get_tile_kind(coord)`, мапим на цвет (см. plan.md §"Biome aspect"). Tint применяется к partics и к flash heroine, корпсы остаются в нейтральном flash. Дёшево — один проход за O(N) гексов в начале ритуала.
+- **D-4 (no-corpses → empty ritual).** AC-12 переписан: если `has_corpses() == false`, ритуал всё равно играется с heroine-side эффектами (pulse + particles + shake), без полёта корпсов, **полная длительность `absorption_total_sec` соблюдается** (для звука).
+- **D-5 (corpse inertia / indestructibility).** Корпсы **полностью инертны**: не блокируют движение, не таргетятся, не отсасывают AOE/DOT/тайл-эффекты, не разрушаются ничем. Единственная причина исчезновения — absorption (на финальной волне) или `clear_all()` (ресет/выход). Ни один спелл / тайл-эффект / wave-transition не может убрать корпс с арены раньше времени. См. AC-15.
+
+## Open questions (deferred / non-blocking)
+
+- **OQ-2 (corpse persistence через map_editor playtest reset).** Если playtest перезапускает уровень — корпсы должны очищаться. Сейчас `clear_all()` цепляется на `EventBus.scene_ready`/`run_started`/`battle_started`. Editor-playtest может не эмитить часть этих сигналов. Audit на T019, тогда же фиксим если что.
 
 ## Зависимости
 
