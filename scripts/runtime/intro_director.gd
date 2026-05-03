@@ -30,9 +30,9 @@ const CHAIR_COORD: Vector2i = Vector2i(3, 2)  # matches data/maps/office_intro.j
 # Exit-through-monitor: the held cutscene_1 frame scales up centered on the
 # monitor in the art, so it appears to dive into the screen as the live hex
 # game becomes visible behind it.
-const MONITOR_ZOOM: float = 5.0
+const MONITOR_ZOOM: float = 7.0
 const MONITOR_PIVOT: Vector2 = Vector2(0.5, 0.22)
-const DISMISS_DURATION: float = 1.1
+const DISMISS_DURATION: float = 1.6
 
 # Beats give the player a moment to read each phase.
 const POST_REVEAL_BEAT: float = 0.4
@@ -40,7 +40,7 @@ const POST_STAND_BEAT: float = 0.6
 
 # Timeouts: every await is bounded.
 const CUTSCENE_TIMEOUT_SEC: float = 8.0    # cutscene-art ~3.5s + slack
-const DISMISS_TIMEOUT_SEC: float = 3.0     # > DISMISS_DURATION + slack
+const DISMISS_TIMEOUT_SEC: float = 3.5     # > DISMISS_DURATION (1.6s) + slack
 const DIALOGUE_TIMEOUT_SEC: float = 60.0   # waits for player input
 const SIGNAL_POLL_HZ: float = 60.0         # process_frame is fine for our durations
 

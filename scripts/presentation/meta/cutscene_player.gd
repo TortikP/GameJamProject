@@ -69,7 +69,17 @@ func is_playing() -> bool:
 # ── Entry ─────────────────────────────────────────────────────────────────────
 
 func _on_cutscene_requested(cutscene_id: StringName, on_done: Callable) -> void:
-	GameLogger.info("CutscenePlayer", "cutscene_requested '%s'" % cutscene_id)
+	GameLogger.info("CutscenePlayer", "cutscene_requested '%s' (deferring start)" % cutscene_id)
+	# Critical: campaign_cutscene_requested fires from CampaignController._on_scene_ready,
+	# which runs as part of the host scene's _ready() chain. Calling host.add_child()
+	# right now triggers Godot's "Parent node is busy setting up children" error and
+	# the overlay ends up in a broken state — visible in the next dismiss() phase as
+	# 'rect.size was (0,0)' fallbacks and missing scale animation.
+	# Deferring the whole startup lets host._ready() finish first.
+	call_deferred("_start_cutscene_deferred", cutscene_id, on_done)
+
+
+func _start_cutscene_deferred(cutscene_id: StringName, on_done: Callable) -> void:
 	if _active:
 		GameLogger.warn("CutscenePlayer", "already playing — ignoring '%s'" % cutscene_id)
 		on_done.call()
@@ -165,21 +175,26 @@ func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = 
 				GameLogger.info("CutscenePlayer", "rect.size was (0,0); using viewport size: %s" % str(rect_size))
 			_last_frame_rect.pivot_offset = Vector2(rect_size.x * zoom_pivot.x, rect_size.y * zoom_pivot.y)
 			var current_scale: float = _last_frame_rect.scale.x
+			# Quart easing-IN: slow ramp-up then aggressive acceleration into
+			# the pivot. Reads as "drawn into the monitor" rather than a
+			# uniform zoom. CUBIC is too gentle for the effect to register.
 			var tw_scale := create_tween()
-			tw_scale.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tw_scale.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
 			tw_scale.tween_property(_last_frame_rect, "scale", Vector2(zoom_to, zoom_to), duration)
-			# Frame fades out at the very end so the transition into live game is clean
-			tw_scale.parallel().tween_property(_last_frame_rect, "modulate:a", 0.0, duration * 0.5).set_delay(duration * 0.5)
+			# Frame holds opaque for 70% of duration, then fades fast in last 30%.
+			# By then the picture is huge and screen-edge clips already; fade
+			# blends naturally into whatever is behind (bg fades earlier).
+			tw_scale.parallel().tween_property(_last_frame_rect, "modulate:a", 0.0, duration * 0.3).set_delay(duration * 0.7)
 			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f over %.2fs (pivot in pixels: %s, rect_size=%s)" % [current_scale, zoom_to, duration, str(_last_frame_rect.pivot_offset), str(rect_size)])
 			have_scale_tween = true
 
-		# Fade backdrop separately so it doesn't drag the frame's alpha down.
-		# The bg fades faster than the frame's late fade so the live world
-		# starts showing through halfway into the dismiss.
+		# Background (the black ColorRect under the frame) fades to reveal
+		# the live game, but later than before — keeps the office hidden
+		# longer so the frame is visibly mid-flight when the world appears.
 		if bg != null:
 			var tw_bg := create_tween()
-			tw_bg.tween_property(bg, "modulate:a", 0.0, duration * 0.7)
-			GameLogger.info("CutscenePlayer", "dismiss bg fade: %.2fs" % (duration * 0.7))
+			tw_bg.tween_property(bg, "modulate:a", 0.0, duration * 0.85).set_delay(duration * 0.15)
+			GameLogger.info("CutscenePlayer", "dismiss bg fade: %.2fs (delay=%.2fs)" % [duration * 0.85, duration * 0.15])
 		if skip != null:
 			var tw_skip := create_tween()
 			tw_skip.tween_property(skip, "modulate:a", 0.0, duration * 0.3)
