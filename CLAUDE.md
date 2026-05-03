@@ -124,6 +124,7 @@ Append yourself when you start a feature.
 | 041-effect-create-entity (CreateEffect impl: object/actor summon + summoned status) | Egor |
 | 039-dialogue-triggers (LevelData triggers, LevelDialogueDirector, WaveTimeline markers, DialogueTriggerPanel editor) | Andrey |
 | 040-wave-skill-choice (per-wave skill_offer schema, SkillOfferController autoload, modal + card UI, WavePanel section, WaveTimeline markers) | Andrey |
+| 048-corpse-absorption (CorpseManager autoload, Corpse scene, GodmodeCamera multi-layer shake, WaveController final-wave hook, biome tint) | Egor |
 
 ## Git workflow
 
