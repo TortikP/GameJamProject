@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bush_curse_slow_single",
-      "sound_start": "bush_curse_slow_single/bush_curse_slow_single_start.wav",
+      "sound_start": "bush_curse_slow_single_sound_start",
       "collision_effect": "debuff_tranquility",
-      "sound_end": "bush_curse_slow_single/bush_curse_slow_single_end.wav",
+      "sound_end": "bush_curse_slow_single_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "status_id": "slowed(3)"
+          "status_id": "slowed(2)"
         }
       ]
     }
