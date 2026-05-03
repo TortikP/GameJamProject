@@ -137,6 +137,17 @@ const FS_NUM_SMALL  := 14
 # screen at a glance. See `Visibility doctrine` in CLAUDE.md.
 const FS_NUM_HUGE   := 40
 
+# ── Dialogue-specific (047 polish) ───────────────────────────
+# Dialogue text/name need to be much larger than UI body — they are the
+# focal point during a story beat, not chrome. User direction: speaker
+# name ≥ ×2 of FS_HEADER, line text ×2.5 of FS_BODY. Picked exact
+# multiples of Pixellari's 16px bitmap source for crispness:
+#   FS_DIALOGUE_NAME = 48 = FS_BODY × 3  (just above the ×2 minimum,
+#                                          gives clear hierarchy over text)
+#   FS_DIALOGUE_TEXT = 40 = FS_BODY × 2.5
+const FS_DIALOGUE_NAME := 48
+const FS_DIALOGUE_TEXT := 40
+
 # ── Overhead actor UI (HP bar above sprite) ──────────────────
 # Visibility doctrine: world UI must read at default zoom without leaning in.
 # These are bigger than the original 30×4×9px bar — that was readable on a

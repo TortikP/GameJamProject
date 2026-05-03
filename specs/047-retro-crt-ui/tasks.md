@@ -196,3 +196,31 @@ later): `actor_inspector.tscn` also has inline `theme_override_colors`
 that bypass `UiTheme` palette (lines 37, 100, 110, 124, 135). Same
 violation pattern as the inline-`Color()` literals from the T06 audit.
 Non-blocking; the colors render OK against the new teal palette.
+
+### Dialogue text legibility
+
+User feedback: dialogue name + line text were too small in the new
+Pixellari + Win98-teal layout — the dialogue is the focal point of a
+story beat, not chrome. Two new constants in `UiTheme` so future
+callers don't reach for inline numbers:
+
+- `FS_DIALOGUE_NAME = 48` — speaker name. Just above user's "×2 of
+  FS_HEADER minimum"; equals `FS_BODY × 3 = 16 × 3`, so it lands on a
+  clean Pixellari bitmap-grid multiple.
+- `FS_DIALOGUE_TEXT = 40` — line text. Exactly user's "×2.5 of FS_BODY"
+  (`16 × 2.5`). Not a clean integer multiple of 16 → mild aliasing
+  accepted because the readability win is decisive.
+
+Wired in `dialogue_panel.gd::_apply_theme()`. The Name label now uses
+`FS_DIALOGUE_NAME` directly instead of `apply_label_kind(_, "header")`
+because no generic "kind" matches dialogue scale, and adding a "dialogue"
+kind would be a single-consumer abstraction.
+
+Panel height stays at 280 px (256 content area). Worst case fits:
+name 48 + text 3 × 40 + choices ~32 + separations ~16 = ~216 px, with
+~40 px buffer. Dialogue beats in this game are written for ≤3 lines, so
+this margin is enough; if a future longer line needs the room, bump
+`offset_top` in `dialogue_panel.tscn` then.
+
+Dead `theme_override_font_sizes/font_size = 18` removed from Name label
+in the .tscn — was overridden every `_apply_theme()`, pure stale config.
