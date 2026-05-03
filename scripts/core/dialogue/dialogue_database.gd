@@ -241,6 +241,8 @@ func _register_story_sequence(base_id: String, trigger: StringName, raw_lines: V
 			"id": String(line_id),
 			"speaker": speaker,
 			"text": def_key,
+			"audio_layer": str(src.get("audio_layer", "")) if src.get("audio_layer") != null else "",
+			"audio_clip": _get_story_line_audio_clip(src),
 			"tags": [String(trigger)] if i == 0 else [],
 			"priority": int(src.get("priority", 100)),
 			"once_per_run": bool(src.get("once_per_run", false)),
@@ -257,3 +259,8 @@ func _register_story_sequence(base_id: String, trigger: StringName, raw_lines: V
 			_lines[previous_id].next = line.id
 		previous_id = line.id
 	return start_id
+
+
+func _get_story_line_audio_clip(src: Dictionary) -> String:
+	var audio_value = src.get("audio_clip", src.get("sound", ""))
+	return str(audio_value) if audio_value != null else ""

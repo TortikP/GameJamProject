@@ -233,7 +233,9 @@ func _on_dialogue_finished(_id: StringName) -> void:
 		_is_chaining = false
 		return
 	var next_id: StringName = _pending_plays.pop_front()
-	_is_chaining = DialogueManager.play(next_id)
+	# dialogue_finished is emitted while DialogueManager is still unwinding the
+	# current scene, so chained triggers must enqueue through force=true.
+	_is_chaining = DialogueManager.play(next_id, true)
 
 
 func _make_context() -> Dictionary:
