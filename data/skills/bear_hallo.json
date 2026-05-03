@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bear_hallo_buff_attack_self",
-      "sound_start": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self_start.wav",
+      "sound_start": "bear_hallo_buff_attack_self_sound_start",
       "collision_effect": "buff_tranquility",
-      "sound_end": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self_end.wav",
+      "sound_end": "bear_hallo_buff_attack_self_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "self"
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(3,10,5)"
+          "status_id": "strong(2,8,3)"
         }
       ]
     }
