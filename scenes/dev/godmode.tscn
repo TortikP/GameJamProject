@@ -135,6 +135,13 @@ alignment = 1
 
 [node name="ScoreCorner" parent="HUD" instance=ExtResource("20_score")]
 
+[node name="WaveTimeline" parent="HUD" instance=ExtResource("21_wt")]
+mode = 1
+offset_left = 16.0
+offset_top = 96.0
+offset_right = 480.0
+offset_bottom = 168.0
+
 [node name="EnemyDetailsPanel" parent="HUD" instance=ExtResource("31_eds")]
 anchors_preset = 1
 anchor_left = 1.0
@@ -146,13 +153,6 @@ offset_bottom = 192.0
 grow_horizontal = 0
 
 [node name="HexTooltip" parent="HUD" instance=ExtResource("32_ht")]
-
-[node name="WaveTimeline" parent="HUD" instance=ExtResource("21_wt")]
-mode = 1
-offset_left = 16.0
-offset_top = 96.0
-offset_right = 480.0
-offset_bottom = 168.0
 
 [node name="HelpDropdown" parent="HUD" instance=ExtResource("33_hd")]
 
