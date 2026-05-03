@@ -4,7 +4,7 @@
   "tooltip": "angel_sharp_feathers_tooltip",
   "desc": "angel_sharp_feathers_desc",
   "icon": "icons/skills/angel_sharp_feathers.png",
-  "cooldown": 1,
+  "cooldown": 3,
   "behaviour_tags": [
     "ranged",
     "damage"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "angel_sharp_feathers_area_damage",
-      "sound_start": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage_start.wav",
+      "sound_start": "angel_sharp_feathers_area_damage_sound_start",
       "collision_effect": "ranged_ascended",
-      "sound_end": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage_end.wav",
+      "sound_end": "angel_sharp_feathers_area_damage_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 12
+          "damage": 8
         }
       ]
     }
