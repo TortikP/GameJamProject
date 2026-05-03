@@ -7,7 +7,7 @@ path="res://.godot/imported/angel_divine_word_holy_heal_area_sond.wav-ffc4cac85e
 
 [deps]
 
-source_file="res://assets/audio/sfx/abilitys/angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_sond.wav"
+source_file="res://assets/audio/sfx/abilitys/angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_sound_start.wav"
 dest_files=["res://.godot/imported/angel_divine_word_holy_heal_area_sond.wav-ffc4cac85ec5bd7c83486d38feb4da11.sample"]
 
 [params]

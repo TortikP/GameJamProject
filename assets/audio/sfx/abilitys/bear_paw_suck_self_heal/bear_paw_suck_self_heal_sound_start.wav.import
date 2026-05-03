@@ -7,7 +7,7 @@ path="res://.godot/imported/bear_paw_suck_self_heal_start_sound.wav-58f519ee7299
 
 [deps]
 
-source_file="res://assets/audio/sfx/abilitys/bear_paw_suck_self_heal/bear_paw_suck_self_heal_start_sound.wav"
+source_file="res://assets/audio/sfx/abilitys/bear_paw_suck_self_heal/bear_paw_suck_self_heal_sound_start.wav"
 dest_files=["res://.godot/imported/bear_paw_suck_self_heal_start_sound.wav-58f519ee7299c93e217b72150e03726f.sample"]
 
 [params]
