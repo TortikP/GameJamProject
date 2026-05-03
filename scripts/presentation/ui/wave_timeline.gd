@@ -53,6 +53,12 @@ var _level: LevelData = null
 var _runtime_current_wave: int = 0
 var _runtime_turns_into_wave: int = 0
 
+# 048: once the final wave is cleared, freeze the cursor at the end of
+# the final wave's bar segment. Without this, world_turn_ended ticks during
+# the absorption ritual / post-level dialogue would keep advancing the
+# playhead past the end. Reset on wave_started(0) (new run) or bind_level.
+var _runtime_finished: bool = false
+
 # EDIT-mode active wave (highlighted with WAVE_ANCHOR_CURRENT).
 var _edit_active_wave: int = 0
 
@@ -93,6 +99,9 @@ func _ready() -> void:
 		EventBus.wave_started.connect(_on_wave_started)
 		EventBus.wave_cleared.connect(_on_wave_cleared)
 		EventBus.world_turn_ended.connect(_on_world_turn_ended)
+		# 048: extra safety net — if wave_cleared on final wave is missed for
+		# any reason, level_completed still freezes the cursor.
+		EventBus.level_completed.connect(_on_level_completed)
 	# Apply theme stylebox to the widget background.
 	_apply_theme()
 	# Default size -- widget grows to fit content on bind_level / runtime
@@ -107,6 +116,8 @@ func _ready() -> void:
 ## runtime (once at battle start). Triggers a full rebuild + redraw.
 func bind_level(level: LevelData) -> void:
 	_level = level
+	# 048: new level → cursor unfrozen.
+	_runtime_finished = false
 	_rebuild()
 	# 040: skill-offer markers depend on _anchor_positions which are
 	# computed inside the deferred _do_rebuild. Layout once anchors are
@@ -500,19 +511,42 @@ func _commit_turns(wave_idx: int, text: String, le: LineEdit) -> void:
 # -- RUNTIME signal handlers -------------------------------------------------
 
 func _on_wave_started(idx: int, _is_special: bool) -> void:
+	# 048: wave 0 of a new run → unfreeze.
+	if idx == 0:
+		_runtime_finished = false
 	_runtime_current_wave = idx
 	_runtime_turns_into_wave = 0
 	queue_redraw()
 
 
-func _on_wave_cleared(_idx: int, _unused: int) -> void:
-	# Cursor will reset on the subsequent wave_started; no immediate
-	# redraw needed.
-	pass
+func _on_wave_cleared(idx: int, _unused: int) -> void:
+	# 048: final wave cleared → freeze cursor at the end of the bar so the
+	# absorption ritual (~2.5s) and any post-level dialogue don't keep the
+	# playhead sliding past the end. _runtime_turns_into_wave snapped to
+	# the final wave's turns_to_next so the cursor sits at the right edge.
+	if _level != null and idx >= _level.waves.size() - 1:
+		_runtime_finished = true
+		var ttn: int = 0
+		if idx >= 0 and idx < _level.waves.size():
+			ttn = int(_level.waves[idx].get("turns_to_next", 0))
+		_runtime_turns_into_wave = ttn
+		queue_redraw()
+	# Otherwise: cursor will reset on the subsequent wave_started; no
+	# immediate redraw needed (legacy behaviour preserved).
+
+
+func _on_level_completed(_score: int) -> void:
+	# 048: belt-and-suspenders. wave_cleared on final wave already freezes;
+	# this handles the case where _level is null at wave_cleared time.
+	_runtime_finished = true
+	queue_redraw()
 
 
 func _on_world_turn_ended(_turn: int) -> void:
 	if mode != Mode.RUNTIME:
+		return
+	# 048: cursor frozen after final wave clears.
+	if _runtime_finished:
 		return
 	_runtime_turns_into_wave += 1
 	queue_redraw()

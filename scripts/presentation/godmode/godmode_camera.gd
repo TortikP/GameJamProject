@@ -32,10 +32,19 @@ var _pan_last: Vector2 = Vector2.ZERO
 # camera scene loaded standalone for debugging).
 var _follow_target: Node2D = null
 
+# 048-corpse-absorption — multi-layer additive shake. Each call to shake()
+# pushes a layer; _process sums offsets and removes expired layers. Channel
+# is `offset` (Camera2D's secondary), which is independent from `position`
+# used by follow-mode — they don't fight.
+var _shake_layers: Array[Dictionary] = []
+var _shake_clock: float = 0.0
+
 
 func _ready() -> void:
 	_zoom_target = zoom
 	_center_on_target.call_deferred()
+	# 048: tag for CorpseManager (and future systems) to find via group lookup.
+	add_to_group(&"main_camera")
 
 
 # 043-camera-follow: follow-mode is implicit — true iff target is set & alive.
@@ -45,9 +54,46 @@ func _is_following() -> bool:
 
 # 043-camera-follow: snap to target every frame in follow-mode.
 # position_smoothing on the Camera2D node interpolates the rendered anchor.
-func _process(_delta: float) -> void:
+# 048: also drives shake-offset accumulation (independent of position).
+func _process(delta: float) -> void:
 	if _is_following():
 		global_position = _follow_target.global_position
+	_apply_shake(delta)
+
+
+# 048: queue an additive shake layer. Multiple concurrent calls stack.
+# amp_px ≤ 0 or duration ≤ 0 → no-op (silent — caller may pass tunables).
+func shake(amp_px: float, freq: float, duration_sec: float) -> void:
+	if amp_px <= 0.0 or duration_sec <= 0.0:
+		return
+	_shake_layers.append({
+		"amp": amp_px,
+		"freq": freq,
+		"t_started": _shake_clock,
+		"duration": duration_sec,
+		"phase_seed": randf() * TAU,
+	})
+
+
+func _apply_shake(delta: float) -> void:
+	_shake_clock += delta
+	if _shake_layers.is_empty():
+		if offset != Vector2.ZERO:
+			offset = Vector2.ZERO
+		return
+	var sum := Vector2.ZERO
+	var i: int = _shake_layers.size() - 1
+	while i >= 0:
+		var L: Dictionary = _shake_layers[i]
+		var t_local: float = _shake_clock - float(L["t_started"])
+		if t_local >= float(L["duration"]):
+			_shake_layers.remove_at(i)
+		else:
+			var atten: float = 1.0 - (t_local / float(L["duration"]))
+			var phase: float = float(L["phase_seed"]) + t_local * float(L["freq"]) * TAU
+			sum += Vector2(sin(phase) * 0.7, cos(phase * 1.31)) * float(L["amp"]) * atten
+		i -= 1
+	offset = sum
 
 
 ## Called by godmode_controller after Player is placed. Decouples this camera

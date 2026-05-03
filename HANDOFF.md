@@ -883,3 +883,63 @@ T009, T012, T020, T030 в `tasks.md`:
 2. Обе ветки flow: add (свободный слот) и replace (заняты все 4) → submenu выбора слота.
 3. 039 trigger на `skill_offer_about_to_open` `play_mode=play` → диалог играется ДО модалки.
 4. Edge: pool < count (filter exclude_owned + 6 owned из 8) → меньше карточек, UI не падает.
+
+## 22. 048-corpse-absorption — точки интеграции
+
+**Статус (2026-05-03):** ветка `egor/048-corpse-absorption`, Phase A (T001–T012, T014) реализована и запушена; smoke-тесты T008/T015 + Phase C edge-cases — pending Egor в Godot.
+
+### Что добавлено
+
+- **Schema:** ничего — фича чисто runtime, не правит LevelData / Skill / EnemyData.
+- **EventBus:** +3 сигнала. `actor_corpse_spawned(coord: Vector2i, corpse_node: Node)` — на каждый спавн корпса. `corpses_absorbing_started(count: int, total_sec: float)` — на старте ритуала (count=0 OK при пустой арене). `corpses_absorbed` — после `total_sec` фиксированных секунд, гейтит advance в `WaveController._check_auto_clear` на финальной волне.
+- **Autoload `CorpseManager`** (`scripts/runtime/corpse_manager.gd`): listener на `actor_died` (фильтр player), `run_started`, `battle_started`, `scene_ready` (последние три → `clear_all`). Snapshot'ит `body.texture / global_position / flip_h / scale` ДО cleanup'а в godmode_controller (autoload connect order гарантирует первенство), спавнит `Corpse` под `<HexGrid>/Corpses` sibling от `Actors`. Public: `has_corpses()`, `corpse_count()`, `play_absorption_ritual(target_provider, grid)`, `clear_all()`.
+- **`scenes/runtime/corpse.tscn`** + `scripts/presentation/corpse.gd` (`class_name Corpse extends Node2D`). z=3, PROCESS_MODE_PAUSABLE. API: `init`, `play_death` (parallel hop+blink+shrink+topple Tween), `play_absorption` (cubic Bezier через tween_method + Callable.bind), `dispose`. Signals: `absorbed_arrived` (per-arrival hook), `death_anim_finished`.
+- **`WaveController._check_auto_clear`** — гейт на финальной волне: `_is_transitioning=true → CorpseManager.play_absorption_ritual(...) → await EventBus.corpses_absorbed → _is_transitioning=false → skill_offer-блок → _advance_wave`. Helper `_is_final_wave(idx)`.
+- **`GodmodeCamera.shake(amp, freq, duration)`** — multi-layer аддитивный аккумулятор (несколько concurrent shake'ов складываются через `offset`, expired удаляются). Группа `&"main_camera"`.
+- **`ActorRegistry`** — `add_to_group(&"actor_registry")` в `_ready()` для group-lookup из CorpseManager без injection.
+- **`UiTheme`** — `ABSORPTION_PARTICLE_COLOR`, `BIOME_TINTS` Dictionary (forest/heaven/lava/ice → Color), `static func biome_tint_for(kind) -> Color` (WHITE fallback).
+- **`config/game_speed.cfg [fx]`** — 22 ключа (`corpse_death_*`, `absorption_*`). F5 reload работает на следующую анимацию (running tweens доигрывают со старыми значениями).
+
+### Точка интеграции с 040-wave-skill-choice (Andrey)
+
+040 уже работает корректно. Мы вклиниваемся ДО его блока:
+- `wave_cleared.emit` → **NEW: if final wave → await corpses_absorbed (input lock)** → если `_has_skill_offer_for(cleared_idx)` → `await skill_offer_closed` → `_advance_wave`.
+- `skill_offer_about_to_open` / `skill_offer_closed` — НЕ трогаем.
+- На non-final волнах путь skill_offer не меняется, корпсы накапливаются между волнами без действий со стороны 040.
+
+### Точка интеграции с 029-feedback-polish (Andrey)
+
+029 catalog содержит пункт «Death animation manekin'ов — сейчас просто исчезают, нужен fall/dissolve» (строка 24). После мержа 048 этот пункт **закрыт** — отдельный fall/dissolve-pass в 029 не нужен. В spec.md 029 при следующей правке можно снять или закомментировать.
+
+### Точка интеграции с 047-skill-fx-system (Egor)
+
+Переиспользуем `flash.gdshader` (`flash_amount`, `flash_color`) — на корпсе для death/absorption blink, на героине для абсорпции pulse. **Не правим** FxDirector — он сам по себе flash-cast'ы для скиллов делает, наши flash'и независимы (отдельные ShaderMaterial-инстансы на body'ях). Если в одном кадре сработает skill-cast на героине ВО ВРЕМЯ нашей абсорпции — материал перетрётся, pulse прервётся; защита через `_is_transitioning=true` в WaveController блокирует input на время ритуала, AI не кастует (волна последняя, мобы мертвы), коллизий не должно быть.
+
+### Inertia инвариант (D-5 / AC-15)
+
+Корпс — **только** presentation-узел под `<HexGrid>/Corpses`. By construction:
+
+- НЕ зарегистрирован в `ActorRegistry` (audit grep'ом подтвердил: нет вызовов `registry.register(corpse_*)`).
+- НЕ присутствует в `HexGrid._tiles[*].actor_id` (audit grep'ом: нет вызовов `grid.place_actor(corpse_*)`).
+- `_apply_wave_snapshot` трогает только floor/objects/spawners — `Corpses` Node не упомянут. Wave-transition N→N+1 сохраняет корпсы автоматически.
+- Damage / spell / tile_effect resolution идёт через `registry.get_actor(id)` — корпс не вернётся.
+- Pathfinder через гекс с корпсом проходит как через пустой (`grid.is_walkable` не учитывает Corpses Node).
+
+Единственные пути исчезновения: `dispose()` после `absorbed_arrived` (абсорпция), `clear_all()` (ресет/выход).
+
+### Известные ограничения / OQ-2
+
+- **Editor playtest reset.** Если playtest перезапускает уровень не через `EventBus.scene_ready` / `run_started` / `battle_started`, corpses могут утечь между прогонами. Audit pending на T019 (Phase C). Если не закрывается через имеющиеся сигналы — добавить hook на editor-specific signal (TBD имя сигнала).
+- **Particle texture.** Сейчас GPUParticles2D без texture → дефолтный Godot square. Если Катя пришлёт круглый glow — добавить `p.texture = preload("res://assets/sprites/fx/particle_dot.png")` в `_spawn_heroine_particles`.
+- **Heroine `Body` resolve.** Привязан к node-name `"Body"` под player Actor. Если героиня пересоберётся с другим именем спрайта — pulse молча не сработает (graceful — `body == null → return`). Не критично.
+- **Scale-punch на героине** в `_heroine_scale_punch` пишет напрямую в `heroine.scale`. Если героиня сама в этот момент имеет scale-tween (другой системы — телепорт, knockback) — коллизия. На финальной волне таких систем не активно, но потенциальный конфликт стоит держать в голове.
+
+### Pending Egor (smoke в Godot)
+
+T008, T015–T023 в `tasks.md`:
+1. Godmode F1 → spawn маникена → убить → корпс прыгает/мигает/уменьшается/заваливается, лежит, AOE на гекс не убирает (T008 + T021b#3).
+2. Sample level с двумя волнами (3+3 моба), убить первую — корпсы лежат всю вторую волну (T021b#4); добить вторую — absorption ritual: 6 трупов летят к героине, разные траектории, на каждое прибытие punch+burst, после 2.5с emit corpses_absorbed → skill_offer (если есть) → level_completed (T015).
+3. Forest / heaven / lava / ice уровни → biome-tint на heroine pulse и particles меняется (T023).
+4. Финальная волна без корпсов — пустой ритуал играется полную длительность с heroine FX (T016).
+5. F2 ресет в godmode → корпсы исчезают, leak-check (T018).
+6. F5 live-reload — следующий death использует новые `[fx]` значения (T022).

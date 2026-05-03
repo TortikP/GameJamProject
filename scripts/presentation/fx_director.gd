@@ -372,6 +372,13 @@ func _play_body_fx(caster: Actor, victims: Array, entry: Dictionary) -> void:
 	var dur_s: float = float(entry.get("duration_ms", 200)) / 1000.0
 	var any_started: bool = false
 	for v in victims:
+		# 048 follow-up: guard against freed instances. Race exists when an
+		# AI turn (or chained ability) kills a victim during the play_cast
+		# await window — `v is Actor` on a freed Object throws. Pre-048 was
+		# rare in practice; corpse spawn paths make it hit-able. Use
+		# is_instance_valid to peek without dereferencing.
+		if not is_instance_valid(v):
+			continue
 		if not (v is Actor):
 			continue
 		var actor: Actor = v
@@ -493,6 +500,9 @@ func _play_legacy_body_fx(victims: Array, ability: Ability) -> void:
 	var color: Color = _victim_flash_color(ability)
 	var any_started: bool = false
 	for v in victims:
+		# 048 follow-up: same race as _play_body_fx — guard freed instances.
+		if not is_instance_valid(v):
+			continue
 		if not (v is Actor):
 			continue
 		var actor: Actor = v

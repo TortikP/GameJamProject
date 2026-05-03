@@ -411,6 +411,20 @@ func _check_auto_clear() -> void:
 	GameLogger.info("WaveController", "wave_cleared %d (unused=%d)" % [_current_wave_index, unused])
 	var cleared_idx: int = _current_wave_index
 	EventBus.wave_cleared.emit(cleared_idx, unused)
+	# 048-corpse-absorption: on the final wave, run the absorption ritual
+	# BEFORE skill_offer / level_completed. Manager plays full duration even
+	# on empty corpse list (D-4) — single audio cue path. Input lock
+	# (_is_transitioning=true) guards against player casting mid-ritual:
+	# godmode_controller._unhandled_input gates on is_transitioning(), so
+	# no ability cast → no FxDirector flash race with heroine pulse.
+	if _is_final_wave(cleared_idx):
+		var heroine_provider := func() -> Vector2:
+			var p: Actor = registry.get_actor(&"player") if registry != null else null
+			return p.global_position if p != null else Vector2.ZERO
+		_is_transitioning = true
+		CorpseManager.play_absorption_ritual(heroine_provider, grid)
+		await EventBus.corpses_absorbed
+		_is_transitioning = false
 	# 040: if this wave has a skill_offer, wait for SkillOfferController
 	# to run the modal flow before advancing. SkillOfferController is an
 	# autoload; it always emits skill_offer_closed exactly once when
@@ -421,6 +435,13 @@ func _check_auto_clear() -> void:
 	if _has_skill_offer_for(cleared_idx):
 		await EventBus.skill_offer_closed
 	_advance_wave()
+
+
+# 048: cleared_idx is final iff there is no waves[cleared_idx + 1].
+func _is_final_wave(cleared_idx: int) -> bool:
+	if _level == null:
+		return false
+	return cleared_idx >= _level.waves.size() - 1
 
 
 # 040: cheap local check so WaveController doesn't reach into the autoload
