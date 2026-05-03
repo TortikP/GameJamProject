@@ -119,17 +119,18 @@ const SP_5 := 24
 const SP_6 := 32
 
 # ── Font sizes (px) ──────────────────────────────────────────
-# 047: FS_SMALL bumped 11 → 12 (pixel-font readability floor); FS_BODY
-# bumped 14 → 16 because Pixellari's bitmap source is 16px-tall and
-# renders crispest at multiples of 16. Per Visibility doctrine in
-# CLAUDE.md, when a font is illegible at a size, the size goes up —
-# never the font down.
+# 047: FS_SMALL 11 → 12 → 14 (pixel-font readability floor, then user
+# feedback bump); FS_BODY 14 → 16 because Pixellari's bitmap source is
+# 16px-tall and renders crispest at multiples of 16. FS_NUM_SMALL kept
+# matching FS_SMALL so numeric and textual "small" sit at the same height.
+# Per Visibility doctrine in CLAUDE.md, when a font is illegible at a
+# size, the size goes up — never the font down.
 const FS_DISPLAY    := 32
 const FS_HEADER     := 18
 const FS_BODY       := 16
-const FS_SMALL      := 12
+const FS_SMALL      := 14
 const FS_NUM_LARGE  := 24
-const FS_NUM_SMALL  := 12
+const FS_NUM_SMALL  := 14
 # `num_huge` is for in-world combat text crits — has to read from across the
 # screen at a glance. See `Visibility doctrine` in CLAUDE.md.
 const FS_NUM_HUGE   := 40

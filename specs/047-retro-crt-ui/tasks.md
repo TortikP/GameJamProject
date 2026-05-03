@@ -135,7 +135,7 @@ the UI surround → pillar-1 violation. Compromise:
   UI teal. Switched to magenta-pink `#e060c0`. Distinct from violet
   trigger markers, distinct from FOCUS cyan, distinct from teal panels.
 
-What was deliberately NOT done:
+What was deliberately NOT done in the palette swap:
 - No Win98 bevel borders (white-top-left + dark-bottom-right). StyleBoxFlat
   has uniform border_color only; per-side coloring needs custom `_draw()`
   or 4 StyleBoxLines. Out of scope.
@@ -143,3 +143,56 @@ What was deliberately NOT done:
   dark game world would be visually dominant — reads as "Office app
   loaded over a game" not "stylish retro". Dark-teal-tinted UI keeps
   the world primary.
+
+### Score corner: top-right → bottom-right
+
+`scenes/ui/score_corner.tscn`: anchors_preset 1 → 3 (top-right →
+bottom-right) plus offset_top/offset_bottom flipped to negatives so the
+164×64 score box now lives in the bottom-right corner. Reason: it was
+overlapping with the actor inspector panel (also anchored top-right) at
+godmode-arena scenes — caller couldn't read either.
+
+Trade-off: when the dialogue panel (280px tall, full width, anchored
+bottom) is visible, the score box is now hidden behind it. Acceptable
+for now — the score isn't load-bearing during a dialogue beat. If it
+matters later, add an auto-hide on `EventBus.dialogue_started` /
+auto-show on `EventBus.dialogue_ended`, or move it to bottom-right
+above the dialogue area (offset_bottom = -290).
+
+### Font bump: small text → readable
+
+User feedback: small text in the actor inspector (HP/dmg/speed labels,
+position coord, hint, terrain tag) was unreadable. Two-front fix:
+
+1. **`UiTheme` constants**:
+   - `FS_SMALL` 12 → 14
+   - `FS_NUM_SMALL` 12 → 14 (kept matching FS_SMALL so numeric/textual
+     "small" stay at the same line-height)
+   These propagate to all `apply_label_kind(_, "small")` callers:
+   keybind_overlay hint, tool_panel hint, dialogue_trigger_panel count,
+   hex_inspector_subpanel effect, skill_offer_card mode_badge, and
+   actor_inspector hex_effect (script-side override).
+
+2. **`scenes/dev/actor_inspector.tscn` hardcoded sizes**: this scene
+   pre-dates the visibility doctrine and had 11 inline
+   `theme_override_font_sizes/font_size` literals at sizes 10/11/12/16
+   that bypass `UiTheme.FS_*` entirely. Bumping `FS_SMALL` alone wouldn't
+   reach them. Mapped into the new scale:
+   - 10 → 14 (HintLabel, LabelHexCoord)
+   - 11 → 14 (LabelTeam, LabelAbilities, LabelHexEffect)
+   - 12 → 16 (LabelMaxHp, LabelDamage, LabelSpeed, LabelHexKind)
+   - 16 → 18 (LabelId — actor name reads as a header)
+
+Container audit: `ActorInspector` is a `PanelContainer` with
+`grow_vertical = 1` (auto-grows downward), 240 px wide, all labels
+sit in `VBoxContainer` / `HBoxContainer` parents with `size_flags_horizontal = 3`
+or default. Bumped sizes don't trigger any clipping.
+`top_hud_bar` (44 px fixed height) was checked — its labels use
+`FS_HEADER = 18` (unchanged) and `FS_NUM_LARGE = 24` (unchanged), no
+risk. No other fixed-height containers in `scenes/ui/`.
+
+Pre-existing tech debt NOT fixed in this PR (out of scope, filed for
+later): `actor_inspector.tscn` also has inline `theme_override_colors`
+that bypass `UiTheme` palette (lines 37, 100, 110, 124, 135). Same
+violation pattern as the inline-`Color()` literals from the T06 audit.
+Non-blocking; the colors render OK against the new teal palette.
