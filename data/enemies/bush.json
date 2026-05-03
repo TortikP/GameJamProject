@@ -3,7 +3,8 @@
   "name": "bush_name",
   "desc": "bush_desc",
   "sprite": "assets/sprites/enemies/bush.png",
-  "max_hp": 20,
+  "max_hp": 11,
+  "starting_hp": 9,
   "team": "enemy",
   "speed": 0,
   "skills": [

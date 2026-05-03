@@ -57,9 +57,7 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {
-
-	},
+	"music_config": {},
 	"name": "Story Map 03",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
@@ -618,27 +616,6 @@
 						2
 					],
 					"object_id": "object_lava"
-				},
-				{
-					"coord": [
-						2,
-						3
-					],
-					"object_id": "lava_pool"
-				},
-				{
-					"coord": [
-						-1,
-						4
-					],
-					"object_id": "lava_pool"
-				},
-				{
-					"coord": [
-						-2,
-						4
-					],
-					"object_id": "lava_pool"
 				}
 			],
 			"skill_offer": {
@@ -1235,20 +1212,6 @@
 						2
 					],
 					"object_id": "object_lava"
-				},
-				{
-					"coord": [
-						-1,
-						4
-					],
-					"object_id": "lava_pool"
-				},
-				{
-					"coord": [
-						-2,
-						4
-					],
-					"object_id": "lava_pool"
 				}
 			],
 			"spawners": [
@@ -1816,20 +1779,6 @@
 						2
 					],
 					"object_id": "object_lava"
-				},
-				{
-					"coord": [
-						-1,
-						4
-					],
-					"object_id": "lava_pool"
-				},
-				{
-					"coord": [
-						-2,
-						4
-					],
-					"object_id": "lava_pool"
 				}
 			],
 			"spawners": [

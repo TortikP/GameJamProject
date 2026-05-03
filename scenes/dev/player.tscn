@@ -23,7 +23,7 @@ z_index = 5
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("3_hpbar")
 y_offset = -67.0
-z_index = 7
+z_index = 15
 
 [node name="StatusIconStrip" parent="." instance=ExtResource("4_strip")]
 center_anchor = Vector2(0, -100)
