@@ -1,0 +1,32 @@
+[
+  {
+    "id": "intro_office_monologue",
+    "speaker": "heroine",
+    "text": "Ещё один понедельник. Стул, монитор, кулер.",
+    "next": "intro_office_monologue_02",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  },
+  {
+    "id": "intro_office_monologue_02",
+    "speaker": "heroine",
+    "text": "Я сижу здесь который год. И ни разу не задавала себе вопрос — почему.",
+    "next": "intro_office_monologue_03",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  },
+  {
+    "id": "intro_office_monologue_03",
+    "speaker": "heroine",
+    "text": "Хватит. Пора встать.",
+    "next": "",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  }
+]

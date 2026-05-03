@@ -41,6 +41,8 @@ CrtPostFx="*res://scenes/presentation/crt_post_fx.tscn"
 ActiveLevel="*res://scripts/infrastructure/active_level.gd"
 ActiveGame="*res://scripts/infrastructure/active_game.gd"
 CampaignController="*res://scripts/runtime/campaign_controller.gd"
+CutscenePlayer="*res://scripts/presentation/meta/cutscene_player.gd"
+IntroDirector="*res://scripts/runtime/intro_director.gd"
 StoryCampaignDialogue="*res://scripts/runtime/story_campaign_dialogue.gd"
 DummyUpgradeStub="*res://scripts/runtime/_dummy_upgrade_stub.gd"
 

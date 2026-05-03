@@ -1,0 +1,21 @@
+{
+  "id": "intro_office",
+  "frames": [
+    {
+      "image": "res://assets/sprites/cutscenes/cutscene_2.png",
+      "scale_from": 1.0,
+      "scale_to": 0.7,
+      "duration": 1.4,
+      "fade_in_sec": 0.0,
+      "cross_fade_to_next_sec": 0.6
+    },
+    {
+      "image": "res://assets/sprites/cutscenes/cutscene_1.png",
+      "scale_from": 0.7,
+      "scale_to": 0.55,
+      "duration": 1.0,
+      "fade_in_sec": 0.0,
+      "fade_out_sec": 0.6
+    }
+  ]
+}
