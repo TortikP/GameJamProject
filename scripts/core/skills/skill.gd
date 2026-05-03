@@ -115,6 +115,15 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 	# skills carry zero — those fall through to "neutral" via the default).
 	var mood_for_fx: StringName = mood[0] if not mood.is_empty() else &"neutral"
 
+	# 052b: capture caster_id eagerly. The await chain inside the loop
+	# (fx.play_cast / play_collisions) opens a window where the caster's
+	# Node can be queue_free'd by an unrelated path — corpse-ritual, wave
+	# snapshot apply, an effect from a previous ability iteration that
+	# reflected damage, etc. Apply_resolved then crashes with
+	# "argument 2 (previously freed)". Captured id lets us still emit
+	# skill_cast and log cleanly when caster is gone.
+	var caster_id: StringName = caster.actor_id
+
 	for i in abilities.size():
 		var ab: Ability = abilities[i] as Ability
 		# 047: split resolve / FX / apply per ability so visuals land BEFORE
@@ -128,11 +137,15 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		# 047: announce the cast BEFORE FX/apply. victim_ids extracted from
 		# the plan's victims array — Actor instances filtered. UI listeners
 		# (telegraph hide, preview clear, future cast-bar) hook here.
+		# 052b: is_instance_valid guard — a previous ability iteration may
+		# have killed and queue_free'd a victim that's still in this plan.
 		var victim_ids: Array = []
 		for v in plan.get("victims", []):
+			if not is_instance_valid(v):
+				continue
 			if v is Actor:
 				victim_ids.append((v as Actor).actor_id)
-		EventBus.ability_cast_started.emit(caster.actor_id, ab.id, victim_ids)
+		EventBus.ability_cast_started.emit(caster_id, ab.id, victim_ids)
 
 		# 047: FX phase — sound_start + caster anim (parallel inside play_cast),
 		# then collision shader on victims (or hex pulse on summon coords —
@@ -142,7 +155,14 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		# threaded so FxDirector picks the right palette per skill.
 		if fx != null:
 			await fx.play_cast(caster, ab, mood_for_fx)
+			# 052b: the await above is the actual freed-instance window.
+			# If caster is gone, no point doing collisions / apply / sound
+			# — break the whole loop, the cast is over.
+			if not is_instance_valid(caster):
+				break
 			await fx.play_collisions(caster, ab, plan, ctxs[i], mood_for_fx)
+			if not is_instance_valid(caster):
+				break
 
 		# 047: apply phase — effects run AFTER visuals. damage_dealt / heal_done
 		# emit from inside DamageEffect.apply / HealEffect.apply, so floating
@@ -151,7 +171,10 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 
 		# 047: sound_end at primary impact pos. Fire-and-forget — happens in
 		# parallel with whatever comes next in this loop.
-		if fx != null and resolved:
+		# 052b: skip if caster freed (defence in depth — apply_resolved above
+		# would have already crashed in that case, but post-apply effects
+		# might also have killed the caster).
+		if fx != null and resolved and is_instance_valid(caster):
 			fx.play_sound_end(_primary_world_pos(plan, caster), ab)
 
 		if resolved:
@@ -169,22 +192,30 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		# once so 'cooldown=N' means N rounds of skip, not N-1.
 		if cooldown > 0:
 			_skip_next_tick = true
-		EventBus.skill_cast.emit(caster.actor_id, id, all_target_ids)
-		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster.actor_id, _cd_remaining])
+		# 052b: use captured caster_id so the post-cast emit still works
+		# even if caster was freed mid-loop.
+		EventBus.skill_cast.emit(caster_id, id, all_target_ids)
+		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster_id, _cd_remaining])
 
 	return any_resolved
 
 
 ## 047: best-effort world position for sound_end placement. First Actor victim
 ## wins; falls back to primary if it's an Actor; falls back to caster.
+## 052b: every Object access is wrapped in is_instance_valid because this is
+## called AFTER the apply phase, by which point an effect could have killed
+## any of the victims (or even the caster, via reflected damage). Returns
+## Vector2.ZERO as last resort — sound just plays at world origin then.
 func _primary_world_pos(plan: Dictionary, caster: Actor) -> Vector2:
 	for v in plan.get("victims", []):
+		if not is_instance_valid(v):
+			continue
 		if v is Actor:
 			return (v as Actor).global_position
 	var primary: Variant = plan.get("primary")
-	if primary is Actor:
+	if is_instance_valid(primary) and primary is Actor:
 		return (primary as Actor).global_position
-	if caster != null:
+	if caster != null and is_instance_valid(caster):
 		return caster.global_position
 	return Vector2.ZERO
 

@@ -223,6 +223,12 @@ func apply_resolved(plan: Dictionary, caster: Actor, ctx: Dictionary) -> bool:
 				eff_dup_c.apply(caster, null, per_hex_ctx)
 
 	for victim in victims:
+		# 052b: defensive — a previous effect in this loop may have killed
+		# and queue_free'd the victim (e.g. an AoE that reflects through a
+		# trigger). _is_dead does `victim is Actor` which throws on a freed
+		# Object; check validity first.
+		if not is_instance_valid(victim):
+			continue
 		for base_eff in effects:
 			if base_eff is CreateEffect:
 				continue   # 041: handled by hex-pass above
@@ -270,6 +276,11 @@ func _apply_param_modifiers(obj: Object, mods: Array[ParameterModifier]) -> void
 
 
 func _is_dead(victim: Variant) -> bool:
+	# 052b: `victim is Actor` throws on a previously freed instance, so
+	# treat freed objects as dead-equivalent (they can't take any more
+	# effects, the caller will skip).
+	if not is_instance_valid(victim):
+		return true
 	if victim is Actor:
 		return not (victim as Actor).is_alive()
 	return false
