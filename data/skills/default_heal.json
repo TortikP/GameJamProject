@@ -17,9 +17,9 @@
   "abilities": [
     {
       "id": "default_heal_self",
-      "sound_start": "default_heal_self/default_heal_self_start.wav",
+      "sound_start": "default_heal_self_sound_start",
       "collision_effect": "heal_neutral",
-      "sound_end": "default_heal_self/default_heal_self_end.wav",
+      "sound_end": "default_heal_self_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "self"
@@ -29,8 +29,8 @@
       },
       "effects": [
         {
-          "heal": 20,
-          "status_id": "strong(2,5,3)"
+          "heal": 18,
+          "status_id": "strong(2,5,2)"
         }
       ]
     }
