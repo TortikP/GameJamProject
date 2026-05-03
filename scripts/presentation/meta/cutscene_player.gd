@@ -80,10 +80,14 @@ func _on_cutscene_requested(cutscene_id: StringName, on_done: Callable) -> void:
 	var data: Dictionary = _load_cutscene(cutscene_id)
 	var frames: Array = (data.get("frames", []) as Array) if not data.is_empty() else []
 	if frames.is_empty():
-		GameLogger.warn("CutscenePlayer", "no frames for '%s' — firing on_done immediately" % cutscene_id)
+		GameLogger.warn("CutscenePlayer", "no frames for '%s' — firing on_done + deferred signals" % cutscene_id)
 		on_done.call()
-		cutscene_finished.emit(cutscene_id)
-		cutscene_dismissed.emit(cutscene_id)
+		# Defer signal emission to the next frame so IntroDirector's
+		# call_deferred(_run_sequence) connects to cutscene_finished BEFORE
+		# we emit it. Without defer, the signals fire during the same sync
+		# call chain as scene_ready -> CampaignController -> CutscenePlayer,
+		# which is BEFORE IntroDirector._on_scene_ready runs.
+		call_deferred("_emit_finish_signals_deferred", cutscene_id)
 		return
 
 	_active = true
@@ -106,8 +110,7 @@ func _on_cutscene_requested(cutscene_id: StringName, on_done: Callable) -> void:
 		GameLogger.error("CutscenePlayer", "failed to load overlay scene: %s" % OVERLAY_SCENE)
 		_active = false
 		on_done.call()
-		cutscene_finished.emit(cutscene_id)
-		cutscene_dismissed.emit(cutscene_id)
+		call_deferred("_emit_finish_signals_deferred", cutscene_id)
 		return
 	_overlay = packed.instantiate() as CanvasLayer
 	_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -127,17 +130,33 @@ func _on_cutscene_requested(cutscene_id: StringName, on_done: Callable) -> void:
 	cutscene_finished.emit(cutscene_id)
 
 
-# Public: tear down overlay with optional fade. Safe to call at any point.
-func dismiss(fade_sec: float = 0.4) -> void:
+# Public: tear down overlay with optional zoom-into-pivot effect.
+# duration: total time for fade + scale in parallel.
+# zoom_to: target scale on the held last frame. 1.0 = no zoom, just fade.
+#   Use >1 for "exit through screen" feel (camera flies into pivot).
+# zoom_pivot: relative point on the image (0..1) that becomes the scale anchor.
+#   For the office cutscene, [0.5, 0.22] hits the monitor.
+func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = Vector2(0.5, 0.5)) -> void:
 	if not _active:
+		GameLogger.info("CutscenePlayer", "dismiss called but not active — no-op")
 		return
-	GameLogger.info("CutscenePlayer", "dismiss '%s' (fade=%.2fs)" % [_current_id, fade_sec])
-	if is_instance_valid(_overlay) and fade_sec > 0.0:
+	GameLogger.info("CutscenePlayer", "dismiss '%s' (dur=%.2f zoom=%.2f pivot=%s)" % [_current_id, duration, zoom_to, str(zoom_pivot)])
+	if is_instance_valid(_overlay) and duration > 0.0:
 		var root: Control = _overlay.get_node_or_null("Root") as Control
+		# Scale tween on last frame — "fly into" effect when zoom_to > 1.
+		if _last_frame_rect != null and is_instance_valid(_last_frame_rect) and not is_equal_approx(zoom_to, 1.0):
+			var rect_size: Vector2 = _last_frame_rect.size
+			_last_frame_rect.pivot_offset = Vector2(rect_size.x * zoom_pivot.x, rect_size.y * zoom_pivot.y)
+			var current_scale: float = _last_frame_rect.scale.x
+			var tw_scale := create_tween()
+			tw_scale.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tw_scale.tween_property(_last_frame_rect, "scale", Vector2(zoom_to, zoom_to), duration)
+			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f" % [current_scale, zoom_to])
+		# Fade root alpha to 0 in parallel.
 		if root != null:
-			var tw := create_tween()
-			tw.tween_property(root, "modulate:a", 0.0, fade_sec)
-			await tw.finished
+			var tw_fade := create_tween()
+			tw_fade.tween_property(root, "modulate:a", 0.0, duration)
+			await tw_fade.finished
 	if is_instance_valid(_overlay):
 		_overlay.queue_free()
 	_overlay = null
@@ -148,6 +167,15 @@ func dismiss(fade_sec: float = 0.4) -> void:
 	_current_id = &""
 	cutscene_dismissed.emit(id)
 	GameLogger.info("CutscenePlayer", "dismissed '%s'" % id)
+
+
+# Used by deferred-emit path when there are no frames or load failed.
+# Ensures cutscene_finished / cutscene_dismissed fire on a later frame so
+# any deferred listeners (IntroDirector._run_sequence) have a chance to
+# connect first.
+func _emit_finish_signals_deferred(cutscene_id: StringName) -> void:
+	cutscene_finished.emit(cutscene_id)
+	cutscene_dismissed.emit(cutscene_id)
 
 
 # ── Animation ─────────────────────────────────────────────────────────────────
