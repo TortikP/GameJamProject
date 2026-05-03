@@ -40,6 +40,7 @@
 script = ExtResource("7_camera")
 current = true
 enabled = true
+allow_pan = true
 position_smoothing_enabled = true
 zoom = Vector2(1.6, 1.6)
 
