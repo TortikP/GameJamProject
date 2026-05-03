@@ -169,7 +169,7 @@ func _on_wave_cleared(idx: int, _unused: int) -> void:
 	# T019 — wait for any chained dialogue to finish before pausing the
 	# scene. Pausing while DialogueManager is mid-scene would freeze its
 	# auto-advance timers and the dialogue would hang forever.
-	if DialogueManager.is_playing():
+	while DialogueManager.is_playing():
 		await EventBus.dialogue_finished
 
 	# Open modal + pause + await pick.
@@ -193,6 +193,7 @@ func _build_cards(pool: Dictionary, offer: Dictionary) -> Array:
 	var exclude_owned: bool = bool(offer.get("exclude_owned", false))
 	var allow_upgrade: bool = bool(offer.get("allow_upgrade", true))
 	var allow_replace: bool = bool(offer.get("allow_replace", true))
+	var force_replace: bool = bool(offer.get("force_replace", false))
 	var count: int = int(offer.get("count", 3))
 
 	var owned: Dictionary = PlayerSkillAdapterScript.owned_skills_dict()
@@ -206,7 +207,7 @@ func _build_cards(pool: Dictionary, offer: Dictionary) -> Array:
 				_warned_missing_skills[sn] = true
 				GameLogger.warn("SkillOfferController", "skill '%s' missing in DB — drop from pool" % sn)
 			continue
-		if exclude_owned and owned.has(sn) and not allow_upgrade and not allow_replace:
+		if exclude_owned and owned.has(sn):
 			continue
 		var w: float = float(weights.get(str(sid_raw), 1.0))
 		if w <= 0.0:
@@ -221,18 +222,20 @@ func _build_cards(pool: Dictionary, offer: Dictionary) -> Array:
 	# Resolve each picked id to a card with mode.
 	var cards: Array = []
 	for pid in picked_ids:
-		var card: Dictionary = _make_card_for(pid, owned, allow_upgrade, allow_replace)
+		var card: Dictionary = _make_card_for(pid, owned, allow_upgrade, allow_replace, force_replace)
 		if not card.is_empty():
 			cards.append(card)
 	return cards
 
 
 func _make_card_for(id: StringName, owned: Dictionary,
-		allow_up: bool, allow_repl: bool) -> Dictionary:
+		allow_up: bool, allow_repl: bool, force_replace: bool = false) -> Dictionary:
 	var skill: Skill = SkillDatabase.get_skill(id)
 	if skill == null:
 		return {}
 	if not owned.has(id):
+		if force_replace and allow_repl and not PlayerSkillAdapterScript.filled_slot_indices().is_empty():
+			return {"skill_id": id, "skill": skill, "mode": &"replace"}
 		# Slot full + can't replace → fall back to replace if possible, else drop.
 		if PlayerSkillAdapterScript.first_empty_slot() < 0:
 			if allow_repl:
@@ -345,6 +348,10 @@ func _emit_closed_safely(wave_index: int, picked_id: StringName, mode: StringNam
 	# WaveController awaits exactly one emit per cleared wave with offer.
 	# Centralising here lets us defensively avoid double-emit on weird
 	# code paths (modal frees during teardown, etc.).
+	call_deferred("_emit_closed_deferred", wave_index, picked_id, mode)
+
+
+func _emit_closed_deferred(wave_index: int, picked_id: StringName, mode: StringName) -> void:
 	EventBus.skill_offer_closed.emit(wave_index, picked_id, mode)
 	GameLogger.info("SkillOfferController",
 		"closed wave=%d picked='%s' mode=%s" % [wave_index, picked_id, mode])

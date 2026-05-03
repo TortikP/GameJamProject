@@ -31,6 +31,13 @@ const GODMODE_SCENE: String = "res://scenes/dev/godmode.tscn"
 const CAMPAIGN_END_SCENE: String = "res://scenes/meta/campaign_end.tscn"
 const CAMPAIGN_DEFEAT_SCENE: String = "res://scenes/meta/campaign_defeat.tscn"
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const PlayerSkillAdapterScript = preload("res://scripts/runtime/player_skill_adapter.gd")
+
+const STARTER_SKILLS: Array[StringName] = [
+	&"default_melee",
+	&"default_ranged",
+	&"default_heal",
+]
 
 # Set right before change_scene_to_file → consumed by next scene_ready.
 var _pending_fade_in: bool = false
@@ -50,6 +57,7 @@ var _running_total: int = 0
 var _current_wave_index: int = -1
 var _current_level_wave_count: int = 0
 var _defeat_in_progress: bool = false
+var _campaign_skill_loadout: Array = []
 
 
 func _ready() -> void:
@@ -63,6 +71,7 @@ func _ready() -> void:
 	EventBus.damage_dealt.connect(_on_damage_dealt)
 	EventBus.player_turn_ended.connect(_on_turn_boundary)
 	EventBus.world_turn_ended.connect(_on_turn_boundary)
+	EventBus.skill_offer_closed.connect(_on_skill_offer_closed)
 
 
 func _on_main_menu_entered() -> void:
@@ -71,6 +80,7 @@ func _on_main_menu_entered() -> void:
 	_pending_fade_in = false
 	_callback_fired = true  # latch any in-flight upgrade/cutscene awaits
 	_defeat_in_progress = false
+	_campaign_skill_loadout.clear()
 
 
 func _on_campaign_level_started(index: int, _map_path: String) -> void:
@@ -84,6 +94,7 @@ func _on_campaign_level_started(index: int, _map_path: String) -> void:
 		last_defeat_map_index = -1
 		last_defeat_wave_index = -1
 		_defeat_in_progress = false
+		_seed_campaign_skill_loadout()
 	_current_wave_index = -1
 	_current_level_wave_count = 0
 
@@ -95,6 +106,40 @@ func _on_level_loaded(level: LevelData) -> void:
 
 func _on_wave_started(index: int, _is_special: bool) -> void:
 	_current_wave_index = index
+
+
+func _on_skill_offer_closed(_wave_index: int, _picked_skill_id: StringName, _mode: StringName) -> void:
+	if not ActiveGame.has_active_game() or _defeat_in_progress:
+		return
+	capture_current_skill_loadout()
+
+
+func apply_campaign_skill_loadout() -> void:
+	if not ActiveGame.has_active_game():
+		return
+	if _campaign_skill_loadout.is_empty():
+		_seed_campaign_skill_loadout()
+	PlayerSkillAdapterScript.apply_slots_snapshot(_campaign_skill_loadout)
+
+
+func capture_current_skill_loadout() -> void:
+	if not ActiveGame.has_active_game():
+		return
+	var snapshot: Array = PlayerSkillAdapterScript.slots_snapshot()
+	if snapshot.is_empty():
+		return
+	_campaign_skill_loadout = snapshot.duplicate(true)
+	GameLogger.info("CampaignController", "captured campaign skill loadout (%d slots)" % _campaign_skill_loadout.size())
+
+
+func _seed_campaign_skill_loadout() -> void:
+	_campaign_skill_loadout.clear()
+	for i in STARTER_SKILLS.size():
+		_campaign_skill_loadout.append({
+			"slot": i,
+			"id": STARTER_SKILLS[i],
+			"level": 0,
+		})
 
 
 # ── level_completed flow ────────────────────────────────────────────────────
@@ -128,8 +173,7 @@ func _on_level_completed(total_score: int) -> void:
 func _run_post_level_flow(total_score: int) -> void:
 	await _await_dialogue_idle()
 	# 1. Upgrade screen (or stub).
-	GameLogger.info("CampaignController", "post-level flow: awaiting upgrade")
-	await _await_upgrade(total_score)
+	capture_current_skill_loadout()
 	await _await_continue_input()
 	GameLogger.info("CampaignController", "upgrade done — playing transition out")
 

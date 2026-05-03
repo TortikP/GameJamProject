@@ -20,7 +20,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	var grid: HexGrid = _ctrl.grid
 	var player: Actor = _ctrl.player
 	var cast_fsm: Node = _ctrl.cast_fsm
-	if ActiveGame.has_active_game() and player != null and not player.is_alive():
+	var campaign_mode: bool = ActiveGame.has_active_game()
+	if campaign_mode and player != null and not player.is_alive():
 		get_viewport().set_input_as_handled()
 		return
 
@@ -54,15 +55,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_ctrl.deselect_to_player()
 			get_viewport().set_input_as_handled()
 			return
-	if event.is_action_pressed("godmode_spawn_dummy"):
+	if not campaign_mode and event.is_action_pressed("godmode_spawn_dummy"):
 		_ctrl.manekin_spawner.spawn()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("godmode_clear"):
+	if not campaign_mode and event.is_action_pressed("godmode_clear"):
 		_ctrl.manekin_spawner.clear_all()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("dev_open_editor"):
+	if not campaign_mode and event.is_action_pressed("dev_open_editor"):
 		# 020 — global hotkey: jump straight to the map editor from any battle.
 		# If this run originated from the editor's Playtest (ActiveLevel marks
 		# the path), queue it back so the editor reopens with the same map

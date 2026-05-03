@@ -195,7 +195,6 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	picker.add_child(slots_row)
 
 	var labels: Array = ["Q", "W", "E", "R"]
-	var filled: Array = PlayerSkillAdapterScript.filled_slot_indices()
 	for i in 4:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(96, 96)
@@ -212,7 +211,7 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 		UiThemeScript.apply_button_styling(btn)
 		# Disable empty slots — replace targets a filled slot per spec; if
 		# you wanted to add into empty you'd have got an "add" card.
-		btn.disabled = not filled.has(i)
+		btn.disabled = false
 		btn.pressed.connect(_on_slot_picked.bind(i))
 		slots_row.add_child(btn)
 

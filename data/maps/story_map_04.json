@@ -30,7 +30,16 @@
         { "coord": [1, 1], "kind": "player", "ref": "", "timer": 1 },
         { "coord": [3, 1], "kind": "enemy", "ref": "fire_slime", "timer": 1 },
         { "coord": [0, 3], "kind": "enemy", "ref": "manekin", "timer": 2 }
-      ]
+      ],
+      "skill_offer": {
+        "pool": "basic",
+        "count": 3,
+        "allow_upgrade": false,
+        "allow_replace": true,
+        "force_replace": true,
+        "allow_skip": false,
+        "exclude_owned": true
+      }
     },
     {
       "index": 1,
@@ -58,7 +67,16 @@
       "spawners": [
         { "coord": [3, 2], "kind": "enemy", "ref": "bear", "timer": 1 },
         { "coord": [2, 3], "kind": "enemy", "ref": "bee", "timer": 2 }
-      ]
+      ],
+      "skill_offer": {
+        "pool": "basic",
+        "count": 3,
+        "allow_upgrade": false,
+        "allow_replace": true,
+        "force_replace": true,
+        "allow_skip": false,
+        "exclude_owned": true
+      }
     },
     {
       "index": 2,
@@ -86,7 +104,16 @@
       "spawners": [
         { "coord": [3, 2], "kind": "enemy", "ref": "lavender_lion", "timer": 1 },
         { "coord": [2, 3], "kind": "enemy", "ref": "fire_slime", "timer": 2 }
-      ]
+      ],
+      "skill_offer": {
+        "pool": "basic",
+        "count": 3,
+        "allow_upgrade": false,
+        "allow_replace": true,
+        "force_replace": true,
+        "allow_skip": false,
+        "exclude_owned": true
+      }
     },
     {
       "index": 3,
