@@ -17,9 +17,9 @@
   "abilities": [
     {
       "id": "fire_slime_firey_touch_melee_damage",
-      "sound_start": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage_start.wav",
+      "sound_start": "fire_slime_firey_touch_melee_damage_sound_start",
       "collision_effect": "melee_burnout",
-      "sound_end": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage_end.wav",
+      "sound_end": "fire_slime_firey_touch_melee_damage_sound_end",
       "animation": "cast_burnout",
       "target": {
         "kind": "actor",
@@ -31,8 +31,8 @@
       },
       "effects": [
         {
-          "damage": 10,
-          "status_id": "burning(3,5,7)"
+          "damage": 9,
+          "status_id": "burning(2,3,3)"
         }
       ]
     }
