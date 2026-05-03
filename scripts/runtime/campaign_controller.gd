@@ -29,6 +29,7 @@ extends Node
 const TRANSITION_SCENE: PackedScene = preload("res://scenes/meta/level_transition.tscn")
 const GODMODE_SCENE: String = "res://scenes/dev/godmode.tscn"
 const CAMPAIGN_END_SCENE: String = "res://scenes/meta/campaign_end.tscn"
+const CAMPAIGN_DEFEAT_SCENE: String = "res://scenes/meta/campaign_defeat.tscn"
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 # Set right before change_scene_to_file → consumed by next scene_ready.
@@ -42,6 +43,9 @@ var _callback_fired: bool = false
 # every run_started (i.e. every level start), so per-level scores would be
 # lost otherwise.
 var last_campaign_total: int = 0
+var last_defeat_final_boss: bool = false
+var last_defeat_map_index: int = -1
+var last_defeat_wave_index: int = -1
 var _running_total: int = 0
 var _current_wave_index: int = -1
 var _current_level_wave_count: int = 0
@@ -56,6 +60,9 @@ func _ready() -> void:
 	EventBus.level_loaded.connect(_on_level_loaded)
 	EventBus.wave_started.connect(_on_wave_started)
 	EventBus.actor_died.connect(_on_actor_died)
+	EventBus.damage_dealt.connect(_on_damage_dealt)
+	EventBus.player_turn_ended.connect(_on_turn_boundary)
+	EventBus.world_turn_ended.connect(_on_turn_boundary)
 
 
 func _on_main_menu_entered() -> void:
@@ -73,6 +80,9 @@ func _on_campaign_level_started(index: int, _map_path: String) -> void:
 	if index == 0:
 		_running_total = 0
 		last_campaign_total = 0
+		last_defeat_final_boss = false
+		last_defeat_map_index = -1
+		last_defeat_wave_index = -1
 		_defeat_in_progress = false
 	_current_wave_index = -1
 	_current_level_wave_count = 0
@@ -151,6 +161,34 @@ func _run_post_level_flow(total_score: int) -> void:
 func _on_actor_died(actor_id: StringName) -> void:
 	if actor_id != &"player":
 		return
+	_begin_defeat_flow()
+
+
+func _on_damage_dealt(target_id: StringName, _amount: int, _world_pos: Vector2) -> void:
+	if target_id != &"player":
+		return
+	call_deferred("_check_player_defeat")
+
+
+func _on_turn_boundary(_turn: int) -> void:
+	call_deferred("_check_player_defeat")
+
+
+func _check_player_defeat() -> void:
+	if not ActiveGame.has_active_game() or _defeat_in_progress:
+		return
+	var player := _find_player_actor(get_tree().current_scene)
+	if player == null:
+		return
+	if player.hp <= 0:
+		if player.is_alive():
+			player.kill_with_reason("campaign player hp reached zero")
+		_begin_defeat_flow()
+	elif not player.is_alive():
+		_begin_defeat_flow()
+
+
+func _begin_defeat_flow() -> void:
 	if not ActiveGame.has_active_game() or _defeat_in_progress:
 		return
 	_defeat_in_progress = true
@@ -159,6 +197,9 @@ func _on_actor_died(actor_id: StringName) -> void:
 		and _current_level_wave_count > 0
 		and _current_wave_index == _current_level_wave_count - 1
 	)
+	last_defeat_final_boss = is_final_boss_wave
+	last_defeat_map_index = ActiveGame.current_index
+	last_defeat_wave_index = _current_wave_index
 	GameLogger.info("CampaignController", "campaign defeated: map=%d wave=%d final_boss=%s" % [
 		ActiveGame.current_index, _current_wave_index, str(is_final_boss_wave)
 	])
@@ -170,14 +211,33 @@ func _on_actor_died(actor_id: StringName) -> void:
 func _run_defeat_flow(is_final_boss_wave: bool) -> void:
 	var dialogue_id: StringName = &"ending_bad_final_version" if is_final_boss_wave else &"story_defeat_normal"
 	if DialogueDB.has_line(dialogue_id):
-		DialogueManager.play(dialogue_id, true)
-		await _await_dialogue_idle()
+		var started := DialogueManager.play(dialogue_id, true)
+		if started:
+			await _await_dialogue_finished(dialogue_id)
+	DialogueManager.clear_queue()
+	await get_tree().process_frame
 	ActiveGame.clear()
 	ActiveLevel.clear()
 	_pending_fade_in = false
 	get_tree().paused = false
-	EventBus.main_menu_entered.emit()
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	GameLogger.info("CampaignController", "defeat dialogue done -> campaign_defeat")
+	var err := get_tree().change_scene_to_file(CAMPAIGN_DEFEAT_SCENE)
+	if err != OK:
+		GameLogger.error("CampaignController", "failed to change to campaign_defeat: %s" % str(err))
+
+
+func _find_player_actor(root: Node) -> Actor:
+	if root == null:
+		return null
+	if root is Actor:
+		var actor := root as Actor
+		if actor.actor_id == &"player":
+			return actor
+	for child in root.get_children():
+		var found := _find_player_actor(child)
+		if found != null:
+			return found
+	return null
 
 
 # ── scene_ready flow ────────────────────────────────────────────────────────
@@ -257,6 +317,13 @@ func _on_upgrade_done() -> void:
 func _await_dialogue_idle() -> void:
 	while DialogueManager.is_playing():
 		await EventBus.dialogue_finished
+
+
+func _await_dialogue_finished(dialogue_id: StringName) -> void:
+	while true:
+		var finished_id: StringName = await EventBus.dialogue_finished
+		if finished_id == dialogue_id:
+			return
 
 
 func _await_continue_input() -> void:

@@ -20,6 +20,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var grid: HexGrid = _ctrl.grid
 	var player: Actor = _ctrl.player
 	var cast_fsm: Node = _ctrl.cast_fsm
+	if ActiveGame.has_active_game() and player != null and not player.is_alive():
+		get_viewport().set_input_as_handled()
+		return
 
 	if event is InputEventKey and (event as InputEventKey).pressed:
 		if (event as InputEventKey).keycode == KEY_ESCAPE:
