@@ -153,14 +153,30 @@ so cards rendered with a blank 64×64 hole at the top. Egor screenshot.
 - [x] **T040** — `scripts/presentation/ui/skill_offer_card.gd`:
   - Two RichTextLabels: `_gameplay_label` (FS_BODY, TEXT) sourced from
     `SkillFormatter.format_skill_human(skill)` — same string PSP and
-    HexTooltip use; consistent across the whole game.
+    HexTooltip use.
   - `_lore_label` (FS_SMALL, TEXT_DIM) sourced from
-    `Localization.t(skill.desc)` — was the *only* desc pre-T040, now
+    `Localization.t(skill.desc)` — was the only desc pre-T040, now
     flavour text underneath the mechanical answer.
-  - Icon container: `CenterContainer` with `_icon_rect` + `_icon_letter`
-    Label (FS_DISPLAY, FS_DISPLAY); show whichever the resolver picks.
-    Mirrors TelegraphHex / HexTooltip letter fallback so Katya's
-    eventual icon assets drop in without code changes (resolver picks
-    them up automatically by path pattern).
-  - `CARD_MIN_SIZE` 200×280 → 220×320 to give the second description
-    label vertical room. Modal `_cards_row` already auto-aligns.
+  - Icon: `CenterContainer` with `_icon_rect` + `_icon_letter` Label
+    (FS_DISPLAY); show whichever the resolver picks. Mirrors
+    TelegraphHex / HexTooltip letter fallback.
+  - `CARD_MIN_SIZE` 200×280 → 220×320 for the second description.
+
+### Issue 5 — EnemyDetailsPanel overlaps TopHudBar; fonts too small
+
+Top-right anchor with `offset_top=16` collided with TopHudBar (anchors
+preset 10, y=0..52, full-width) and HelpLabel (y=56..84). Hover-driven
+panel rendered behind/over the existing top strip. Fonts (`hp_label`
+and abilities-row pip names) were `small` (14px) — illegible next to
+the `header` (20px) name on the same panel.
+
+- [x] **T041** —
+  - `scenes/dev/godmode.tscn`: EDP `offset_top` 16 → 92 (clears
+    TopHudBar 0..52 + HelpLabel 56..84 with padding); width 560 → 640
+    (more room for 3+ ability pips); height bumped to 100px.
+  - `scenes/ui/enemy_details_panel.tscn`: `custom_minimum_size` width
+    360 → 480; `AbilitiesRow.separation` 8 → 16 so pips stop bleeding
+    into each other.
+  - `scripts/presentation/enemy_details_panel.gd`: `_apply_theme` —
+    `_hp_label` kind small → body. `_make_pip` — name label small →
+    body, icon size 20→24px, separation SP_1 → SP_2.

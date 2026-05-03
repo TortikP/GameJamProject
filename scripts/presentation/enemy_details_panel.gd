@@ -38,7 +38,10 @@ func _ready() -> void:
 func _apply_theme() -> void:
 	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
 	UiTheme.apply_label_kind(_name_label, "header")
-	UiTheme.apply_label_kind(_hp_label, "small")
+	# 049b / T041: HP label bumped from "small" to "body" — was 14px next to a
+	# 20px name + 16px ability row, lost the read order. Body keeps it under
+	# the name visually but readable at default zoom.
+	UiTheme.apply_label_kind(_hp_label, "body")
 
 
 ## Bind to the hovered enemy. Idempotent — re-binding the same actor is a
@@ -162,7 +165,9 @@ func _rebuild_abilities() -> void:
 
 func _make_pip(skill: Skill) -> HBoxContainer:
 	var pip := HBoxContainer.new()
-	pip.add_theme_constant_override("separation", UiTheme.SP_1)
+	# 049b / T041: more spacing between letter and name; pips sat too tight
+	# at SP_1 (4px) and the skills bled into each other.
+	pip.add_theme_constant_override("separation", UiTheme.SP_2)
 	# Icon — texture or single-letter fallback (consistent with HexTooltip
 	# and TelegraphHex; the same SkillIconResolver path everywhere).
 	var tex: Texture2D = SkillIconResolver.resolve(skill)
@@ -171,7 +176,8 @@ func _make_pip(skill: Skill) -> HBoxContainer:
 		rect.texture = tex
 		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		rect.custom_minimum_size = Vector2(20, 20)
+		# 049b / T041: 20→24px to balance against the larger name label.
+		rect.custom_minimum_size = Vector2(24, 24)
 		pip.add_child(rect)
 	else:
 		var lbl := Label.new()
@@ -181,7 +187,11 @@ func _make_pip(skill: Skill) -> HBoxContainer:
 		pip.add_child(lbl)
 	# Name + CD — name only when CD == 0; "(CD N/M)" when ticking.
 	var name_lbl := Label.new()
-	UiTheme.apply_label_kind(name_lbl, "small")
+	# 049b / T041: pip name from "small" (14px, dim) to "body" (16px, TEXT)
+	# — names like "Бросок мяча" and "Сосать лапу" need to be legible
+	# enough to scan during a tactical decision. Was the smallest text on
+	# the panel; now reads cleanly next to the header letter.
+	UiTheme.apply_label_kind(name_lbl, "body")
 	var name_str: String = Localization.t(String(skill.name), String(skill.id))
 	if skill.cooldown > 0:
 		var cd_remaining: int = int(skill.get("_cd_remaining"))
