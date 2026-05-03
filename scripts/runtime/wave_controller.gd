@@ -70,6 +70,13 @@ var _check_clear_queued: bool = false  # debounce repeated _check_auto_clear
 # is_transitioning() so player can't act mid-snapshot.
 var _is_transitioning: bool = false
 
+# Re-entry guard for _end_current_wave. Both auto-clear (last enemy died,
+# deferred) and the natural-end path (turns_to_next reached, fires inside
+# world_turn_ended) can race on the same wave; flag flips true on entry
+# and back to false after _advance_wave returns. See _end_current_wave
+# header for the race detail.
+var _wave_ending: bool = false
+
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
 
@@ -348,12 +355,17 @@ func _on_world_turn_ended(_turn: int) -> void:
 
 	# Check turns_to_next for natural wave end. If auto-clear hasn't
 	# already advanced earlier (via _check_auto_clear), this fires the
-	# transition.
+	# transition. 052: route through _end_current_wave so the offer +
+	# wave_cleared dialogue triggers fire even when the player survives
+	# on the timer instead of clearing the wave outright. unused=0 (by
+	# definition: turns_into_wave >= ttn here).
+	if _wave_ending:
+		return
 	if _current_wave_index < _level.waves.size():
 		var w: Dictionary = _level.waves[_current_wave_index]
 		var ttn: int = int(w.get("turns_to_next", 0))
 		if ttn > 0 and _turns_into_wave >= ttn:
-			_advance_wave()
+			_end_current_wave()
 
 
 func _spawn_from_pending(entry: Dictionary) -> void:
@@ -398,18 +410,44 @@ func _check_auto_clear() -> void:
 		return
 	if _current_wave_index >= _level.waves.size():
 		return
+	if _wave_ending:
+		return  # natural-end path already running for this wave
 	if not _pending_spawners.is_empty():
 		return  # placeholders still ticking → wait for them to fire
 	if _living_enemies_count() > 0:
 		return
-	# All clear. Credit unused turns to score and advance.
-	var w: Dictionary = _level.waves[_current_wave_index]
+	# All clear — _end_current_wave handles score bonus + signal + advance.
+	_end_current_wave()
+
+
+# 052: shared wave-end path. Called from two sites:
+#   - _check_auto_clear (auto-clear): last enemy died, no pending
+#     spawners. unused = ttn - turns_into_wave (positive → score bonus).
+#   - _on_world_turn_ended (natural end): turns_into_wave reached
+#     turns_to_next while enemies still alive. unused = 0.
+# Spec 040 originally only wired the offer + dialogue triggers off the
+# auto-clear path, which meant a player who survived a wave on the timer
+# (the common case in story maps where ttn is tight) saw no skill offer
+# and no wave-cleared dialogue. Per Andrey's design call: every player
+# reaching the next wave deserves the offer, regardless of how the
+# previous one ended. Score bonus is the only auto-clear-only reward,
+# computed here from the same formula in both paths.
+#
+# Race: both call sites can fire on the same wave (e.g. final ranged kill
+# happens on the same world-turn that the timer expires — _on_actor_died
+# defers _check_auto_clear, _on_world_turn_ended runs synchronously).
+# _wave_ending guards re-entry; the second caller no-ops.
+func _end_current_wave() -> void:
+	if _wave_ending:
+		return
+	_wave_ending = true
+	var cleared_idx: int = _current_wave_index
+	var w: Dictionary = _level.waves[cleared_idx]
 	var ttn: int = int(w.get("turns_to_next", 0))
 	var unused: int = max(0, ttn - _turns_into_wave)
 	if unused > 0:
 		RunScore.add(unused)
-	GameLogger.info("WaveController", "wave_cleared %d (unused=%d)" % [_current_wave_index, unused])
-	var cleared_idx: int = _current_wave_index
+	GameLogger.info("WaveController", "wave_cleared %d (unused=%d)" % [cleared_idx, unused])
 	EventBus.wave_cleared.emit(cleared_idx, unused)
 	# 048-corpse-absorption: on the final wave, run the absorption ritual
 	# BEFORE skill_offer / level_completed. Manager plays full duration even
@@ -435,6 +473,7 @@ func _check_auto_clear() -> void:
 	if _has_skill_offer_for(cleared_idx):
 		await EventBus.skill_offer_closed
 	_advance_wave()
+	_wave_ending = false
 
 
 # 048: cleared_idx is final iff there is no waves[cleared_idx + 1].
