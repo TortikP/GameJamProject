@@ -4,7 +4,12 @@ extends Node
 ## arrows. Aggregates by coord across all live enemies' intents.
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
-const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
+# 049 / T016: IntentArrow (straight-line shaft) replaced by EnemyMovePath
+# (polyline through hex centers via grid.find_path_around). The straight
+# arrow lied about the AI's actual route — bends around obstacles, so
+# straight visual contradicted reality. Path-style mirrors the player's
+# green hover-path for cross-faction visual symmetry (Pillar 2).
+const ENEMY_MOVE_PATH_SCRIPT := preload("res://scripts/presentation/enemy_move_path.gd")
 
 var _ctrl: Node = null
 
@@ -133,18 +138,29 @@ func refresh() -> void:
 								if not area_coords.has(ac):
 									area_coords[ac] = tag
 
-		# Movement arrow — one per enemy with a planned move.
+		# 049 / AC-7: enemy movement intent — drawn as a polyline through hex
+		# centers, red, with arrowhead at the destination. The path is
+		# computed via grid.find_path_around with the live actor-block list
+		# so the visual matches the route the AI will actually take (the
+		# straight IntentArrow lied about routes around obstacles). Same
+		# shape as the player's hover_path on MoveRangeOverlay — visual
+		# symmetry, cross-faction.
 		var mv: Vector2i = enemy.move_intent_coord
 		if mv != Vector2i(-1, -1):
 			var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
-			if enemy_coord != Vector2i(-1, -1):
-				var arrow: Node2D = INTENT_ARROW_SCRIPT.new()
-				arrow.position = Vector2.ZERO
-				arrow.z_index = 4  # above telegraph hex, below actors
-				grid.add_child(arrow)
-				arrow.set("origin", grid.tile_map_layer.map_to_local(enemy_coord))
-				arrow.set("target", grid.tile_map_layer.map_to_local(mv))
-				_intent_arrows[enemy.actor_id] = arrow
+			if enemy_coord != Vector2i(-1, -1) and enemy_coord != mv:
+				var blocked: Array = _live_blocked_coords(registry, enemy)
+				var raw_path: Array = grid.find_path_around(enemy_coord, mv, blocked)
+				if raw_path.size() >= 2:
+					var typed_path: Array[Vector2i] = []
+					for c in raw_path:
+						typed_path.append(c)
+					var path_node: Node2D = ENEMY_MOVE_PATH_SCRIPT.new()
+					path_node.position = Vector2.ZERO
+					path_node.z_index = 4  # above telegraph hex, below actors
+					grid.add_child(path_node)
+					path_node.setup(grid, typed_path)
+					_intent_arrows[enemy.actor_id] = path_node
 
 	# Render one telegraph hex per threatened coord.
 	for coord in by_coord.keys():
@@ -222,3 +238,29 @@ func enemy_attack_damage(enemy: Actor) -> int:
 	if tag != &"damage" and tag != &"":
 		return 0
 	return skill.predicted_damage_to(enemy, _ctrl.player, {})
+
+
+# 049 / AC-7: blocked-coord list for grid.find_path_around on enemy move
+# preview. Mirrors the convention in HoverDispatcher.refresh_hover_path and
+# AiDriver._resolve_move_intent — every other live actor's coord blocks. The
+# `exclude` actor (the path's owner) does NOT block its own start hex.
+# Untyped Array on purpose: HexGrid.find_path_around reads it as Array, and
+# typed Array[Vector2i] sometimes fails Variant boundary checks under 4.6 on
+# Resource subclasses (see CLAUDE.md trap table).
+func _live_blocked_coords(registry: ActorRegistry, exclude: Actor) -> Array:
+	var blocked: Array = []
+	if registry == null:
+		return blocked
+	var grid: HexGrid = _ctrl.grid
+	if grid == null:
+		return blocked
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var a: Actor = actor_v
+		if a == exclude or not a.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(a.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	return blocked
