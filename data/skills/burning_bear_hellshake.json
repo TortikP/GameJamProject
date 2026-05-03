@@ -4,7 +4,7 @@
   "tooltip": "burning_bear_hellshake_tooltip",
   "desc": "burning_bear_hellshake_desc",
   "icon": "icons/skills/burning_bear_hellshake.png",
-  "cooldown": 3,
+  "cooldown": 4,
   "behaviour_tags": [
     "damage",
     "ranged"
@@ -16,22 +16,21 @@
   "abilities": [
     {
       "id": "burning_bear_hellshake_ranged_damage",
-      "sound_start": "burning_bear_hellshake_ranged_damage/burning_bear_hellshake_ranged_damage_start.wav",
+      "sound_start": "burning_bear_hellshake_ranged_damage_sound_start",
       "collision_effect": "ranged_ascended",
-      "sound_end": "burning_bear_hellshake_ranged_damage/burning_bear_hellshake_ranged_damage_end.wav",
+      "sound_end": "burning_bear_hellshake_ranged_damage_sound_end",
       "animation": "cast_ascended",
       "target": {
-        "kind": "hex",
-        "range": -1
+        "kind": "self"
       },
       "area": {
         "kind": "zone_circle",
-        "radius": -1
+        "radius": 2
       },
       "effects": [
         {
-          "damage": 15,
-          "status_id": "burning(2,1,2)"
+          "damage": 10,
+          "status_id": "burning(1,2,2)"
         }
       ]
     }

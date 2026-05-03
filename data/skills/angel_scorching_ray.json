@@ -4,7 +4,7 @@
   "tooltip": "angel_scorching_ray_tooltip",
   "desc": "angel_scorching_ray_desc",
   "icon": "icons/skills/angel_scorching_ray.png",
-  "cooldown": 4,
+  "cooldown": 3,
   "behaviour_tags": [
     "ranged",
     "damage"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "angel_scorching_ray_scorching",
-      "sound_start": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_start.wav",
-      "collision_effect": "debuff_ascended",
-      "sound_end": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_end.wav",
+      "sound_start": "angel_scorching_ray_scorching_sound_start",
+      "collision_effect": "ranged_ascended",
+      "sound_end": "angel_scorching_ray_scorching_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "actor",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "status_id": "burning(2,10,5)"
+          "status_id": "burning(2,6,3)"
         }
       ]
     }

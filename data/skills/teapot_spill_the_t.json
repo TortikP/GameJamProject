@@ -15,9 +15,9 @@
   "abilities": [
     {
       "id": "teapot_spill_the_t_create_lava",
-      "sound_start": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava_start.wav",
-      "collision_effect": "summon_burnout",
-      "sound_end": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava_end.wav",
+      "sound_start": "teapot_spill_the_t_create_lava_sound_start",
+      "collision_effect": "ranged_burnout",
+      "sound_end": "teapot_spill_the_t_create_lava_sound_end",
       "animation": "cast_burnout",
       "target": {
         "kind": "hex",
@@ -29,7 +29,7 @@
       },
       "effects": [
         {
-          "entity_id": "lava_pit(3)"
+          "entity_id": "lava_pool"
         }
       ]
     }

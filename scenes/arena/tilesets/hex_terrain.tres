@@ -3,6 +3,15 @@
 [ext_resource type="Texture2D" uid="uid://dfqa7xg7ksd4p" path="res://scenes/arena/tilesets/hex_atlas.png" id="1_hexatlas"]
 [ext_resource type="Texture2D" uid="uid://bikimpmut5wvt" path="res://scenes/dev/godmode_atlas.png" id="2_foresttile"]
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_002"]
+texture = ExtResource("2_foresttile")
+texture_region_size = Vector2i(128, 80)
+use_texture_padding = false
+0:0/0 = 0
+0:0/0/custom_data_0 = true
+0:0/0/custom_data_1 = 1
+0:0/0/custom_data_2 = &"forest"
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_001"]
 texture = ExtResource("1_hexatlas")
 texture_region_size = Vector2i(128, 80)
@@ -41,15 +50,6 @@ use_texture_padding = false
 7:0/0/custom_data_0 = true
 7:0/0/custom_data_1 = 1
 7:0/0/custom_data_2 = &"ice"
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_002"]
-texture = ExtResource("2_foresttile")
-texture_region_size = Vector2i(128, 80)
-use_texture_padding = false
-0:0/0 = 0
-0:0/0/custom_data_0 = true
-0:0/0/custom_data_1 = 1
-0:0/0/custom_data_2 = &"forest"
 
 [resource]
 tile_shape = 3

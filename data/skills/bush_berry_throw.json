@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bush_berry_throw_ranged_damage",
-      "sound_start": "bush_berry_throw_ranged_damage/bush_berry_throw_ranged_damage_start.wav",
+      "sound_start": "bush_berry_throw_ranged_damage_sound_start",
       "collision_effect": "ranged_tranquility",
-      "sound_end": "bush_berry_throw_ranged_damage/bush_berry_throw_ranged_damage_end.wav",
+      "sound_end": "bush_berry_throw_ranged_damage_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",

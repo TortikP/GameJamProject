@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "mushroom_boar_spores_stun_area",
-      "sound_start": "mushroom_boar_spores_stun_area/mushroom_boar_spores_stun_area_start.wav",
+      "sound_start": "mushroom_boar_spores_stun_area_sound_start",
       "collision_effect": "debuff_tranquility",
-      "sound_end": "mushroom_boar_spores_stun_area/mushroom_boar_spores_stun_area_end.wav",
+      "sound_end": "mushroom_boar_spores_stun_area_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "hex",

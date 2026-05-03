@@ -4,7 +4,7 @@
   "tooltip": "angel_divine_word_tooltip",
   "desc": "angel_divine_word_desc",
   "icon": "icons/skills/angel_divine_word.png",
-  "cooldown": 2,
+  "cooldown": 3,
   "behaviour_tags": [
     "ranged",
     "heal"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "angel_divine_word_holy_heal_area",
-      "sound_start": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_start.wav",
-      "collision_effect": "buff_ascended",
-      "sound_end": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_end.wav",
+      "sound_start": "angel_divine_word_holy_heal_area_sound_start",
+      "collision_effect": "heal_ascended",
+      "sound_end": "angel_divine_word_holy_heal_area_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "status_id": "shielded(2,5,3)"
+          "status_id": "shielded(2,5,2)"
         }
       ]
     }

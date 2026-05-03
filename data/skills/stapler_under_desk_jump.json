@@ -4,7 +4,7 @@
   "tooltip": "stapler_under_desk_jump_tooltip",
   "desc": "stapler_under_desk_jump_desc",
   "icon": "icons/skills/stapler_under_desk_jump.png",
-  "cooldown": 2,
+  "cooldown": 3,
   "behaviour_tags": [
     "melee",
     "move"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "stapler_under_desk_jump_teleport",
-      "sound_start": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport_start.wav",
+      "sound_start": "stapler_under_desk_jump_teleport_sound_start",
       "collision_effect": "buff_neutral",
-      "sound_end": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport_end.wav",
+      "sound_end": "stapler_under_desk_jump_teleport_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "self"

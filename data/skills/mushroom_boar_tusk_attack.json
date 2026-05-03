@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "mushroom_boar_tusk_attack_melee_damage",
-      "sound_start": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage_start.wav",
+      "sound_start": "mushroom_boar_tusk_attack_melee_damage_sound_start",
       "collision_effect": "melee_tranquility",
-      "sound_end": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage_end.wav",
+      "sound_end": "mushroom_boar_tusk_attack_melee_damage_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",

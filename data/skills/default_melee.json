@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "default_melee_damage",
-      "sound_start": "default_melee_damage/default_melee_damage_start.wav",
+      "sound_start": "default_melee_damage_sound_start",
       "collision_effect": "melee_neutral",
-      "sound_end": "default_melee_damage/default_melee_damage_end.wav",
+      "sound_end": "default_melee_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "actor",

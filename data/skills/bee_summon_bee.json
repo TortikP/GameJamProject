@@ -4,7 +4,7 @@
   "tooltip": "bee_summon_bee_tooltip",
   "desc": "bee_summon_bee_desc",
   "icon": "icons/skills/bee_summon_bee.png",
-  "cooldown": 4,
+  "cooldown": 5,
   "behaviour_tags": [
     "summon"
   ],
@@ -15,9 +15,9 @@
   "abilities": [
     {
       "id": "bee_summon_bee_summon_bee",
-      "sound_start": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee_start.wav",
+      "sound_start": "bee_summon_bee_summon_bee_sound_start",
       "collision_effect": "summon_ascended",
-      "sound_end": "bee_summon_bee_summon_bee/bee_summon_bee_summon_bee_end.wav",
+      "sound_end": "bee_summon_bee_summon_bee_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",

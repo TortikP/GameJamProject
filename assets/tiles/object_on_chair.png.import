@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rc11ertj5pht0"
-path="res://.godot/imported/object_on_chair.png-34fa781359331a3ed13a32e97cc31667.ctex"
+uid="uid://bvfj1j5jvvysx"
+path="res://.godot/imported/object_on_chair.png-fe7f0a62c85c3e3f3f5901e80b9b7199.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/object_on_chair.png"
-dest_files=["res://.godot/imported/object_on_chair.png-34fa781359331a3ed13a32e97cc31667.ctex"]
+dest_files=["res://.godot/imported/object_on_chair.png-fe7f0a62c85c3e3f3f5901e80b9b7199.ctex"]
 
 [params]
 

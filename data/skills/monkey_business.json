@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "monkey_business_damage",
-      "sound_start": "monkey_business_damage/monkey_business_damage_start.wav",
+      "sound_start": "monkey_business_damage_sound_start",
       "collision_effect": "melee_neutral",
-      "sound_end": "monkey_business_damage/monkey_business_damage_end.wav",
+      "sound_end": "monkey_business_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "actor",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 20
+          "damage": 12
         }
       ]
     }

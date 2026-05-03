@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bee_sting_melee_damage",
-      "sound_start": "bee_sting_melee_damage/bee_sting_melee_damage_start.wav",
+      "sound_start": "bee_sting_melee_damage_sound_start",
       "collision_effect": "melee_ascended",
-      "sound_end": "bee_sting_melee_damage/bee_sting_melee_damage_end.wav",
+      "sound_end": "bee_sting_melee_damage_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "actor",
@@ -31,7 +31,7 @@
       "effects": [
         {
           "damage": 7,
-          "status_id": "poisoned(3,5,2)"
+          "status_id": "poisoned(2,4,2)"
         }
       ]
     }
