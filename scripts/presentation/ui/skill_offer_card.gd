@@ -61,6 +61,23 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	_build_children()
 	_apply_data_to_children()
+	# 049b / T048: child Controls (Labels, RichTextLabels, TextureRect, etc)
+	# default to MOUSE_FILTER_STOP and intercept clicks meant for the card
+	# itself — Egor saw flickering hover + dropped clicks when the cursor
+	# was over text/icon child rects. The card listens via gui_input on the
+	# root, so all descendants must let events pass straight through.
+	# Recursive walk is one-shot (children are built once in _build_children).
+	_propagate_mouse_filter_ignore(self)
+
+
+# 049b / T048: walk Control descendants of `node` (excluding `node` itself
+# when called with the root) and set mouse_filter to IGNORE. Containers
+# default to STOP and would otherwise eat the click.
+func _propagate_mouse_filter_ignore(node: Node) -> void:
+	for child in node.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_propagate_mouse_filter_ignore(child)
 
 
 func _build_children() -> void:

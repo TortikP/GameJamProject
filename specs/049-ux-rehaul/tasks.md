@@ -269,3 +269,28 @@ in there" but no way to compare what you're losing vs gaining. Egor:
 - [x] **T047** — `specs/049-ux-rehaul/asset_inventory.md`: 12 statuses +
   51 production skills + asset paths + letter-fallback table. For
   Katya / hand-off doc.
+
+### Issue 8 (round-4) — replace flow polish
+
+- [x] **T048** — `scripts/presentation/ui/skill_offer_card.gd` `_ready`:
+  recursive `_propagate_mouse_filter_ignore(self)` after build sets all
+  child Controls to MOUSE_FILTER_IGNORE. Children defaulted to STOP and
+  intercepted clicks on the icon/text rects, so hover flickered and
+  clicks dropped — root listens via gui_input on the PanelContainer.
+- [x] **T049** — `scripts/presentation/ui/skill_offer_modal.gd`:
+  `_make_replace_incoming_stylebox` (green SEM_HEAL 2px border)
+  symmetric with the outgoing red one. Title now SEM_HEAL fixed,
+  was SkillFormatter.consequence_color which floated red/green/orange/
+  blue depending on skill type — confused panel-role with skill type.
+- [x] **T050** — `scripts/presentation/ui/skill_offer_modal.gd` `open()`:
+  detects any card with `mode=="replace"` and forces `allow_skip=true`.
+  Players facing a forced-replace flow (story map force_replace=true on
+  full bar) now always have a Skip escape hatch — JSON authors can't
+  trap the player into mandatory swap.
+- [x] **T051** — `scripts/presentation/ui/skill_offer_modal.gd`:
+  `_current_loadout_row` HBox in `_build_tree` between cards and
+  footer. `_refresh_current_loadout_row()` rebuilds on each open() —
+  one disabled Button per slot with key + skill name and native
+  `tooltip_text = SkillFormatter.format_skill_human(skill)`. Hidden on
+  slot picker, restored on cancel. Localization key
+  `skill_offer.current_loadout` added en+ru.

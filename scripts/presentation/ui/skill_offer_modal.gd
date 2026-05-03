@@ -43,6 +43,10 @@ var _center_panel: PanelContainer
 var _vbox: VBoxContainer
 var _header: Label
 var _cards_row: HBoxContainer
+# 049b / T051: row under the cards showing the player's current 4 slots,
+# hover→tooltip per slot. Lets the player review their existing kit
+# before picking a card. Hidden during the replace-slot sub-screen.
+var _current_loadout_row: HBoxContainer
 var _footer_row: HBoxContainer
 var _skip_button: Button
 
@@ -109,6 +113,16 @@ func _build_tree() -> void:
 	_cards_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_vbox.add_child(_cards_row)
 
+	# 049b / T051: current-loadout row sits under the cards on screen 1.
+	# Lets the player hover their existing skills (Q/W/E/R) and read
+	# format_skill_human descriptions before deciding which card to take.
+	# Hidden on the slot picker (screen 2) — slot picker has its own slot
+	# buttons and the dual-panel preview, so this would be redundant.
+	_current_loadout_row = HBoxContainer.new()
+	_current_loadout_row.add_theme_constant_override("separation", UiThemeScript.SP_2)
+	_current_loadout_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_vbox.add_child(_current_loadout_row)
+
 	_footer_row = HBoxContainer.new()
 	_footer_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_footer_row.add_theme_constant_override("separation", UiThemeScript.SP_3)
@@ -124,6 +138,23 @@ func open(cards: Array, offer: Dictionary) -> void:
 		ready.connect(open.bind(cards, offer), CONNECT_ONE_SHOT)
 		return
 	_clear_cards_row()
+	# 049b / T051: rebuild current loadout row each open — slot contents
+	# may have changed between offers (T043 lets ADD fill empty slots
+	# silently, T044 lets the player swap a slot mid-run). Hidden on the
+	# slot picker but cards screen always shows it.
+	_refresh_current_loadout_row()
+	_current_loadout_row.visible = true
+	# 049b / T050: detect any replace card. When the player faces a
+	# REPLACE option (their bar is full and force_replace is on), they
+	# must always have a way to keep their current kit — Skip is the
+	# escape hatch. Promote allow_skip to true regardless of the offer
+	# config so JSON authors can't accidentally trap the player. Original
+	# offer.allow_skip still wins when no replace cards exist.
+	var has_replace: bool = false
+	for c in cards:
+		if StringName(str(c.get("mode", ""))) == &"replace":
+			has_replace = true
+			break
 	for card_data in cards:
 		var card: Node = SkillOfferCardScene.instantiate()
 		_cards_row.add_child(card)
@@ -132,16 +163,50 @@ func open(cards: Array, offer: Dictionary) -> void:
 		if card.has_signal("card_clicked"):
 			card.card_clicked.connect(_on_card_clicked)
 
-	# Skip button — only when offer.allow_skip == true.
+	# Skip button — when offer.allow_skip == true OR any card forces a
+	# replace (T050).
 	for child in _footer_row.get_children():
 		child.queue_free()
-	var allow_skip: bool = bool(offer.get("allow_skip", false))
+	var allow_skip: bool = bool(offer.get("allow_skip", false)) or has_replace
 	if allow_skip:
 		_skip_button = Button.new()
 		_skip_button.text = Localization.t("skill_offer.skip", "Skip")
 		UiThemeScript.apply_button_styling(_skip_button)
 		_skip_button.pressed.connect(_on_skip_pressed)
 		_footer_row.add_child(_skip_button)
+
+
+# 049b / T051: rebuild the current-loadout row from PlayerSkillAdapter.
+# One pip per slot (Q/W/E/R). Each pip is a Button with the slot key +
+# skill letter/name; native tooltip_text gives the full
+# format_skill_human description on hover. Empty slots show "—".
+func _refresh_current_loadout_row() -> void:
+	for child in _current_loadout_row.get_children():
+		child.queue_free()
+	# Header label so it doesn't blend into the cards visually.
+	var lead := Label.new()
+	lead.text = Localization.t("skill_offer.current_loadout", "Current loadout:")
+	UiThemeScript.apply_label_kind(lead, "small")
+	_current_loadout_row.add_child(lead)
+	var labels: Array = ["Q", "W", "E", "R"]
+	for i in 4:
+		var pip := Button.new()
+		pip.custom_minimum_size = Vector2(80, 56)
+		pip.focus_mode = Control.FOCUS_NONE  # not actionable, just hoverable
+		pip.disabled = true                  # read-only — no click handler
+		var existing = PlayerSkillAdapterScript.peek_slot(i)
+		var pip_text: String = labels[i]
+		if existing != null and "id" in existing:
+			var ex_key: String = String(existing.name) if "name" in existing else ""
+			var ex_disp: String = Localization.t(ex_key, str(existing.id)) if ex_key != "" else str(existing.id)
+			pip_text += "\n%s" % ex_disp
+			# Native Godot tooltip — full gameplay description on hover.
+			pip.tooltip_text = SkillFormatter.format_skill_human(existing)
+		else:
+			pip_text += "\n—"
+		pip.text = pip_text
+		UiThemeScript.apply_button_styling(pip)
+		_current_loadout_row.add_child(pip)
 
 
 func _clear_cards_row() -> void:
@@ -178,8 +243,9 @@ var _replace_outgoing_label: RichTextLabel
 
 func _show_slot_picker(card_data: Dictionary) -> void:
 	_slot_picker_pinned_card = card_data
-	# Hide cards row + footer, show a slot picker beneath the header.
+	# Hide cards row + loadout row + footer, show a slot picker beneath the header.
 	_cards_row.visible = false
+	_current_loadout_row.visible = false
 	_footer_row.visible = false
 
 	if _slot_picker != null and is_instance_valid(_slot_picker):
@@ -207,8 +273,17 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	# moment you got past the card screen the actual mechanical effect
 	# (damage / range / CD / etc) was off-screen and you had to cancel
 	# back to re-read it.
+	#
+	# 049b / T049: green border + green title — visual symmetry with the
+	# bottom outgoing panel (red border / red strikethrough). Green = "the
+	# thing you're gaining"; red = "the thing you're losing." Was tinted
+	# by consequence_color before, which floated between red/green/blue/
+	# orange depending on the skill's effect type — confusing because the
+	# player reads "title colour" as semantic of the panel role, not of
+	# the skill itself.
 	var incoming_panel := PanelContainer.new()
-	incoming_panel.add_theme_stylebox_override("panel", UiThemeScript.make_panel_stylebox())
+	incoming_panel.add_theme_stylebox_override("panel",
+			_make_replace_incoming_stylebox())
 	var incoming_vbox := VBoxContainer.new()
 	incoming_vbox.add_theme_constant_override("separation", UiThemeScript.SP_1)
 	incoming_panel.add_child(incoming_vbox)
@@ -217,11 +292,7 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	incoming_name.text = display_name
 	incoming_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiThemeScript.apply_label_kind(incoming_name, "header")
-	# Tint by skill type — same consequence_color logic the cards / PSP /
-	# HexTooltip use. Reads-at-a-glance "what kind of spell".
-	if skill != null:
-		incoming_name.add_theme_color_override("font_color",
-				SkillFormatter.consequence_color(skill))
+	incoming_name.add_theme_color_override("font_color", UiThemeScript.SEM_HEAL)
 	incoming_vbox.add_child(incoming_name)
 
 	var incoming_desc := RichTextLabel.new()
@@ -319,6 +390,20 @@ func _make_replace_outgoing_stylebox() -> StyleBoxFlat:
 	return sb
 
 
+# 049b / T049: green-bordered stylebox for the incoming-preview panel.
+# Symmetric with outgoing — red = lose, green = gain. SEM_HEAL is the
+# canonical green in UiTheme (also used for healing damage numbers and
+# the heal-class consequence colour).
+func _make_replace_incoming_stylebox() -> StyleBoxFlat:
+	var sb: StyleBoxFlat = UiThemeScript.make_panel_stylebox()
+	sb.border_color = UiThemeScript.SEM_HEAL
+	sb.border_width_left = 2
+	sb.border_width_right = 2
+	sb.border_width_top = 2
+	sb.border_width_bottom = 2
+	return sb
+
+
 # 049b / T044: slot-button hover handler — populate outgoing preview.
 # Strikethrough on both the name line and the gameplay description via
 # [s]…[/s] BBCode (RichTextLabel native; not supported on plain Label).
@@ -372,6 +457,7 @@ func _on_cancel_replace() -> void:
 	_replace_outgoing_panel = null
 	_replace_outgoing_label = null
 	_cards_row.visible = true
+	_current_loadout_row.visible = true
 	_footer_row.visible = true
 
 
