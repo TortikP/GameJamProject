@@ -4,7 +4,7 @@
   "tooltip": "bee_honey_cold_tooltip",
   "desc": "bee_honey_cold_desc",
   "icon": "icons/skills/bee_honey_cold.png",
-  "cooldown": 2,
+  "cooldown": 3,
   "behaviour_tags": [
     "heal",
     "debuff"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bee_honey_cold_target_heal",
-      "sound_start": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_start.wav",
+      "sound_start": "bee_honey_cold_target_heal_sound_start",
       "collision_effect": "heal_ascended",
-      "sound_end": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_end.wav",
+      "sound_end": "bee_honey_cold_target_heal_sound_end",
       "animation": "cast_ascended",
       "target": {
         "kind": "actor",
@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "heal": 18,
-          "status_id": "slowed(3)"
+          "heal": 16,
+          "status_id": "slowed(2)"
         }
       ]
     }
