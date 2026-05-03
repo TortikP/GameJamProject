@@ -35,8 +35,8 @@ var _warned_no_registry: bool = false
 
 func _ready() -> void:
 	EventBus.actor_died.connect(_on_actor_died)
-	EventBus.run_started.connect(_on_reset)
-	EventBus.battle_started.connect(_on_reset)
+	EventBus.run_started.connect(_on_run_started)
+	EventBus.battle_started.connect(_on_battle_started)
 	EventBus.scene_ready.connect(_on_scene_ready)
 
 
@@ -159,7 +159,13 @@ func _on_actor_died(id: StringName) -> void:
 	corpse.play_death()
 
 
-func _on_reset() -> void:
+func _on_run_started() -> void:
+	clear_all()
+
+
+# Signal carries arena_id which we don't use; the parameter name is prefixed
+# with `_` to satisfy Godot's "unused parameter" warning.
+func _on_battle_started(_arena_id: StringName) -> void:
 	clear_all()
 
 
