@@ -40,8 +40,6 @@
 Пошаговая магическая арена со спелл-крафтом через модификаторы (как Ball x Pit / Brotato), QWER-style слоты заклинаний, гекс-арена, рогаликовая петля в стиле Megabonk. Полный концепт — в `jam-concept-pitch.md`.
 
 **Идентичность (не зависит от темы):**
-- Перемотка плёнки между петлями.
-- SFX → ИИ-голос → реальный человек по мере прогресса.
 - Community-style мета-ирония, переключаемая на Гайман-тон под серьёзную тему.
 
 ---
@@ -154,7 +152,7 @@ jam-project/
 │   ├── audio/
 │   │   ├── sfx/
 │   │   ├── music/
-│   │   └── voice/               # SFX-бормотание, AI-голоса, human-голоса
+│   │   └── voice/               # SFX-бормотание (Animal Crossing-style)
 │   └── fonts/
 └── tests/                       # GUT, опционально
 ```
@@ -211,7 +209,6 @@ upgrade_screen_min_display=2.0
 respawn_animation_duration=1.5
 
 [meta]
-rewind_effect_duration=0.8
 boss_intro_duration=3.0
 
 [clock]
@@ -254,8 +251,6 @@ signal actor_spawned(actor_id: StringName)
 # Run-цикл
 signal run_started
 signal run_ended(reason: String)
-signal rewind_started
-signal rewind_finished
 
 # Диалоги
 signal dialogue_started(dialogue_id)
@@ -285,7 +280,7 @@ func debug(tag: String, msg: String) -> void: log(Level.DEBUG, tag, msg)
 
 ### `AudioDirector` (`scripts/infrastructure/audio_director.gd`)
 
-Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями, поддержка эскалации SFX → AI → human.
+Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями (SFX-бормотание для диалогов, общий микс).
 
 ### `MusicDirector` (`scripts/audio/music/music_director.gd`) — добавлен в 042
 
@@ -506,7 +501,7 @@ JSON-формат:
 }
 ```
 
-`audio_layer` — `sfx`, `ai_voice`, `human` — управляется AudioDirector.
+`audio_layer` — опциональный тег для аудио-роутинга AudioDirector'ом (default `sfx`).
 
 Под любую тему DialogueManager работает идентично — меняется только контент.
 
@@ -587,16 +582,13 @@ JSON-формат:
 - 4 заклинания, 10+ модификаторов в пуле.
 - Экран апгрейда между боями.
 - Несколько диалогов в run'е.
-- Перемотка плёнки на респауне.
 
 **Если играется — остаток дня = polish и контент.** Не новые фичи. Катя доделывает ассеты, Никита заливает диалоги, Стасян балансирует.
 
 ### Суббота днём
 
 - Финальные диалоги.
-- ИИ-голос на ключевых репликах (опционально).
 - Музыкальные слои (опционально).
-- Финальный приём (скип отключён + реальный голос) — если успели записать живой голос. Если не записали — без него, не страшно.
 
 ### Суббота вечер (последние 3 часа)
 
