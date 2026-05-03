@@ -9,7 +9,6 @@ extends Actor
 ## On death, controller listens to `died` signal and removes from grid + scene.
 
 const _EnemyDataLoader := preload("res://scripts/core/actors/enemy_data_loader.gd")
-const SpriteFit := preload("res://scripts/infrastructure/sprite_fit.gd")
 
 ## Set by spawner BEFORE add_child so _ready picks up the right JSON.
 ## Default is &"" — a scene with no id will fall back to manekin defaults
@@ -36,9 +35,6 @@ func _ready() -> void:
 				GameLogger.warn("EnemyView", "%s: failed to load sprite '%s'" % [enemy_data_id, hints["sprite"]])
 			else:
 				body.texture = tex
-				# Spec 050: scale Body so displayed width == tile width (128),
-				# preserving aspect. Replaces per-enemy hardcoded scale tweaks.
-				SpriteFit.fit_to_tile_width(body)
 	super._ready()
 	# Declare ability IDs from loaded skills so ActorInspector / MoveRangeOverlay
 	# can paint range overlays.

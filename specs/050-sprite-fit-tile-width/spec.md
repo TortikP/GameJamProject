@@ -3,6 +3,20 @@
 **Owner:** Andrey (UX/integration polish).
 **Status:** Draft → ready to land (две независимые правки, низкий риск).
 
+## Revision 1 (post-review)
+
+После ревью на первой версии:
+1. **Actor sprite-fit откачен.** Player Body → возврат к `scale=Vector2(1.5,1.5)` в .tscn. EnemyView → SpriteFit вызов удалён, спрайты enemies снова рендерятся в нативных размерах (≠ 128). SpawnerPlaceholder → возврат к `scale=Vector2(0.09,0.09)` для маникена. Файл `scripts/presentation/godmode/player_view.gd` удалён. Tile-objects fit — **остаётся** (отдельная подсистема, не actors).
+2. **Dialogue Portrait** теперь конфигурируется per скриншот ревью: `expand_mode=0` (Keep Size), `stretch_mode=2` (Keep) вместо изначальных `1`/`6`. Добавлены `clip_contents=true` и `size_flags_vertical=4` (Shrink Center). Семантика: текстура рендерится pixel-perfect 1:1, центрирована вертикально внутри 130×180 слота, клиппинг защищает от overflow при будущих larger портретах.
+3. **Новые ассеты импортированы** (партия от Кати, 14 файлов):
+   - `aspect_fire.png` / `aspect_forest.png` / `aspect_heaven.png` (130×180) → `assets/portraits/`
+   - `enemy_boar.png` / `enemy_slime.png` / `enemy_stepler.png` / `enemy_teapot.png` → `assets/sprites/enemies/` (префикс `enemy_` сброшен per Andrey, teapot.png — overwrite)
+   - `object_heal.PNG` / `object_lava.png` / `tile_heaven_{1,2,3}.png` / `tile_lava_{1,2}.png` → `assets/tiles/` (object_lava.png — overwrite)
+
+Sprite-fit код (`SpriteFit` utility) сохранён, используется только в ObjectsOverlay.
+
+---
+
 ## Цель
 
 Две косметические правки, бандлятся в один спек потому что обе про размеры презентации и обе тривиальные:

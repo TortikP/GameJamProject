@@ -25,7 +25,6 @@ extends Node2D
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
-const SpriteFit = preload("res://scripts/infrastructure/sprite_fit.gd")
 
 # Public state — set by WaveController.
 var spawner_kind: StringName = &""   # &"enemy" only currently (player skipped)
@@ -80,9 +79,6 @@ func _apply_visuals() -> void:
 	# living actor. The Color() literal here is an alpha modulator on the
 	# sprite, not a UI palette colour, so it doesn't go through UiTheme.
 	_sprite.modulate = Color(1.0, 1.0, 1.0, 0.45)
-	# Spec 050: scale to tile width, preserving aspect — replaces the old
-	# eyeballed scale=0.09 hardcoded for the manekin asset only.
-	SpriteFit.fit_to_tile_width(_sprite)
 
 
 func _refresh_label() -> void:
