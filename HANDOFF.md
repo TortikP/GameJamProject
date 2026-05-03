@@ -943,3 +943,51 @@ T008, T015–T023 в `tasks.md`:
 4. Финальная волна без корпсов — пустой ритуал играется полную длительность с heroine FX (T016).
 5. F2 ресет в godmode → корпсы исчезают, leak-check (T018).
 6. F5 live-reload — следующий death использует новые `[fx]` значения (T022).
+
+## 23. 045-intro-cutscene — точки интеграции
+
+### Поток
+
+1. Главное меню → "Начать забег" → `MainMenu._on_start` грузит `data/games/story_campaign.game.json`. Первый уровень там — `office_intro` (`is_intro=true`, `cutscene_id="intro_office"`). `change_scene_to_file(godmode.tscn)`.
+2. `godmode_setup.run()` загружает уровень, плейсит игрока. **Если `is_intro=true` — `HUD.visible = false`.** WaveController стартует, wave 0 с 0 врагов висит.
+3. `EventBus.scene_ready("godmode")` — два слушателя:
+   - `CampaignController._on_scene_ready` — видит `cutscene_id != ""` → emit `campaign_cutscene_requested("intro_office", on_done)` + 4-сек timeout (`game_speed.cfg [meta] cutscene_request_timeout_sec`).
+   - `IntroDirector._on_scene_ready` — видит `current_is_intro()` → `_run_sequence.call_deferred()`.
+4. `CutscenePlayer._on_cutscene_requested` подхватывает: `paused=true`, инстанцирует `scenes/meta/cutscene_player.tscn` (CanvasLayer 30, parented к current_scene чтобы не переживал scene change), играет `data/cutscenes/intro_office.json` (2 кадра scale + cross-fade), эмитит `cutscene_finished("intro_office")`, `paused=false`, on_done.call().
+5. `IntroDirector._run_sequence` ждёт `CutscenePlayer.cutscene_finished` (timeout 6s). Затем `DialogueManager.play("intro_office_monologue")` + ждёт `EventBus.dialogue_finished`. Затем `grid.step_actor(player, BOTTOM_SIDE)` + ждёт `actor_moved` (camera-follow 043 центрирует автоматом). Beat 0.4s. Эмитит `EventBus.level_completed.emit(0)`.
+6. `CampaignController._on_level_completed` → `_run_post_level_flow`. **На is_intro skip upgrade screen** (5-line patch); сразу transition shader → `ActiveGame.advance()` → `change_scene` → `story_map_01` уже без is_intro, HUD/zoom/input нормально.
+
+### Локи (включаются по `ActiveGame.current_is_intro()`)
+
+| Локация | Эффект |
+|---|---|
+| `godmode_setup.run` (конец) | `HUD.visible = false` |
+| `godmode_camera._unhandled_input` (first line) | `return` — ни zoom, ни pan |
+| `godmode_input._unhandled_input` (first line) | early-return после ESC-pass-through (pause-меню работает) |
+
+`@export var allow_pan: bool = false` в `godmode_camera.gd` — глобальный pan-killer для godmode/runtime сцен. В `map_editor.tscn` вручную выставлено `allow_pan = true`. is_intro лочит pan **дополнительно** (через первую line guard).
+
+### Контракты сигналов и таймауты
+
+`IntroDirector` все awaits ограничены timeout'ом — broken contract не softlock'ит:
+- cutscene_finished: 6.0s
+- dialogue_finished: 60.0s (диалог ждёт ввод игрока — даём с запасом)
+- actor_moved: 2.0s (step_duration=0.18s, запас на лаг)
+
+### Известные ограничения / cuts
+
+- **Не generic.** `IntroDirector` хардкодит `intro_office_monologue` и `BOTTOM_SIDE`. Для второго intro-уровня нужен копи-паст или расширение схемы game.json. Делать generic — постджемно.
+- **Quit-to-menu во время cutscene'а** — overlay парентится к current_scene, при scene change освобождается. Но `paused=true` на root остаётся → main_menu без обработки рискует подвиснуть. Если ломается, добавить `if get_tree().paused: get_tree().paused = false` в main_menu._ready (P2 cut).
+- **Player spawn ≠ chair tile.** `place_actor` блокируется на blocking-объектах. Стул `object_on_chair` стоит на (2,2), игрок на (2,3) к югу от него. Визуально — «уже встал, перед стулом».
+- **Dialogue placeholder.** `data/dialogues/intro_office_monologue.json` — 3 реплики на русском, speaker `heroine` (портрет `assets/portraits/heroine_neutral.png` отсутствует — DialoguePanel рендерит без). Никите переписать текст и/или сменить speaker.
+
+### Pending Andrey (manual smoke)
+
+T014–T020 в `specs/045-intro-cutscene/tasks.md`:
+1. Happy path: меню → "Начать забег" → cutscene art (≤3s) → диалог → шаг на юг → transition shader → story_map_01 с HUD.
+2. Skip path: Space на cutscene → диалог → шаг → transition.
+3. Godmode regression: меню → Godmode → нет intro, HUD виден.
+4. Load Custom Level regression: то же.
+5. Load Game на story_campaign: intro проигрывается как через "Начать забег".
+6. Pause во время cutscene'а: ESC → pause menu открывается. Если ломает overlay — добавить early-return в `_unhandled_input` overlay'а (acceptable cut).
+7. Quit-to-menu из intro → ActiveGame.clear() → "Начать забег" заново работает.
