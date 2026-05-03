@@ -19,7 +19,7 @@ var text_fx: String         # reserved, no-op + warn if set
 
 ## Audio
 var audio_layer: String     # tag for AudioDirector routing; default "sfx", "" = inherit speaker
-var audio_clip: String      # path or ""
+var audio_clip: String      # path / voice filename or ""; JSON may use "audio_clip" or "sound"
 
 ## Selector metadata
 var tags: Array
@@ -54,7 +54,8 @@ static func from_dict(d: Dictionary) -> Object:
 	line.image           = str(d.get("image", "")) if d.get("image") != null else ""
 	line.text_fx         = str(d.get("text_fx", "")) if d.get("text_fx") != null else ""
 	line.audio_layer     = str(d.get("audio_layer", "")) if d.get("audio_layer") != null else ""
-	line.audio_clip      = str(d.get("audio_clip", "")) if d.get("audio_clip") != null else ""
+	var audio_value = d.get("audio_clip", d.get("sound", ""))
+	line.audio_clip      = str(audio_value) if audio_value != null else ""
 	line.priority        = int(d.get("priority", 0))
 	line.once_per_run    = bool(d.get("once_per_run", false))
 	line.once_per_session = bool(d.get("once_per_session", false))

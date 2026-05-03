@@ -19,6 +19,7 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const SFX_BASE_PATH := "res://assets/audio/sfx/"
+const VOICE_BASE_PATH := "res://assets/audio/voice/"
 const ABILITIES_SFX_DIR := "res://assets/audio/sfx/abilitys/"
 const ABILITY_SFX_AUDIO_EXTS: PackedStringArray = ["wav", "ogg", "mp3"]
 
@@ -38,9 +39,15 @@ func _ready() -> void:
 	GameLogger.info("AudioDirector", "ready (ability sfx folders: %d)" % _ability_sfx_cache.size())
 
 
-# Placeholder — filled in once we have actual audio assets and policy.
-func play_dialogue_audio(dialogue_id: StringName, layer: String) -> void:
-	GameLogger.debug("AudioDirector", "play_dialogue_audio(%s, %s) — stub, no-op" % [dialogue_id, layer])
+func play_dialogue_audio(dialogue_id: StringName, layer: String, audio_clip: String = "") -> void:
+	if audio_clip.strip_edges() == "":
+		GameLogger.debug("AudioDirector", "play_dialogue_audio(%s, %s) — no clip" % [dialogue_id, layer])
+		return
+	var path: String = _resolve_dialogue_audio_path(audio_clip)
+	if path == "":
+		GameLogger.warn("AudioDirector", "play_dialogue_audio: missing '%s' for '%s'" % [audio_clip, dialogue_id])
+		return
+	_play_path(path, null, _resolve_bus(layer))
 
 
 ## 047: generic SFX dispatch. id is a relative path under SFX_BASE_PATH.
@@ -51,7 +58,7 @@ func play_dialogue_audio(dialogue_id: StringName, layer: String) -> void:
 func play_sfx(id: StringName, world_pos: Variant = null) -> void:
 	if id == &"":
 		return
-	_play_path(SFX_BASE_PATH + str(id), world_pos)
+	_play_path(SFX_BASE_PATH + str(id), world_pos, _resolve_bus("sfx"))
 
 
 ## 051: ability-scoped dispatch. Resolves a sound by scanning the per-ability
@@ -71,7 +78,36 @@ func play_ability_sfx(ability_id: StringName, phase: StringName, world_pos: Vari
 	if paths.is_empty():
 		return
 	var path: String = paths[randi() % paths.size()]
-	_play_path(path, world_pos)
+	_play_path(path, world_pos, _resolve_bus("sfx"))
+
+
+func _resolve_dialogue_audio_path(audio_clip: String) -> String:
+	var clip := audio_clip.strip_edges()
+	if clip == "":
+		return ""
+	if clip.begins_with("res://"):
+		return clip if ResourceLoader.exists(clip) else ""
+	var path := VOICE_BASE_PATH + clip
+	return path if ResourceLoader.exists(path) else ""
+
+
+func _resolve_bus(layer: String) -> StringName:
+	var requested := layer.strip_edges()
+	var bus_name := requested
+	match requested.to_lower():
+		"sfx":
+			bus_name = "SFX"
+		"music":
+			bus_name = "Music"
+		"voice":
+			bus_name = "Voice"
+		"dialogue":
+			bus_name = "Dialogue"
+		_:
+			pass
+	if bus_name != "" and AudioServer.get_bus_index(bus_name) >= 0:
+		return StringName(bus_name)
+	return &"Master"
 
 
 ## Walks ABILITIES_SFX_DIR once and populates _ability_sfx_cache.
@@ -123,7 +159,7 @@ func _scan_ability_folder(folder_name: String) -> void:
 ## Spawns a temporary AudioStreamPlayer (or 2D) under the current scene root
 ## that frees itself on `finished`. No pool — concurrent SFX during a single
 ## cast are few; pool can be added later if needed.
-func _play_path(path: String, world_pos: Variant) -> void:
+func _play_path(path: String, world_pos: Variant, bus: StringName = &"Master") -> void:
 	if not ResourceLoader.exists(path):
 		GameLogger.warn("AudioDirector", "_play_path: missing '%s'" % path)
 		return
@@ -138,14 +174,14 @@ func _play_path(path: String, world_pos: Variant) -> void:
 		var p2d: AudioStreamPlayer2D = AudioStreamPlayer2D.new()
 		p2d.stream = stream
 		p2d.position = world_pos
-		p2d.bus = &"Master"
+		p2d.bus = bus
 		scene_root.add_child(p2d)
 		p2d.finished.connect(p2d.queue_free)
 		p2d.play()
 	else:
 		var p: AudioStreamPlayer = AudioStreamPlayer.new()
 		p.stream = stream
-		p.bus = &"Master"
+		p.bus = bus
 		scene_root.add_child(p)
 		p.finished.connect(p.queue_free)
 		p.play()

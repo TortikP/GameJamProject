@@ -42,7 +42,8 @@
         "lines": [
           {
             "def": "forest_first_wave_intro01_text_01",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "forest_first_wave_intro01_text_01.wav"
           },
           {
             "def": "forest_first_wave_heroine_intro01_text_01",
@@ -54,7 +55,8 @@
         "lines": [
           {
             "def": "forest_first_wave_intro02_text_01",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "forest_first_wave_intro02_text_01.wav"
           },
           {
             "def": "forest_first_wave_heroine_intro02_text_01",
@@ -66,7 +68,8 @@
         "lines": [
           {
             "def": "forest_first_wave_intro03_text_01",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "forest_first_wave_intro03_text_01.wav"
           },
           {
             "def": "forest_first_wave_heroine_intro03_text_01",
@@ -106,7 +109,8 @@
     "lines": [
       {
         "def": "forest_last_wave_victory_text_01",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "forest_last_wave_victory_text_01.wav"
       },
       {
         "def": "forest_last_wave_victory_text_02",
@@ -121,7 +125,8 @@
     "lines": [
       {
         "def": "heaven_enter_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "heaven_enter_text.wav"
       },
       {
         "def": "heaven_enter_heroine_text",
@@ -136,7 +141,8 @@
     "lines": [
       {
         "def": "heaven_first_wave_intro_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "heaven_first_wave_intro_text.wav"
       },
       {
         "def": "heaven_first_wave_heroine_text",
@@ -170,7 +176,8 @@
     "options": [
       {
         "def": "heaven_last_wave_victory_text_01",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "heaven_last_wave_victory_text_01.wav"
       },
       {
         "def": "heaven_last_wave_victory_text_02",
@@ -203,7 +210,8 @@
         "lines": [
           {
             "def": "fire_world_enter_text_02",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_enter_text_02.wav"
           },
           {
             "def": "fire_world_enter_heroine_text_02",
@@ -215,7 +223,8 @@
         "lines": [
           {
             "def": "fire_world_enter_text_03",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_enter_text_03.wav"
           },
           {
             "def": "fire_world_enter_heroine_text_03",
@@ -234,7 +243,8 @@
         "lines": [
           {
             "def": "fire_world_first_wave_intro_text_01",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_first_wave_intro_text_01.wav"
           },
           {
             "def": "fire_world_first_wave_heroine_text_01",
@@ -246,7 +256,8 @@
         "lines": [
           {
             "def": "fire_world_first_wave_intro_text_02",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_first_wave_intro_text_02.wav"
           },
           {
             "def": "fire_world_first_wave_heroine_text_02",
@@ -258,7 +269,8 @@
         "lines": [
           {
             "def": "fire_world_first_wave_intro_text_03",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_first_wave_intro_text_03.wav"
           },
           {
             "def": "fire_world_first_wave_heroine_text_03",
@@ -277,7 +289,8 @@
         "lines": [
           {
             "def": "fire_world_last_wave_intro_text_01",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_intro_text_01.wav"
           },
           {
             "def": "fire_world_last_wave_heroine_text_01",
@@ -289,7 +302,8 @@
         "lines": [
           {
             "def": "fire_world_last_wave_intro_text_02",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_intro_text_02.wav"
           },
           {
             "def": "fire_world_last_wave_heroine_text_02",
@@ -301,7 +315,8 @@
         "lines": [
           {
             "def": "fire_world_last_wave_intro_text_03",
-            "speaker": "narrator"
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_intro_text_03.wav"
           },
           {
             "def": "fire_world_last_wave_heroine_text_03",
@@ -318,15 +333,18 @@
     "options": [
       {
         "def": "fire_world_last_wave_victory_text_01",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "fire_world_last_wave_victory_text_01.wav"
       },
       {
         "def": "fire_world_last_wave_victory_text_02",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "fire_world_last_wave_victory_text_02.wav"
       },
       {
         "def": "fire_world_last_wave_victory_text_03",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "fire_world_last_wave_victory_text_03.wav"
       }
     ]
   },
@@ -413,39 +431,48 @@
     "options": [
       {
         "def": "common_defeat_normal_none_01",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_01.wav"
       },
       {
         "def": "common_defeat_normal_none_02",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_02.wav"
       },
       {
         "def": "common_defeat_normal_none_03",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_03.wav"
       },
       {
         "def": "common_defeat_normal_none_04",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_04.wav"
       },
       {
         "def": "common_defeat_normal_none_05",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_05.wav"
       },
       {
         "def": "common_defeat_normal_none_06",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_06.wav"
       },
       {
         "def": "common_defeat_normal_none_07",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_07.wav"
       },
       {
         "def": "common_defeat_normal_none_08",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_08.wav"
       },
       {
         "def": "common_defeat_normal_none_09",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "common_defeat_normal_none_09.wav"
       }
     ]
   },
@@ -456,7 +483,8 @@
     "lines": [
       {
         "def": "ending_self_lavender_raf_opening_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "ending_self_lavender_raf_opening_text.wav"
       },
       {
         "def": "ending_self_lavender_raf_heroine_text",
@@ -468,7 +496,8 @@
       },
       {
         "def": "ending_self_lavender_raf_final_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "ending_self_lavender_raf_final_text.wav"
       }
     ]
   },
@@ -479,7 +508,8 @@
     "lines": [
       {
         "def": "ending_bad_final_version_opening_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "ending_bad_final_version_opening_text.wav"
       },
       {
         "def": "ending_bad_final_version_heroine_text",
@@ -491,7 +521,8 @@
       },
       {
         "def": "ending_bad_final_version_final_text",
-        "speaker": "narrator"
+        "speaker": "narrator",
+        "sound": "ending_bad_final_version_final_text.wav"
       }
     ]
   }

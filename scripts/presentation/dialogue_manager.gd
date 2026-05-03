@@ -159,7 +159,7 @@ func _play_scene_lines(start_id: StringName) -> void:
 		var speaker_data: Dictionary = DialogueDB.get_speaker(line.speaker)
 		var resolved_layer: String = _resolve_layer(line, speaker_data)
 		EventBus.dialogue_started.emit(current_id)
-		AudioDirector.play_dialogue_audio(current_id, resolved_layer)
+		AudioDirector.play_dialogue_audio(current_id, resolved_layer, line.audio_clip)
 		GameLogger.info("DialogueManager", "play %s" % current_id)
 
 		# Show panel and await user
