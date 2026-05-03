@@ -11,6 +11,13 @@ extends Camera2D
 ## and no camera rotation.
 ##
 ## Pan: hold MMB and drag. Speed compensated for zoom level.
+##
+## 043-camera-follow: mode-by-presence — when `_follow_target` is a valid
+## Node2D, camera enters follow-mode: snaps to target every frame, MMB-pan
+## is disabled, zoom-to-cursor degrades to plain scale (since `_process`
+## would overwrite any cursor-anchored shift). When `_follow_target` is null
+## or freed, camera reverts to free-mode (current editor behaviour).
+## map_editor never calls set_follow_target — stays in free-mode by default.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -29,6 +36,18 @@ var _follow_target: Node2D = null
 func _ready() -> void:
 	_zoom_target = zoom
 	_center_on_target.call_deferred()
+
+
+# 043-camera-follow: follow-mode is implicit — true iff target is set & alive.
+func _is_following() -> bool:
+	return _follow_target != null and is_instance_valid(_follow_target)
+
+
+# 043-camera-follow: snap to target every frame in follow-mode.
+# position_smoothing on the Camera2D node interpolates the rendered anchor.
+func _process(_delta: float) -> void:
+	if _is_following():
+		global_position = _follow_target.global_position
 
 
 ## Called by godmode_controller after Player is placed. Decouples this camera
@@ -53,6 +72,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_MIDDLE:
+			# 043-camera-follow: pan is disabled while following a target.
+			# Battle camera should never drift from the player.
+			if _is_following():
+				return
 			_panning = mb.pressed
 			_pan_last = mb.position
 			if _panning:
@@ -101,7 +124,11 @@ func _apply_zoom(new_z: float, mouse_screen: Vector2, zmin: float, zmax: float) 
 	_zoom_tween.tween_property(self, "zoom", _zoom_target, dur)
 
 	# Zoom-to-cursor: shift camera so that mouse_world_before stays under cursor.
-	var vp_center: Vector2 = get_viewport_rect().size * 0.5
-	var mouse_world_after: Vector2 = global_position + (mouse_screen - vp_center) / new_z
-	var delta: Vector2 = mouse_world_before - mouse_world_after
-	_zoom_tween.parallel().tween_property(self, "position", position + delta, dur)
+	# 043-camera-follow: skip the position-shift parallel tween while following —
+	# `_process` would overwrite it on the next frame. In follow-mode zoom is
+	# pure scale, anchored on the followed target.
+	if not _is_following():
+		var vp_center: Vector2 = get_viewport_rect().size * 0.5
+		var mouse_world_after: Vector2 = global_position + (mouse_screen - vp_center) / new_z
+		var delta: Vector2 = mouse_world_before - mouse_world_after
+		_zoom_tween.parallel().tween_property(self, "position", position + delta, dur)

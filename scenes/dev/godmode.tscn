@@ -39,7 +39,7 @@
 script = ExtResource("7_camera")
 current = true
 enabled = true
-position_smoothing_enabled = false
+position_smoothing_enabled = true
 zoom = Vector2(1, 1)
 
 [node name="HexGrid" parent="." instance=ExtResource("1_hexgrid")]
