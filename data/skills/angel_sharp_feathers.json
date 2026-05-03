@@ -17,9 +17,9 @@
     {
       "id": "angel_sharp_feathers_area_damage",
       "sound_start": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage_start.wav",
-      "collision_effect": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage_collision.prefab",
+      "collision_effect": "ranged_ascended",
       "sound_end": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage_end.wav",
-      "animation": "angel_sharp_feathers_area_damage/angel_sharp_feathers_area_damage.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 4

@@ -17,9 +17,9 @@
     {
       "id": "direct_melee_damage",
       "sound_start": "direct_melee_damage/direct_melee_damage_start.wav",
-      "collision_effect": "direct_melee_damage/direct_melee_damage_collision.prefab",
+      "collision_effect": "melee_burnout",
       "sound_end": "direct_melee_damage/direct_melee_damage_end.wav",
-      "animation": "direct_melee_damage/direct_melee_damage.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 1
@@ -37,9 +37,9 @@
     {
       "id": "apply_poison_single",
       "sound_start": "apply_poison_single/apply_poison_single_start.wav",
-      "collision_effect": "apply_poison_single/apply_poison_single_collision.prefab",
+      "collision_effect": "melee_burnout",
       "sound_end": "apply_poison_single/apply_poison_single_end.wav",
-      "animation": "apply_poison_single/apply_poison_single.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 2

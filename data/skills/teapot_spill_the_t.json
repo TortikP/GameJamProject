@@ -16,9 +16,9 @@
     {
       "id": "teapot_spill_the_t_create_lava",
       "sound_start": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava_start.wav",
-      "collision_effect": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava_collision.prefab",
+      "collision_effect": "summon_burnout",
       "sound_end": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava_end.wav",
-      "animation": "teapot_spill_the_t_create_lava/teapot_spill_the_t_create_lava.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "hex",
         "range": 5

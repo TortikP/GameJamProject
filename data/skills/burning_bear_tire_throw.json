@@ -17,9 +17,9 @@
     {
       "id": "burning_bear_tire_throw_ranged_damage",
       "sound_start": "burning_bear_tire_throw_ranged_damage/burning_bear_tire_throw_ranged_damage_start.wav",
-      "collision_effect": "burning_bear_tire_throw_ranged_damage/burning_bear_tire_throw_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_burnout",
       "sound_end": "burning_bear_tire_throw_ranged_damage/burning_bear_tire_throw_ranged_damage_end.wav",
-      "animation": "burning_bear_tire_throw_ranged_damage/burning_bear_tire_throw_ranged_damage.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 10

@@ -39,4 +39,26 @@
    - `play_collisions` сигнатура `(caster, ability, plan, ctx)` диспетчит body vs hex
 - [x] T23 — `scripts/core/skills/skill.gd` — обновить вызов `play_collisions(caster, ab, plan, ctxs[i])`.
 - [x] T24 — Spec / plan addendum sections с resolution table, AC11-AC18, edit-without-code инструкции.
-- [ ] T25 — Commit, push.
+- [x] T25 — Commit, push.
+
+## Addendum 2: mood palette + per-shader registry split
+
+- [x] T26 — Удалить `data/fx/collision_effects.json` (заменён 7 файлами).
+- [x] T27 — `data/fx/cast_flash.json` — 4 mood-entries для caster animation, kind:"cast", flash.gdshader.
+- [x] T28 — `data/fx/swipe.json` — `melee_<mood>` × 4.
+- [x] T29 — `data/fx/impact_ring.json` — `ranged_<mood>` × 4.
+- [x] T30 — `data/fx/heal_wave.json` — `heal_<mood>` × 4.
+- [x] T31 — `data/fx/stream_up.json` — `buff_<mood>` × 4.
+- [x] T32 — `data/fx/stream_down.json` — `debuff_<mood>` × 4.
+- [x] T33 — `data/fx/hex_pulse.json` — `summon_<mood>` × 4.
+- [x] T34 — `FxDirector._load_fx_registry`: `DirAccess.open(FX_REGISTRY_DIR)`, итерация *.json, мерж в один dict. Дубликат-key warn-on-overwrite.
+- [x] T35 — `FxDirector.play_cast(caster, ability, mood)`: добавить mood param, registry resolve через `_resolve_anim_entry`, color из `entry.uniforms.flash_color`. Legacy white flash остаётся как ultimate fallback.
+- [x] T36 — `FxDirector.play_collisions(..., mood)`: добавить mood param, передать в `_resolve_fx_entry`.
+- [x] T37 — `_resolve_fx_entry(ability, mood)`: direct hit → `<context>_<mood>` → `<context>_neutral` → empty. Заменяет старый `_auto_pick_default`.
+- [x] T38 — `_resolve_anim_entry(ability, mood)`: direct hit → `cast_<mood>` → `cast_neutral` → empty.
+- [x] T39 — `_ability_context(ability)`: melee/ranged/heal/buff/debuff/summon. Damage с `target.range==1` → melee, else ranged.
+- [x] T40 — `_color_from_entry(entry, key, fallback)`: extract Color из uniforms array.
+- [x] T41 — `Skill.cast`: derive `mood_for_fx` из `mood[0]` (или neutral), пробросить в `play_cast` / `play_collisions`.
+- [x] T42 — Auto-migration 55 skill JSON: `animation` ← `cast_<skill_mood>`, `collision_effect` ← `<context>_<skill_mood>`. Status buff/debuff резолвится через positive-prefix скан + behaviour_tags.
+- [x] T43 — Spec/plan addendum 2 sections с palette table, migration heuristic, AC19-AC24.
+- [ ] T44 — Commit, push.

@@ -109,6 +109,12 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 	var any_resolved: bool = false
 	var all_target_ids: Array = []
 
+	# 047 addendum: derive a single mood StringName for FxDirector to drive
+	# the <context>_<mood> palette. mood is an Array<StringName> on Skill but
+	# in practice every shipping skill carries exactly one tag (and 5 test
+	# skills carry zero — those fall through to "neutral" via the default).
+	var mood_for_fx: StringName = mood[0] if not mood.is_empty() else &"neutral"
+
 	for i in abilities.size():
 		var ab: Ability = abilities[i] as Ability
 		# 047: split resolve / FX / apply per ability so visuals land BEFORE
@@ -132,10 +138,11 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		# then collision shader on victims (or hex pulse on summon coords —
 		# play_collisions dispatches by registry kind). fx is duck-typed Object
 		# so core stays free of presentation imports — null-safe for non-FX
-		# call sites (tests, headless, AI without a visible scene).
+		# call sites (tests, headless, AI without a visible scene). mood is
+		# threaded so FxDirector picks the right palette per skill.
 		if fx != null:
-			await fx.play_cast(caster, ab)
-			await fx.play_collisions(caster, ab, plan, ctxs[i])
+			await fx.play_cast(caster, ab, mood_for_fx)
+			await fx.play_collisions(caster, ab, plan, ctxs[i], mood_for_fx)
 
 		# 047: apply phase — effects run AFTER visuals. damage_dealt / heal_done
 		# emit from inside DamageEffect.apply / HealEffect.apply, so floating

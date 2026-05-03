@@ -16,9 +16,9 @@
     {
       "id": "summon_bee",
       "sound_start": "summon_bee/summon_bee_start.wav",
-      "collision_effect": "summon_bee/summon_bee_collision.prefab",
+      "collision_effect": "summon_tranquility",
       "sound_end": "summon_bee/summon_bee_end.wav",
-      "animation": "summon_bee/summon_bee.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "hex",
         "range": 3

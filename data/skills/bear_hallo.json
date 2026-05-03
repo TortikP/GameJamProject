@@ -17,9 +17,9 @@
     {
       "id": "bear_hallo_buff_attack_self",
       "sound_start": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self_start.wav",
-      "collision_effect": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self_collision.prefab",
+      "collision_effect": "buff_tranquility",
       "sound_end": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self_end.wav",
-      "animation": "bear_hallo_buff_attack_self/bear_hallo_buff_attack_self.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "self"
       },

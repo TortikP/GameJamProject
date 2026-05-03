@@ -18,9 +18,9 @@
     {
       "id": "bear_ball_throw_ranged_damage",
       "sound_start": "bear_ball_throw_ranged_damage/bear_ball_throw_ranged_damage_start.wav",
-      "collision_effect": "bear_ball_throw_ranged_damage/bear_ball_throw_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_tranquility",
       "sound_end": "bear_ball_throw_ranged_damage/bear_ball_throw_ranged_damage_end.wav",
-      "animation": "bear_ball_throw_ranged_damage/bear_ball_throw_ranged_damage.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 4

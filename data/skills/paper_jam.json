@@ -17,9 +17,9 @@
     {
       "id": "area_damage_light",
       "sound_start": "area_damage_light/area_damage_light_start.wav",
-      "collision_effect": "area_damage_light/area_damage_light_collision.prefab",
+      "collision_effect": "ranged_ascended",
       "sound_end": "area_damage_light/area_damage_light_end.wav",
-      "animation": "area_damage_light/area_damage_light.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 3
@@ -37,9 +37,9 @@
     {
       "id": "apply_root_area",
       "sound_start": "apply_root_area/apply_root_area_start.wav",
-      "collision_effect": "apply_root_area/apply_root_area_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "apply_root_area/apply_root_area_end.wav",
-      "animation": "apply_root_area/apply_root_area.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 3
@@ -57,9 +57,9 @@
     {
       "id": "apply_slow_area",
       "sound_start": "apply_slow_area/apply_slow_area_start.wav",
-      "collision_effect": "apply_slow_area/apply_slow_area_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "apply_slow_area/apply_slow_area_end.wav",
-      "animation": "apply_slow_area/apply_slow_area.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 3

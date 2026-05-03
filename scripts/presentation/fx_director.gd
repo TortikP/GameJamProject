@@ -7,26 +7,38 @@ extends Node
 ## Ability.resolve and Ability.apply_resolved.
 ##
 ## Per-cast timeline:
-##   t0       — play_cast(caster, ability)
+##   t0       — play_cast(caster, ability, mood)
 ##              ↳ AudioDirector.play_sfx(sound_start, caster_pos)  fire-and-forget
-##              ↳ caster.Body shader-flash (white)                 awaitable
-##   tA       — play_collisions(caster, ability, plan, ctx)
-##              ↳ shader from data/fx/collision_effects.json registry  awaitable
+##              ↳ caster.Body shader-flash from cast_flash registry  awaitable
+##   tA       — play_collisions(caster, ability, plan, ctx, mood)
+##              ↳ shader from per-context registry (swipe/impact_ring/...)  awaitable
 ##   tA+B     — apply_resolved (effects emit damage_dealt / heal_done here)
 ##   tA+B     — play_sound_end(primary_pos, ability)               fire-and-forget
 ##
 ## All channels are individually null-safe: empty StringName → no-op, no delay.
 ## A fully-empty ability collapses to synchronous apply (back-compat).
 ##
-## collision_effect resolution (047 addendum):
-##   1. ability.collision_effect lookup in _fx_registry
-##   2. miss → auto-pick default_<type> by first-effect priority:
-##      Create > Heal > Damage > Status > Move
-##   3. registry empty / load failed → legacy single-color flash on Body
-##      (preserves no-asset bootstrap behavior)
+## Registry: data/fx/*.json. Each file holds 4 mood variants of one shader's
+## context. FxDirector scans the directory at _ready and merges entries into
+## a single _fx_registry dict. Naming convention is <context>_<mood>:
+##   melee_*   ranged_*   heal_*   buff_*   debuff_*   summon_*   cast_*
+## with moods: neutral / tranquility / ascended / burnout (canonical from
+## MoodTracker.MOODS_SKILL).
+##
+## Resolution flow for ability.collision_effect (and analogously animation):
+##   1. direct hit on the channel value   → use that entry
+##   2. miss → <context>_<skill_mood>     → mood-themed fallback
+##   3. miss → <context>_neutral          → context-only fallback
+##   4. registry empty / load failed      → legacy single-color flash
+##
+## Where <context> is derived from the ability's first effect type and target
+## range: melee/ranged/heal/buff/debuff/summon. Mood is passed by Skill.cast
+## from skill.mood[0] (or "neutral" when empty).
+##
 ## Registry kind dispatch:
-##   "body" — ShaderMaterial on each victim's Body Sprite2D, parallel
-##   "hex"  — MeshInstance2D + QuadMesh per create_hex on the grid
+##   "cast" — caster.Body via flash.gdshader (flash_amount tween 0→peak→0)
+##   "body" — victim[*].Body via context shader (progress tween 0→1, parallel)
+##   "hex"  — MeshInstance2D + QuadMesh per create_hex (progress tween 0→1)
 ##
 ## Telegraph mode: an AI actor with a non-null cast_intent gets a looping amber
 ## pulse on its Body. Driven from telegraph_renderer.refresh() via
@@ -35,11 +47,11 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const FLASH_SHADER: Shader = preload("res://assets/shaders/flash.gdshader")
-const FX_REGISTRY_PATH := "res://data/fx/collision_effects.json"
+const FX_REGISTRY_DIR := "res://data/fx"
 
-# Color table — used ONLY for caster anim, telegraph loop, and the legacy
-# fallback when the registry failed to load. Per-effect victim colors live
-# in the registry now (data/fx/collision_effects.json).
+# Color table — used ONLY for telegraph loop and the legacy fallback when
+# the registry failed to load. Per-effect mood-themed colors live in the
+# registry now (data/fx/*.json).
 const COLOR_CASTER: Color           = Color(1.0, 1.0, 1.0)
 const COLOR_TELEGRAPH: Color        = Color(1.0, 0.7, 0.2)
 const COLOR_DAMAGE: Color           = Color(1.0, 0.3, 0.3)
@@ -48,13 +60,15 @@ const COLOR_STATUS: Color           = Color(1.0, 0.95, 0.3)
 const COLOR_MOVE: Color             = Color(0.4, 0.85, 1.0)
 const COLOR_CREATE: Color           = Color(0.85, 0.5, 1.0)
 
+const DEFAULT_MOOD: StringName = &"neutral"
+
 # StringName actor_id -> {tween: Tween, body: Sprite2D, prev_material: Material}
 var _telegraph_loops: Dictionary = {}
 
 # StringName effect_id -> {shader: Shader, kind: String, duration_ms: int,
 #                          uses_direction: bool, uniforms: Dictionary}
-# Loaded once at _ready from FX_REGISTRY_PATH. Empty if load failed —
-# play_collisions falls through to legacy single-color flash in that case.
+# Loaded once at _ready by scanning FX_REGISTRY_DIR. Empty if all loads
+# failed — play_collisions / play_cast fall through to legacy code paths.
 var _fx_registry: Dictionary = {}
 
 
@@ -64,24 +78,36 @@ func _ready() -> void:
 
 
 func _load_fx_registry() -> void:
-	if not FileAccess.file_exists(FX_REGISTRY_PATH):
-		GameLogger.warn("FxDirector", "registry missing: %s — falling back to legacy flash" % FX_REGISTRY_PATH)
+	var dir: DirAccess = DirAccess.open(FX_REGISTRY_DIR)
+	if dir == null:
+		GameLogger.warn("FxDirector", "registry dir missing: %s — falling back to legacy flash" % FX_REGISTRY_DIR)
 		return
-	var f: FileAccess = FileAccess.open(FX_REGISTRY_PATH, FileAccess.READ)
+	dir.list_dir_begin()
+	var fname: String = dir.get_next()
+	while fname != "":
+		# Skip directories, dotfiles, non-json files, .import sidecars.
+		if not dir.current_is_dir() and fname.ends_with(".json") and not fname.begins_with("."):
+			_load_fx_file("%s/%s" % [FX_REGISTRY_DIR, fname])
+		fname = dir.get_next()
+	dir.list_dir_end()
+
+
+func _load_fx_file(path: String) -> void:
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if f == null:
-		GameLogger.warn("FxDirector", "registry open failed: %s" % FX_REGISTRY_PATH)
+		GameLogger.warn("FxDirector", "registry open failed: %s" % path)
 		return
 	var text: String = f.get_as_text()
 	f.close()
 	var parsed: Variant = JSON.parse_string(text)
 	if not (parsed is Dictionary):
-		GameLogger.warn("FxDirector", "registry not a dict: %s" % FX_REGISTRY_PATH)
+		GameLogger.warn("FxDirector", "registry not a dict: %s" % path)
 		return
-	var d: Dictionary = parsed
-	for k in d.keys():
+	var loaded: int = 0
+	for k in (parsed as Dictionary).keys():
 		if String(k).begins_with("_"):
-			continue   # _meta and similar — comments, not entries
-		var entry: Variant = d[k]
+			continue   # _meta — comments / docstring, not entries
+		var entry: Variant = (parsed as Dictionary)[k]
 		if not (entry is Dictionary):
 			continue
 		var entry_d: Dictionary = entry
@@ -93,20 +119,29 @@ func _load_fx_registry() -> void:
 		if shader == null:
 			GameLogger.warn("FxDirector", "fx '%s': failed to load shader" % k)
 			continue
-		_fx_registry[StringName(k)] = {
+		var key: StringName = StringName(k)
+		if _fx_registry.has(key):
+			GameLogger.warn("FxDirector", "fx '%s': duplicate key (overwriting) — last file wins" % k)
+		_fx_registry[key] = {
 			"shader": shader,
 			"kind": String(entry_d.get("kind", "body")),
 			"duration_ms": int(entry_d.get("duration_ms", 200)),
 			"uses_direction": bool(entry_d.get("uses_direction", false)),
 			"uniforms": entry_d.get("uniforms", {}),
 		}
+		loaded += 1
+	GameLogger.info("FxDirector", "registry loaded %s: %d entries" % [path.get_file(), loaded])
 
 
 # ── Public coroutines (called from Skill.cast) ───────────────────────────────
 
 ## Plays caster animation flash + sound_start. Awaits the flash duration.
 ## Sound is fire-and-forget. Either channel may be empty (independent no-op).
-func play_cast(caster: Actor, ability: Ability) -> void:
+##
+## 047 addendum: animation channel now resolves through the registry. Direct
+## hit on `ability.animation` → mood-themed cast_<mood> → cast_neutral →
+## legacy white flash. Color comes from entry.uniforms.flash_color.
+func play_cast(caster: Actor, ability: Ability, mood: StringName = DEFAULT_MOOD) -> void:
 	if caster == null or ability == null:
 		return
 	# Defensively stop any telegraph loop on this actor — the cast itself
@@ -122,9 +157,17 @@ func play_cast(caster: Actor, ability: Ability) -> void:
 	var body: Sprite2D = caster.get_node_or_null("Body") as Sprite2D
 	if body == null:
 		return
-	var dur_ms: int = int(GameSpeed.get_value("fx", "cast_animation_ms", 180))
-	var dur_s: float = float(dur_ms) / 1000.0
-	await _flash_tween(body, COLOR_CASTER, dur_s)
+
+	var entry: Dictionary = _resolve_anim_entry(ability, mood)
+	if entry.is_empty():
+		# Legacy path: pre-registry white flash with default config duration.
+		var dur_ms: int = int(GameSpeed.get_value("fx", "cast_animation_ms", 180))
+		await _flash_tween(body, COLOR_CASTER, float(dur_ms) / 1000.0)
+		return
+	# Registry path: same flash.gdshader, color comes from entry uniforms.
+	var dur_s: float = float(entry.get("duration_ms", 180)) / 1000.0
+	var color: Color = _color_from_entry(entry, "flash_color", COLOR_CASTER)
+	await _flash_tween(body, color, dur_s)
 
 
 ## 047 addendum: dispatches to registry-resolved shader (body or hex kind).
@@ -134,10 +177,14 @@ func play_cast(caster: Actor, ability: Ability) -> void:
 ##   ability  — channel id source (collision_effect)
 ##   plan     — Ability.resolve output: uses "victims" (body) and "create_hexes" (hex)
 ##   ctx      — passes through "grid" for hex-mode local-pos lookup
-func play_collisions(caster: Actor, ability: Ability, plan: Dictionary, ctx: Dictionary) -> void:
+##   mood     — skill.mood[0] from caller, drives <context>_<mood> auto-pick
+func play_collisions(
+		caster: Actor, ability: Ability, plan: Dictionary, ctx: Dictionary,
+		mood: StringName = DEFAULT_MOOD
+	) -> void:
 	if ability == null or ability.collision_effect == &"":
 		return
-	var entry: Dictionary = _resolve_fx_entry(ability)
+	var entry: Dictionary = _resolve_fx_entry(ability, mood)
 	if entry.is_empty():
 		# Registry not loaded → keep the pre-addendum behavior (legacy flash).
 		await _play_legacy_body_fx(plan.get("victims", []), ability)
@@ -216,45 +263,105 @@ func stop_telegraph_loop(actor_id: StringName) -> void:
 
 # ── Collision FX dispatch (047 addendum) ─────────────────────────────────────
 
-## Picks the registry entry to use for this ability's collision_effect.
-## Returns {} if registry isn't loaded → caller falls back to legacy flash.
-func _resolve_fx_entry(ability: Ability) -> Dictionary:
+## Picks the registry entry for an ability's collision_effect, mood-aware.
+## Resolution: direct hit → <context>_<mood> → <context>_neutral → empty
+## (caller falls back to legacy flash). Mood is passed in by Skill.cast.
+func _resolve_fx_entry(ability: Ability, mood: StringName) -> Dictionary:
 	if _fx_registry.is_empty():
 		return {}
-	# 1. Direct hit on the channel value.
+	# 1. Direct hit on the channel value (e.g. "melee_burnout" set by hand).
 	if _fx_registry.has(ability.collision_effect):
 		return _fx_registry[ability.collision_effect]
-	# 2. Auto-fallback by effect type.
-	var fallback_id: StringName = _auto_pick_default(ability)
-	if fallback_id != &"" and _fx_registry.has(fallback_id):
-		return _fx_registry[fallback_id]
+	# 2. <context>_<mood> auto-fallback.
+	var ctx: StringName = _ability_context(ability)
+	var mood_id: StringName = StringName("%s_%s" % [str(ctx), str(mood)])
+	if _fx_registry.has(mood_id):
+		return _fx_registry[mood_id]
+	# 3. <context>_neutral final fallback (registry partially populated).
+	var neutral_id: StringName = StringName("%s_%s" % [str(ctx), str(DEFAULT_MOOD)])
+	if _fx_registry.has(neutral_id):
+		return _fx_registry[neutral_id]
 	return {}
 
 
-## Auto-pick precedence: Create > Heal > Damage > Status > Move. Damage outranks
-## Status because a damage flash is more visceral feedback than a status tint
-## even on a "deal damage and apply burn" combined ability. Create takes top
-## priority because it's the only one needing hex-mode dispatch — wrong fallback
-## here would render a body flash on victims that don't exist for a pure summon.
-func _auto_pick_default(ability: Ability) -> StringName:
+## Picks the registry entry for an ability's animation channel. Same flow
+## as _resolve_fx_entry but always over cast_<mood> entries (no per-context
+## variants — caster-side flash is purely mood-themed).
+func _resolve_anim_entry(ability: Ability, mood: StringName) -> Dictionary:
+	if _fx_registry.is_empty():
+		return {}
+	# 1. Direct hit (e.g. someone wired a custom flash by hand).
+	if _fx_registry.has(ability.animation):
+		return _fx_registry[ability.animation]
+	# 2. cast_<mood>.
+	var mood_id: StringName = StringName("cast_%s" % str(mood))
+	if _fx_registry.has(mood_id):
+		return _fx_registry[mood_id]
+	# 3. cast_neutral.
+	var neutral_id: StringName = StringName("cast_%s" % str(DEFAULT_MOOD))
+	if _fx_registry.has(neutral_id):
+		return _fx_registry[neutral_id]
+	return {}
+
+
+## Derives a context tag (melee/ranged/heal/buff/debuff/summon) from an
+## ability's effect chain and target shape. Drives the <context>_<mood>
+## auto-pick. Priority: Create > Heal > Damage > Status > Move; Damage
+## further splits melee (target.range==1) vs ranged (anything else).
+##
+## Note: Damage > Status because a damage flash is more visceral than a
+## status tint on a "deal damage and apply burn" combined ability. Create
+## takes top because it needs hex-mode dispatch — wrong fallback would
+## render a body flash on a typically-empty victim list for pure summons.
+func _ability_context(ability: Ability) -> StringName:
 	if ability == null or ability.effects.is_empty():
-		return &"default_ranged"
+		return &"ranged"
 	for eff in ability.effects:
 		if eff is CreateEffect:
-			return &"default_summon"
+			return &"summon"
 	for eff in ability.effects:
 		if eff is HealEffect:
-			return &"default_heal"
+			return &"heal"
 	for eff in ability.effects:
 		if eff is DamageEffect:
-			return &"default_ranged"
+			return &"melee" if _is_melee_target(ability) else &"ranged"
 	for eff in ability.effects:
 		if eff is StatusEffect:
-			return &"default_debuff"
+			return &"debuff"
 	for eff in ability.effects:
 		if eff is MoveEffect:
-			return &"default_buff"
-	return &"default_ranged"
+			return &"buff"
+	return &"ranged"
+
+
+func _is_melee_target(ability: Ability) -> bool:
+	if ability == null or ability.target == null:
+		return false
+	# ActorTarget and HexTarget both expose `range`. range==1 = adjacency.
+	# range==0 = self only (not melee). range>1 or -1 = ranged.
+	if ability.target is ActorTarget:
+		return (ability.target as ActorTarget).range == 1
+	if ability.target is HexTarget:
+		return (ability.target as HexTarget).range == 1
+	return false
+
+
+## Best-effort Color extraction from a registry entry's uniforms dict.
+## JSON arrays of length 4 become Color; raw Color values pass through;
+## anything else → fallback (so missing uniforms don't crash).
+func _color_from_entry(entry: Dictionary, key: String, fallback: Color) -> Color:
+	var u: Variant = entry.get("uniforms", {})
+	if not (u is Dictionary):
+		return fallback
+	if not (u as Dictionary).has(key):
+		return fallback
+	var v: Variant = (u as Dictionary)[key]
+	if v is Array and (v as Array).size() == 4:
+		var arr: Array = v
+		return Color(arr[0], arr[1], arr[2], arr[3])
+	if v is Color:
+		return v
+	return fallback
 
 
 ## body kind: ShaderMaterial on each victim's Body Sprite2D, parallel.

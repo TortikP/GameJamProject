@@ -18,9 +18,9 @@
     {
       "id": "fire_slime_magma_spit_ranged_damage",
       "sound_start": "fire_slime_magma_spit_ranged_damage/fire_slime_magma_spit_ranged_damage_start.wav",
-      "collision_effect": "fire_slime_magma_spit_ranged_damage/fire_slime_magma_spit_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_burnout",
       "sound_end": "fire_slime_magma_spit_ranged_damage/fire_slime_magma_spit_ranged_damage_end.wav",
-      "animation": "fire_slime_magma_spit_ranged_damage/fire_slime_magma_spit_ranged_damage.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "hex",
         "range": 4

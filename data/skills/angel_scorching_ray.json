@@ -17,9 +17,9 @@
     {
       "id": "angel_scorching_ray_scorching",
       "sound_start": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_start.wav",
-      "collision_effect": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "angel_scorching_ray_scorching/angel_scorching_ray_scorching_end.wav",
-      "animation": "angel_scorching_ray_scorching/angel_scorching_ray_scorching.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 4

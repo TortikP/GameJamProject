@@ -17,9 +17,9 @@
     {
       "id": "buff_attack_self",
       "sound_start": "buff_attack_self/buff_attack_self_start.wav",
-      "collision_effect": "buff_attack_self/buff_attack_self_collision.prefab",
+      "collision_effect": "buff_tranquility",
       "sound_end": "buff_attack_self/buff_attack_self_end.wav",
-      "animation": "buff_attack_self/buff_attack_self.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "self"
       },

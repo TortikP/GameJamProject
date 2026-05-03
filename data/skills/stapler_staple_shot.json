@@ -17,9 +17,9 @@
     {
       "id": "stapler_staple_shot_ranged_damage",
       "sound_start": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage_start.wav",
-      "collision_effect": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_neutral",
       "sound_end": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage_end.wav",
-      "animation": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "actor",
         "range": 3

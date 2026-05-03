@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "doc": "Heal context — horizontal wave bottom→top on victim.Body. heal_wave.gdshader sweeps a soft band upward with a trailing afterglow. Mood-tuned: tranquility = slow blue water, ascended = warm gold blessing, burnout = orange comfort-warmth, neutral = white reference.",
+    "kind": "body",
+    "shader": "res://assets/shaders/fx/heal_wave.gdshader",
+    "uniforms": {
+      "wave_color": "RGBA tint",
+      "wave_thickness": "vertical thickness of the wave [0.05, 0.4]",
+      "trail_strength": "afterglow intensity below the wave [0.0, 0.6]"
+    }
+  },
+
+  "heal_neutral": {
+    "shader": "res://assets/shaders/fx/heal_wave.gdshader",
+    "kind": "body",
+    "duration_ms": 320,
+    "uses_direction": false,
+    "uniforms": {
+      "wave_color": [1.0, 1.0, 1.0, 1.0],
+      "wave_thickness": 0.18,
+      "trail_strength": 0.25
+    }
+  },
+
+  "heal_tranquility": {
+    "shader": "res://assets/shaders/fx/heal_wave.gdshader",
+    "kind": "body",
+    "duration_ms": 380,
+    "uses_direction": false,
+    "uniforms": {
+      "wave_color": [0.5, 0.95, 1.0, 1.0],
+      "wave_thickness": 0.20,
+      "trail_strength": 0.35
+    }
+  },
+
+  "heal_ascended": {
+    "shader": "res://assets/shaders/fx/heal_wave.gdshader",
+    "kind": "body",
+    "duration_ms": 350,
+    "uses_direction": false,
+    "uniforms": {
+      "wave_color": [1.0, 0.95, 0.6, 1.0],
+      "wave_thickness": 0.22,
+      "trail_strength": 0.30
+    }
+  },
+
+  "heal_burnout": {
+    "shader": "res://assets/shaders/fx/heal_wave.gdshader",
+    "kind": "body",
+    "duration_ms": 320,
+    "uses_direction": false,
+    "uniforms": {
+      "wave_color": [1.0, 0.55, 0.3, 1.0],
+      "wave_thickness": 0.18,
+      "trail_strength": 0.25
+    }
+  }
+}

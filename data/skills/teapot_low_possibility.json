@@ -17,9 +17,9 @@
     {
       "id": "teapot_low_possibility_invisibility",
       "sound_start": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_start.wav",
-      "collision_effect": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_collision.prefab",
+      "collision_effect": "buff_burnout",
       "sound_end": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility_end.wav",
-      "animation": "teapot_low_possibility_invisibility/teapot_low_possibility_invisibility.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "self"
       },

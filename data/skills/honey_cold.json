@@ -17,9 +17,9 @@
     {
       "id": "target_heal",
       "sound_start": "target_heal/target_heal_start.wav",
-      "collision_effect": "target_heal/target_heal_collision.prefab",
+      "collision_effect": "heal_ascended",
       "sound_end": "target_heal/target_heal_end.wav",
-      "animation": "target_heal/target_heal.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3
@@ -37,9 +37,9 @@
     {
       "id": "apply_slow_single",
       "sound_start": "apply_slow_single/apply_slow_single_start.wav",
-      "collision_effect": "apply_slow_single/apply_slow_single_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "apply_slow_single/apply_slow_single_end.wav",
-      "animation": "apply_slow_single/apply_slow_single.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3

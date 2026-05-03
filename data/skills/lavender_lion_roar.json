@@ -16,9 +16,9 @@
     {
       "id": "lavender_lion_roar_buff_attack_around",
       "sound_start": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around_start.wav",
-      "collision_effect": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around_collision.prefab",
+      "collision_effect": "buff_ascended",
       "sound_end": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around_end.wav",
-      "animation": "lavender_lion_roar_buff_attack_around/lavender_lion_roar_buff_attack_around.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "self"
       },

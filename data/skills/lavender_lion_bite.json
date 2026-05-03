@@ -17,9 +17,9 @@
     {
       "id": "lavender_lion_bite_heavy_melee_damage",
       "sound_start": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage_start.wav",
-      "collision_effect": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage_collision.prefab",
+      "collision_effect": "melee_ascended",
       "sound_end": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage_end.wav",
-      "animation": "lavender_lion_bite_heavy_melee_damage/lavender_lion_bite_heavy_melee_damage.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 1
@@ -37,9 +37,9 @@
     {
       "id": "lavender_lion_bite_self_heal_small",
       "sound_start": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small_start.wav",
-      "collision_effect": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small_collision.prefab",
+      "collision_effect": "heal_ascended",
       "sound_end": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small_end.wav",
-      "animation": "lavender_lion_bite_self_heal_small/lavender_lion_bite_self_heal_small.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "self"
       },

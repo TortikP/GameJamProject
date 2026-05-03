@@ -17,9 +17,9 @@
     {
       "id": "stapler_under_desk_jump_teleport",
       "sound_start": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport_start.wav",
-      "collision_effect": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport_collision.prefab",
+      "collision_effect": "buff_neutral",
       "sound_end": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport_end.wav",
-      "animation": "stapler_under_desk_jump_teleport/stapler_under_desk_jump_teleport.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "self"
       },

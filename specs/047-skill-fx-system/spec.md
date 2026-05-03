@@ -142,3 +142,94 @@ Auto-pick использует priority order Create>Heal>Damage>Status>Move. Da
 - Per-status custom collision_effect (burn vs freeze разные visuals) — пока всё `default_debuff`.
 - Combined-effect rendering (damage flash AND summon ring одновременно для hybrid способностей) — channel один, пока выбираем top-priority.
 - F5 hot-reload `collision_effects.json` — registry грузится на `_ready` один раз. Hot-reload через рестарт сцены или добавить в `GameSpeed._unhandled_input` отдельным callback'ом.
+
+---
+
+## Addendum 2: mood-themed palette + per-shader registry split
+
+Расширение того же канала. Меняет цветовую палитру с per-effect-type на per-skill-mood. Палитра по `Skill.mood` (canonical: `neutral / tranquility / ascended / burnout`):
+
+| Mood | Тон | RGB (slash/ring/wave color) |
+|---|---|---|
+| `neutral` | белый | `1.0, 1.0, 1.0` |
+| `tranquility` | прохладный голубой | `0.5, 0.9, 1.0` |
+| `ascended` | тёплое золото | `1.0, 0.92, 0.55` |
+| `burnout` | багряно-оранжевый | `1.0, 0.4, 0.2` |
+
+Палитра — общая идея; per-context entries в registry чуть тонят оттенок (debuff_tranquility темнее cyan чем buff_tranquility и т.д.).
+
+### Reorganized registry — 7 файлов
+
+`data/fx/collision_effects.json` (один файл) → `data/fx/<shader>.json` (7 файлов). Каждый файл — все mood-варианты одного контекста:
+
+```
+data/fx/
+  cast_flash.json    cast_neutral cast_tranquility cast_ascended cast_burnout
+  swipe.json         melee_*   (4 entries)
+  impact_ring.json   ranged_*  (4 entries)
+  heal_wave.json     heal_*    (4 entries)
+  stream_up.json     buff_*    (4 entries)
+  stream_down.json   debuff_*  (4 entries)
+  hex_pulse.json     summon_*  (4 entries)
+```
+
+Итого 7 файлов × 4 entry = **28 entries**, один шейдер на файл. FxDirector в `_ready` сканит каталог, мержит entries в один `_fx_registry`.
+
+### Animation channel — теперь registry-driven
+
+До addendum 2: `play_cast` хардкодил белый flash. После: `ability.animation` резолвится через registry так же, как `collision_effect`. Кому какой:
+
+- Direct hit на `ability.animation` (например `"cast_burnout"`) → entry
+- Miss → `cast_<skill_mood>` (mood-themed)
+- Miss → `cast_neutral` (clean fallback)
+- Registry empty → legacy white flash (back-compat)
+
+`flash.gdshader` сохранён, но теперь принимает `flash_color` из registry uniforms вместо хардкода `Color(1,1,1)`.
+
+### Per-skill migration
+
+Все 55 skill JSON-ов прошли автомиграцию. Для каждой ability:
+
+- `animation` ← `cast_<skill_mood>`
+- `collision_effect` ← `<context>_<skill_mood>`
+
+`<context>` вычисляется (миграционный скрипт + рантайм-fallback) идентично:
+
+| Effect type | Условие | Context |
+|---|---|---|
+| Create | (любое) | `summon` |
+| Heal | (любое) | `heal` |
+| Damage | `target.range == 1` или `melee` в behaviour_tags | `melee` |
+| Damage | иначе | `ranged` |
+| Status | `debuff` в behaviour_tags | `debuff` |
+| Status | status_id с positive prefix (shield/regen/bless/...) | `buff` |
+| Status | `buff` или `heal` в behaviour_tags | `buff` |
+| Status | иначе | `debuff` |
+| Move | `debuff` в behaviour_tags | `debuff` |
+| Move | иначе | `buff` |
+
+Финальное распределение по 64 abilities:
+- buff: 12, debuff: 19, ranged: 12, heal: 6, melee: 11, summon: 4
+
+Mood: ascended 23 / tranquility 16 / neutral 14 (включая 5 test-skills) / burnout 11.
+
+### Acceptance criteria addendum 2
+
+- **AC19**: При касте скилла с `mood: ["burnout"]` victim flash идёт в красно-оранжевой палитре, caster anim тоже.
+- **AC20**: Скилл с `mood: ["tranquility"]` → cyan палитра.
+- **AC21**: Скилл с `mood: []` (test_*) → fallback на `cast_neutral` / `<context>_neutral`, всё работает.
+- **AC22**: Удалить `data/fx/swipe.json` → ability с `collision_effect: "melee_burnout"` миссит direct hit, fallback идёт через `<context>_<mood>` → если impact_ring.json есть и `melee_burnout` нет, fallback на `melee_neutral` тоже миссит → registry empty path не сработает (другие файлы загружены) → entry empty → legacy flash. Проверить: GameLogger пишет warn, не краш.
+- **AC23**: `ability.collision_effect = "buff_ascended"` явно поверх `mood: ["burnout"]` → используется `buff_ascended` (direct hit перекрывает mood).
+- **AC24**: Все 55 skill JSON прошли auto-migration, `animation`/`collision_effect` имеют форму `<context>_<mood>` или `cast_<mood>`.
+
+### Edit-without-code workflow (addendum 2)
+
+- Поправить цвет конкретного mood для контекста: открыть `data/fx/<shader>.json`, изменить `<context>_<mood>.uniforms.<color_field>`, рестарт сцены. Никакого кода.
+- Добавить новый mood (например `data/fx/swipe.json` → `melee_chaos`): добавить entry в каждый из 7 файлов и убедиться что MoodTracker тоже знает о новом теге. **Важно**: новый mood без entry в `cast_flash.json` сразу провалится в `cast_neutral` — fallback всегда сработает.
+- Добавить новый context (например `aura`): создать `data/fx/aura_glow.json` с 4 mood entries (`aura_neutral` ... `aura_burnout`), обновить `_ability_context` в FxDirector чтобы возвращать `&"aura"` для подходящих ability.
+
+### Out of scope (addendum 2)
+
+- Per-skill override через separate field (типа `fx_override: "buff_ascended"`) — пока override через явный `collision_effect` в JSON.
+- Mood-blend для skills с несколькими mood-тегами — `Skill.mood` decoded as Array, but в практике все 50 production skill'ов имеют ровно 1 элемент. Если кто-то поставит 2 — берётся `mood[0]`. Не warning.
+- Status-by-status palette (burn vs freeze разные оттенки внутри debuff) — пока mood палитра общая, фриз и ожог в одном skill'е будут одного цвета.

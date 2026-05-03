@@ -16,9 +16,9 @@
     {
       "id": "burning_bear_summon_bear_summon_bear",
       "sound_start": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_start.wav",
-      "collision_effect": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_collision.prefab",
+      "collision_effect": "summon_tranquility",
       "sound_end": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear_end.wav",
-      "animation": "burning_bear_summon_bear_summon_bear/burning_bear_summon_bear_summon_bear.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "hex",
         "range": -1

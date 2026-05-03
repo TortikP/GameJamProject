@@ -18,9 +18,9 @@
     {
       "id": "default_ranged_damage",
       "sound_start": "default_ranged_damage/default_ranged_damage_start.wav",
-      "collision_effect": "default_ranged_damage/default_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_neutral",
       "sound_end": "default_ranged_damage/default_ranged_damage_end.wav",
-      "animation": "default_ranged_damage/default_ranged_damage.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "actor",
         "range": 4
