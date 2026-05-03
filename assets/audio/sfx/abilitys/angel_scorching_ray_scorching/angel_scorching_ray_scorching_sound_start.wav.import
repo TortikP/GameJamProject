@@ -7,7 +7,7 @@ path="res://.godot/imported/angel_scorching_ray_scorching_sound.wav-e4f9dbf53544
 
 [deps]
 
-source_file="res://assets/audio/sfx/abilitys/angel_scorching_ray_scorching/angel_scorching_ray_scorching_sound.wav"
+source_file="res://assets/audio/sfx/abilitys/angel_scorching_ray_scorching/angel_scorching_ray_scorching_sound_start.wav"
 dest_files=["res://.godot/imported/angel_scorching_ray_scorching_sound.wav-e4f9dbf5354464cd633cf46460066eb5.sample"]
 
 [params]

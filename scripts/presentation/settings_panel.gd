@@ -54,6 +54,19 @@ func _ready() -> void:
 	Localization.locale_changed.connect(_on_locale_changed)
 	_refresh_language_options()
 	_close_btn.pressed.connect(close)
+	# 052: HSlider.value_changed doesn't fire from .tscn defaults — apply
+	# slider values to buses on startup so e.g. Music=0.6 in the .tscn is
+	# the actual volume from frame 0, not just a label under the bar.
+	_apply_initial_volumes()
+
+
+func _apply_initial_volumes() -> void:
+	# Reuses the change handlers so labels and buses stay in sync via the
+	# same path as live slider changes. Safe when a bus is missing
+	# (_apply_bus_volume early-returns on idx < 0).
+	_on_master_changed(_master_slider.value)
+	_on_music_changed(_music_slider.value)
+	_on_sfx_changed(_sfx_slider.value)
 
 
 func _apply_theme() -> void:
