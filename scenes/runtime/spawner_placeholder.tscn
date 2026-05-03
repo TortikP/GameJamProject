@@ -1,15 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://spawner_placeholder_001"]
+[gd_scene load_steps=2 format=3 uid="uid://spawner_placeholder_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/runtime/spawner_placeholder.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/manekin.png" id="2_sprite"]
 
 [node name="SpawnerPlaceholder" type="Node2D"]
 script = ExtResource("1_script")
 
 [node name="Sprite" type="Sprite2D" parent="."]
-texture = ExtResource("2_sprite")
-scale = Vector2(0.09, 0.09)
-modulate = Color(1, 1, 1, 0.45)
 z_index = 4
 
 [node name="Label" type="Label" parent="."]

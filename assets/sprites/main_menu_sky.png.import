@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://76aqayne6gflw"
-path="res://.godot/imported/main_menu_sky.png-00000000000000000000sky00.ctex"
+uid="uid://b80rkjbentfjs"
+path="res://.godot/imported/main_menu_sky.png-5d876f0dbceed16614f2cefdf6365eee.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/main_menu_sky.png"
-dest_files=["res://.godot/imported/main_menu_sky.png-00000000000000000000sky00.ctex"]
+dest_files=["res://.godot/imported/main_menu_sky.png-5d876f0dbceed16614f2cefdf6365eee.ctex"]
 
 [params]
 

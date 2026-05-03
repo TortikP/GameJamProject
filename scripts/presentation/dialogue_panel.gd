@@ -187,11 +187,25 @@ func _try_load_texture(path: String) -> Texture2D:
 	return load(path)
 
 
-func _make_placeholder(speaker_id: String) -> ImageTexture:
-	if _placeholder_cache.has(speaker_id):
-		return _placeholder_cache[speaker_id]
-	var img := Image.create(160, 160, false, Image.FORMAT_RGBA8)
+func _make_placeholder(_speaker_id: String) -> Texture2D:
+	# Spec 050: single global default for all speakers without per-speaker
+	# portrait files. Cache key is "__default__" — speaker_id arg kept for
+	# backward sig compatibility but unused.
+	const CACHE_KEY := "__default__"
+	const DEFAULT_PATH := "res://assets/portraits/default_portrait.png"
+	if _placeholder_cache.has(CACHE_KEY):
+		return _placeholder_cache[CACHE_KEY]
+	# Prefer the on-disk default portrait (130×180, matches the slot's
+	# 13:18 aspect). When Katya ships per-speaker portraits later, they
+	# take priority via _resolve_portrait → speaker_data.default_portrait.
+	var tex := _try_load_texture(DEFAULT_PATH)
+	if tex != null:
+		_placeholder_cache[CACHE_KEY] = tex
+		return tex
+	# Fallback: flat colored rect at slot dimensions (defensive — covers
+	# the case where the asset is missing from a checkout).
+	var img := Image.create(130, 180, false, Image.FORMAT_RGBA8)
 	img.fill(UiTheme.BG_PANEL_2)
-	var tex := ImageTexture.create_from_image(img)
-	_placeholder_cache[speaker_id] = tex
-	return tex
+	var fallback := ImageTexture.create_from_image(img)
+	_placeholder_cache[CACHE_KEY] = fallback
+	return fallback

@@ -1,0 +1,13834 @@
+{
+	"name": "1",
+	"tileset_path": "res://scenes/dev/godmode_terrain.tres",
+	"version": 2,
+	"waves": [
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						2
+					],
+					"source_id": 0
+				}
+			],
+			"index": 0,
+			"is_special": false,
+			"objects": [
+				{
+					"coord": [
+						16,
+						4
+					],
+					"object_id": "bush"
+				},
+				{
+					"coord": [
+						13,
+						4
+					],
+					"object_id": "bush"
+				}
+			],
+			"spawners": [
+				{
+					"coord": [
+						12,
+						6
+					],
+					"kind": "player",
+					"ref": "",
+					"timer": 1
+				},
+				{
+					"coord": [
+						14,
+						5
+					],
+					"kind": "enemy",
+					"ref": "manekin",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 5
+		},
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						4
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						5
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						6
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						12
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						13
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						14
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						15
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						16
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						17
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						18
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						19
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						20
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						21
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						22
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						23
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						13,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						14,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						15,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						16,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						17,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						18,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						19,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						20,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						21,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						22,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						23,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						24,
+						24
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						2
+					],
+					"source_id": 0
+				}
+			],
+			"index": 1,
+			"is_special": true,
+			"objects": [
+				{
+					"coord": [
+						16,
+						4
+					],
+					"object_id": "bush"
+				},
+				{
+					"coord": [
+						13,
+						4
+					],
+					"object_id": "bush"
+				}
+			],
+			"spawners": [
+				{
+					"coord": [
+						13,
+						5
+					],
+					"kind": "enemy",
+					"ref": "bush",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 0
+		}
+	]
+}

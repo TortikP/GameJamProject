@@ -1,0 +1,18 @@
+{
+	"levels": [
+		{
+			"cutscene_id": "",
+			"display_name": "",
+			"is_intro": true,
+			"map_path": "res://data/maps/new.json"
+		},
+		{
+			"cutscene_id": "",
+			"display_name": "",
+			"is_intro": false,
+			"map_path": "res://data/maps/sample.json"
+		}
+	],
+	"name": "Untitled",
+	"version": 1
+}

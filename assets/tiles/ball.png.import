@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gk2suwt05jaba"
-path="res://.godot/imported/ball.png-0000000000000000000000000000ball.ctex"
+uid="uid://cpnxauwrlceji"
+path="res://.godot/imported/ball.png-801b25d630f9bbfec04d06942eb5eae0.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/tiles/ball.png"
-dest_files=["res://.godot/imported/ball.png-0000000000000000000000000000ball.ctex"]
+dest_files=["res://.godot/imported/ball.png-801b25d630f9bbfec04d06942eb5eae0.ctex"]
 
 [params]
 

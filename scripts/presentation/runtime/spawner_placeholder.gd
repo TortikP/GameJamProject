@@ -25,21 +25,22 @@ extends Node2D
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
+const EnemyDataLoader := preload("res://scripts/core/actors/enemy_data_loader.gd")
 
 # Public state — set by WaveController.
 var spawner_kind: StringName = &""   # &"enemy" only currently (player skipped)
-var spawner_ref: StringName = &""    # e.g. &"manekin"
+var spawner_ref: StringName = &""    # e.g. &"boar", &"slime"
 var coord: Vector2i = Vector2i.ZERO
 var timer: int = 1
 
 @onready var _sprite: Sprite2D = $Sprite
 @onready var _label: Label = $Label
 
-# Manekin sprite is the only enemy art today. When new enemies are added,
-# extend this map; falls back to a generic "?" rendering.
-const ENEMY_SPRITES: Dictionary = {
-	&"manekin": preload("res://assets/sprites/manekin.png"),
-}
+## Spec 050 rev3: shadow silhouette tint applied via modulate. RGB knocked
+## down to ~30% so the placeholder reads as "darkened version of the actor
+## about to spawn here" rather than a half-transparent ghost. Alpha kept
+## near-opaque (0.85) so the silhouette stays solid against the hex grid.
+const SHADOW_TINT: Color = Color(0.3, 0.3, 0.3, 0.85)
 
 
 func _ready() -> void:
@@ -71,14 +72,25 @@ func bind(kind: StringName, ref: StringName, c: Vector2i, t: int) -> void:
 func _apply_visuals() -> void:
 	if _sprite == null:
 		return
-	# Pick texture from ref. Unknown ref → leave whatever was set in the
-	# scene (manekin by default).
-	if ENEMY_SPRITES.has(spawner_ref):
-		_sprite.texture = ENEMY_SPRITES[spawner_ref]
-	# Half-transparent + neutral tint — placeholder shouldn't read as a
-	# living actor. The Color() literal here is an alpha modulator on the
-	# sprite, not a UI palette colour, so it doesn't go through UiTheme.
-	_sprite.modulate = Color(1.0, 1.0, 1.0, 0.45)
+	# Spec 050 rev3: resolve sprite dynamically from enemy data — no
+	# hardcoded ENEMY_SPRITES dict, no manekin dependency. Each enemy JSON
+	# in data/enemies/<id>.json owns its own sprite path; we read just that
+	# field via EnemyDataLoader.get_sprite_path. If the kind isn't &"enemy",
+	# the lookup returns "" and the sprite stays texture-less — placeholder
+	# shows just the countdown label without a body.
+	_sprite.texture = null
+	if spawner_kind == &"enemy":
+		var path: String = EnemyDataLoader.get_sprite_path(spawner_ref)
+		if path != "":
+			var tex := load(path) as Texture2D
+			if tex != null:
+				_sprite.texture = tex
+			else:
+				GameLogger.warn("SpawnerPlaceholder", "%s: failed to load sprite '%s'" % [spawner_ref, path])
+	# Darken the silhouette via modulate. The Color() literal here is a
+	# render modulator on the sprite, not a UI palette colour, so it
+	# doesn't go through UiTheme.
+	_sprite.modulate = SHADOW_TINT
 
 
 func _refresh_label() -> void:
