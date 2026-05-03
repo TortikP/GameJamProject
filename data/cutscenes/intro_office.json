@@ -3,19 +3,17 @@
   "frames": [
     {
       "image": "res://assets/sprites/cutscenes/cutscene_2.png",
-      "scale_from": 2.2,
+      "scale_from": 1.0,
       "scale_to": 1.0,
-      "duration": 2.2,
-      "fade_in_sec": 0.4,
-      "cross_fade_to_next_sec": 0.6,
-      "pivot": [0.5, 0.22]
+      "duration": 1.8,
+      "fade_in_sec": 0.6,
+      "cross_fade_to_next_sec": 0.7
     },
     {
       "image": "res://assets/sprites/cutscenes/cutscene_1.png",
       "scale_from": 1.0,
-      "scale_to": 0.7,
-      "duration": 1.4,
-      "pivot": [0.5, 0.22]
+      "scale_to": 1.0,
+      "duration": 1.4
     }
   ]
 }

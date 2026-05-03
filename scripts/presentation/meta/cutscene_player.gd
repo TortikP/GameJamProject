@@ -140,67 +140,27 @@ func _start_cutscene_deferred(cutscene_id: StringName, on_done: Callable) -> voi
 	cutscene_finished.emit(cutscene_id)
 
 
-# Public: tear down overlay with optional zoom-into-pivot effect.
-# duration: total time for fade + scale in parallel.
-# zoom_to: target scale on the held last frame. 1.0 = no zoom, just fade.
-#   Use >1 for "exit through screen" feel (camera flies into pivot).
-# zoom_pivot: relative point on the image (0..1) that becomes the scale anchor.
-#   For the office cutscene, [0.5, 0.22] hits the monitor.
-func dismiss(duration: float = 0.4, zoom_to: float = 1.0, zoom_pivot: Vector2 = Vector2(0.5, 0.5)) -> void:
+# Public: tear down overlay with a simple fade-out.
+# Removed the previous zoom-into-pivot logic — Andrey's revised storyboard
+# is "fade in -> two static cutscene frames -> fade out into live office",
+# no flying-into-monitor effect. Kept the optional `_unused` params on the
+# signature so callers built against v3..v5 don't break.
+func dismiss(duration: float = 0.8, _unused_zoom_to: float = 1.0, _unused_zoom_pivot: Vector2 = Vector2(0.5, 0.5)) -> void:
 	if not _active:
 		GameLogger.info("CutscenePlayer", "dismiss called but not active — no-op")
 		return
-	GameLogger.info("CutscenePlayer", "dismiss '%s' (dur=%.2f zoom=%.2f pivot=%s)" % [_current_id, duration, zoom_to, str(zoom_pivot)])
+	GameLogger.info("CutscenePlayer", "dismiss '%s' (fade %.2fs)" % [_current_id, duration])
 
 	if is_instance_valid(_overlay) and duration > 0.0:
 		var root: Control = _overlay.get_node_or_null("Root") as Control
-		var bg: ColorRect = root.get_node_or_null("Background") as ColorRect if root != null else null
-		var skip: Label = root.get_node_or_null("SkipLabel") as Label if root != null else null
-
-		# Scale tween on last frame — "fly into" effect when zoom_to > 1.
-		# We do NOT fade the frame itself — it stays fully opaque while it
-		# flies into the monitor. The black backdrop fades out behind it,
-		# revealing the live game. Result: the picture appears to dive
-		# through the monitor, not dissolve in place.
-		var have_scale_tween: bool = false
-		if _last_frame_rect != null and is_instance_valid(_last_frame_rect) and not is_equal_approx(zoom_to, 1.0):
-			# Important: Frame1/Frame2 have anchors_preset=15 (fill parent),
-			# so their .size matches the viewport size after layout. But on
-			# the first dismiss tick the value can briefly be (0,0) if
-			# nothing forced a layout pass. Force it now and fall back to
-			# viewport size if Control hasn't latched yet.
-			var rect_size: Vector2 = _last_frame_rect.size
-			if rect_size.x < 1.0 or rect_size.y < 1.0:
-				rect_size = get_viewport().get_visible_rect().size
-				GameLogger.info("CutscenePlayer", "rect.size was (0,0); using viewport size: %s" % str(rect_size))
-			_last_frame_rect.pivot_offset = Vector2(rect_size.x * zoom_pivot.x, rect_size.y * zoom_pivot.y)
-			var current_scale: float = _last_frame_rect.scale.x
-			# Quart easing-IN: slow ramp-up then aggressive acceleration into
-			# the pivot. Reads as "drawn into the monitor" rather than a
-			# uniform zoom. CUBIC is too gentle for the effect to register.
-			var tw_scale := create_tween()
-			tw_scale.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
-			tw_scale.tween_property(_last_frame_rect, "scale", Vector2(zoom_to, zoom_to), duration)
-			# Frame holds opaque for 70% of duration, then fades fast in last 30%.
-			# By then the picture is huge and screen-edge clips already; fade
-			# blends naturally into whatever is behind (bg fades earlier).
-			tw_scale.parallel().tween_property(_last_frame_rect, "modulate:a", 0.0, duration * 0.3).set_delay(duration * 0.7)
-			GameLogger.info("CutscenePlayer", "dismiss scale tween: %.2f -> %.2f over %.2fs (pivot in pixels: %s, rect_size=%s)" % [current_scale, zoom_to, duration, str(_last_frame_rect.pivot_offset), str(rect_size)])
-			have_scale_tween = true
-
-		# Background (the black ColorRect under the frame) fades to reveal
-		# the live game, but later than before — keeps the office hidden
-		# longer so the frame is visibly mid-flight when the world appears.
-		if bg != null:
-			var tw_bg := create_tween()
-			tw_bg.tween_property(bg, "modulate:a", 0.0, duration * 0.85).set_delay(duration * 0.15)
-			GameLogger.info("CutscenePlayer", "dismiss bg fade: %.2fs (delay=%.2fs)" % [duration * 0.85, duration * 0.15])
-		if skip != null:
-			var tw_skip := create_tween()
-			tw_skip.tween_property(skip, "modulate:a", 0.0, duration * 0.3)
-
-		# Wait the full duration regardless of which tweens exist, so the
-		# visual finishes BEFORE we tear down the overlay and emit dismissed.
+		if root != null:
+			var tw := create_tween()
+			tw.tween_property(root, "modulate:a", 0.0, duration)
+			await tw.finished
+		else:
+			# Fallback: just hold for the duration so dismiss timing is consistent
+			await get_tree().create_timer(duration).timeout
+	elif duration > 0.0:
 		await get_tree().create_timer(duration).timeout
 
 	if is_instance_valid(_overlay):

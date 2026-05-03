@@ -27,12 +27,10 @@ const INTRO_DIALOGUE_ID: StringName = &"intro_office_monologue"
 const CHAIR_OBJECT_ID: StringName = &"object_on_chair"
 const CHAIR_COORD: Vector2i = Vector2i(3, 2)  # matches data/maps/office_intro.json
 
-# Exit-through-monitor: the held cutscene_1 frame scales up centered on the
-# monitor in the art, so it appears to dive into the screen as the live hex
-# game becomes visible behind it.
-const MONITOR_ZOOM: float = 7.0
-const MONITOR_PIVOT: Vector2 = Vector2(0.5, 0.22)
-const DISMISS_DURATION: float = 1.6
+# Dismiss: simple fade-out from cutscene_1 into the live office.
+# No zoom shenanigans — keeps it clean and predictable per Andrey's
+# storyboard simplification ("все эти зумы и движения мимо").
+const DISMISS_DURATION: float = 1.0
 
 # Beats give the player a moment to read each phase.
 const POST_REVEAL_BEAT: float = 0.4
@@ -40,7 +38,7 @@ const POST_STAND_BEAT: float = 0.6
 
 # Timeouts: every await is bounded.
 const CUTSCENE_TIMEOUT_SEC: float = 8.0    # cutscene-art ~3.5s + slack
-const DISMISS_TIMEOUT_SEC: float = 3.5     # > DISMISS_DURATION (1.6s) + slack
+const DISMISS_TIMEOUT_SEC: float = 2.5     # > DISMISS_DURATION (1.0s) + slack
 const DIALOGUE_TIMEOUT_SEC: float = 60.0   # waits for player input
 const SIGNAL_POLL_HZ: float = 60.0         # process_frame is fine for our durations
 
@@ -94,10 +92,10 @@ func _run_sequence() -> void:
 	else:
 		GameLogger.info("IntroDirector", "[2/7] no cutscene_id — skipping wait")
 
-	# ── 2. Dismiss with zoom-into-monitor — reveals the live office ─────────
+	# ── 2. Dismiss with a clean fade — reveals the live office ──────────────
 	if CutscenePlayer.is_playing():
-		GameLogger.info("IntroDirector", "[3/7] dismiss(zoom=%.1f, pivot=%s) — exit through monitor" % [MONITOR_ZOOM, str(MONITOR_PIVOT)])
-		CutscenePlayer.dismiss(DISMISS_DURATION, MONITOR_ZOOM, MONITOR_PIVOT)
+		GameLogger.info("IntroDirector", "[3/7] dismiss(%.1fs fade) — fade into live office" % DISMISS_DURATION)
+		CutscenePlayer.dismiss(DISMISS_DURATION)
 		var dismissed: bool = await _await_signal_with_timeout(CutscenePlayer, &"cutscene_dismissed", DISMISS_TIMEOUT_SEC)
 		if dismissed:
 			GameLogger.info("IntroDirector", "[3/7] dismissed — live office visible")
