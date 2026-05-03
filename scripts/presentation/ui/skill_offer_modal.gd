@@ -67,7 +67,7 @@ func _build_tree() -> void:
 
 	_backdrop = ColorRect.new()
 	_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_backdrop.color = Color(0, 0, 0, 0.55)
+	_backdrop.color = UiThemeScript.SHADOW_SOFT_COLOR
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.add_child(_backdrop)
 

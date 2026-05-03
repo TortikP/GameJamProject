@@ -76,7 +76,8 @@ func _apply_visuals() -> void:
 	if ENEMY_SPRITES.has(spawner_ref):
 		_sprite.texture = ENEMY_SPRITES[spawner_ref]
 	# Half-transparent + neutral tint — placeholder shouldn't read as a
-	# living actor.
+	# living actor. The Color() literal here is an alpha modulator on the
+	# sprite, not a UI palette colour, so it doesn't go through UiTheme.
 	_sprite.modulate = Color(1.0, 1.0, 1.0, 0.45)
 
 
