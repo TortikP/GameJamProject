@@ -9,12 +9,19 @@ extends Node2D
 ## reads cleanly without obscuring tile content underneath, and matches the
 ## editor's brush preview for visual continuity (UI-kit cohesion).
 ##
+## 049 / AC-6: range hexes are split into VALID (target.resolve returns non-
+## null for that coord's ctx) and INVALID (no actor, wrong team, blocked
+## etc.). Valid → SEM_DEBUFF outline (existing look). Invalid → dim grey
+## outline. Click on invalid hex is already a no-op upstream (CastFsm /
+## godmode_input range guards); the visual just makes the rule legible.
+##
 ## Use case: while a slot is active (player has Q/W/E/R selected), this
-## overlay paints the outlines of all hexes that ability could land on.
+## overlay paints the outlines of all hexes that ability could land on,
+## colour-coded by validity.
 ##
 ## Wiring: parent it to the same HexGrid node as MoveRangeOverlay. The host
-## controller calls show_range(caster, ability_id) when cast_mode enters
-## "selecting target", and hide_range() when leaving (cancel / commit).
+## controller calls setup(grid, registry), then show_range(caster, ability_id)
+## when cast_mode enters "selecting target", and hide_range() when leaving.
 ##
 ## Z-index 4 — below cursor (z=7), above terrain, above move overlay (z=2).
 
@@ -24,13 +31,20 @@ extends Node2D
 const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
 
 var _grid: Node = null  # HexGrid
-var _coords: Array[Vector2i] = []
+var _registry: Node = null  # ActorRegistry — needed for AC-6 validity check
+# 049 / AC-6: split list. Legacy `_coords` is gone; callers use the typed
+# valid/invalid lists. show_range_for_ability fills both; show_range (legacy
+# multi-ability variant) leaves _coords_invalid empty (validity per-ability
+# isn't well-defined for the union).
+var _coords_valid: Array[Vector2i] = []
+var _coords_invalid: Array[Vector2i] = []
 var _color: Color = Color.WHITE
 var _self_coord: Vector2i = Vector2i(-1, -1)  # special-case highlight (self-confirm step)
 
 
-func setup(grid: Node) -> void:
+func setup(grid: Node, registry: Node = null) -> void:
 	_grid = grid
+	_registry = registry
 
 
 func _ready() -> void:
@@ -44,6 +58,11 @@ func _ready() -> void:
 ## either a Skill object (post-007 — iterates its abilities[]) or a single
 ## ability_id StringName (legacy lookup via AbilityDatabase). Pass null to
 ## clear via hide_range().
+##
+## 049 / AC-6: this multi-ability variant does NOT classify validity — it
+## paints the union of all reachable target hexes as "valid". Per-ability
+## validity is computed in show_range_for_ability (the FSM step path). The
+## legacy union variant is kept for callers that don't drive an FSM.
 func show_range(caster: Actor, skill_or_id) -> void:
 	hide_range()
 	if _grid == null or caster == null or skill_or_id == null:
@@ -65,15 +84,25 @@ func show_range(caster: Actor, skill_or_id) -> void:
 			return
 		for c in ability.target.get_range_hexes(caster_coord, _grid):
 			hexes[c] = true
-	_coords = []
 	for c in hexes.keys():
-		_coords.append(c)
+		_coords_valid.append(c)
 	_color = UiTheme.SEM_DEBUFF
 	queue_redraw()
 
 
 ## 026: per-ability range — used by godmode_controller's multi-step cast FSM
 ## to highlight only the hexes valid for `ability` (not the whole skill).
+##
+## 049 / AC-6: classifies each range hex into valid/invalid via
+## ability.target.resolve(caster, per_hex_ctx). Validity here mirrors the
+## FSM commit-step gate — clicking a "valid" hex is guaranteed to commit the
+## step (`CastFsm.handle_lmb` accepts any hex in `target.get_range_hexes`,
+## while resolve gates the actual cast); the visual matches game logic.
+##
+## Note: actors_node + tile_object_resolver are NOT required for the
+## validity check (only CreateEffect's apply path uses them, and we run only
+## resolve, not cast). Skipping them keeps overlay decoupled from godmode
+## sub-tree shape.
 func show_range_for_ability(caster: Actor, ability: Ability) -> void:
 	hide_range()
 	if _grid == null or caster == null or ability == null or ability.target == null:
@@ -81,7 +110,18 @@ func show_range_for_ability(caster: Actor, ability: Ability) -> void:
 	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
 	if caster_coord == Vector2i(-1, -1):
 		return
-	_coords = ability.target.get_range_hexes(caster_coord, _grid)
+	var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, _grid)
+	for c in range_hexes:
+		var ctx: Dictionary = {
+			"registry": _registry,
+			"grid": _grid,
+			"target_id": _grid.get_actor_at(c),
+			"target_coord": c,
+		}
+		if ability.target.resolve(caster, ctx) != null:
+			_coords_valid.append(c)
+		else:
+			_coords_invalid.append(c)
 	_color = UiTheme.SEM_DEBUFF
 	queue_redraw()
 
@@ -101,9 +141,10 @@ func show_self_confirm(coord: Vector2i) -> void:
 
 
 func hide_range() -> void:
-	if _coords.is_empty() and _self_coord == Vector2i(-1, -1):
+	if _coords_valid.is_empty() and _coords_invalid.is_empty() and _self_coord == Vector2i(-1, -1):
 		return
-	_coords = []
+	_coords_valid = []
+	_coords_invalid = []
 	_self_coord = Vector2i(-1, -1)
 	queue_redraw()
 
@@ -130,18 +171,27 @@ func _draw() -> void:
 	# 029 / req-4: paint_preview-style thin outlines per hex (no fill).
 	# alpha 0.55 is visible against grid lines without competing with the
 	# cursor (z=7) on top.
-	var line_color: Color = Color(_color.r, _color.g, _color.b, 0.55)
-	for c in _coords:
+	var valid_color: Color = Color(_color.r, _color.g, _color.b, 0.55)
+	for c in _coords_valid:
 		var center: Vector2 = layer.map_to_local(c)
 		for i in 6:
 			draw_line(center + corners[i], center + corners[(i + 1) % 6],
-					line_color, 1.5, true)
+					valid_color, 1.5, true)
+	# 049 / AC-6: invalid hexes — dim grey outline. Same line weight, just
+	# desaturated — same brush as the editor's "out-of-bounds" hint, so the
+	# read across the whole game is consistent ("grey = can't act here").
+	var invalid_color: Color = Color(UiTheme.INVALID_TARGET_COLOR.r, UiTheme.INVALID_TARGET_COLOR.g, UiTheme.INVALID_TARGET_COLOR.b, 0.30)
+	for c in _coords_invalid:
+		var center2: Vector2 = layer.map_to_local(c)
+		for i in 6:
+			draw_line(center2 + corners[i], center2 + corners[(i + 1) % 6],
+					invalid_color, 1.5, true)
 	# Self-confirm: bolder closed-loop outline + faint fill on the single hex.
 	if _self_coord != Vector2i(-1, -1):
-		var center: Vector2 = layer.map_to_local(_self_coord)
+		var center3: Vector2 = layer.map_to_local(_self_coord)
 		var pts := PackedVector2Array()
 		for i in 6:
-			pts.append(center + corners[i])
+			pts.append(center3 + corners[i])
 		draw_colored_polygon(pts, Color(_color.r, _color.g, _color.b, 0.30))
 		for i in 6:
 			draw_line(pts[i], pts[(i + 1) % 6],

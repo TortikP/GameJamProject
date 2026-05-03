@@ -4,7 +4,12 @@ extends Node
 ## arrows. Aggregates by coord across all live enemies' intents.
 
 const TELEGRAPH_HEX_SCRIPT := preload("res://scripts/presentation/telegraph_hex.gd")
-const INTENT_ARROW_SCRIPT := preload("res://scripts/presentation/intent_arrow.gd")
+# 049 / T016: IntentArrow (straight-line shaft) replaced by EnemyMovePath
+# (polyline through hex centers via grid.find_path_around). The straight
+# arrow lied about the AI's actual route — bends around obstacles, so
+# straight visual contradicted reality. Path-style mirrors the player's
+# green hover-path for cross-faction visual symmetry (Pillar 2).
+const ENEMY_MOVE_PATH_SCRIPT := preload("res://scripts/presentation/enemy_move_path.gd")
 
 var _ctrl: Node = null
 
@@ -107,62 +112,132 @@ func refresh() -> void:
 						# Sum damage only when both are damage-class with same tag; else keep first.
 						if prev.tag == tag and (tag == &"damage" or tag == &""):
 							prev.damage += dmg
+						# 049 / AC-5: keep the first attacker's skill ref for the
+						# icon. Aggregating multiple skills into one hex is rare
+						# and the visual answer of "show the dominant icon" is
+						# fine — first-write-wins matches existing tag aggregation.
 					else:
-						by_coord[coord] = {"tag": tag, "damage": dmg}
+						by_coord[coord] = {"tag": tag, "damage": dmg, "skill": skill}
 					# 029 / req-6: collect AoE-affected hexes for this intent.
 					# Skill.area lives on each Ability; iterate them and ask for
 					# the affected tiles given caster + target. Area can be null
 					# (single-target spells); skip those — primary hex above is
 					# already enough.
+					#
+					# 049b / T042: for actor-target skills tracking the player,
+					# the AoE follows the player at apply-time (see
+					# ai_driver._resolve_cast_intent: target_coord = live_coord).
+					# Walking ONE hex away rarely escapes — the AI re-anchors
+					# the AoE on the player's new position. Visual was lying:
+					# it only painted the AoE around the current player coord,
+					# so players read "leave the red zone = safe" and got
+					# clipped one hex away. Truthful paint = union of AoE
+					# anchored at every hex the player could reach this turn
+					# (clamped to AI's target range so far positions don't
+					# pollute the read).
 					if skill != null:
 						var caster_coord: Vector2i = grid.get_coord(enemy.actor_id)
 						for ab in skill.abilities:
 							var ability := ab as Ability
 							if ability == null or ability.area == null:
 								continue
-							var anchor: Vector2i = coord
+							# Anchor candidates the player could be at when
+							# the AI fires. Live coord first; reachable set
+							# bolted on for ActorTarget tracking the player.
+							var anchor_set: Dictionary = {}
+							var live_anchor: Vector2i = coord
 							if ability.target != null:
-								anchor = ability.target.preview_anchor_coord(caster_coord, coord)
-							var affected: Array[Vector2i] = ability.area.get_affected_hexes(
-									caster_coord, anchor, grid)
-							for ac in affected:
-								if not area_coords.has(ac):
-									area_coords[ac] = tag
+								live_anchor = ability.target.preview_anchor_coord(
+										caster_coord, coord)
+							anchor_set[live_anchor] = true
+							if ability.target is ActorTarget and ci.target_id == &"player":
+								var p: Actor = registry.get_actor(&"player")
+								if p != null and p.is_alive():
+									var p_coord: Vector2i = grid.get_coord(&"player")
+									if p_coord != Vector2i(-1, -1):
+										# Range gate — only candidate
+										# positions the AI would still target.
+										# Cheaper: use ability.target's own
+										# range_hexes once and dict-it for O(1).
+										var range_hexes: Array[Vector2i] = \
+												ability.target.get_range_hexes(caster_coord, grid)
+										var range_set: Dictionary = {}
+										for h in range_hexes:
+											range_set[h] = true
+										var reachable: Array[Vector2i] = \
+												grid.reachable_within(p_coord,
+												p.effective_speed(), [])
+										for r in reachable:
+											if range_set.has(r):
+												anchor_set[r] = true
+							# Paint AoE around every plausible anchor.
+							for anchor_coord in anchor_set.keys():
+								var affected: Array[Vector2i] = ability.area.get_affected_hexes(
+										caster_coord, anchor_coord, grid)
+								for ac in affected:
+									if not area_coords.has(ac):
+										area_coords[ac] = tag
 
-		# Movement arrow — one per enemy with a planned move.
+		# 049 / AC-7: enemy movement intent — drawn as a polyline through hex
+		# centers, red, with arrowhead at the destination. The path is
+		# computed via grid.find_path_around with the live actor-block list
+		# so the visual matches the route the AI will actually take (the
+		# straight IntentArrow lied about routes around obstacles). Same
+		# shape as the player's hover_path on MoveRangeOverlay — visual
+		# symmetry, cross-faction.
 		var mv: Vector2i = enemy.move_intent_coord
 		if mv != Vector2i(-1, -1):
 			var enemy_coord: Vector2i = grid.get_coord(enemy.actor_id)
-			if enemy_coord != Vector2i(-1, -1):
-				var arrow: Node2D = INTENT_ARROW_SCRIPT.new()
-				arrow.position = Vector2.ZERO
-				arrow.z_index = 4  # above telegraph hex, below actors
-				grid.add_child(arrow)
-				arrow.set("origin", grid.tile_map_layer.map_to_local(enemy_coord))
-				arrow.set("target", grid.tile_map_layer.map_to_local(mv))
-				_intent_arrows[enemy.actor_id] = arrow
+			if enemy_coord != Vector2i(-1, -1) and enemy_coord != mv:
+				var blocked: Array = _live_blocked_coords(registry, enemy)
+				var raw_path: Array = grid.find_path_around(enemy_coord, mv, blocked)
+				if raw_path.size() >= 2:
+					var typed_path: Array[Vector2i] = []
+					for c in raw_path:
+						typed_path.append(c)
+					var path_node: Node2D = ENEMY_MOVE_PATH_SCRIPT.new()
+					path_node.position = Vector2.ZERO
+					path_node.z_index = 4  # above telegraph hex, below actors
+					grid.add_child(path_node)
+					path_node.setup(grid, typed_path)
+					_intent_arrows[enemy.actor_id] = path_node
 
 	# Render one telegraph hex per threatened coord.
+	# 049b / T038: force semantic_tag = &"damage" on EVERY enemy telegraph
+	# hex, regardless of the underlying skill's behaviour tag. Rationale —
+	# the player needs a single visual language for "this hex is a threat"
+	# (red) independent of skill type. Type-of-skill information now lives
+	# in the icon (049 / AC-5) and the hex-tooltip consequence column
+	# (049b / T035, also semantically coloured). Splitting "incoming hex
+	# colour" by buff/control/heal etc. used to mute the threat read for
+	# debuff/control casts that hit the player just as hard. The original
+	# tag stays in by_coord.tag for the damage-aggregation sum at line ~113.
 	for coord in by_coord.keys():
 		var hex: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		hex.position = grid.tile_map_layer.map_to_local(coord)
 		hex.z_index = 3
 		var entry: Dictionary = by_coord[coord]
-		hex.set("semantic_tag", entry.tag)
+		hex.set("semantic_tag", &"damage")
 		hex.set("damage", entry.damage)   # 0 = no number drawn (heal/buff/etc.)
+		# 049 / AC-5: skill ref drives icon (texture or letter fallback) at hex
+		# center. Null skill (legacy / non-skill telegraph) → TelegraphHex skips
+		# icon draw cleanly.
+		hex.set("icon_skill", entry.get("skill", null))
 		grid.add_child(hex)
 		_telegraph_hexes[coord] = hex
 
-	# 029 / req-6: secondary AoE-shape hexes — outline-only so they read as
-	# "the spell will sweep through here" without competing with the primary
-	# damage-bearing hex. Skip coords already painted as primary.
+	# 029 / req-6 + 049b / T038-T039: secondary AoE-shape hexes — outline +
+	# faint red fill so the affected area reads as a region not just a
+	# border. Bumped from 029's thin-outline-only when it became clear the
+	# affected hexes were too easy to miss against busy tiles. Forced to
+	# &"damage" semantic for the same reason as primary above.
 	for area_coord in area_coords.keys():
 		if _telegraph_hexes.has(area_coord):
 			continue
 		var sec: Node2D = TELEGRAPH_HEX_SCRIPT.new()
 		sec.position = grid.tile_map_layer.map_to_local(area_coord)
 		sec.z_index = 3
-		sec.set("semantic_tag", area_coords[area_coord])
+		sec.set("semantic_tag", &"damage")
 		sec.set("outline_only", true)
 		grid.add_child(sec)
 		_telegraph_hexes[area_coord] = sec
@@ -214,3 +289,29 @@ func enemy_attack_damage(enemy: Actor) -> int:
 	if tag != &"damage" and tag != &"":
 		return 0
 	return skill.predicted_damage_to(enemy, _ctrl.player, {})
+
+
+# 049 / AC-7: blocked-coord list for grid.find_path_around on enemy move
+# preview. Mirrors the convention in HoverDispatcher.refresh_hover_path and
+# AiDriver._resolve_move_intent — every other live actor's coord blocks. The
+# `exclude` actor (the path's owner) does NOT block its own start hex.
+# Untyped Array on purpose: HexGrid.find_path_around reads it as Array, and
+# typed Array[Vector2i] sometimes fails Variant boundary checks under 4.6 on
+# Resource subclasses (see CLAUDE.md trap table).
+func _live_blocked_coords(registry: ActorRegistry, exclude: Actor) -> Array:
+	var blocked: Array = []
+	if registry == null:
+		return blocked
+	var grid: HexGrid = _ctrl.grid
+	if grid == null:
+		return blocked
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var a: Actor = actor_v
+		if a == exclude or not a.is_alive():
+			continue
+		var c: Vector2i = grid.get_coord(a.actor_id)
+		if c != Vector2i(-1, -1):
+			blocked.append(c)
+	return blocked

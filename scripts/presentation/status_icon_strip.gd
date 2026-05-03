@@ -150,7 +150,17 @@ func _make_pill(entry: Dictionary) -> Control:
 			used_texture = true
 	if not used_texture:
 		var icon_lbl := Label.new()
-		icon_lbl.text = _ICON_BY_FAMILY.get(family, "?")
+		# 049b / T046: prefer first letter of localised status name over the
+		# family glyph. Per-status read ("S" stunned, "P" poisoned, "B"
+		# burning) is more discriminating than family ("dot/buff/debuff"
+		# are 3 buckets, no per-effect signal). Placeholder asset path —
+		# Katya will drop PNGs into assets/icons/statuses/<id>.png and the
+		# texture branch above will pick them up automatically.
+		var status_name: String = Localization.t("status_%s_name" % String(id), String(id))
+		if not status_name.is_empty():
+			icon_lbl.text = status_name.substr(0, 1).to_upper()
+		else:
+			icon_lbl.text = _ICON_BY_FAMILY.get(family, "?")
 		UiTheme.apply_label_kind(icon_lbl, "small")
 		# 027 fix: world-space text — pills sit over hex grid + actor sprites,
 		# read at default zoom only with a strong dark outline.
@@ -165,6 +175,13 @@ func _make_pill(entry: Dictionary) -> Control:
 		UiTheme.apply_world_text_outline(dur_lbl)
 		hbox.add_child(dur_lbl)
 
+	# 049b / T046: native Godot tooltip — "<NAME>\n<desc>" sourced from
+	# Localization.t("status_<id>_name") + "_desc". Native tooltip handles
+	# placement, fading, viewport clamping. Pill-level mouse_entered signal
+	# is kept (status_pill_hovered) so future styled tooltips can layer on.
+	var name_str: String = Localization.t("status_%s_name" % String(id), String(id))
+	var desc_str: String = Localization.t("status_%s_desc" % String(id), "")
+	pill.tooltip_text = "%s\n%s" % [name_str, desc_str] if desc_str != "" else name_str
 	# Hover for tooltip (TooltipPanel listens via EventBus signals — for now
 	# emit our own pill-level signal that PlayerStatusPanel/Inspector can pick up).
 	pill.mouse_entered.connect(func(): status_pill_hovered.emit(id, pill.get_global_rect()))

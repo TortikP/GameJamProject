@@ -234,14 +234,21 @@ func _make_card_for(id: StringName, owned: Dictionary,
 	if skill == null:
 		return {}
 	if not owned.has(id):
-		if force_replace and allow_repl and not PlayerSkillAdapterScript.filled_slot_indices().is_empty():
+		# 049b / T043: empty-slot check wins over force_replace. Story maps
+		# (story_map_0[1-4].json) set force_replace=true on every wave to
+		# encourage build evolution, but the prior order also forced REPLACE
+		# even when the player still had an unfilled slot — confusing UX
+		# (the screen demanded "swap something out" while a slot sat empty).
+		# New rule: if any slot is empty, the new skill is always ADD,
+		# regardless of force_replace. force_replace only kicks in once the
+		# bar is fully populated.
+		if PlayerSkillAdapterScript.first_empty_slot() >= 0:
+			return {"skill_id": id, "skill": skill, "mode": &"add"}
+		# Bar full — replace path. force_replace just guarantees we don't
+		# silently drop the card when allow_repl is also true.
+		if allow_repl:
 			return {"skill_id": id, "skill": skill, "mode": &"replace"}
-		# Slot full + can't replace → fall back to replace if possible, else drop.
-		if PlayerSkillAdapterScript.first_empty_slot() < 0:
-			if allow_repl:
-				return {"skill_id": id, "skill": skill, "mode": &"replace"}
-			return {}
-		return {"skill_id": id, "skill": skill, "mode": &"add"}
+		return {}
 	# Owned — try upgrade first.
 	if allow_up and PlayerSkillAdapterScript.can_upgrade(id):
 		var owned_skill = owned[id]

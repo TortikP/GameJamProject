@@ -44,26 +44,21 @@ func _unhandled_input(event: InputEvent) -> void:
 				cast_fsm.cancel()
 				get_viewport().set_input_as_handled()
 				return
-			# 009-T051 priority chain (post-026):
+			# 049 / T023: priority chain shrunk from 3 tiers to 2 — selection
+			# tier removed (AC-3 killed selection entirely).
 			#   1. active cast slot → toggle off
-			#   2. selection != player → reset selection to player
-			#   3. otherwise → open pause menu
+			#   2. otherwise → open pause menu
 			if slot_bar != null and slot_bar.get_active() != -1:
 				slot_bar.activate(slot_bar.get_active())  # toggle off
 				get_viewport().set_input_as_handled()
 				return
-			if _ctrl._selected != null and _ctrl._selected != player:
-				_ctrl.deselect_to_player()
-				get_viewport().set_input_as_handled()
-				return
-			# No selection to clear, no active cast — open pause menu if mounted.
+			# No active cast — open pause menu if mounted.
 			var pause_menu: Node = get_node_or_null("../../HUD/PauseMenu")
 			if pause_menu != null and pause_menu.has_method("open"):
 				pause_menu.open()
 				get_viewport().set_input_as_handled()
 				return
-			# Last-resort fallback: original behavior (no-op deselect).
-			_ctrl.deselect_to_player()
+			# Pause menu missing — accept event so Esc isn't double-handled.
 			get_viewport().set_input_as_handled()
 			return
 	if not campaign_mode and event.is_action_pressed("godmode_spawn_dummy"):
@@ -223,9 +218,7 @@ func _request_cast_active() -> void:
 				cast_fsm.handle_lmb()
 		# Skill slot active → never inspect/deselect on a failed cast.
 		return
-	# No active skill: inspect hovered actor or hex
-	var target_actor: Actor = registry.get_actor(target_id) if target_id != &"" else null
-	if target_actor != null:
-		_ctrl.select(target_actor)
-	elif grid.is_walkable(coord):
-		_ctrl.inspect_hex(coord)
+	# 049 / T023 / AC-3: no active slot → LMB is a no-op. Hover handles all
+	# info readout (HexTooltip + EnemyDetailsPanel via HoverDispatcher).
+	# Removed: select(target_actor) on hovered enemy, inspect_hex(coord) on
+	# walkable empty tile. Both flowed into ActorInspector which is gone.

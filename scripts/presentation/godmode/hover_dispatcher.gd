@@ -1,15 +1,27 @@
 extends Node
 ## HoverDispatcher — owns per-frame _process. Dispatches: slot castability tints,
 ## hp-bar damage preview on hovered enemy, AoE zone preview on cursor, hover-path
-## preview, and cast-intent tooltip on hovered enemy.
+## preview, hex-tooltip multi-row build, and enemy-details-panel binding.
+##
+## 049: replaces 029's single-actor `refresh_intent_tooltip` with two
+## hover dispatches:
+##   - refresh_hex_tooltip(coord)  — cursor-anchored multi-row table aggregating
+##                                    every action targeting `coord`.
+##   - refresh_enemy_details(id)   — top-right panel bound to whichever enemy
+##                                    the cursor is over.
+## Both are state-tracked (`_last_hex_tooltip_coord`, `_last_enemy_details_id`)
+## so movement within a single hex / cursor over the same enemy doesn't spam
+## rebuilds.
 
 const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 
 var _ctrl: Node = null
 
-# 029 / req-6: track which enemy is currently under cursor (or &"") so we can
-# show/hide the cast-intent tooltip with no flicker on idle frames.
-var _hover_intent_actor_id: StringName = &""
+# 049 / AC-4: state guard on the enemy-details panel — re-binding the same
+# actor would trip signal disconnect/reconnect cycles, so we only call
+# bind/unbind on transitions. (Hex-tooltip dropped its similar guard in
+# 049b T037 — see refresh_hex_tooltip.)
+var _last_enemy_details_id: StringName = &""
 
 
 func _ready() -> void:
@@ -18,6 +30,17 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	update_castability()
+	# 049 / AC-2 + AC-4 + T020: dispatch hex-tooltip + enemy-details after
+	# the castability pass. coord_under_mouse is cheap (single sample) and
+	# update_castability already calls it internally — recomputing here
+	# keeps each dispatch self-contained without threading the value down.
+	var grid: HexGrid = _ctrl.grid
+	if grid == null:
+		return
+	var coord: Vector2i = grid.coord_under_mouse()
+	var target_id: StringName = grid.get_actor_at(coord) if coord != Vector2i(-1, -1) else &""
+	refresh_hex_tooltip(coord)
+	refresh_enemy_details(target_id)
 
 
 func update_castability() -> void:
@@ -93,13 +116,6 @@ func update_castability() -> void:
 	# zone was computed against, so reachability and path agree.
 	refresh_hover_path(coord)
 
-	# 029 / req-6: tooltip on enemy hover that shows their planned cast.
-	# Only fires for enemies that have a non-null cast_intent — moving-only
-	# turns or idle holds get no tooltip (nothing to telegraph). The hex
-	# already shows the intent visually; tooltip adds the "what is this
-	# spell exactly" detail.
-	refresh_intent_tooltip(target_id)
-
 
 ## 029 / bonus-2: hover-path computation + push to overlay. Cheap when no
 ## change (overlay early-returns on identical array) so calling per frame is OK.
@@ -153,40 +169,180 @@ func refresh_hover_path(hover_coord: Vector2i) -> void:
 	overlay.set_hover_path(typed)
 
 
-## 029 / req-6: hover-on-enemy → cast-intent tooltip dispatch. State-tracked so
-## moving the cursor between hexes doesn't spam show_tooltip every frame —
-## tooltip only re-renders when the hovered actor id actually changes.
-func refresh_intent_tooltip(hovered_id: StringName) -> void:
+# 049 / AC-2 / T018 + 049b / T037: hex-tooltip dispatch. Builds the row list
+# (player preview when active slot's ability would land here, plus every
+# enemy whose intent's primary or AoE area covers `coord`) and pushes to the
+# HexTooltip widget.
+#
+# 049b note on guarding: we deliberately rebuild every frame rather than
+# state-guarding on `coord`. Slot toggle-off (player presses Q again to
+# deselect) doesn't change the hovered coord but DOES change the rows
+# (player preview row should disappear), and the per-frame cost is trivial
+# (≤10 actors × O(1) checks). Same applies to enemy intent changes mid-frame.
+func refresh_hex_tooltip(coord: Vector2i) -> void:
+	var tip: Node = get_node_or_null("../../HUD/HexTooltip")
+	if tip == null:
+		return
+	# Off-grid → instant hide.
+	if coord == Vector2i(-1, -1):
+		if tip.has_method("hide_tooltip"):
+			tip.hide_tooltip()
+		return
+	var rows: Array = _build_hex_tooltip_rows(coord)
+	if rows.is_empty():
+		if tip.has_method("hide_tooltip"):
+			tip.hide_tooltip()
+		return
+	if tip.has_method("show_for"):
+		tip.show_for(rows, _ctrl.get_viewport().get_mouse_position())
+
+
+# 049 / AC-2 / T018: produce {actor_name, skill, consequence} rows for one
+# hex coord. Sources:
+#   - Player preview (if active slot can_apply on this coord — ability[0]
+#     just like idle slot preview in MoveRangeOverlay).
+#   - Every AI-controlled actor whose cast_intent covers `coord`, either
+#     as its primary target_coord OR via its ability area.
+func _build_hex_tooltip_rows(coord: Vector2i) -> Array:
+	var rows: Array = []
+	var grid: HexGrid = _ctrl.grid
 	var registry: ActorRegistry = _ctrl.registry
-	# Resolve to "do we have an enemy with a planned cast under cursor?"
+	var player: Actor = _ctrl.player
+	if grid == null or registry == null:
+		return rows
+
+	# Player preview — only when a slot is active. abilities[0] mirrors
+	# CastFsm.current_preview_ability when idle (refresh_overlay path).
+	var slot_bar: Node = _ctrl.slot_bar
+	var active_idx: int = slot_bar.get_active() if slot_bar != null else -1
+	if active_idx != -1 and player != null:
+		var pskill: Skill = slot_bar.get_slot(active_idx) as Skill
+		if pskill != null and not pskill.abilities.is_empty():
+			var pab: Ability = pskill.abilities[0]
+			if _coord_in_ability_effect(player, pab, coord):
+				rows.append({
+					"actor_name": String(player.actor_id),
+					"skill": pskill,
+					"consequence": SkillFormatter.format_consequence(pskill),
+				})
+
+	# Enemy intents.
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var enemy: Actor = actor_v
+		if enemy == player or not enemy.is_alive() or enemy.cast_intent == null:
+			continue
+		var ci: CastIntent = enemy.cast_intent as CastIntent
+		if ci == null or not ci.is_valid():
+			continue
+		var eskill: Skill = SkillDatabase.get_skill(ci.skill_id)
+		if eskill == null:
+			continue
+		if not _intent_covers_coord(enemy, ci, eskill, coord):
+			continue
+		rows.append({
+			"actor_name": String(enemy.actor_id),
+			"skill": eskill,
+			"consequence": SkillFormatter.format_consequence(eskill),
+		})
+	return rows
+
+
+# 049 / AC-2 + 049b / T036: would the player's active ability ACTUALLY land
+# on `coord` if cast right now? We need three things, all true:
+#   1. coord ∈ ability.target.get_range_hexes (= reachable at all).
+#   2. ability.target.resolve(caster, ctx) != null for the *cursor* coord
+#      (= the cast would commit, not just visually be in range — e.g. the
+#      hex has a valid actor of the right team, not blocked, not out-of-LOS).
+#      This is the same check CastRangeOverlay uses for AC-6 grey-out.
+#   3. coord ∈ ability.area.affected (when area exists; otherwise step 2 is
+#      sufficient — coord is the anchor and we already know it's valid).
+#
+# Without step 2 the tooltip used to surface a player-preview row over
+# blocked / off-team hexes inside the ability's range circle (e.g. ranged
+# damage on an empty grass tile). 049b T036 adds the resolve gate.
+func _coord_in_ability_effect(caster: Actor, ability: Ability, coord: Vector2i) -> bool:
+	if ability == null or ability.target == null:
+		return false
+	var grid: HexGrid = _ctrl.grid
+	var registry: ActorRegistry = _ctrl.registry
+	var caster_coord: Vector2i = grid.get_coord(caster.actor_id)
+	if caster_coord == Vector2i(-1, -1):
+		return false
+	# Step 1: range gate. Cursor must be on a hex the ability can reach.
+	var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, grid)
+	if not (coord in range_hexes):
+		return false
+	# Step 2: validity gate. Mirror CastRangeOverlay's per-hex resolve check
+	# (049 AC-6) — same ctx shape (registry / grid / target_id / target_coord).
+	# actors_node + resolver are only needed at apply-time (CreateEffect),
+	# which we never run here — resolve() is pure inspection.
+	var ctx: Dictionary = {
+		"registry":     registry,
+		"grid":         grid,
+		"target_id":    grid.get_actor_at(coord),
+		"target_coord": coord,
+	}
+	if ability.target.resolve(caster, ctx) == null:
+		return false
+	# Step 3: area expansion. Single-target / null-area abilities terminate
+	# at step 2 — coord is the anchor and it's valid.
+	if ability.area == null:
+		return true
+	var anchor: Vector2i = ability.target.preview_anchor_coord(caster_coord, coord)
+	var affected: Array[Vector2i] = ability.area.get_affected_hexes(caster_coord, anchor, grid)
+	return coord in affected
+
+
+# True if the enemy's planned cast covers `coord` — primary target_coord OR
+# any of the ability's area-affected hexes.
+func _intent_covers_coord(enemy: Actor, ci: CastIntent, skill: Skill, coord: Vector2i) -> bool:
+	var grid: HexGrid = _ctrl.grid
+	# Live target coord — same logic TelegraphRenderer.refresh uses (target
+	# may have moved since intent was set).
+	var primary: Vector2i = ci.target_coord
+	if ci.target_id != &"":
+		var live: Vector2i = grid.get_coord(ci.target_id)
+		if live != Vector2i(-1, -1):
+			primary = live
+	if coord == primary:
+		return true
+	var caster_coord: Vector2i = grid.get_coord(enemy.actor_id)
+	if caster_coord == Vector2i(-1, -1):
+		return false
+	for ab in skill.abilities:
+		var ability := ab as Ability
+		if ability == null or ability.area == null:
+			continue
+		var anchor: Vector2i = primary
+		if ability.target != null:
+			anchor = ability.target.preview_anchor_coord(caster_coord, primary)
+		var affected: Array[Vector2i] = ability.area.get_affected_hexes(caster_coord, anchor, grid)
+		if coord in affected:
+			return true
+	return false
+
+
+# 049 / AC-4 / T019: enemy-details panel binding. Cursor over a live enemy
+# → bind. Anywhere else → unbind. State-guarded so re-hovering the same
+# actor doesn't trip rebinds (which would disconnect/reconnect signals).
+func refresh_enemy_details(target_id: StringName) -> void:
+	var registry: ActorRegistry = _ctrl.registry
+	var panel: Node = get_node_or_null("../../HUD/EnemyDetailsPanel")
+	if panel == null:
+		return
 	var new_id: StringName = &""
-	if hovered_id != &"" and registry != null:
-		var hov: Actor = registry.get_actor(hovered_id)
-		if hov != null and hov.team == &"enemy" and hov.is_alive() and hov.cast_intent != null:
-			new_id = hovered_id
-	if new_id == _hover_intent_actor_id:
-		return  # no transition — current tooltip state is correct
-	_hover_intent_actor_id = new_id
-	var tooltip: Node = get_node_or_null("../../HUD/TooltipPanel")
-	if tooltip == null:
+	if target_id != &"" and registry != null:
+		var hov: Actor = registry.get_actor(target_id)
+		if hov != null and hov.team == &"enemy" and hov.is_alive():
+			new_id = target_id
+	if new_id == _last_enemy_details_id:
 		return
+	_last_enemy_details_id = new_id
 	if new_id == &"":
-		if tooltip.has_method("hide_tooltip"):
-			tooltip.hide_tooltip()
+		if panel.has_method("unbind"):
+			panel.unbind()
 		return
-	# Render: skill id headline + formatted body. SkillFormatter is the same
-	# helper PSP/inspector use — single source of truth, so a buff/CD note
-	# changes everywhere at once.
-	var actor: Actor = registry.get_actor(new_id)
-	var ci: CastIntent = actor.cast_intent as CastIntent
-	if ci == null:
-		return
-	var skill: Skill = SkillDatabase.get_skill(ci.skill_id)
-	if skill == null:
-		return
-	var title: String = "%s → %s" % [String(actor.actor_id), Localization.t(String(skill.name), String(skill.id))]
-	var body: String = SkillFormatter.format_skill(skill)
-	if tooltip.has_method("show_tooltip"):
-		# anchor=null → tooltip places itself near the mouse pointer (see
-		# tooltip_panel.gd::_place_near).
-		tooltip.show_tooltip(null, title, body)
+	if panel.has_method("bind"):
+		panel.bind(registry.get_actor(new_id))

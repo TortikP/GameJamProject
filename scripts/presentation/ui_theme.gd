@@ -190,6 +190,12 @@ const WORLD_TEXT_OUTLINE_COLOR := Color(0, 0, 0, 0.95)
 # but the constant stays — other consumers (e.g. arrow shadows) still reference it.
 const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
 
+# 049 / AC-6 — invalid-target hint color. Used by CastRangeOverlay to dim
+# range hexes that the active ability can't actually land on (no actor /
+# wrong team / blocked). Same desaturated grey-blue as TEXT_FAINT so the
+# "you can't act here" cue is consistent across world overlays and HUD copy.
+const INVALID_TARGET_COLOR := Color("4a7070")
+
 # ── 024-wave-editor — wave timeline visuals ──────────────────
 # Used by scenes/ui/wave_timeline.tscn in both EDIT and RUNTIME modes.
 const WAVE_BAR_BG                   := Color("002830")  # bar trough (= BG_PANEL)
