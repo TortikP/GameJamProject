@@ -13,12 +13,14 @@ extends Node
 ## Don't reach for Color() inline anywhere in scripts/presentation/ — palette comes
 ## through this single file. PRs with inline Color() in UI code get bounced.
 ##
-## --- Spec 047 (retro CRT) ---
-## Palette is amber phosphor on near-black; semantic colors stay distinguishable
-## but desaturated to a CGA-ish range. All `make_*_stylebox` corners are 0,
-## panel drop-shadows removed (CRTs don't drop-shadow). Default font for every
-## Control is Pixellari (pixel bitmap, full Cyrillic) — wired into the default
-## theme + fallback_font in _ready() with anti-aliasing forced off.
+## --- Spec 047 (retro CRT, Win98-teal palette) ---
+## Palette is Win98-teal: dark teal-tinted surfaces, iconic teal borders
+## (#008080), bright cyan accents. Semantic colors (damage red, heal green,
+## buff blue) stay distinguishable — pillar 1 trumps stylistic monochromy.
+## All `make_*_stylebox` corners are 0, panel drop-shadows removed (Win98
+## panels were sharp). Default font for every Control is Pixellari (pixel
+## bitmap, full Cyrillic) — wired into the default theme + fallback_font in
+## _ready() with anti-aliasing forced off.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -32,73 +34,79 @@ const _FONT_PATH := "res://assets/fonts/Pixellari.ttf"
 # ever returns a different concrete subclass for an imported .ttf.
 var _default_font: Font
 
-# ── Surfaces — warm near-black, no pure #000 ─────────────────
-const BG_SCREEN    := Color("0a0807")
-const BG_PANEL     := Color("14100c")
-const BG_PANEL_2   := Color("1c1812")
-const BG_ELEVATED  := Color("241e16")
+# ── Surfaces — dark teal-tinted (Win98 desktop nostalgia) ────
+const BG_SCREEN    := Color("001a1d")
+const BG_PANEL     := Color("002830")
+const BG_PANEL_2   := Color("003a44")
+const BG_ELEVATED  := Color("004d59")
 const OVERLAY      := Color(0, 0, 0, 0.65)
 
-# ── Borders — dim/medium amber, hard 1–2px lines ─────────────
-const BORDER        := Color("5a4622")
-const BORDER_STRONG := Color("8a6e2e")
+# ── Borders — iconic Win98 teal hierarchy ────────────────────
+const BORDER        := Color("008080")  # the actual Win98 desktop teal
+const BORDER_STRONG := Color("00c8c8")  # brighter teal for modals/strong frames
 
-# ── Text — amber phosphor ────────────────────────────────────
-const TEXT           := Color("f5b943")
-const TEXT_DIM       := Color("b58530")
-const TEXT_FAINT     := Color("6a4f1c")
-const TEXT_ON_ACCENT := Color("0a0807")
+# ── Text — cool whites/cyans (high contrast on dark teal) ────
+const TEXT           := Color("d8f0f0")
+const TEXT_DIM       := Color("88b0b0")
+const TEXT_FAINT     := Color("4a7070")
+const TEXT_ON_ACCENT := Color("001a1d")
 
 # ── State ────────────────────────────────────────────────────
-const FOCUS    := Color("ffce5e")
-const DISABLED := Color("3a2f18")
+const FOCUS    := Color("00ffff")  # bright cyan — pops against dark teal
+const DISABLED := Color("2a3a40")
 
 # Slot focus / hover modulation (009/T044+ slot_bar). Pre-baked from FOCUS so
-# slot_bar doesn't recompute Color(focus.r * 1.3, ...) per state change.
-# Active slot when castable: FOCUS amber brightened ×1.3, blue knocked to ×0.5
-# (hue shift toward gold).
-const FOCUS_ACTIVE_CASTABLE := Color(FOCUS.r * 1.3, FOCUS.g * 1.3, FOCUS.b * 0.5, 1.0)
-# Active slot when not castable (out of range / cooldown): FOCUS desaturated.
-const FOCUS_ACTIVE_DISABLED := Color(FOCUS.r,       FOCUS.g,       FOCUS.b * 0.7, 1.0)
+# slot_bar doesn't recompute per state change. Adapted for cyan FOCUS:
+# - CASTABLE: cyan brightened toward white-cyan (was: amber → gold)
+# - DISABLED: cyan darkened (was: amber desaturated)
+const FOCUS_ACTIVE_CASTABLE := Color(FOCUS.r + 0.3, FOCUS.g, FOCUS.b, 1.0)
+const FOCUS_ACTIVE_DISABLED := Color(FOCUS.r * 0.6, FOCUS.g * 0.6, FOCUS.b * 0.6, 1.0)
 # Hover brighten for filled-castable slots and similar interactive elements.
 const HOVER_BRIGHTEN        := Color(1.10, 1.10, 1.10)
 
 # ── Semantic (effect types) ──────────────────────────────────
-# Desaturated CGA-ish palette — keeps pillar 1 distinguishability without
-# fighting the amber UI surround.
-const SEM_DAMAGE  := Color("d04020")
-const SEM_HEAL    := Color("88a040")
-const SEM_CONTROL := Color("8060c0")
-const SEM_BUFF    := Color("4080a0")
-const SEM_DEBUFF  := Color("c08030")
-const SEM_MOVE    := Color("a09080")
-const SEM_CREATE  := Color("806040")
+# Distinguishability is non-negotiable (pillar 1). Hues kept clearly
+# separable on dark-teal panels: red/green/blue/orange/purple. Saturation
+# pulled slightly so they sit in the same era as the teal surrounding,
+# but never dimmed enough to merge into the bg.
+const SEM_DAMAGE  := Color("d04040")
+const SEM_HEAL    := Color("60c080")
+const SEM_CONTROL := Color("a070d0")
+const SEM_BUFF    := Color("6090f0")
+const SEM_DEBUFF  := Color("f0a040")
+const SEM_MOVE    := Color("b0c0c8")
+const SEM_CREATE  := Color("b08060")
 
 # ── Team ─────────────────────────────────────────────────────
-const TEAM_PLAYER  := Color("4080c0")
-const TEAM_ENEMY   := Color("c04040")
-const TEAM_NEUTRAL := Color("806e58")
+# Player blue pushed away from the teal bg (more saturated blue channel)
+# so player vs neutral teal-tinted UI is unambiguous.
+const TEAM_PLAYER  := Color("6090f0")
+const TEAM_ENEMY   := Color("e04040")
+const TEAM_NEUTRAL := Color("809090")
 
 # ── HP bar ───────────────────────────────────────────────────
-# Stays green/amber/red instead of mono-amber: amber HP at low values
-# would camouflage into the ambient amber UI and break pillar 1.
-const HP_FILL    := Color("60a040")
-const HP_LOW     := Color("c08030")
-const HP_CRIT    := Color("c04040")
-const HP_PREVIEW := Color("c04040")
-const HP_BG      := Color("14100c")
+# Stays green/orange/red rather than monochrome teal: teal HP at low
+# values would camouflage into the ambient teal UI and break pillar 1.
+# Greens/oranges/reds also pop the loudest against teal — best possible
+# attention-grabber for an HP-low warning.
+const HP_FILL    := Color("60c080")
+const HP_LOW     := Color("f0a040")
+const HP_CRIT    := Color("e04040")
+const HP_PREVIEW := Color("e04040")
+const HP_BG      := Color("002830")
 const HP_LOW_THRESHOLD  := 0.30
 const HP_CRIT_THRESHOLD := 0.15
 
 # 039-dialogue-triggers: WaveTimeline marker for dialogue trigger anchors (EDIT mode).
-# Muted violet — distinct from amber UI, FOCUS gold, and skill-offer teal.
+# Muted violet — distinct from teal UI, FOCUS cyan, and skill-offer pink.
 const DIALOGUE_TRIGGER_MARKER_COLOR  := Color("b080c0")
 const DIALOGUE_TRIGGER_MARKER_RADIUS := 5.0
 
 # 040-wave-skill-choice: WaveTimeline marker for skill offer anchors (EDIT + RUNTIME).
-# Visible in both modes — players plan around offers, designers see them while editing.
-# Period teal — readable on amber-tinted dark, distinct from violet/yellow.
-const SKILL_OFFER_MARKER_COLOR  := Color("40b8a8")
+# Was teal in amber-palette era — now camouflaged into the new teal UI, so
+# moved to magenta-pink. Distinct from violet trigger markers, distinct from
+# FOCUS bright cyan, distinct from teal panels.
+const SKILL_OFFER_MARKER_COLOR  := Color("e060c0")
 const SKILL_OFFER_MARKER_RADIUS := 6.0
 const SKILL_OFFER_MARKER_GLYPH  := "★"                     # rendered next to the disc
 
@@ -155,17 +163,17 @@ const SHADOW_SOFT_COLOR := Color(0, 0, 0, 0.55)
 
 # ── 024-wave-editor — wave timeline visuals ──────────────────
 # Used by scenes/ui/wave_timeline.tscn in both EDIT and RUNTIME modes.
-const WAVE_BAR_BG                   := Color("14100c")  # bar trough (= BG_PANEL)
+const WAVE_BAR_BG                   := Color("002830")  # bar trough (= BG_PANEL)
 const WAVE_BAR_HEIGHT               := 6.0              # px (drawn line thickness)
-const WAVE_ANCHOR_FILL              := Color("c8b896")  # warm parchment, not bright white
-const WAVE_ANCHOR_PASSED            := Color("5a4622")  # waves before current (= BORDER)
-const WAVE_ANCHOR_CURRENT           := Color("ffce5e")  # active wave (= FOCUS)
-const WAVE_ANCHOR_OUTLINE           := Color("0a0807")  # 1px ring around every disc (= BG_SCREEN)
+const WAVE_ANCHOR_FILL              := Color("c0e0e8")  # cool white-cyan, default anchor
+const WAVE_ANCHOR_PASSED            := Color("008080")  # waves before current (= BORDER teal)
+const WAVE_ANCHOR_CURRENT           := Color("00ffff")  # active wave (= FOCUS bright cyan)
+const WAVE_ANCHOR_OUTLINE           := Color("001a1d")  # 1px ring around every disc (= BG_SCREEN)
 const WAVE_ANCHOR_RADIUS            := 10.0             # px radius for normal anchor
 const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
 const WAVE_NUMBER_FONT_SIZE         := 18
-const WAVE_NUMBER_COLOR             := Color("f5b943")  # turns_to_next digit (= TEXT)
-const WAVE_CURSOR_COLOR             := Color("ffce5e")  # runtime "now" pointer (= FOCUS)
+const WAVE_NUMBER_COLOR             := Color("d8f0f0")  # turns_to_next digit (= TEXT)
+const WAVE_CURSOR_COLOR             := Color("00ffff")  # runtime "now" pointer (= FOCUS)
 const WAVE_CURSOR_HEIGHT            := 22.0             # px tall
 
 # 024 / T83 — wave-diff highlight (new-this-wave overlay in editor).
