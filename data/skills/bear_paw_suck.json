@@ -4,7 +4,7 @@
   "tooltip": "bear_paw_suck_tooltip",
   "desc": "bear_paw_suck_desc",
   "icon": "icons/skills/bear_paw_suck.png",
-  "cooldown": 3,
+  "cooldown": 2,
   "behaviour_tags": [
     "heal",
     "self"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "bear_paw_suck_self_heal",
-      "sound_start": "bear_paw_suck_self_heal/bear_paw_suck_self_heal_start.wav",
+      "sound_start": "bear_paw_suck_self_heal_sound_start",
       "collision_effect": "heal_tranquility",
-      "sound_end": "bear_paw_suck_self_heal/bear_paw_suck_self_heal_end.wav",
+      "sound_end": "bear_paw_suck_self_heal_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "self"
@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "heal": 15
+          "heal": 18
         }
       ]
     }
