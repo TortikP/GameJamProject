@@ -44,7 +44,7 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName, timer: int 
 	glyph_label.add_theme_font_size_override("font_size", 48)
 	glyph_label.add_theme_color_override("font_color", color)
 	glyph_label.add_theme_constant_override("outline_size", 4)
-	glyph_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	glyph_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	glyph_label.position = Vector2(-22, -34)
 	glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(glyph_label)
@@ -54,7 +54,7 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName, timer: int 
 	tag_label.add_theme_font_size_override("font_size", 14)
 	tag_label.add_theme_color_override("font_color", UiTheme.TEXT if "TEXT" in UiTheme else Color.WHITE)
 	tag_label.add_theme_constant_override("outline_size", 3)
-	tag_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	tag_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	tag_label.position = Vector2(-12, 6)
 	tag_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(tag_label)

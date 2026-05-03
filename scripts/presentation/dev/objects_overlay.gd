@@ -146,19 +146,26 @@ func _color_for_object(object_id: StringName) -> Color:
 		return _placeholder_color(object_id)
 	# Tag-driven palette. Order matters: hazard wins over liquid, liquid
 	# beats stone, etc. Tweak per balance feedback.
+	#
+	# 047 architecture note: the three Color() literals below (forest green,
+	# silvery, warm brown) are object-kind glyph identifiers used only by
+	# this dev overlay — they're a separate per-material micro-palette, not
+	# part of the UI surface palette in UiTheme. Keeping them here rather
+	# than introducing UiTheme.MAT_PLANT/METAL/WOOD constants that nothing
+	# else would consume.
 	var tags := obj.tags as Array
 	if "hazard" in tags:
 		return UiTheme.SEM_DAMAGE.lightened(0.1)       # red-orange
 	if "liquid" in tags:
 		return UiTheme.SEM_BUFF                         # cool blue
 	if "wood" in tags or "plant" in tags:
-		return Color("4a7d4a")                          # forest green
+		return Color("4a7d4a")                          # forest green (kind glyph)
 	if "stone" in tags or "construct" in tags:
 		return UiTheme.TEXT_DIM                         # cool grey
 	if "metal" in tags:
-		return Color("9aa3b2").lightened(0.2)           # silvery
+		return Color("9aa3b2").lightened(0.2)           # silvery (kind glyph)
 	if "furniture" in tags:
-		return Color("8a6d3b")                          # warm brown
+		return Color("8a6d3b")                          # warm brown (kind glyph)
 	return _placeholder_color(object_id)
 
 

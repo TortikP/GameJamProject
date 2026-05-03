@@ -28,13 +28,13 @@ visible = false
 [node name="LabelId" type="Label" parent="VBox/ActorSection"]
 layout_mode = 2
 text = "---"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 
 [node name="LabelTeam" type="Label" parent="VBox/ActorSection"]
 layout_mode = 2
 text = "team"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.5333, 0.6902, 0.6902, 1)
 
 [node name="SepHp" type="HSeparator" parent="VBox/ActorSection"]
 layout_mode = 2
@@ -45,7 +45,7 @@ layout_mode = 2
 [node name="LabelMaxHp" type="Label" parent="VBox/ActorSection/RowMaxHp"]
 layout_mode = 2
 text = "HP"
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 
 [node name="SpinCurrHp" type="SpinBox" parent="VBox/ActorSection/RowMaxHp"]
 layout_mode = 2
@@ -67,7 +67,7 @@ layout_mode = 2
 layout_mode = 2
 text = "dmg bonus"
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 
 [node name="SpinDamage" type="SpinBox" parent="VBox/ActorSection/RowDamage"]
 layout_mode = 2
@@ -82,7 +82,7 @@ layout_mode = 2
 layout_mode = 2
 text = "speed"
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 
 [node name="SpinSpeed" type="SpinBox" parent="VBox/ActorSection/RowSpeed"]
 layout_mode = 2
@@ -96,8 +96,8 @@ layout_mode = 2
 [node name="LabelAbilities" type="Label" parent="VBox/ActorSection"]
 layout_mode = 2
 text = "Abilities"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.5333, 0.6902, 0.6902, 1)
 
 [node name="AbilitiesRow" type="HBoxContainer" parent="VBox/ActorSection"]
 layout_mode = 2
@@ -106,8 +106,8 @@ theme_override_constants/separation = 4
 [node name="HintLabel" type="Label" parent="VBox/ActorSection"]
 layout_mode = 2
 text = "ESC = back to player"
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.2902, 0.4392, 0.4392, 1)
 
 [node name="HexSection" type="VBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -120,17 +120,17 @@ layout_mode = 2
 [node name="LabelHexCoord" type="Label" parent="VBox/HexSection"]
 layout_mode = 2
 text = "(0, 0)"
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.5333, 0.6902, 0.6902, 1)
 
 [node name="LabelHexKind" type="Label" parent="VBox/HexSection"]
 layout_mode = 2
 text = "---"
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 
 [node name="LabelHexEffect" type="Label" parent="VBox/HexSection"]
 layout_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.8, 0.6, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.9412, 0.6275, 0.251, 1)
 visible = false
