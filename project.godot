@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="GameJamProject"
+config/name="Polyabsorb"
 config/description="72-hour game jam — turn-based magical arena with spell-crafting via modifiers."
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
@@ -41,13 +41,10 @@ ActiveGame="*res://scripts/infrastructure/active_game.gd"
 CampaignController="*res://scripts/runtime/campaign_controller.gd"
 StoryCampaignDialogue="*res://scripts/runtime/story_campaign_dialogue.gd"
 DummyUpgradeStub="*res://scripts/runtime/_dummy_upgrade_stub.gd"
+CutscenePlayer="*res://scripts/presentation/meta/cutscene_player.gd"
 IntroDirector="*res://scripts/runtime/intro_director.gd"
 FxDirector="*res://scripts/presentation/fx_director.gd"
 CorpseManager="*res://scripts/runtime/corpse_manager.gd"
-
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 
