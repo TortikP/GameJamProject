@@ -3,7 +3,23 @@
 **Owner:** Andrey (UX/integration polish).
 **Status:** Draft → ready to land (две независимые правки, низкий риск).
 
-## Revision 2 (post-review)
+## Revision 3 (post-review)
+
+1. **Player scale возвращён.** `scenes/dev/player.tscn` Body — `scale = Vector2(1.5, 1.5)` восстановлен. Игрок снова рендерится в 1.5× нативного размера player.png. (Native 32×50 → displayed 48×75.)
+2. **Manekin sprite-зависимость удалена.** SpawnerPlaceholder больше не содержит хардкоженного списка `ENEMY_SPRITES` со ссылкой на `manekin.png`. Текстура подгружается динамически по `spawner_ref` через новый static helper `EnemyDataLoader.get_sprite_path(enemy_id)`. Преимущества:
+   - Любой новый enemy в `data/enemies/*.json` автоматически работает в spawner placeholder без правок кода.
+   - `assets/sprites/manekin.png` больше не preload'ится (был импортирован при старте игры просто из-за hardcoded словаря).
+   - `scenes/runtime/spawner_placeholder.tscn` больше не имеет ext_resource на manekin.png (убран и default `texture` на Sprite, и `modulate` baked-value — оба перезаписываются скриптом).
+3. **Darkening через modulate.** Раньше: `Color(1.0, 1.0, 1.0, 0.45)` (полупрозрачный, full-bright). Теперь: `SHADOW_TINT = Color(0.3, 0.3, 0.3, 0.85)` — RGB опущены до 30% (тёмная силуэт-версия), alpha 85% (почти solid). Constant вынесен наверх скрипта для будущего тюнинга.
+
+**Что НЕ затронуто:**
+- `data/enemies/manekin.json` (manekin как enemy_id всё ещё валиден, используется в `data/maps/*.json` и AI behavior сценариях; убрать его — отдельный широкий рефактор за рамками этого спека).
+- `assets/sprites/manekin.png` и `assets/sprites/enemies/manekin.png` — оба остаются на диске (последний всё ещё ссылается из `data/enemies/manekin.json`).
+- Docstring example в `enemy_data_loader.gd` упоминает manekin как пример schema — это документация, не зависимость.
+
+---
+
+
 
 Полный откат sprite-fit. ObjectsOverlay тоже больше не fit'ит — все спрайты (player, enemies, tile-objects, spawner placeholder) рендерятся в нативных размерах. Конкретные правки:
 

@@ -41,7 +41,15 @@
 - [x] **T023** — `scenes/runtime/spawner_placeholder.tscn`: удалить `scale = Vector2(0.09, 0.09)` у Sprite — native размер.
 - [x] **T024** — `scripts/presentation/dev/objects_overlay.gd`: убрать SpriteFit preload + вызов, восстановить `sprite.scale = Vector2(sprite_scale, sprite_scale)`. Удалить helper `_tile_width()`.
 - [x] **T025** — Удалить `scripts/infrastructure/sprite_fit.gd` — нет consumers.
-- [ ] **T026** — Git commit + push.
+- [x] **T026** — Git commit + push.
+
+## Phase G — Revision 3 (post-review)
+
+- [x] **T027** — `scenes/dev/player.tscn`: вернуть `scale = Vector2(1.5, 1.5)` у Body (откат T022).
+- [x] **T028** — `scripts/core/actors/enemy_data_loader.gd`: добавить static helper `get_sprite_path(enemy_id) -> String`. Lightweight reader только поля `sprite` из JSON, без полной apply_to_actor.
+- [x] **T029** — `scripts/presentation/runtime/spawner_placeholder.gd`: удалить `ENEMY_SPRITES` dict + preload `manekin.png`. В `_apply_visuals` resolve sprite через `EnemyDataLoader.get_sprite_path(spawner_ref)`. Применить `SHADOW_TINT = Color(0.3, 0.3, 0.3, 0.85)` через modulate (тёмный силуэт вместо half-transparent ghost).
+- [x] **T030** — `scenes/runtime/spawner_placeholder.tscn`: удалить `ext_resource` на `manekin.png` + дефолтные `texture`/`modulate` на Sprite (script задаёт оба runtime).
+- [ ] **T031** — Git commit + push.
 
 ## Phase D — Smoke (manual, after merge)
 
