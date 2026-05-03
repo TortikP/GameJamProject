@@ -17,3 +17,26 @@
    - shader-flash material всегда восстанавливается на `tw.finished` (no leak)
    - `_telegraph_loops` cleanup на actor death (через sync's diff: actor умер → нет в registry.all() → нет в should_loop → stop)
 - [x] T13 — Commit, push на `egor/skill-fx-system`. Зацепить PR-URL из stderr.
+
+## Addendum: collision_effect registry
+
+- [x] T14 — `assets/shaders/fx/swipe.gdshader` — diagonal swipe band, uniform `angle` для caster→victim direction.
+- [x] T15 — `assets/shaders/fx/impact_ring.gdshader` — radial expanding ring.
+- [x] T16 — `assets/shaders/fx/heal_wave.gdshader` — horizontal wave bottom→top.
+- [x] T17 — `assets/shaders/fx/stream_up.gdshader` — vertical streaks moving up.
+- [x] T18 — `assets/shaders/fx/stream_down.gdshader` — vertical streaks moving down.
+- [x] T19 — `assets/shaders/fx/hex_pulse.gdshader` — pulsing concentric ring on hex tile, transparent outside circle.
+- [x] T20 — `data/fx/collision_effects.json` — registry с 6 default_* entries + `_meta` doc-блок.
+- [x] T21 — `config/game_speed.cfg` — добавить `[fx] hex_effect_size_px=72`.
+- [x] T22 — `scripts/presentation/fx_director.gd`:
+   - `_load_fx_registry()` в `_ready()`
+   - `_resolve_fx_entry(ability)` — direct lookup → auto-fallback → empty-on-load-fail
+   - `_auto_pick_default(ability)` — Create>Heal>Damage>Status>Move
+   - `_play_body_fx`, `_spawn_body_progress_tween`
+   - `_play_hex_fx`, `_spawn_hex_progress_node` через MeshInstance2D + QuadMesh
+   - `_apply_uniforms` — Array→Color/Vector3/Vector2 type-resolution
+   - `_play_legacy_body_fx` — back-compat path при failed registry
+   - `play_collisions` сигнатура `(caster, ability, plan, ctx)` диспетчит body vs hex
+- [x] T23 — `scripts/core/skills/skill.gd` — обновить вызов `play_collisions(caster, ab, plan, ctxs[i])`.
+- [x] T24 — Spec / plan addendum sections с resolution table, AC11-AC18, edit-without-code инструкции.
+- [ ] T25 — Commit, push.

@@ -168,3 +168,78 @@ FxDirector.sync_telegraph_loops(_collect_intent_actors())
 - AI с cast_intent → амбер pulse на враге, исчезает в момент caster anim самого каста.
 - Удар по цели на 1 HP, цель умирает: 2-я ability того же скилла должна skip'нуть FX (нет victims), без краша. Cooldown скилла начисляется (1-я зарезолвилась).
 - Способность без victims на runtime (цель ушла из range) → ability skipped, нет ни flash, ни damage числа. Если все abilities скипнулись → cooldown НЕ начисляется.
+
+---
+
+## Addendum: collision_effect registry
+
+### Sequence (updated)
+
+```
+play_collisions(caster, ability, plan, ctx):
+  if ability.collision_effect == &"":            return       # no-op
+  entry = _resolve_fx_entry(ability)
+  if entry.is_empty():                           # registry not loaded
+      await _play_legacy_body_fx(victims, ability)            # back-compat
+      return
+  if entry.kind == "hex":
+      await _play_hex_fx(create_hexes, grid, entry)
+  else:
+      await _play_body_fx(caster, victims, entry)
+```
+
+### `_resolve_fx_entry(ability)` resolution table
+
+| ability.collision_effect            | _fx_registry result                | Behavior                                  |
+|-------------------------------------|------------------------------------|-------------------------------------------|
+| `&""`                               | n/a (early return)                 | no-op                                     |
+| `default_melee` (direct match)      | swipe entry                        | swipe on victim Body                      |
+| `angel_…/foo.prefab` (no match)     | `_auto_pick_default()` → registry  | fallback shader by effect type            |
+| any                                 | registry not loaded                | `_play_legacy_body_fx` (single-color)     |
+
+### `_auto_pick_default(ability)` priority
+
+```
+CreateEffect  → default_summon
+HealEffect    → default_heal
+DamageEffect  → default_ranged
+StatusEffect  → default_debuff
+MoveEffect    → default_buff
+none of above → default_ranged   (last resort)
+```
+
+### Files (addendum)
+
+**New**:
+- `assets/shaders/fx/swipe.gdshader`
+- `assets/shaders/fx/impact_ring.gdshader`
+- `assets/shaders/fx/heal_wave.gdshader`
+- `assets/shaders/fx/stream_up.gdshader`
+- `assets/shaders/fx/stream_down.gdshader`
+- `assets/shaders/fx/hex_pulse.gdshader`
+- `data/fx/collision_effects.json`
+
+**Modified**:
+- `scripts/presentation/fx_director.gd`:
+  - `_load_fx_registry()` at `_ready`
+  - `_resolve_fx_entry`, `_auto_pick_default`
+  - `_play_body_fx` (registry-driven progress tween) replacing per-effect color flash
+  - `_play_hex_fx` (MeshInstance2D + QuadMesh on grid)
+  - `_apply_uniforms` (JSON values → shader_parameter)
+  - `_play_legacy_body_fx` keeps the old single-color path as ultimate fallback
+- `scripts/core/skills/skill.gd` — `play_collisions` signature `(caster, ability, plan, ctx)`
+- `config/game_speed.cfg` — added `[fx] hex_effect_size_px=72`
+
+### Shader uniform conventions
+
+All registered shaders follow this contract for FxDirector to drive them generically:
+- `progress: float [0, 1]` — required, tweened by FxDirector
+- `angle: float` — set ONLY for entries with `uses_direction: true` (radians, caster→victim)
+- everything else — set once from `entry.uniforms` at material creation, never tweened
+
+### Editing without code changes
+
+- Tweak any uniform value in `data/fx/collision_effects.json` → restart scene (hot-reload not in scope).
+- Edit any `.gdshader` source → Godot recompiles on save.
+- Add a new effect: write `assets/shaders/fx/foo.gdshader`, add `"foo"` entry in JSON, reference from skill JSON `collision_effect: "foo"`.
+- Map effect type to a different default: change auto-pick precedence in `_auto_pick_default` (this IS code, by design — it's the dispatch policy).

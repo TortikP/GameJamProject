@@ -69,3 +69,76 @@ tA+B     : EventBus.ability_cast.emit(...)                            конец
 - **Audio** — `AudioStreamPlayer2D` через `AudioDirector.play_sfx(id, world_pos)`, без пула, временные ноды с `queue_free` после `finished`.
 - **Asset path resolution** — convention: `res://assets/audio/sfx/` + значение из JSON. `animation` / `collision_effect` поля сейчас не резолвятся в путь, только проверяются на `is_empty`.
 - **Telegraph mapping** — берём `skill.abilities[0].animation` как proxy за skill-уровень (Skill сам не имеет поля).
+
+---
+
+## Addendum: collision_effect default shader registry
+
+Расширение того же канала `collision_effect`. Заменяет single-color flash на per-effect шейдеры. Существующая single-color реализация остаётся как ultimate fallback (когда registry не загрузился).
+
+### 6 default-шейдеров
+
+| ID                | Kind | Шейдер                                       | Эффект                                                     |
+|-------------------|------|----------------------------------------------|------------------------------------------------------------|
+| `default_melee`   | body | `assets/shaders/fx/swipe.gdshader`           | Полоса-взмах под углом caster→victim                       |
+| `default_ranged`  | body | `assets/shaders/fx/impact_ring.gdshader`     | Радиальное кольцо от центра спрайта                        |
+| `default_heal`    | body | `assets/shaders/fx/heal_wave.gdshader`       | Горизонтальная волна снизу вверх                           |
+| `default_buff`    | body | `assets/shaders/fx/stream_up.gdshader`       | Вертикальные потоки вверх                                  |
+| `default_debuff`  | body | `assets/shaders/fx/stream_down.gdshader`     | Вертикальные потоки вниз                                   |
+| `default_summon`  | hex  | `assets/shaders/fx/hex_pulse.gdshader`       | Мигающий круг на спавн-тайле (MeshInstance2D + QuadMesh)   |
+
+Все шейдеры — `canvas_item`, единый uniform `progress: float [0,1]` который Tween гонит за `duration_ms`. Цвета, ширины полос, длительности — в `data/fx/collision_effects.json`.
+
+### Editable извне
+
+`data/fx/collision_effects.json` — registry effect_id → `{shader, kind, duration_ms, uses_direction, uniforms}`. Stasyan/тех.дизайнер может править цвета и длительности без кода.
+
+`uniforms` — словарь `name → value`:
+- 4-element array → `Color`
+- 3-element array → `Vector3`
+- 2-element array → `Vector2`
+- scalar → `float` / `int`
+
+Сами .gdshader тоже редактируются (Godot пересобирает на сохранении).
+
+### Resolution flow для `ability.collision_effect`
+
+1. **Empty (`&""`)** → no-op, no delay (текущее поведение, сохранено)
+2. **Direct hit** в registry (например, `&"default_melee"`) → используется зарегистрированный шейдер
+3. **Miss** (текущие 55 JSON ссылаются на нерезолвимые `.prefab` стабы) → auto-pick `default_*` по первому effect-type:
+   - `CreateEffect` → `default_summon`
+   - `HealEffect` → `default_heal`
+   - `DamageEffect` → `default_ranged`
+   - `StatusEffect` → `default_debuff`
+   - `MoveEffect` → `default_buff`
+4. **Registry не загрузился вообще** → legacy single-color flash (back-compat, не регрессия)
+
+Auto-pick использует priority order Create>Heal>Damage>Status>Move. Damage > Status: для способности «нанеси урон + наложи burn» visceral красный flash важнее чем жёлтый status-tint. Create > всё: иначе summon-only ability рендерил бы body-flash на пустом списке victims = тишина.
+
+### Hex-mode дispatch
+
+Когда `entry.kind == "hex"`:
+- читается `plan.create_hexes` (заполняется в `Ability.resolve` при `has_create=true`)
+- для каждого hex'а: `MeshInstance2D` + `QuadMesh` размером `[fx] hex_effect_size_px=72`, `position = grid.tile_map_layer.map_to_local(coord)`, `z_index=4` (выше TelegraphHex.z=3, ниже акторов)
+- shader без `texture(TEXTURE,UV)` — рисует прямо, прозрачный фон для bbox
+- `queue_free` на `tween.finished`
+
+Если способность без CreateEffect, но с явным `collision_effect: default_summon` в JSON — `create_hexes` пустой, hex_fx no-op'ит. Документировано как known limitation: kind:hex имеет смысл только для CreateEffect-абилок.
+
+### Acceptance criteria addendum
+
+- **AC11**: Шейдеры default_melee/ranged/heal/buff/debuff корректно проигрываются на `victim.Body` Sprite2D.
+- **AC12**: default_summon рендерится на coord'е каждого `create_hexes` через MeshInstance2D, не на victim'ах.
+- **AC13**: `data/fx/collision_effects.json` поправили (например `stripe_color`) → следующий каст использует новые значения. Reload кеша происходит на старте сцены.
+- **AC14**: `ability.collision_effect = &"default_melee"` явно в JSON → используется swipe независимо от effect type. Override работает.
+- **AC15**: `collision_effect` с нерезолвимым значением (текущие 55 JSON) → fallback по effect type. Все способности рендерят что-то осмысленное.
+- **AC16**: Удалили `data/fx/collision_effects.json` → fallback на legacy single-color flash, не краш.
+- **AC17**: `default_melee` использует direction caster→victim — попадание в восток vs запад выглядит зеркально.
+- **AC18**: Hex effect не сужает квад до круга через scale — рисует прозрачным за пределами круга в шейдере. Bbox 72×72 невидим вне эффекта.
+
+### Out of scope (addendum)
+
+- Knockback shader, dispel shader, dot shader — паттерны заложены, имплементить когда понадобятся.
+- Per-status custom collision_effect (burn vs freeze разные visuals) — пока всё `default_debuff`.
+- Combined-effect rendering (damage flash AND summon ring одновременно для hybrid способностей) — channel один, пока выбираем top-priority.
+- F5 hot-reload `collision_effects.json` — registry грузится на `_ready` один раз. Hot-reload через рестарт сцены или добавить в `GameSpeed._unhandled_input` отдельным callback'ом.

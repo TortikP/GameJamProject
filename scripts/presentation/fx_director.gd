@@ -10,13 +10,23 @@ extends Node
 ##   t0       — play_cast(caster, ability)
 ##              ↳ AudioDirector.play_sfx(sound_start, caster_pos)  fire-and-forget
 ##              ↳ caster.Body shader-flash (white)                 awaitable
-##   tA       — play_collisions(victims, ability)
-##              ↳ each victim.Body shader-flash in parallel        awaitable
+##   tA       — play_collisions(caster, ability, plan, ctx)
+##              ↳ shader from data/fx/collision_effects.json registry  awaitable
 ##   tA+B     — apply_resolved (effects emit damage_dealt / heal_done here)
 ##   tA+B     — play_sound_end(primary_pos, ability)               fire-and-forget
 ##
 ## All channels are individually null-safe: empty StringName → no-op, no delay.
 ## A fully-empty ability collapses to synchronous apply (back-compat).
+##
+## collision_effect resolution (047 addendum):
+##   1. ability.collision_effect lookup in _fx_registry
+##   2. miss → auto-pick default_<type> by first-effect priority:
+##      Create > Heal > Damage > Status > Move
+##   3. registry empty / load failed → legacy single-color flash on Body
+##      (preserves no-asset bootstrap behavior)
+## Registry kind dispatch:
+##   "body" — ShaderMaterial on each victim's Body Sprite2D, parallel
+##   "hex"  — MeshInstance2D + QuadMesh per create_hex on the grid
 ##
 ## Telegraph mode: an AI actor with a non-null cast_intent gets a looping amber
 ## pulse on its Body. Driven from telegraph_renderer.refresh() via
@@ -25,8 +35,11 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const FLASH_SHADER: Shader = preload("res://assets/shaders/flash.gdshader")
+const FX_REGISTRY_PATH := "res://data/fx/collision_effects.json"
 
-# Color table — see specs/047-skill-fx-system/plan.md §"Color table".
+# Color table — used ONLY for caster anim, telegraph loop, and the legacy
+# fallback when the registry failed to load. Per-effect victim colors live
+# in the registry now (data/fx/collision_effects.json).
 const COLOR_CASTER: Color           = Color(1.0, 1.0, 1.0)
 const COLOR_TELEGRAPH: Color        = Color(1.0, 0.7, 0.2)
 const COLOR_DAMAGE: Color           = Color(1.0, 0.3, 0.3)
@@ -38,9 +51,55 @@ const COLOR_CREATE: Color           = Color(0.85, 0.5, 1.0)
 # StringName actor_id -> {tween: Tween, body: Sprite2D, prev_material: Material}
 var _telegraph_loops: Dictionary = {}
 
+# StringName effect_id -> {shader: Shader, kind: String, duration_ms: int,
+#                          uses_direction: bool, uniforms: Dictionary}
+# Loaded once at _ready from FX_REGISTRY_PATH. Empty if load failed —
+# play_collisions falls through to legacy single-color flash in that case.
+var _fx_registry: Dictionary = {}
+
 
 func _ready() -> void:
-	GameLogger.info("FxDirector", "ready")
+	_load_fx_registry()
+	GameLogger.info("FxDirector", "ready (fx entries: %d)" % _fx_registry.size())
+
+
+func _load_fx_registry() -> void:
+	if not FileAccess.file_exists(FX_REGISTRY_PATH):
+		GameLogger.warn("FxDirector", "registry missing: %s — falling back to legacy flash" % FX_REGISTRY_PATH)
+		return
+	var f: FileAccess = FileAccess.open(FX_REGISTRY_PATH, FileAccess.READ)
+	if f == null:
+		GameLogger.warn("FxDirector", "registry open failed: %s" % FX_REGISTRY_PATH)
+		return
+	var text: String = f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	if not (parsed is Dictionary):
+		GameLogger.warn("FxDirector", "registry not a dict: %s" % FX_REGISTRY_PATH)
+		return
+	var d: Dictionary = parsed
+	for k in d.keys():
+		if String(k).begins_with("_"):
+			continue   # _meta and similar — comments, not entries
+		var entry: Variant = d[k]
+		if not (entry is Dictionary):
+			continue
+		var entry_d: Dictionary = entry
+		var shader_path: String = String(entry_d.get("shader", ""))
+		if shader_path == "" or not ResourceLoader.exists(shader_path):
+			GameLogger.warn("FxDirector", "fx '%s': missing shader %s" % [k, shader_path])
+			continue
+		var shader: Shader = load(shader_path) as Shader
+		if shader == null:
+			GameLogger.warn("FxDirector", "fx '%s': failed to load shader" % k)
+			continue
+		_fx_registry[StringName(k)] = {
+			"shader": shader,
+			"kind": String(entry_d.get("kind", "body")),
+			"duration_ms": int(entry_d.get("duration_ms", 200)),
+			"uses_direction": bool(entry_d.get("uses_direction", false)),
+			"uniforms": entry_d.get("uniforms", {}),
+		}
 
 
 # ── Public coroutines (called from Skill.cast) ───────────────────────────────
@@ -68,36 +127,27 @@ func play_cast(caster: Actor, ability: Ability) -> void:
 	await _flash_tween(body, COLOR_CASTER, dur_s)
 
 
-## Plays collision flashes on all victims in parallel. Awaits the duration
-## once — all flashes run independently and finish around the same moment.
-func play_collisions(victims: Array, ability: Ability) -> void:
-	if ability == null:
+## 047 addendum: dispatches to registry-resolved shader (body or hex kind).
+## Falls back to legacy single-color flash when registry not loaded.
+##
+##   caster   — for swipe direction in body kind (uses_direction=true)
+##   ability  — channel id source (collision_effect)
+##   plan     — Ability.resolve output: uses "victims" (body) and "create_hexes" (hex)
+##   ctx      — passes through "grid" for hex-mode local-pos lookup
+func play_collisions(caster: Actor, ability: Ability, plan: Dictionary, ctx: Dictionary) -> void:
+	if ability == null or ability.collision_effect == &"":
 		return
-	if ability.collision_effect == &"":
+	var entry: Dictionary = _resolve_fx_entry(ability)
+	if entry.is_empty():
+		# Registry not loaded → keep the pre-addendum behavior (legacy flash).
+		await _play_legacy_body_fx(plan.get("victims", []), ability)
 		return
-	if victims.is_empty():
-		return
-	var dur_ms: int = int(GameSpeed.get_value("fx", "collision_effect_ms", 140))
-	var dur_s: float = float(dur_ms) / 1000.0
-	var color: Color = _victim_flash_color(ability)
-	var any_started: bool = false
-	for v in victims:
-		if not (v is Actor):
-			continue
-		var actor: Actor = v
-		if not actor.is_alive():
-			# Dead victim shouldn't visually flash — apply_resolved already
-			# guards via requires_alive_target on relevant effects.
-			continue
-		var body: Sprite2D = actor.get_node_or_null("Body") as Sprite2D
-		if body == null:
-			continue
-		_flash_tween_no_wait(body, color, dur_s)
-		any_started = true
-	if not any_started:
-		return
-	# Single barrier wait — parallel flashes converge on this duration.
-	await get_tree().create_timer(dur_s).timeout
+	var kind: String = entry.get("kind", "body")
+	if kind == "hex":
+		var grid: Node = ctx.get("grid")
+		await _play_hex_fx(plan.get("create_hexes", []), grid, entry)
+	else:
+		await _play_body_fx(caster, plan.get("victims", []), entry)
 
 
 ## Fire-and-forget end-of-cast SFX cue at primary impact position.
@@ -163,6 +213,195 @@ func stop_telegraph_loop(actor_id: StringName) -> void:
 
 
 # ── Internals ────────────────────────────────────────────────────────────────
+
+# ── Collision FX dispatch (047 addendum) ─────────────────────────────────────
+
+## Picks the registry entry to use for this ability's collision_effect.
+## Returns {} if registry isn't loaded → caller falls back to legacy flash.
+func _resolve_fx_entry(ability: Ability) -> Dictionary:
+	if _fx_registry.is_empty():
+		return {}
+	# 1. Direct hit on the channel value.
+	if _fx_registry.has(ability.collision_effect):
+		return _fx_registry[ability.collision_effect]
+	# 2. Auto-fallback by effect type.
+	var fallback_id: StringName = _auto_pick_default(ability)
+	if fallback_id != &"" and _fx_registry.has(fallback_id):
+		return _fx_registry[fallback_id]
+	return {}
+
+
+## Auto-pick precedence: Create > Heal > Damage > Status > Move. Damage outranks
+## Status because a damage flash is more visceral feedback than a status tint
+## even on a "deal damage and apply burn" combined ability. Create takes top
+## priority because it's the only one needing hex-mode dispatch — wrong fallback
+## here would render a body flash on victims that don't exist for a pure summon.
+func _auto_pick_default(ability: Ability) -> StringName:
+	if ability == null or ability.effects.is_empty():
+		return &"default_ranged"
+	for eff in ability.effects:
+		if eff is CreateEffect:
+			return &"default_summon"
+	for eff in ability.effects:
+		if eff is HealEffect:
+			return &"default_heal"
+	for eff in ability.effects:
+		if eff is DamageEffect:
+			return &"default_ranged"
+	for eff in ability.effects:
+		if eff is StatusEffect:
+			return &"default_debuff"
+	for eff in ability.effects:
+		if eff is MoveEffect:
+			return &"default_buff"
+	return &"default_ranged"
+
+
+## body kind: ShaderMaterial on each victim's Body Sprite2D, parallel.
+## Awaits a single barrier — all per-victim tweens converge on this duration.
+func _play_body_fx(caster: Actor, victims: Array, entry: Dictionary) -> void:
+	if victims.is_empty():
+		return
+	var dur_s: float = float(entry.get("duration_ms", 200)) / 1000.0
+	var any_started: bool = false
+	for v in victims:
+		if not (v is Actor):
+			continue
+		var actor: Actor = v
+		if not actor.is_alive():
+			continue
+		var body: Sprite2D = actor.get_node_or_null("Body") as Sprite2D
+		if body == null:
+			continue
+		_spawn_body_progress_tween(caster, actor, body, entry, dur_s)
+		any_started = true
+	if not any_started:
+		return
+	await get_tree().create_timer(dur_s).timeout
+
+
+func _spawn_body_progress_tween(
+		caster: Actor, victim: Actor, body: Sprite2D,
+		entry: Dictionary, dur_s: float
+	) -> void:
+	var prev_material: Material = body.material
+	var mat: ShaderMaterial = ShaderMaterial.new()
+	mat.shader = entry.get("shader") as Shader
+	_apply_uniforms(mat, entry.get("uniforms", {}))
+	# Direction uniform set per-victim from caster→victim vector. Without
+	# uses_direction, swipe-style shaders just default to angle=0 (horizontal).
+	if bool(entry.get("uses_direction", false)) and caster != null:
+		var dx: float = victim.global_position.x - caster.global_position.x
+		var dy: float = victim.global_position.y - caster.global_position.y
+		mat.set_shader_parameter("angle", atan2(dy, dx))
+	mat.set_shader_parameter("progress", 0.0)
+	body.material = mat
+	var tw: Tween = create_tween()
+	tw.tween_property(mat, "shader_parameter/progress", 1.0, dur_s)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(body):
+			body.material = prev_material
+	)
+
+
+## hex kind: spawn a MeshInstance2D + QuadMesh at each create_hex world pos,
+## tween its progress 0→1, free on completion. The hex_pulse shader paints
+## directly without sampling TEXTURE so the mesh needs no texture binding.
+func _play_hex_fx(create_hexes: Array, grid: Node, entry: Dictionary) -> void:
+	if create_hexes.is_empty() or grid == null:
+		return
+	var tile_layer: TileMapLayer = grid.get("tile_map_layer") as TileMapLayer
+	if tile_layer == null:
+		GameLogger.warn("FxDirector", "hex fx: grid.tile_map_layer null")
+		return
+	var dur_s: float = float(entry.get("duration_ms", 600)) / 1000.0
+	var size_px: float = float(GameSpeed.get_value("fx", "hex_effect_size_px", 72))
+	var any_started: bool = false
+	for hex_v in create_hexes:
+		if not (hex_v is Vector2i):
+			continue
+		var hex_coord: Vector2i = hex_v
+		var local_pos: Vector2 = tile_layer.map_to_local(hex_coord)
+		_spawn_hex_progress_node(grid, local_pos, entry, dur_s, size_px)
+		any_started = true
+	if not any_started:
+		return
+	await get_tree().create_timer(dur_s).timeout
+
+
+func _spawn_hex_progress_node(
+		parent: Node, local_pos: Vector2, entry: Dictionary,
+		dur_s: float, size_px: float
+	) -> void:
+	var mi: MeshInstance2D = MeshInstance2D.new()
+	var quad: QuadMesh = QuadMesh.new()
+	quad.size = Vector2(size_px, size_px)
+	mi.mesh = quad
+	var mat: ShaderMaterial = ShaderMaterial.new()
+	mat.shader = entry.get("shader") as Shader
+	_apply_uniforms(mat, entry.get("uniforms", {}))
+	mat.set_shader_parameter("progress", 0.0)
+	mi.material = mat
+	mi.position = local_pos
+	# Above tilemap (z=0) and telegraph_hex (z=3), below actors (typically
+	# higher). Just enough to read on top of overlays without occluding play.
+	mi.z_index = 4
+	parent.add_child(mi)
+	var tw: Tween = create_tween()
+	tw.tween_property(mat, "shader_parameter/progress", 1.0, dur_s)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(mi):
+			mi.queue_free()
+	)
+
+
+## Set shader uniforms from a JSON-shaped Dictionary. Arrays-of-floats become
+## the matching Color/Vector3/Vector2 type so shaders' source_color and vec
+## uniforms get the right Variant kind.
+func _apply_uniforms(mat: ShaderMaterial, uniforms: Variant) -> void:
+	if not (uniforms is Dictionary):
+		return
+	for k in (uniforms as Dictionary).keys():
+		var v: Variant = (uniforms as Dictionary)[k]
+		if v is Array:
+			var arr: Array = v
+			match arr.size():
+				4: mat.set_shader_parameter(k, Color(arr[0], arr[1], arr[2], arr[3]))
+				3: mat.set_shader_parameter(k, Vector3(arr[0], arr[1], arr[2]))
+				2: mat.set_shader_parameter(k, Vector2(arr[0], arr[1]))
+				_: mat.set_shader_parameter(k, v)
+		else:
+			mat.set_shader_parameter(k, v)
+
+
+## Legacy single-color flash — fallback path used only when the registry
+## failed to load (no JSON at FX_REGISTRY_PATH or parse error). Preserves
+## pre-addendum behavior so a missing data file degrades to "everything
+## still flashes, just generic" instead of silent no-fx.
+func _play_legacy_body_fx(victims: Array, ability: Ability) -> void:
+	if victims.is_empty():
+		return
+	var dur_ms: int = int(GameSpeed.get_value("fx", "collision_effect_ms", 140))
+	var dur_s: float = float(dur_ms) / 1000.0
+	var color: Color = _victim_flash_color(ability)
+	var any_started: bool = false
+	for v in victims:
+		if not (v is Actor):
+			continue
+		var actor: Actor = v
+		if not actor.is_alive():
+			continue
+		var body: Sprite2D = actor.get_node_or_null("Body") as Sprite2D
+		if body == null:
+			continue
+		_flash_tween_no_wait(body, color, dur_s)
+		any_started = true
+	if not any_started:
+		return
+	await get_tree().create_timer(dur_s).timeout
+
+
+# ── Telegraph + caster-anim internals ────────────────────────────────────────
 
 func _start_telegraph_loop(actor: Actor) -> void:
 	if actor == null:

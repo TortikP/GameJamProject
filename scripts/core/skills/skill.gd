@@ -129,12 +129,13 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		EventBus.ability_cast_started.emit(caster.actor_id, ab.id, victim_ids)
 
 		# 047: FX phase — sound_start + caster anim (parallel inside play_cast),
-		# then collision flashes on victims. fx is duck-typed Object so core
-		# stays free of presentation imports — null-safe for non-FX call sites
-		# (tests, headless, AI without a visible scene).
+		# then collision shader on victims (or hex pulse on summon coords —
+		# play_collisions dispatches by registry kind). fx is duck-typed Object
+		# so core stays free of presentation imports — null-safe for non-FX
+		# call sites (tests, headless, AI without a visible scene).
 		if fx != null:
 			await fx.play_cast(caster, ab)
-			await fx.play_collisions(plan.get("victims", []), ab)
+			await fx.play_collisions(caster, ab, plan, ctxs[i])
 
 		# 047: apply phase — effects run AFTER visuals. damage_dealt / heal_done
 		# emit from inside DamageEffect.apply / HealEffect.apply, so floating
