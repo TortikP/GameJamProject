@@ -2,12 +2,12 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://dxwhlcbv01pa5"
+uid="uid://cqh0yok4oelp1"
 path="res://.godot/imported/mushroom_boar_spores_stun_area_sound start.wav-97bd0b6d8fba8e213587721439489411.sample"
 
 [deps]
 
-source_file="res://assets/audio/sfx/abilitys/mushroom_boar_spores_stun_area/mushroom_boar_spores_stun_area_sound_start.wav"
+source_file="res://assets/audio/sfx/abilitys/mushroom_boar_spores_stun_area/mushroom_boar_spores_stun_area_sound start.wav"
 dest_files=["res://.godot/imported/mushroom_boar_spores_stun_area_sound start.wav-97bd0b6d8fba8e213587721439489411.sample"]
 
 [params]

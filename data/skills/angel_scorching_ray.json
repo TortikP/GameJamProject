@@ -6,7 +6,7 @@
   "icon": "icons/skills/angel_scorching_ray.png",
   "cooldown": 3,
   "behaviour_tags": [
-    "ranged",
+	"ranged",
     "damage"
   ],
   "mood": [
@@ -14,25 +14,25 @@
   ],
   "level": 0,
   "abilities": [
-    {
-      "id": "angel_scorching_ray_scorching",
-      "sound_start": "angel_scorching_ray_scorching_sound_start",
-      "collision_effect": "ranged_ascended",
-      "sound_end": "angel_scorching_ray_scorching_sound_end",
-      "animation": "cast_ascended",
-      "target": {
-        "kind": "actor",
-        "range": 4
-      },
-      "area": {
-        "kind": "chain",
-        "max_chain_length": 2
-      },
-      "effects": [
-        {
-          "status_id": "burning(2,6,3)"
-        }
-      ]
-    }
+	{
+	  "id": "angel_scorching_ray_scorching",
+	  "sound_start": "angel_scorching_ray_scorching_sound_start",
+	  "collision_effect": "ranged_ascended",
+	  "sound_end": "angel_scorching_ray_scorching_sound_end",
+	  "animation": "cast_ascended",
+	  "target": {
+		"kind": "actor",
+		"range": 4
+	  },
+	  "area": {
+		"kind": "chain",
+		"max_chain_length": 2
+	  },
+	  "effects": [
+		{
+		  "status_id": "burning(2,6,3)"
+		}
+	  ]
+	}
   ]
 }

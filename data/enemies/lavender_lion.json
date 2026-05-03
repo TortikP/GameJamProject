@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 4,
   "skills": [
-    "lavender_lion_roar",
-    "lavender_lion_bite",
+	"lavender_lion_roar",
+	"lavender_lion_bite",
     "lavender_lion_scare"
   ],
   "behavior_id": "default_melee",

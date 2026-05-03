@@ -6,8 +6,8 @@
   "icon": "icons/skills/default_heal.png",
   "cooldown": 3,
   "behaviour_tags": [
-    "self",
-    "buff",
+	"self",
+	"buff",
     "heal"
   ],
   "mood": [
@@ -15,24 +15,24 @@
   ],
   "level": 0,
   "abilities": [
-    {
-      "id": "default_heal_self",
-      "sound_start": "default_heal_self_sound_start",
-      "collision_effect": "heal_neutral",
-      "sound_end": "default_heal_self_sound_end",
-      "animation": "cast_neutral",
-      "target": {
-        "kind": "self"
-      },
-      "area": {
-        "kind": "self"
-      },
-      "effects": [
-        {
-          "heal": 18,
-          "status_id": "strong(2,5,2)"
-        }
-      ]
-    }
+	{
+	  "id": "default_heal_self",
+	  "sound_start": "default_heal_self_sound_start",
+	  "collision_effect": "heal_neutral",
+	  "sound_end": "default_heal_self_sound_end",
+	  "animation": "cast_neutral",
+	  "target": {
+		"kind": "self"
+	  },
+	  "area": {
+		"kind": "self"
+	  },
+	  "effects": [
+		{
+		  "heal": 18,
+		  "status_id": "strong(2,5,2)"
+		}
+	  ]
+	}
   ]
 }

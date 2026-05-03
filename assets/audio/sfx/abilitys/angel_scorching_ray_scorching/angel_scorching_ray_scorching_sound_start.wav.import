@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://pren6suak1t"
-path="res://.godot/imported/angel_scorching_ray_scorching_sound.wav-e4f9dbf5354464cd633cf46460066eb5.sample"
+path="res://.godot/imported/angel_scorching_ray_scorching_sound_start.wav-f6ebb839a3bb442fa381305e67e23f7f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/abilitys/angel_scorching_ray_scorching/angel_scorching_ray_scorching_sound_start.wav"
-dest_files=["res://.godot/imported/angel_scorching_ray_scorching_sound.wav-e4f9dbf5354464cd633cf46460066eb5.sample"]
+dest_files=["res://.godot/imported/angel_scorching_ray_scorching_sound_start.wav-f6ebb839a3bb442fa381305e67e23f7f.sample"]
 
 [params]
 

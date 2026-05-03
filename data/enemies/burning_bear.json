@@ -7,9 +7,9 @@
   "team": "enemy",
   "speed": 4,
   "skills": [
-    "burning_bear_tire_throw",
-    "burning_bear_burning_claw",
-    "burning_bear_summon_bear",
+	"burning_bear_tire_throw",
+	"burning_bear_burning_claw",
+	"burning_bear_summon_bear",
     "burning_bear_hellshake"
   ],
   "behavior_id": "default_ranged",

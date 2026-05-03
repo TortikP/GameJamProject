@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 4,
   "skills": [
-    "mushroom_boar_tusk_attack",
-    "mushroom_boar_spores",
+	"mushroom_boar_tusk_attack",
+	"mushroom_boar_spores",
     "mushroom_boar_weaken"
   ],
   "behavior_id": "default_melee",

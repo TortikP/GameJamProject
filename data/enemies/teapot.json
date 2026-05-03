@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 1,
   "skills": [
-    "teapot_low_possibility",
-    "teapot_spill_the_t",
+	"teapot_low_possibility",
+	"teapot_spill_the_t",
     "teapot_tea_gathering"
   ],
   "behavior_id": "default_caster",

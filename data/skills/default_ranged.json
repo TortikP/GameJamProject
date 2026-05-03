@@ -6,8 +6,8 @@
   "icon": "icons/skills/default_ranged.png",
   "cooldown": 3,
   "behaviour_tags": [
-    "ranged",
-    "damage",
+	"ranged",
+	"damage",
     "debuff"
   ],
   "mood": [
@@ -15,26 +15,26 @@
   ],
   "level": 0,
   "abilities": [
-    {
-      "id": "default_ranged_damage",
-      "sound_start": "default_ranged_damage_sound_start",
-      "collision_effect": "ranged_neutral",
-      "sound_end": "default_ranged_damage_sound_end",
-      "animation": "cast_neutral",
-      "target": {
-        "kind": "hex",
-        "range": 4
-      },
-      "area": {
-        "kind": "zone_circle",
-        "radius": 1
-      },
-      "effects": [
-        {
-          "damage": 16,
-          "status_id": "weak(2,5,2)"
-        }
-      ]
-    }
+	{
+	  "id": "default_ranged_damage",
+	  "sound_start": "default_ranged_damage_sound_start",
+	  "collision_effect": "ranged_neutral",
+	  "sound_end": "default_ranged_damage_sound_end",
+	  "animation": "cast_neutral",
+	  "target": {
+		"kind": "hex",
+		"range": 4
+	  },
+	  "area": {
+		"kind": "zone_circle",
+		"radius": 1
+	  },
+	  "effects": [
+		{
+		  "damage": 16,
+		  "status_id": "weak(2,5,2)"
+		}
+	  ]
+	}
   ]
 }

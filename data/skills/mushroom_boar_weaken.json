@@ -6,7 +6,7 @@
   "icon": "icons/skills/mushroom_boar_weaken.png",
   "cooldown": 3,
   "behaviour_tags": [
-    "ranged",
+	"ranged",
     "debuff"
   ],
   "mood": [
@@ -14,25 +14,25 @@
   ],
   "level": 0,
   "abilities": [
-    {
-      "id": "mushroom_boar_weaken_debuff_attack_ranged",
-      "sound_start": "mushroom_boar_weaken_debuff_attack_ranged_sound_start",
-      "collision_effect": "debuff_tranquility",
-      "sound_end": "mushroom_boar_weaken_debuff_attack_ranged_sound_end",
-      "animation": "cast_tranquility",
-      "target": {
-        "kind": "actor",
-        "range": 4
-      },
-      "area": {
-        "kind": "chain",
-        "max_chain_length": 1
-      },
-      "effects": [
-        {
-          "status_id": "weak(2,8,3)"
-        }
-      ]
-    }
+	{
+	  "id": "mushroom_boar_weaken_debuff_attack_ranged",
+	  "sound_start": "mushroom_boar_weaken_debuff_attack_ranged_sound_start",
+	  "collision_effect": "debuff_tranquility",
+	  "sound_end": "mushroom_boar_weaken_debuff_attack_ranged_sound_end",
+	  "animation": "cast_tranquility",
+	  "target": {
+		"kind": "actor",
+		"range": 4
+	  },
+	  "area": {
+		"kind": "chain",
+		"max_chain_length": 1
+	  },
+	  "effects": [
+		{
+		  "status_id": "weak(2,8,3)"
+		}
+	  ]
+	}
   ]
 }

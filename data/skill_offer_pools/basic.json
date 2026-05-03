@@ -2,13 +2,13 @@
   "id": "basic",
   "label_key": "skill_offer.pool.basic.name",
   "skills": [
-    "bear_ball_throw",
-    "bush_berry_throw",
-    "bee_honey_cold",
-    "mushroom_boar_spores",
-    "bee_summon_bee",
-    "mushroom_boar_weaken",
-    "bush_nice_smell",
+	"bear_ball_throw",
+	"bush_berry_throw",
+	"bee_honey_cold",
+	"mushroom_boar_spores",
+	"bee_summon_bee",
+	"mushroom_boar_weaken",
+	"bush_nice_smell",
     "bee_sting"
   ],
   "tags": ["starter"]

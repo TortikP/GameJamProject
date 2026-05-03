@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://dfk887gqyetdh"
-path="res://.godot/imported/monkey_business_damage_start_sound.wav-3ee58250a7ad32a9f32c29955e01afd7.sample"
+path="res://.godot/imported/monkey_business_damage_sound_start.wav-f5d5d1e1bf086d20cfd4a96d8d782a1c.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/abilitys/monkey_business_damage/monkey_business_damage_sound_start.wav"
-dest_files=["res://.godot/imported/monkey_business_damage_start_sound.wav-3ee58250a7ad32a9f32c29955e01afd7.sample"]
+dest_files=["res://.godot/imported/monkey_business_damage_sound_start.wav-f5d5d1e1bf086d20cfd4a96d8d782a1c.sample"]
 
 [params]
 

@@ -1,65 +1,65 @@
 {
   "_meta": {
-    "doc": "Debuff / negative-status context — vertical streaks flowing downward on victim.Body. stream_down.gdshader paints bands moving down (drain / decay). Mood-tuned: tranquility = cold sapping cyan, ascended = falling judgment gold, burnout = burning decay red, neutral = white reference.",
-    "kind": "body",
-    "shader": "res://assets/shaders/fx/stream_down.gdshader",
-    "uniforms": {
-      "stream_color": "RGBA tint",
-      "band_count": "number of vertical bands [2, 12]",
-      "segment_count": "vertical pulse density [4, 24]",
-      "fade_origin": "vertical position of brightest origin [0, 1]"
-    }
+	"doc": "Debuff / negative-status context — vertical streaks flowing downward on victim.Body. stream_down.gdshader paints bands moving down (drain / decay). Mood-tuned: tranquility = cold sapping cyan, ascended = falling judgment gold, burnout = burning decay red, neutral = white reference.",
+	"kind": "body",
+	"shader": "res://assets/shaders/fx/stream_down.gdshader",
+	"uniforms": {
+	  "stream_color": "RGBA tint",
+	  "band_count": "number of vertical bands [2, 12]",
+	  "segment_count": "vertical pulse density [4, 24]",
+	  "fade_origin": "vertical position of brightest origin [0, 1]"
+	}
   },
 
   "debuff_neutral": {
-    "shader": "res://assets/shaders/fx/stream_down.gdshader",
-    "kind": "body",
-    "duration_ms": 360,
-    "uses_direction": false,
-    "uniforms": {
-      "stream_color": [0.85, 0.85, 0.85, 1.0],
-      "band_count": 5.0,
-      "segment_count": 12.0,
-      "fade_origin": 0.7
-    }
+	"shader": "res://assets/shaders/fx/stream_down.gdshader",
+	"kind": "body",
+	"duration_ms": 360,
+	"uses_direction": false,
+	"uniforms": {
+	  "stream_color": [0.85, 0.85, 0.85, 1.0],
+	  "band_count": 5.0,
+	  "segment_count": 12.0,
+	  "fade_origin": 0.7
+	}
   },
 
   "debuff_tranquility": {
-    "shader": "res://assets/shaders/fx/stream_down.gdshader",
-    "kind": "body",
-    "duration_ms": 400,
-    "uses_direction": false,
-    "uniforms": {
-      "stream_color": [0.4, 0.75, 0.95, 1.0],
-      "band_count": 5.0,
-      "segment_count": 12.0,
-      "fade_origin": 0.7
-    }
+	"shader": "res://assets/shaders/fx/stream_down.gdshader",
+	"kind": "body",
+	"duration_ms": 400,
+	"uses_direction": false,
+	"uniforms": {
+	  "stream_color": [0.4, 0.75, 0.95, 1.0],
+	  "band_count": 5.0,
+	  "segment_count": 12.0,
+	  "fade_origin": 0.7
+	}
   },
 
   "debuff_ascended": {
-    "shader": "res://assets/shaders/fx/stream_down.gdshader",
-    "kind": "body",
-    "duration_ms": 360,
-    "uses_direction": false,
-    "uniforms": {
-      "stream_color": [1.0, 0.85, 0.5, 1.0],
-      "band_count": 5.0,
-      "segment_count": 12.0,
-      "fade_origin": 0.7
-    }
+	"shader": "res://assets/shaders/fx/stream_down.gdshader",
+	"kind": "body",
+	"duration_ms": 360,
+	"uses_direction": false,
+	"uniforms": {
+	  "stream_color": [1.0, 0.85, 0.5, 1.0],
+	  "band_count": 5.0,
+	  "segment_count": 12.0,
+	  "fade_origin": 0.7
+	}
   },
 
   "debuff_burnout": {
-    "shader": "res://assets/shaders/fx/stream_down.gdshader",
-    "kind": "body",
-    "duration_ms": 340,
-    "uses_direction": false,
-    "uniforms": {
-      "stream_color": [0.95, 0.35, 0.2, 1.0],
-      "band_count": 5.0,
-      "segment_count": 12.0,
-      "fade_origin": 0.7
-    }
+	"shader": "res://assets/shaders/fx/stream_down.gdshader",
+	"kind": "body",
+	"duration_ms": 340,
+	"uses_direction": false,
+	"uniforms": {
+	  "stream_color": [0.95, 0.35, 0.2, 1.0],
+	  "band_count": 5.0,
+	  "segment_count": 12.0,
+	  "fade_origin": 0.7
+	}
   }
 }

@@ -7,7 +7,7 @@
   "team": "enemy",
   "speed": 4,
   "skills": [
-    "monkey_time",
+	"monkey_time",
     "monkey_business"
   ],
   "behavior_id": "default_melee",

@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 3,
   "skills": [
-    "bear_ball_throw",
-    "bear_paw_suck",
+	"bear_ball_throw",
+	"bear_paw_suck",
     "bear_hallo"
   ],
   "behavior_id": "default_ranged",

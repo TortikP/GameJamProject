@@ -1,84 +1,84 @@
 {
   "id": "angel_aggressive",
   "rules": [
-    {
-      "condition": {
-        "kind": "self_hp_below",
-        "pct": 35
-      },
-      "target_selector": {
-        "kind": "self"
-      },
-      "tag_priority": [
+	{
+	  "condition": {
+		"kind": "self_hp_below",
+		"pct": 35
+	  },
+	  "target_selector": {
+		"kind": "self"
+	  },
+	  "tag_priority": [
         "heal"
-      ],
-      "min_skill_count": 1
-    },
-    {
-      "condition": {
-        "kind": "all_of",
-        "children": [
-          {
-            "kind": "ally_exists"
-          },
-          {
-            "kind": "ally_hp_below",
-            "pct": 70,
-            "distance": 4
-          }
-        ]
-      },
-      "target_selector": {
-        "kind": "hex_with_most_wounded_allies"
-      },
-      "tag_priority": [
+	  ],
+	  "min_skill_count": 1
+	},
+	{
+	  "condition": {
+		"kind": "all_of",
+		"children": [
+		  {
+			"kind": "ally_exists"
+		  },
+		  {
+			"kind": "ally_hp_below",
+			"pct": 70,
+			"distance": 4
+		  }
+		]
+	  },
+	  "target_selector": {
+		"kind": "hex_with_most_wounded_allies"
+	  },
+	  "tag_priority": [
         "heal"
-      ],
-      "min_skill_count": 1
-    },
-    {
-      "condition": {
-        "kind": "all_of",
-        "children": [
-          {
-            "kind": "enemy_in_range",
-            "distance": 4
-          },
-          {
-            "kind": "unclaimed_hex_exists_near_enemy",
-            "distance": 2
-          }
-        ]
-      },
-      "target_selector": {
-        "kind": "player_escape_hex"
-      },
-      "tag_priority": [
-        "damage",
+	  ],
+	  "min_skill_count": 1
+	},
+	{
+	  "condition": {
+		"kind": "all_of",
+		"children": [
+		  {
+			"kind": "enemy_in_range",
+			"distance": 4
+		  },
+		  {
+			"kind": "unclaimed_hex_exists_near_enemy",
+			"distance": 2
+		  }
+		]
+	  },
+	  "target_selector": {
+		"kind": "player_escape_hex"
+	  },
+	  "tag_priority": [
+		"damage",
         "ranged"
-      ],
-      "min_skill_count": 1
-    },
-    {
-      "condition": {
-        "kind": "enemy_in_range",
-        "distance": 4
-      },
-      "target_selector": {
-        "kind": "nearest_enemy"
-      },
-      "tag_priority": [
-        "damage",
+	  ],
+	  "min_skill_count": 1
+	},
+	{
+	  "condition": {
+		"kind": "enemy_in_range",
+		"distance": 4
+	  },
+	  "target_selector": {
+		"kind": "nearest_enemy"
+	  },
+	  "tag_priority": [
+		"damage",
         "ranged"
-      ],
-      "min_skill_count": 1
-    }
+	  ],
+	  "min_skill_count": 1
+	}
   ],
   "movement_policy": {
-    "kind": "support_kite",
-    "ally_hp_threshold": 0.4,
-    "heal_range": 2,
-    "safe_ally_range": 3
+	"kind": "support_kite",
+	"ally_hp_threshold": 0.4,
+	"heal_range": 2,
+	"safe_ally_range": 3
   },
   "fallback_skill_id": "angel_scorching_ray"
 }

@@ -8,8 +8,8 @@
   "team": "enemy",
   "speed": 0,
   "skills": [
-    "bush_curse",
-    "bush_berry_throw",
+	"bush_curse",
+	"bush_berry_throw",
     "bush_nice_smell"
   ],
   "behavior_id": "default_caster",

@@ -4,8 +4,8 @@
   "icon": "",
   "arity": 3,
   "param_names": [
-    "duration",
-    "damage",
+	"duration",
+	"damage",
     "lvl_bonus"
   ],
   "loc_name": "status_burning_name",

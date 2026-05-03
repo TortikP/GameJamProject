@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 2,
   "skills": [
-    "angel_divine_word",
-    "angel_sharp_feathers",
+	"angel_divine_word",
+	"angel_sharp_feathers",
     "angel_scorching_ray"
   ],
   "behavior_id": "default_ranged",

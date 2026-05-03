@@ -6,7 +6,7 @@
   "icon": "icons/skills/default_melee.png",
   "cooldown": 1,
   "behaviour_tags": [
-    "melee",
+	"melee",
     "damage"
   ],
   "mood": [
@@ -14,25 +14,25 @@
   ],
   "level": 0,
   "abilities": [
-    {
-      "id": "default_melee_damage",
-      "sound_start": "default_melee_damage_sound_start",
-      "collision_effect": "melee_neutral",
-      "sound_end": "default_melee_damage_sound_end",
-      "animation": "cast_neutral",
-      "target": {
-        "kind": "actor",
-        "range": 1
-      },
-      "area": {
-        "kind": "chain",
-        "max_chain_length": 1
-      },
-      "effects": [
-        {
-          "damage": 10
-        }
-      ]
-    }
+	{
+	  "id": "default_melee_damage",
+	  "sound_start": "default_melee_damage_sound_start",
+	  "collision_effect": "melee_neutral",
+	  "sound_end": "default_melee_damage_sound_end",
+	  "animation": "cast_neutral",
+	  "target": {
+		"kind": "actor",
+		"range": 1
+	  },
+	  "area": {
+		"kind": "chain",
+		"max_chain_length": 1
+	  },
+	  "effects": [
+		{
+		  "damage": 10
+		}
+	  ]
+	}
   ]
 }

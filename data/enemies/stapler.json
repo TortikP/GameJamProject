@@ -7,8 +7,8 @@
   "team": "enemy",
   "speed": 3,
   "skills": [
-    "stapler_staple_shot",
-    "stapler_paper_jam",
+	"stapler_staple_shot",
+	"stapler_paper_jam",
     "stapler_under_desk_jump"
   ],
   "behavior_id": "default_melee",

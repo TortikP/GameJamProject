@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://c12plhygfurd2"
-path="res://.godot/imported/angel_divine_word_holy_heal_area_sond.wav-ffc4cac85ec5bd7c83486d38feb4da11.sample"
+path="res://.godot/imported/angel_divine_word_holy_heal_area_sound_start.wav-fc8dc0180c79ae22c773b345ece20703.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/abilitys/angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_sound_start.wav"
-dest_files=["res://.godot/imported/angel_divine_word_holy_heal_area_sond.wav-ffc4cac85ec5bd7c83486d38feb4da11.sample"]
+dest_files=["res://.godot/imported/angel_divine_word_holy_heal_area_sound_start.wav-fc8dc0180c79ae22c773b345ece20703.sample"]
 
 [params]
 
