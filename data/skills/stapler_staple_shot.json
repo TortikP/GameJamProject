@@ -4,7 +4,7 @@
   "tooltip": "stapler_staple_shot_tooltip",
   "desc": "stapler_staple_shot_desc",
   "icon": "icons/skills/stapler_staple_shot.png",
-  "cooldown": 1,
+  "cooldown": 2,
   "behaviour_tags": [
     "ranged",
     "damage"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "stapler_staple_shot_ranged_damage",
-      "sound_start": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage_start.wav",
+      "sound_start": "stapler_staple_shot_ranged_damage_sound_start",
       "collision_effect": "ranged_neutral",
-      "sound_end": "stapler_staple_shot_ranged_damage/stapler_staple_shot_ranged_damage_end.wav",
+      "sound_end": "stapler_staple_shot_ranged_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "actor",
@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "damage": 10,
-          "status_id": "slowed(3)"
+          "damage": 9,
+          "status_id": "slowed(2)"
         }
       ]
     }
