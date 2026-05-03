@@ -1,0 +1,39 @@
+{
+  "id": "bee_sting",
+  "name": "bee_sting_name",
+  "tooltip": "bee_sting_tooltip",
+  "desc": "bee_sting_desc",
+  "icon": "icons/skills/bee_sting.png",
+  "cooldown": 1,
+  "behaviour_tags": [
+    "melee",
+    "damage"
+  ],
+  "mood": [
+    "ascended"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bee_sting_melee_damage",
+      "sound_start": "bee_sting_melee_damage_sound_start",
+      "collision_effect": "melee_ascended",
+      "sound_end": "bee_sting_melee_damage_sound_end",
+      "animation": "cast_ascended",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 7,
+          "status_id": "poisoned(2,4,2)"
+        }
+      ]
+    }
+  ]
+}
