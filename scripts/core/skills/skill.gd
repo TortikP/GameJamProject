@@ -30,6 +30,17 @@ extends Resource
 ##    equal abilities.size(); abilities[i] gets ctxs[i]. Caller (godmode_controller
 ##    for player, _resolve_cast_intent for AI) is responsible for collecting
 ##    targets per ability before calling cast.
+##
+## 047 additions (047-skill-fx-system):
+##  - cast(caster, ctxs, fx: Object = null) — coroutine. When fx != null,
+##    awaits FxDirector.play_cast / play_collisions per ability between the
+##    pure resolve phase and the side-effecting apply phase. fx is duck-typed
+##    Object so this file has no presentation import. Callers MUST `await`
+##    skill.cast(...) — without await the bool return value is not realised.
+##  - Per-ability skip on empty plan: if Ability.resolve returns {} (e.g.
+##    target died from previous ability in same skill), THAT ability is
+##    skipped and the loop continues. Cooldown is still applied as long as
+##    AT LEAST ONE ability resolved (any_resolved).
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -85,7 +96,7 @@ func get_ability_ids() -> Array[StringName]:
 	return ids
 
 
-func cast(caster: Actor, ctxs: Array[Dictionary]) -> bool:
+func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 	if not is_ready():
 		GameLogger.info("Skill", "%s on cooldown (%d remaining)" % [id, _cd_remaining])
 		return false
@@ -98,16 +109,56 @@ func cast(caster: Actor, ctxs: Array[Dictionary]) -> bool:
 	var any_resolved: bool = false
 	var all_target_ids: Array = []
 
+	# 047 addendum: derive a single mood StringName for FxDirector to drive
+	# the <context>_<mood> palette. mood is an Array<StringName> on Skill but
+	# in practice every shipping skill carries exactly one tag (and 5 test
+	# skills carry zero — those fall through to "neutral" via the default).
+	var mood_for_fx: StringName = mood[0] if not mood.is_empty() else &"neutral"
+
 	for i in abilities.size():
-		# 021: pass this skill's level into each ability so per-component
-		# apply_level(level) hooks fire on duplicates inside Ability.cast.
-		# 026: each ability gets its own ctx from ctxs[i].
-		var resolved: bool = abilities[i].cast(caster, ctxs[i], level)
+		var ab: Ability = abilities[i] as Ability
+		# 047: split resolve / FX / apply per ability so visuals land BEFORE
+		# damage. Empty plan → ability is pure no-op (e.g. target died after
+		# the previous ability in this skill killed it). Skill continues to
+		# the next ability instead of failing the whole cast.
+		var plan: Dictionary = ab.resolve(caster, ctxs[i], level)
+		if plan.is_empty():
+			continue
+
+		# 047: announce the cast BEFORE FX/apply. victim_ids extracted from
+		# the plan's victims array — Actor instances filtered. UI listeners
+		# (telegraph hide, preview clear, future cast-bar) hook here.
+		var victim_ids: Array = []
+		for v in plan.get("victims", []):
+			if v is Actor:
+				victim_ids.append((v as Actor).actor_id)
+		EventBus.ability_cast_started.emit(caster.actor_id, ab.id, victim_ids)
+
+		# 047: FX phase — sound_start + caster anim (parallel inside play_cast),
+		# then collision shader on victims (or hex pulse on summon coords —
+		# play_collisions dispatches by registry kind). fx is duck-typed Object
+		# so core stays free of presentation imports — null-safe for non-FX
+		# call sites (tests, headless, AI without a visible scene). mood is
+		# threaded so FxDirector picks the right palette per skill.
+		if fx != null:
+			await fx.play_cast(caster, ab, mood_for_fx)
+			await fx.play_collisions(caster, ab, plan, ctxs[i], mood_for_fx)
+
+		# 047: apply phase — effects run AFTER visuals. damage_dealt / heal_done
+		# emit from inside DamageEffect.apply / HealEffect.apply, so floating
+		# numbers spawn after the flash, which is the desired UX order.
+		var resolved: bool = ab.apply_resolved(plan, caster, ctxs[i])
+
+		# 047: sound_end at primary impact pos. Fire-and-forget — happens in
+		# parallel with whatever comes next in this loop.
+		if fx != null and resolved:
+			fx.play_sound_end(_primary_world_pos(plan, caster), ab)
+
 		if resolved:
 			any_resolved = true
 			# 015 / F-014: aggregate per-ability target_ids into skill-level emit.
-			# Read last_target_ids immediately after cast() — see Ability docstring.
-			for tid in abilities[i].last_target_ids:
+			# Read last_target_ids immediately after apply_resolved — see Ability docstring.
+			for tid in ab.last_target_ids:
 				if not all_target_ids.has(tid):
 					all_target_ids.append(tid)
 
@@ -122,6 +173,20 @@ func cast(caster: Actor, ctxs: Array[Dictionary]) -> bool:
 		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster.actor_id, _cd_remaining])
 
 	return any_resolved
+
+
+## 047: best-effort world position for sound_end placement. First Actor victim
+## wins; falls back to primary if it's an Actor; falls back to caster.
+func _primary_world_pos(plan: Dictionary, caster: Actor) -> Vector2:
+	for v in plan.get("victims", []):
+		if v is Actor:
+			return (v as Actor).global_position
+	var primary: Variant = plan.get("primary")
+	if primary is Actor:
+		return (primary as Actor).global_position
+	if caster != null:
+		return caster.global_position
+	return Vector2.ZERO
 
 
 ## Reduce remaining cooldown by `by` turns. Called from

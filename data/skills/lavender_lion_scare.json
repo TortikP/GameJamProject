@@ -17,9 +17,9 @@
     {
       "id": "lavender_lion_scare_apply_fear_area",
       "sound_start": "lavender_lion_scare_apply_fear_area/lavender_lion_scare_apply_fear_area_start.wav",
-      "collision_effect": "lavender_lion_scare_apply_fear_area/lavender_lion_scare_apply_fear_area_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "lavender_lion_scare_apply_fear_area/lavender_lion_scare_apply_fear_area_end.wav",
-      "animation": "lavender_lion_scare_apply_fear_area/lavender_lion_scare_apply_fear_area.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 3

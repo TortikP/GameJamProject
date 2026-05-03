@@ -17,9 +17,9 @@
     {
       "id": "mushroom_boar_weaken_debuff_attack_ranged",
       "sound_start": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged_start.wav",
-      "collision_effect": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged_collision.prefab",
+      "collision_effect": "debuff_tranquility",
       "sound_end": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged_end.wav",
-      "animation": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 4

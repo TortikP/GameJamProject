@@ -179,7 +179,10 @@ func _commit_cast() -> void:
 	var skill: Skill = _skill
 	var ctxs: Array[Dictionary] = _ctxs
 	_reset_state()
-	var did_cast: bool = skill.cast(_ctrl.player, ctxs)
+	# 047-skill-fx-system: skill.cast is now a coroutine — must await. Pass
+	# FxDirector so per-ability anim+sound+collision FX play between resolve
+	# and apply. Without the await, did_cast would not be a real bool.
+	var did_cast: bool = await skill.cast(_ctrl.player, ctxs, FxDirector)
 	# 029 req-2 / 031 phase 11: deselect ability after a successful cast.
 	# Forces the player to consciously re-arm before next attack — no
 	# held-trigger spam. Using activate(active) (toggle off) emits

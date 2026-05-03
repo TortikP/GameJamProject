@@ -16,9 +16,9 @@
     {
       "id": "pull_around",
       "sound_start": "pull_around/pull_around_start.wav",
-      "collision_effect": "pull_around/pull_around_collision.prefab",
+      "collision_effect": "buff_tranquility",
       "sound_end": "pull_around/pull_around_end.wav",
-      "animation": "pull_around/pull_around.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "self"
       },

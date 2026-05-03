@@ -17,9 +17,9 @@
     {
       "id": "direct_ranged_damage",
       "sound_start": "direct_ranged_damage/direct_ranged_damage_start.wav",
-      "collision_effect": "direct_ranged_damage/direct_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_tranquility",
       "sound_end": "direct_ranged_damage/direct_ranged_damage_end.wav",
-      "animation": "direct_ranged_damage/direct_ranged_damage.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 3

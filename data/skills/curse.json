@@ -17,9 +17,9 @@
     {
       "id": "apply_slow_single",
       "sound_start": "apply_slow_single/apply_slow_single_start.wav",
-      "collision_effect": "apply_slow_single/apply_slow_single_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "apply_slow_single/apply_slow_single_end.wav",
-      "animation": "apply_slow_single/apply_slow_single.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3
@@ -37,9 +37,9 @@
     {
       "id": "debuff_attack_ranged",
       "sound_start": "debuff_attack_ranged/debuff_attack_ranged_start.wav",
-      "collision_effect": "debuff_attack_ranged/debuff_attack_ranged_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "debuff_attack_ranged/debuff_attack_ranged_end.wav",
-      "animation": "debuff_attack_ranged/debuff_attack_ranged.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 4

@@ -18,9 +18,9 @@
     {
       "id": "heavy_ranged_damage",
       "sound_start": "heavy_ranged_damage/heavy_ranged_damage_start.wav",
-      "collision_effect": "heavy_ranged_damage/heavy_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_tranquility",
       "sound_end": "heavy_ranged_damage/heavy_ranged_damage_end.wav",
-      "animation": "heavy_ranged_damage/heavy_ranged_damage.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 4
@@ -38,9 +38,9 @@
     {
       "id": "apply_stun_single",
       "sound_start": "apply_stun_single/apply_stun_single_start.wav",
-      "collision_effect": "apply_stun_single/apply_stun_single_collision.prefab",
+      "collision_effect": "debuff_tranquility",
       "sound_end": "apply_stun_single/apply_stun_single_end.wav",
-      "animation": "apply_stun_single/apply_stun_single.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 4

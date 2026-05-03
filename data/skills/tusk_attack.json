@@ -17,9 +17,9 @@
     {
       "id": "heavy_melee_damage",
       "sound_start": "heavy_melee_damage/heavy_melee_damage_start.wav",
-      "collision_effect": "heavy_melee_damage/heavy_melee_damage_collision.prefab",
+      "collision_effect": "melee_burnout",
       "sound_end": "heavy_melee_damage/heavy_melee_damage_end.wav",
-      "animation": "heavy_melee_damage/heavy_melee_damage.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 1

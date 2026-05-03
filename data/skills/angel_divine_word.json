@@ -17,9 +17,9 @@
     {
       "id": "angel_divine_word_holy_heal_area",
       "sound_start": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_start.wav",
-      "collision_effect": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_collision.prefab",
+      "collision_effect": "buff_ascended",
       "sound_end": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area_end.wav",
-      "animation": "angel_divine_word_holy_heal_area/angel_divine_word_holy_heal_area.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "hex",
         "range": 4

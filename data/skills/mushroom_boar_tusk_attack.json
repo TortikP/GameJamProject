@@ -17,9 +17,9 @@
     {
       "id": "mushroom_boar_tusk_attack_melee_damage",
       "sound_start": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage_start.wav",
-      "collision_effect": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage_collision.prefab",
+      "collision_effect": "melee_tranquility",
       "sound_end": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage_end.wav",
-      "animation": "mushroom_boar_tusk_attack_melee_damage/mushroom_boar_tusk_attack_melee_damage.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
         "range": 1

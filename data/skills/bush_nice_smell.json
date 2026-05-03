@@ -16,9 +16,9 @@
     {
       "id": "bush_nice_smell_pull_around",
       "sound_start": "bush_nice_smell_pull_around/bush_nice_smell_pull_around_start.wav",
-      "collision_effect": "bush_nice_smell_pull_around/bush_nice_smell_pull_around_collision.prefab",
+      "collision_effect": "buff_tranquility",
       "sound_end": "bush_nice_smell_pull_around/bush_nice_smell_pull_around_end.wav",
-      "animation": "bush_nice_smell_pull_around/bush_nice_smell_pull_around.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "self"
       },

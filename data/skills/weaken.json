@@ -17,9 +17,9 @@
     {
       "id": "debuff_attack_ranged",
       "sound_start": "debuff_attack_ranged/debuff_attack_ranged_start.wav",
-      "collision_effect": "debuff_attack_ranged/debuff_attack_ranged_collision.prefab",
+      "collision_effect": "debuff_burnout",
       "sound_end": "debuff_attack_ranged/debuff_attack_ranged_end.wav",
-      "animation": "debuff_attack_ranged/debuff_attack_ranged.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 4

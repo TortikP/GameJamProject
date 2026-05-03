@@ -17,9 +17,9 @@
     {
       "id": "monkey_time_buff",
       "sound_start": "monkey_time_buff/monkey_time_buff_start.wav",
-      "collision_effect": "monkey_time_buff/monkey_time_buff_collision.prefab",
+      "collision_effect": "buff_neutral",
       "sound_end": "monkey_time_buff/monkey_time_buff_end.wav",
-      "animation": "monkey_time_buff/monkey_time_buff.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "self"
       },

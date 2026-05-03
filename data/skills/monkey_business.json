@@ -17,9 +17,9 @@
     {
       "id": "monkey_business_damage",
       "sound_start": "monkey_business_damage/monkey_business_damage_start.wav",
-      "collision_effect": "monkey_business_damage/monkey_business_damage_collision.prefab",
+      "collision_effect": "melee_neutral",
       "sound_end": "monkey_business_damage/monkey_business_damage_end.wav",
-      "animation": "monkey_business_damage/monkey_business_damage.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "actor",
         "range": 1

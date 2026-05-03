@@ -17,9 +17,9 @@
     {
       "id": "bee_honey_cold_target_heal",
       "sound_start": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_start.wav",
-      "collision_effect": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_collision.prefab",
+      "collision_effect": "heal_ascended",
       "sound_end": "bee_honey_cold_target_heal/bee_honey_cold_target_heal_end.wav",
-      "animation": "bee_honey_cold_target_heal/bee_honey_cold_target_heal.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3

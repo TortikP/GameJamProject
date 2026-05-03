@@ -5,7 +5,9 @@
   "desc": "skill_test_status_runtime_desc",
   "icon": "",
   "cooldown": 0,
-  "behaviour_tags": ["debuff"],
+  "behaviour_tags": [
+    "debuff"
+  ],
   "mood": [],
   "level": 0,
   "abilities": [
@@ -13,12 +15,21 @@
       "id": "tsr_poison",
       "sound_start": "",
       "sound_end": "",
-      "collision_effect": "",
-      "animation": "",
-      "target": {"kind": "actor", "range": 4},
-      "area": {"kind": "chain", "area_max_chain_length": 1, "area_radius": 1},
+      "collision_effect": "debuff_neutral",
+      "animation": "cast_neutral",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "area_max_chain_length": 1,
+        "area_radius": 1
+      },
       "effects": [
-        {"status_id": "poisoned(3, 10, 2)"}
+        {
+          "status_id": "poisoned(3, 10, 2)"
+        }
       ],
       "modifiers": []
     }

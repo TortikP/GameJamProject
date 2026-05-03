@@ -17,9 +17,9 @@
     {
       "id": "stapler_paper_jam_ranged_damage",
       "sound_start": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_start.wav",
-      "collision_effect": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_collision.prefab",
+      "collision_effect": "debuff_neutral",
       "sound_end": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage_end.wav",
-      "animation": "stapler_paper_jam_ranged_damage/stapler_paper_jam_ranged_damage.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "hex",
         "range": 4

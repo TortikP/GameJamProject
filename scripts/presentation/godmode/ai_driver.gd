@@ -258,5 +258,9 @@ func _resolve_cast_intent(enemy: Actor) -> void:
 	var ctxs: Array[Dictionary] = []
 	for _i in skill.abilities.size():
 		ctxs.append(ctx)
-	skill.cast(enemy, ctxs)
+	# 047-skill-fx-system: skill.cast is now a coroutine — must await. Pass
+	# FxDirector so AI casts get visual+audio feedback identical to the
+	# player's. ability_cast_delay below stays as a small post-cast pause
+	# (visual breathing room before the next AI's cast or the player turn).
+	await skill.cast(enemy, ctxs, FxDirector)
 	await GameSpeed.wait("godmode", "ability_cast_delay")

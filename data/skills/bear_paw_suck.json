@@ -17,9 +17,9 @@
     {
       "id": "bear_paw_suck_self_heal",
       "sound_start": "bear_paw_suck_self_heal/bear_paw_suck_self_heal_start.wav",
-      "collision_effect": "bear_paw_suck_self_heal/bear_paw_suck_self_heal_collision.prefab",
+      "collision_effect": "heal_tranquility",
       "sound_end": "bear_paw_suck_self_heal/bear_paw_suck_self_heal_end.wav",
-      "animation": "bear_paw_suck_self_heal/bear_paw_suck_self_heal.anim",
+      "animation": "cast_tranquility",
       "target": {
         "kind": "self"
       },

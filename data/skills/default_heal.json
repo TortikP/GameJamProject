@@ -18,9 +18,9 @@
     {
       "id": "default_heal_self",
       "sound_start": "default_heal_self/default_heal_self_start.wav",
-      "collision_effect": "default_heal_self/default_heal_self_collision.prefab",
+      "collision_effect": "heal_neutral",
       "sound_end": "default_heal_self/default_heal_self_end.wav",
-      "animation": "default_heal_self/default_heal_self.anim",
+      "animation": "cast_neutral",
       "target": {
         "kind": "self"
       },

@@ -18,9 +18,9 @@
     {
       "id": "fire_slime_firey_touch_melee_damage",
       "sound_start": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage_start.wav",
-      "collision_effect": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage_collision.prefab",
+      "collision_effect": "melee_burnout",
       "sound_end": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage_end.wav",
-      "animation": "fire_slime_firey_touch_melee_damage/fire_slime_firey_touch_melee_damage.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "actor",
         "range": 1

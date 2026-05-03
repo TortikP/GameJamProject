@@ -167,6 +167,23 @@ func refresh() -> void:
 		grid.add_child(sec)
 		_telegraph_hexes[area_coord] = sec
 
+	# 047-skill-fx-system: cyclic shader-flash on AI casters that have a
+	# planned cast_intent. FxDirector keeps its own per-actor loop state and
+	# diffs against the array we pass — we just send the live AI-controlled
+	# set. Loops self-stop when the actor disappears from the array (intent
+	# cleared after resolve, actor died, animation field empty for the skill).
+	var intent_actors: Array = []
+	for actor in registry.all():
+		if not (actor is Actor):
+			continue
+		var ai_actor: Actor = actor
+		if ai_actor == _ctrl.player or not ai_actor.is_alive():
+			continue
+		if ai_actor.cast_intent == null:
+			continue
+		intent_actors.append(ai_actor)
+	FxDirector.sync_telegraph_loops(intent_actors)
+
 
 func clear() -> void:
 	for poly in _telegraph_hexes.values():

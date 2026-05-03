@@ -74,6 +74,13 @@ signal world_turn_ended(turn: int)
 
 # Combat (composed-ability era; spell_cast above is legacy)
 signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: Array)
+# 047-skill-fx-system: emitted from Skill.cast immediately AFTER Ability.resolve
+# returned a non-empty plan and BEFORE the FX phase (caster anim + sound_start,
+# then collision flashes). Order vs ability_cast: started fires first, ability_cast
+# fires after apply_resolved completes (so after damage_dealt/heal_done, after
+# floating numbers spawn). Listeners that want to gate UI on "ability about to
+# resolve" subscribe here; listeners that want "ability finished" use ability_cast.
+signal ability_cast_started(caster_id: StringName, ability_id: StringName, victim_ids: Array)
 signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
 signal actor_died(id: StringName)
 # 034: emitted by Actor.add_status after on_apply + statuses_changed.

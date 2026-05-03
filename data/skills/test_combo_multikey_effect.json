@@ -16,8 +16,8 @@
       "id": "tcme_strike",
       "sound_start": "",
       "sound_end": "",
-      "collision_effect": "",
-      "animation": "",
+      "collision_effect": "melee_neutral",
+      "animation": "cast_neutral",
       "target": {
         "kind": "actor",
         "range": 1

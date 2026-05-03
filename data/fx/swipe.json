@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "doc": "Melee context — sword-slash arc on victim.Body. swipe.gdshader sweeps a curved band in caster→victim direction (uses_direction=true). Mood-tuned: tranquility = slower with thinner blade, burnout = fast aggressive cut, ascended = wider golden trail, neutral = clean white reference.",
+    "kind": "body",
+    "shader": "res://assets/shaders/fx/swipe.gdshader",
+    "uniforms": {
+      "slash_color": "RGBA tint",
+      "band_thickness": "perpendicular thickness of the slash band [0.02, 0.3]",
+      "arc_height": "parabola amplitude [-0.4, 0.4] — sign flips bow direction",
+      "trail_length": "fade-back length behind leading edge [0.1, 0.8]"
+    }
+  },
+
+  "melee_neutral": {
+    "shader": "res://assets/shaders/fx/swipe.gdshader",
+    "kind": "body",
+    "duration_ms": 220,
+    "uses_direction": true,
+    "uniforms": {
+      "slash_color": [1.0, 1.0, 1.0, 1.0],
+      "band_thickness": 0.08,
+      "arc_height": 0.22,
+      "trail_length": 0.45
+    }
+  },
+
+  "melee_tranquility": {
+    "shader": "res://assets/shaders/fx/swipe.gdshader",
+    "kind": "body",
+    "duration_ms": 280,
+    "uses_direction": true,
+    "uniforms": {
+      "slash_color": [0.55, 0.9, 1.0, 1.0],
+      "band_thickness": 0.07,
+      "arc_height": 0.18,
+      "trail_length": 0.55
+    }
+  },
+
+  "melee_ascended": {
+    "shader": "res://assets/shaders/fx/swipe.gdshader",
+    "kind": "body",
+    "duration_ms": 240,
+    "uses_direction": true,
+    "uniforms": {
+      "slash_color": [1.0, 0.92, 0.55, 1.0],
+      "band_thickness": 0.10,
+      "arc_height": 0.25,
+      "trail_length": 0.55
+    }
+  },
+
+  "melee_burnout": {
+    "shader": "res://assets/shaders/fx/swipe.gdshader",
+    "kind": "body",
+    "duration_ms": 200,
+    "uses_direction": true,
+    "uniforms": {
+      "slash_color": [1.0, 0.4, 0.2, 1.0],
+      "band_thickness": 0.10,
+      "arc_height": 0.28,
+      "trail_length": 0.40
+    }
+  }
+}

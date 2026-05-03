@@ -17,9 +17,9 @@
     {
       "id": "direct_ranged_damage",
       "sound_start": "direct_ranged_damage/direct_ranged_damage_start.wav",
-      "collision_effect": "direct_ranged_damage/direct_ranged_damage_collision.prefab",
+      "collision_effect": "ranged_ascended",
       "sound_end": "direct_ranged_damage/direct_ranged_damage_end.wav",
-      "animation": "direct_ranged_damage/direct_ranged_damage.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3
@@ -37,9 +37,9 @@
     {
       "id": "apply_root_single",
       "sound_start": "apply_root_single/apply_root_single_start.wav",
-      "collision_effect": "apply_root_single/apply_root_single_collision.prefab",
+      "collision_effect": "debuff_ascended",
       "sound_end": "apply_root_single/apply_root_single_end.wav",
-      "animation": "apply_root_single/apply_root_single.anim",
+      "animation": "cast_ascended",
       "target": {
         "kind": "actor",
         "range": 3

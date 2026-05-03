@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "doc": "Buff / positive-status context — vertical streaks flowing upward on victim.Body. stream_up.gdshader paints multiple vertical bands moving up. Mood-tuned: tranquility = mellow cool flow, ascended = bright gold uplift, burnout = ember rising heat, neutral = white reference.",
+    "kind": "body",
+    "shader": "res://assets/shaders/fx/stream_up.gdshader",
+    "uniforms": {
+      "stream_color": "RGBA tint",
+      "band_count": "number of vertical bands [2, 12]",
+      "segment_count": "vertical pulse density [4, 24]",
+      "fade_origin": "vertical position of brightest origin [0, 1]"
+    }
+  },
+
+  "buff_neutral": {
+    "shader": "res://assets/shaders/fx/stream_up.gdshader",
+    "kind": "body",
+    "duration_ms": 360,
+    "uses_direction": false,
+    "uniforms": {
+      "stream_color": [1.0, 1.0, 1.0, 1.0],
+      "band_count": 5.0,
+      "segment_count": 12.0,
+      "fade_origin": 0.7
+    }
+  },
+
+  "buff_tranquility": {
+    "shader": "res://assets/shaders/fx/stream_up.gdshader",
+    "kind": "body",
+    "duration_ms": 420,
+    "uses_direction": false,
+    "uniforms": {
+      "stream_color": [0.5, 0.9, 1.0, 1.0],
+      "band_count": 4.0,
+      "segment_count": 10.0,
+      "fade_origin": 0.7
+    }
+  },
+
+  "buff_ascended": {
+    "shader": "res://assets/shaders/fx/stream_up.gdshader",
+    "kind": "body",
+    "duration_ms": 400,
+    "uses_direction": false,
+    "uniforms": {
+      "stream_color": [1.0, 0.92, 0.5, 1.0],
+      "band_count": 6.0,
+      "segment_count": 14.0,
+      "fade_origin": 0.75
+    }
+  },
+
+  "buff_burnout": {
+    "shader": "res://assets/shaders/fx/stream_up.gdshader",
+    "kind": "body",
+    "duration_ms": 340,
+    "uses_direction": false,
+    "uniforms": {
+      "stream_color": [1.0, 0.5, 0.25, 1.0],
+      "band_count": 5.0,
+      "segment_count": 12.0,
+      "fade_origin": 0.7
+    }
+  }
+}

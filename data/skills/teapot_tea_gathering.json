@@ -17,9 +17,9 @@
     {
       "id": "teapot_tea_gathering_black_hole",
       "sound_start": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_start.wav",
-      "collision_effect": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_collision.prefab",
+      "collision_effect": "buff_burnout",
       "sound_end": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole_end.wav",
-      "animation": "teapot_tea_gathering_black_hole/teapot_tea_gathering_black_hole.anim",
+      "animation": "cast_burnout",
       "target": {
         "kind": "hex",
         "range": 5
