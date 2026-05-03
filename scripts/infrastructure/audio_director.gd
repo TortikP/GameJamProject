@@ -5,10 +5,16 @@ extends Node
 ## under res://assets/audio/sfx/<id>. Used by UI / breaking_object / etc.
 ##
 ## 051-ability-sfx-resolver: added play_ability_sfx(ability_id, phase, pos).
-## Scans res://assets/audio/sfx/abilitys/<ability_id>/ at _ready, picks files
-## whose basename matches `sound_start` or `sound_end` (regex), and on each
-## call returns a random pick from the matching bucket. JSON `sound_start` /
-## `sound_end` fields stay as on/off gates; their value is now ignored.
+## Initial impl scanned res://assets/audio/sfx/abilitys/<ability_id>/ via
+## DirAccess at _ready. JSON `sound_start` / `sound_end` fields stay as
+## on/off gates; their value is ignored.
+##
+## 053-pck-audio-portrait-fix: DirAccess.list_dir on res:// in exported
+## .pck builds doesn't enumerate imported audio files (they live as
+## hashed .sample under .godot/imported/ rather than as their original
+## .wav names in the source dir). Switched to lazy convention probing
+## via ResourceLoader.exists — works identically in editor and pck.
+## Cache is populated on first play_ability_sfx call per ability_id.
 ##
 ## Stub for the bootstrap. Will manage:
 ## - SFX-bubbling for dialogues (Animal Crossing-style mumble).
@@ -22,21 +28,20 @@ const SFX_BASE_PATH := "res://assets/audio/sfx/"
 const VOICE_BASE_PATH := "res://assets/audio/voice/"
 const ABILITIES_SFX_DIR := "res://assets/audio/sfx/abilitys/"
 const ABILITY_SFX_AUDIO_EXTS: PackedStringArray = ["wav", "ogg", "mp3"]
+# 053: probe canonical name + numbered variants <id>_sound_start[N].<ext>
+# from N=0 (no suffix) up to N=ABILITY_SFX_VARIATIONS_MAX-1. 4 covers the
+# current max (default_melee_damage has _sound_start + _sound_start1) with
+# headroom; cost is 12 ResourceLoader.exists calls per ability on first cast.
+const ABILITY_SFX_VARIATIONS_MAX := 4
 
 # StringName ability_id -> { &"start": Array[String], &"end": Array[String] }.
-# Built once at _ready by walking ABILITIES_SFX_DIR. Empty bucket key omitted.
+# 053: lazy — populated on first play_ability_sfx for that ability_id.
+# Absent key = not yet probed; explicit empty arrays = probed and silent.
 var _ability_sfx_cache: Dictionary = {}
-var _ability_sfx_re_start: RegEx
-var _ability_sfx_re_end: RegEx
 
 
 func _ready() -> void:
-	_ability_sfx_re_start = RegEx.new()
-	_ability_sfx_re_start.compile("sound_start")
-	_ability_sfx_re_end = RegEx.new()
-	_ability_sfx_re_end.compile("sound_end")
-	_build_ability_sfx_cache()
-	GameLogger.info("AudioDirector", "ready (ability sfx folders: %d)" % _ability_sfx_cache.size())
+	GameLogger.info("AudioDirector", "ready (ability sfx: lazy probe, max %d variations)" % ABILITY_SFX_VARIATIONS_MAX)
 
 
 func play_dialogue_audio(dialogue_id: StringName, layer: String, audio_clip: String = "") -> void:
@@ -61,20 +66,22 @@ func play_sfx(id: StringName, world_pos: Variant = null) -> void:
 	_play_path(SFX_BASE_PATH + str(id), world_pos, _resolve_bus("sfx"))
 
 
-## 051: ability-scoped dispatch. Resolves a sound by scanning the per-ability
-## folder for files whose basename matches `sound_start` / `sound_end`.
+## 051: ability-scoped dispatch. Resolves a sound by probing the per-ability
+## folder for canonical filenames `<ability_id>_sound_start[N].<ext>` and
+## `<ability_id>_sound_end[N].<ext>` (N=0..ABILITY_SFX_VARIATIONS_MAX-1).
 ## Picks a random match each call (so default_melee_damage's _sound_start /
-## _sound_start1 act as variations). Empty ability_id or missing folder /
-## empty bucket → no-op (warn for missing folder, silent for empty bucket
-## since end-only or start-only abilities are legal).
+## _sound_start1 act as variations). Empty ability_id or empty bucket → no-op
+## (silent — probing has no false-positive risk that warrants log noise).
+##
+## 053: lazy probing replaces 051's DirAccess scan, which didn't enumerate
+## imported audio in exported .pck builds.
 func play_ability_sfx(ability_id: StringName, phase: StringName, world_pos: Variant = null) -> void:
 	if ability_id == &"":
 		return
-	var bucket: Variant = _ability_sfx_cache.get(ability_id, null)
-	if bucket == null:
-		GameLogger.warn("AudioDirector", "play_ability_sfx: no folder for '%s'" % ability_id)
-		return
-	var paths: Array = (bucket as Dictionary).get(phase, [])
+	if not _ability_sfx_cache.has(ability_id):
+		_ability_sfx_cache[ability_id] = _probe_ability_folder(ability_id)
+	var bucket: Dictionary = _ability_sfx_cache[ability_id]
+	var paths: Array = bucket.get(phase, [])
 	if paths.is_empty():
 		return
 	var path: String = paths[randi() % paths.size()]
@@ -110,50 +117,24 @@ func _resolve_bus(layer: String) -> StringName:
 	return &"Master"
 
 
-## Walks ABILITIES_SFX_DIR once and populates _ability_sfx_cache.
-func _build_ability_sfx_cache() -> void:
-	var dir: DirAccess = DirAccess.open(ABILITIES_SFX_DIR)
-	if dir == null:
-		GameLogger.warn("AudioDirector", "ability sfx dir missing: %s" % ABILITIES_SFX_DIR)
-		return
-	dir.list_dir_begin()
-	var sub: String = dir.get_next()
-	while sub != "":
-		if dir.current_is_dir() and not sub.begins_with("."):
-			_scan_ability_folder(sub)
-		sub = dir.get_next()
-	dir.list_dir_end()
-
-
-func _scan_ability_folder(folder_name: String) -> void:
-	var folder_path: String = ABILITIES_SFX_DIR + folder_name
-	var sub: DirAccess = DirAccess.open(folder_path)
-	if sub == null:
-		return
+## 053: probe-on-demand replacement for 051's DirAccess scan. Convention-
+## based: <id>_sound_start[N].<ext> / <id>_sound_end[N].<ext> in folder
+## <ABILITIES_SFX_DIR><id>/. ResourceLoader.exists handles both editor
+## (raw filesystem) and exported .pck (remap table) uniformly.
+func _probe_ability_folder(ability_id: StringName) -> Dictionary:
+	var folder: String = ABILITIES_SFX_DIR + String(ability_id) + "/"
 	var starts: Array[String] = []
 	var ends: Array[String] = []
-	sub.list_dir_begin()
-	var fname: String = sub.get_next()
-	while fname != "":
-		if not sub.current_is_dir() and not fname.begins_with("."):
-			var ext: String = fname.get_extension().to_lower()
-			if ABILITY_SFX_AUDIO_EXTS.has(ext):
-				var stem: String = fname.get_basename()
-				var full_path: String = folder_path + "/" + fname
-				# end check first — if a filename contains both tokens, end
-				# wins (more specific lifecycle stage).
-				if _ability_sfx_re_end.search(stem) != null:
-					ends.append(full_path)
-				elif _ability_sfx_re_start.search(stem) != null:
-					starts.append(full_path)
-		fname = sub.get_next()
-	sub.list_dir_end()
-	if starts.is_empty() and ends.is_empty():
-		return
-	_ability_sfx_cache[StringName(folder_name)] = {
-		&"start": starts,
-		&"end": ends,
-	}
+	for ext in ABILITY_SFX_AUDIO_EXTS:
+		for i in ABILITY_SFX_VARIATIONS_MAX:
+			var suffix: String = "" if i == 0 else str(i)
+			var ps: String = "%s%s_sound_start%s.%s" % [folder, String(ability_id), suffix, ext]
+			if ResourceLoader.exists(ps):
+				starts.append(ps)
+			var pe: String = "%s%s_sound_end%s.%s" % [folder, String(ability_id), suffix, ext]
+			if ResourceLoader.exists(pe):
+				ends.append(pe)
+	return { &"start": starts, &"end": ends }
 
 
 ## Spawns a temporary AudioStreamPlayer (or 2D) under the current scene root

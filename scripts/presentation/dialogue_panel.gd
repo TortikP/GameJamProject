@@ -242,9 +242,12 @@ func _resolve_portrait(line: Object, speaker_data: Dictionary) -> Texture2D:
 
 
 func _try_load_texture(path: String) -> Texture2D:
-	if not FileAccess.file_exists(path):
+	# 053: ResourceLoader.exists, not FileAccess.file_exists. The latter
+	# checks raw pack contents and misses imported resources in exported
+	# .pck builds (the .png source isn't packed; only the .ctex remap is).
+	if not ResourceLoader.exists(path):
 		return null
-	return load(path)
+	return load(path) as Texture2D
 
 
 func _make_placeholder(_speaker_id: String) -> Texture2D:
