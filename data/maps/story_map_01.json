@@ -57,7 +57,21 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {},
+	"music_config": {
+		"_desc": "Forest, cute, calm — pastoral dorian, gentle drums, breathing pad.",
+		"seed": 1201,
+		"bpm": 88,
+		"base_state": "calm",
+		"progression": "am_f_c_g",
+		"scale": "dorian",
+		"bars_per_chord": 2,
+		"drum_pattern": "halftime",
+		"bass_pattern": "root_fifth",
+		"pad_voicing": "sus2",
+		"lead_density_calm": 0.45,
+		"pad_gain_db": 1,
+		"drums_gain_db": -8
+	},
 	"name": "Story Map 01",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
