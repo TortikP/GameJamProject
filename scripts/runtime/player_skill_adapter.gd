@@ -147,6 +147,28 @@ static func peek_slot(idx: int):
 	return bar.get_slot(idx)
 
 
+## Returns slot-ordered persistent data for the current player loadout.
+## Shape: [{"slot": int, "id": StringName, "level": int}, ...].
+static func slots_snapshot() -> Array:
+	var out: Array = []
+	var ctrl: Node = _controller()
+	if ctrl == null:
+		return out
+	var bar: Node = _slot_bar(ctrl)
+	if bar == null or not bar.has_method("get_slot"):
+		return out
+	for i in SLOT_COUNT:
+		var sk = bar.get_slot(i)
+		if sk == null or not ("id" in sk):
+			continue
+		out.append({
+			"slot": i,
+			"id": sk.id,
+			"level": int(sk.level) if "level" in sk else 0,
+		})
+	return out
+
+
 # ── Write API ───────────────────────────────────────────────────────────────
 
 ## Add a fresh clone of `id` into the first empty slot. Returns true on
@@ -216,6 +238,46 @@ static func replace_slot(slot: int, id: StringName) -> bool:
 	_sync(ctrl)
 	GameLogger.info("PlayerSkillAdapter", "replace_slot(%d, '%s')" % [slot, id])
 	return true
+
+
+## Replaces all four slots with a persisted loadout. Invalid skill ids are
+## skipped so a broken save/campaign config does not brick the run.
+static func apply_slots_snapshot(snapshot: Array) -> bool:
+	var ctrl: Node = _controller()
+	if ctrl == null:
+		_warn_no_controller()
+		return false
+	var bar: Node = _slot_bar(ctrl)
+	if bar == null or not bar.has_method("set_slot"):
+		return false
+	for i in SLOT_COUNT:
+		bar.set_slot(i, null)
+	for entry_v in snapshot:
+		if not (entry_v is Dictionary):
+			continue
+		var entry: Dictionary = entry_v
+		var slot: int = int(entry.get("slot", -1))
+		if slot < 0 or slot >= SLOT_COUNT:
+			continue
+		var id: StringName = StringName(str(entry.get("id", "")))
+		var skill: Skill = SkillDatabase.get_skill(id)
+		if skill == null:
+			GameLogger.warn("PlayerSkillAdapter", "apply snapshot: skill '%s' missing" % id)
+			continue
+		var owned: Skill = skill.clone_for_owner()
+		owned.level = int(entry.get("level", owned.level))
+		bar.set_slot(slot, owned)
+	_sync(ctrl)
+	GameLogger.info("PlayerSkillAdapter", "applied skill snapshot (%d entries)" % snapshot.size())
+	return true
+
+
+## Convenience for starting a campaign from a fixed id list.
+static func apply_default_slots(ids: Array[StringName]) -> bool:
+	var snapshot: Array = []
+	for i in mini(ids.size(), SLOT_COUNT):
+		snapshot.append({"slot": i, "id": ids[i], "level": 0})
+	return apply_slots_snapshot(snapshot)
 
 
 # ── Internal ────────────────────────────────────────────────────────────────

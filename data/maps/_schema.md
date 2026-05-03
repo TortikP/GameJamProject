@@ -193,6 +193,7 @@ no offer, transition is silent.
     "count": 3,
     "allow_upgrade": true,
     "allow_replace": true,
+    "force_replace": false,
     "allow_skip": false,
     "exclude_owned": false
   }
@@ -205,6 +206,7 @@ no offer, transition is silent.
 | `count` | int | 3 | how many cards to show. Pool may yield fewer if filters cut deeper than expected. |
 | `allow_upgrade` | bool | true | a card for an already-owned skill becomes "upgrade level → N+1" instead of being dropped. |
 | `allow_replace` | bool | true | when slots are full, card can offer to replace a chosen slot. Triggers a sub-screen with slot picker. |
+| `force_replace` | bool | false | when true, new-skill cards use replace mode even if an empty slot exists. Story campaign uses this to make every offer a deliberate slot swap. |
 | `allow_skip` | bool | false | shows a Skip button. `mode=&"skipped"` on the closed signal. |
 | `exclude_owned` | bool | false | filters owned skill ids from the pool entirely (regardless of allow_upgrade/replace). |
 

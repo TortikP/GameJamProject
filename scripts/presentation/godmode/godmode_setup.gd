@@ -24,6 +24,7 @@ func _ready() -> void:
 ## Entry — called by GodmodeController._ready AFTER its node-resolution Phase 1.
 ## Mirrors the original controller._ready setup chain 1:1.
 func run() -> void:
+	var campaign_mode: bool = ActiveGame.has_active_game()
 	# 1. Resolve scene-tree refs the @export NodePaths didn't populate.
 	if _ctrl.grid == null:
 		_ctrl.grid = _ctrl.get_node_or_null("../HexGrid") as HexGrid
@@ -92,7 +93,7 @@ func run() -> void:
 	_seed_slots.call_deferred()
 	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_activated"):
 		_ctrl.slot_bar.slot_activated.connect(_ctrl._on_slot_activated)
-	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_right_clicked"):
+	if not campaign_mode and _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_right_clicked"):
 		_ctrl.slot_bar.slot_right_clicked.connect(_ctrl._on_slot_right_clicked)
 		_ctrl._build_ability_picker.call_deferred()
 
@@ -115,6 +116,15 @@ func run() -> void:
 		_ctrl.cast_overlay.setup(_ctrl.grid)
 	if _ctrl.inspector != null and _ctrl.inspector.has_signal("speed_changed"):
 		_ctrl.inspector.speed_changed.connect(_ctrl._on_inspector_speed_changed)
+	if campaign_mode:
+		var help_label: Node = _ctrl.get_node_or_null("../HUD/HelpLabel")
+		if help_label != null:
+			help_label.hide()
+		if _ctrl.inspector != null:
+			_ctrl.inspector.hide()
+		var combat_log: Node = _ctrl.get_node_or_null("../HUD/CombatLog")
+		if combat_log != null:
+			combat_log.hide()
 
 	# Reset turn counter for this session
 	TurnManager.reset()
@@ -267,6 +277,9 @@ func _place_player() -> void:
 
 func _seed_slots() -> void:
 	if _ctrl.slot_bar == null:
+		return
+	if ActiveGame.has_active_game():
+		CampaignController.apply_campaign_skill_loadout()
 		return
 	# 034: clone_for_owner so player's cooldowns are isolated from any other
 	# owner of the same skill (DB-shared instance never receives cd state).

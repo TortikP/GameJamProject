@@ -206,7 +206,7 @@ func validate() -> Array[String]:
 				var count_v: int = int(so_d.get("count", 3))
 				if count_v < 1:
 					errors.append("Wave %d: skill_offer.count must be >= 1 (got %d)" % [i, count_v])
-				for k in [&"allow_upgrade", &"allow_replace", &"allow_skip", &"exclude_owned"]:
+				for k in [&"allow_upgrade", &"allow_replace", &"force_replace", &"allow_skip", &"exclude_owned"]:
 					if so_d.has(k) and typeof(so_d[k]) != TYPE_BOOL:
 						errors.append("WARN: Wave %d: skill_offer.%s should be bool" % [i, k])
 				# Soft warn — pool file existence is checked at runtime by
