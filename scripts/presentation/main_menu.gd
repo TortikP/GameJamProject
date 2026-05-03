@@ -17,7 +17,6 @@ const RUN_SCENE: String = "res://scenes/dev/godmode.tscn"
 const STORY_CAMPAIGN_PATH: String = "res://data/games/story_campaign.game.json"
 
 @onready var _title: Label = $VBox/Title
-@onready var _subtitle: Label = $VBox/Subtitle
 @onready var _start_btn: Button = $VBox/StartButton
 @onready var _continue_btn: Button = $VBox/ContinueButton
 @onready var _godmode_btn: Button = $VBox/GodmodeButton
@@ -62,7 +61,11 @@ func _ready() -> void:
 
 func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_title, "display")
-	UiTheme.apply_label_kind(_subtitle, "small")
+	# Title-specific bump for menu pop: oversized + thick black outline.
+	# 80 = FS_BODY × 5, multiple of 16 so Pixellari stays crisp.
+	_title.add_theme_font_size_override("font_size", 80)
+	_title.add_theme_constant_override("outline_size", 8)
+	_title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
 	for btn in [_start_btn, _continue_btn, _godmode_btn, _map_editor_btn,
 				_game_editor_btn, _load_game_btn,
 				_load_custom_btn, _settings_btn, _credits_btn, _quit_btn]:

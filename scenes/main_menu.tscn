@@ -29,22 +29,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -240.0
-offset_right = 160.0
-offset_bottom = 240.0
+offset_left = -280.0
+offset_top = -260.0
+offset_right = 280.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="VBox"]
 layout_mode = 2
-text = "GameJamProject"
-horizontal_alignment = 1
-
-[node name="Subtitle" type="Label" parent="VBox"]
-layout_mode = 2
-text = "[ART SLOT] — title art"
+text = "Polyabsorb"
 horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="VBox"]
