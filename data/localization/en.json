@@ -594,5 +594,7 @@
   "ending_bad_final_version_opening_text": "Who are we?",
   "ending_bad_final_version_heroine_text": "Where from?",
   "ending_bad_final_version_monologue": "Where are we going?",
-  "ending_bad_final_version_final_text": "Back to the beginning..."
+  "ending_bad_final_version_final_text": "Back to the beginning...",
+  "skill_offer.replace.hover_hint": "Hover a slot to preview what gets replaced.",
+  "skill_offer.replace.empty_slot": "(empty)"
 }

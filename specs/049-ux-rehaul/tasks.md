@@ -180,3 +180,72 @@ the `header` (20px) name on the same panel.
   - `scripts/presentation/enemy_details_panel.gd`: `_apply_theme` —
     `_hp_label` kind small → body. `_make_pip` — name label small →
     body, icon size 20→24px, separation SP_1 → SP_2.
+
+### Issue 6 (round-2) — three more on the same modal flow
+
+After T040/T041 landed Egor surfaced three further issues on the offer
+flow + telegraph rendering. Tracked as T042-T044.
+
+#### Issue 6a — ranged-AoE telegraph lying
+
+For `target=actor(range=N) area=zone_circle(radius=R)` skills, the AI
+re-resolves `target_coord = live_coord` of the player at apply-time
+(see `ai_driver._resolve_cast_intent` line 246). Player walks one hex
+"away from" the visualised AoE and gets clipped because the AoE re-
+anchors on the new player position. Visual was painting the AoE around
+the live coord at refresh-time only — it lied about future apply.
+
+- [x] **T042** — `scripts/presentation/godmode/telegraph_renderer.gd`:
+  in the AoE-collection block, build `anchor_set` per-ability:
+    - live target coord (existing behaviour),
+    - PLUS for `ActorTarget` skills tracking `target_id == &"player"`,
+      every hex in `grid.reachable_within(p_coord, p.effective_speed(), [])`
+      that's also in `ability.target.get_range_hexes(caster_coord, grid)`.
+  Paint AoE around every plausible anchor. Truthful threat zone — the
+  player can now read "anywhere I move within this paint, the AI's AoE
+  catches me." Cost: ~10 anchors × ~7 affected hexes = ~70 entries
+  per intent, dedup'd by area_coords dict.
+
+#### Issue 6b — empty slot beats force_replace
+
+Story-map JSONs (`story_map_0[1-4].json`) all set `force_replace=true`
+per wave. With T040 surfacing card mode badges prominently, players
+saw "ЗАМЕНИТЬ" on every card while their R slot still sat empty. UX
+contradiction: "swap something out" + "your R is open."
+
+- [x] **T043** — `scripts/runtime/skill_offer_controller.gd`:
+  `_make_card_for` empty-slot check is FIRST. If
+  `PlayerSkillAdapterScript.first_empty_slot() >= 0`, return mode=add
+  regardless of `force_replace`. force_replace only kicks in when the
+  bar is full. Side effect: T044's slot picker now sees all 4 slots
+  always populated (the empty-slot path went to ADD upstream).
+
+#### Issue 6c — replace screen UX rebuild
+
+Replace screen showed only the localised name of the incoming skill in
+the hint Label. Slot buttons listed `Q\nUdar` etc. — fine for "what's
+in there" but no way to compare what you're losing vs gaining. Egor:
+"hover на слотах должен показывать tooltip снизу в одном месте, с
+красной рамкой и зачёркнутым текстом. Сверху — описание того, что ты
+берёшь, чтобы не забыть."
+
+- [x] **T044** — `scripts/presentation/ui/skill_offer_modal.gd`
+  `_show_slot_picker`:
+    - INCOMING-skill panel at the top: PanelContainer with name (header,
+      tinted by SkillFormatter.consequence_color) + RichTextLabel with
+      `format_skill_human(skill)` body. Always visible.
+    - Slot row gets `mouse_entered.connect(_on_replace_slot_hover.bind(i))`
+      and `mouse_exited.connect(_on_replace_slot_unhover)`.
+    - OUTGOING-skill preview panel at the bottom — fixed vertical
+      position. Custom red-bordered stylebox via
+      `_make_replace_outgoing_stylebox` (2px SEM_DAMAGE border vs default
+      1px BORDER). RichTextLabel with `[b][s]NAME[/s][/b]\n[s]gameplay[/s]`
+      BBCode for strikethrough on both lines, painted SEM_DAMAGE.
+    - `_on_replace_slot_unhover` is a no-op — keeps last-hover pinned so
+      cursor flicker between slot buttons doesn't strobe the preview.
+    - Empty-slot guard `btn.disabled = (existing == null)` retained for
+      forward-compat (T043 makes it unreachable today).
+    - `_on_cancel_replace` clears outgoing-panel refs to avoid stale-node
+      access from delayed signals (Godot 4.6 trap).
+  Localization: `skill_offer.replace.hover_hint` + `.empty_slot` added
+  to en + ru.

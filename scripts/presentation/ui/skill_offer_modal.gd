@@ -27,6 +27,10 @@ const UiThemeScript = preload("res://scripts/presentation/ui_theme.gd")
 const PlayerSkillAdapterScript = preload("res://scripts/runtime/player_skill_adapter.gd")
 const SkillOfferCardScene: PackedScene = preload("res://scenes/ui/skill_offer_card.tscn")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+# 049b / T044: replace screen surfaces both the incoming gameplay text
+# (top, full-strength) and the outgoing one (bottom, strikethrough red).
+# Same human-formatter the cards / PSP / HexTooltip use — single source.
+const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 
 const MODAL_LAYER: int = 25
 
@@ -165,6 +169,13 @@ func _on_skip_pressed() -> void:
 
 # ── Replace-slot sub-screen ────────────────────────────────────────────────
 
+# 049b / T044: outgoing-skill preview panel — fixed at the bottom of the
+# slot picker. Filled on slot hover, cleared on hover-exit. Persistent
+# reference so hover handlers can mutate it without traversing the tree.
+var _replace_outgoing_panel: PanelContainer
+var _replace_outgoing_label: RichTextLabel
+
+
 func _show_slot_picker(card_data: Dictionary) -> void:
 	_slot_picker_pinned_card = card_data
 	# Hide cards row + footer, show a slot picker beneath the header.
@@ -178,17 +189,55 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	picker.add_theme_constant_override("separation", UiThemeScript.SP_3)
 	picker.alignment = BoxContainer.ALIGNMENT_CENTER
 
-	var hint := Label.new()
 	var skill = card_data.get("skill", null)
 	var name_key: String = String(skill.name) if skill != null and "name" in skill else ""
 	var sid: String = str(card_data.get("skill_id", ""))
 	var display_name: String = Localization.t(name_key, sid) if name_key != "" else sid
+
+	var hint := Label.new()
 	hint.text = Localization.tf("skill_offer.replace.prompt", [display_name],
 			"Pick a slot to replace with %s")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiThemeScript.apply_label_kind(hint, "body")
 	picker.add_child(hint)
 
+	# 049b / T044: INCOMING-skill preview at the top of the picker.
+	# Reminds the player exactly what they're getting in exchange — the
+	# previous version showed only the localised name in `hint`, so the
+	# moment you got past the card screen the actual mechanical effect
+	# (damage / range / CD / etc) was off-screen and you had to cancel
+	# back to re-read it.
+	var incoming_panel := PanelContainer.new()
+	incoming_panel.add_theme_stylebox_override("panel", UiThemeScript.make_panel_stylebox())
+	var incoming_vbox := VBoxContainer.new()
+	incoming_vbox.add_theme_constant_override("separation", UiThemeScript.SP_1)
+	incoming_panel.add_child(incoming_vbox)
+
+	var incoming_name := Label.new()
+	incoming_name.text = display_name
+	incoming_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiThemeScript.apply_label_kind(incoming_name, "header")
+	# Tint by skill type — same consequence_color logic the cards / PSP /
+	# HexTooltip use. Reads-at-a-glance "what kind of spell".
+	if skill != null:
+		incoming_name.add_theme_color_override("font_color",
+				SkillFormatter.consequence_color(skill))
+	incoming_vbox.add_child(incoming_name)
+
+	var incoming_desc := RichTextLabel.new()
+	incoming_desc.bbcode_enabled = true
+	incoming_desc.fit_content = true
+	incoming_desc.scroll_active = false
+	incoming_desc.custom_minimum_size = Vector2(360, 0)
+	incoming_desc.add_theme_font_size_override("normal_font_size", UiThemeScript.FS_BODY)
+	incoming_desc.add_theme_color_override("default_color", UiThemeScript.TEXT)
+	incoming_desc.text = SkillFormatter.format_skill_human(skill) if skill != null else ""
+	incoming_vbox.add_child(incoming_desc)
+
+	picker.add_child(incoming_panel)
+
+	# Slot row — same Q/W/E/R buttons. With T043, all 4 slots are filled
+	# whenever this screen reaches (empty-slot path goes to ADD upstream).
 	var slots_row := HBoxContainer.new()
 	slots_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	slots_row.add_theme_constant_override("separation", UiThemeScript.SP_2)
@@ -199,7 +248,6 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(96, 96)
 		var slot_text: String = labels[i]
-		# Annotate with the skill currently in that slot for player context.
 		var existing = _peek_slot(i)
 		if existing != null and "id" in existing:
 			var ex_key: String = String(existing.name) if "name" in existing else ""
@@ -209,11 +257,39 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 			slot_text += "\n—"
 		btn.text = slot_text
 		UiThemeScript.apply_button_styling(btn)
-		# Disable empty slots — replace targets a filled slot per spec; if
-		# you wanted to add into empty you'd have got an "add" card.
-		btn.disabled = false
+		# T043 makes empty slots impossible here, but keep the disabled
+		# branch for forward-compat against future force_replace edge cases.
+		btn.disabled = (existing == null)
 		btn.pressed.connect(_on_slot_picked.bind(i))
+		# 049b / T044: hover wiring — fill / clear the outgoing preview.
+		# bind() captures the slot index so the handler knows which slot
+		# the cursor entered (mouse_entered is parameterless natively).
+		btn.mouse_entered.connect(_on_replace_slot_hover.bind(i))
+		btn.mouse_exited.connect(_on_replace_slot_unhover)
 		slots_row.add_child(btn)
+
+	# 049b / T044: OUTGOING-skill preview panel at the bottom — fixed
+	# vertical position (bottom of the picker VBox) so the player's eye
+	# doesn't have to track the cursor as it moves between slots. Red
+	# border + RichTextLabel with [s]strikethrough[/s] BBCode communicates
+	# "this is being thrown away."
+	_replace_outgoing_panel = PanelContainer.new()
+	_replace_outgoing_panel.add_theme_stylebox_override("panel",
+			_make_replace_outgoing_stylebox())
+	_replace_outgoing_panel.custom_minimum_size = Vector2(0, 96)
+	_replace_outgoing_label = RichTextLabel.new()
+	_replace_outgoing_label.bbcode_enabled = true
+	_replace_outgoing_label.fit_content = true
+	_replace_outgoing_label.scroll_active = false
+	_replace_outgoing_label.custom_minimum_size = Vector2(360, 0)
+	_replace_outgoing_label.add_theme_font_size_override("normal_font_size", UiThemeScript.FS_BODY)
+	_replace_outgoing_label.add_theme_color_override("default_color", UiThemeScript.SEM_DAMAGE)
+	# Default placeholder — replaced by hover handler.
+	_replace_outgoing_label.text = Localization.t(
+			"skill_offer.replace.hover_hint",
+			"Hover a slot to preview what gets replaced.")
+	_replace_outgoing_panel.add_child(_replace_outgoing_label)
+	picker.add_child(_replace_outgoing_panel)
 
 	# Cancel — back to cards row.
 	var cancel_row := HBoxContainer.new()
@@ -227,6 +303,50 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 
 	_slot_picker = picker
 	_vbox.add_child(picker)
+
+
+# 049b / T044: red-bordered stylebox for the outgoing-preview panel.
+# Same shape as make_panel_stylebox + 2px SEM_DAMAGE border (vs default
+# 1px BORDER) so the "this is being lost" cue reads at a glance without
+# yelling.
+func _make_replace_outgoing_stylebox() -> StyleBoxFlat:
+	var sb: StyleBoxFlat = UiThemeScript.make_panel_stylebox()
+	sb.border_color = UiThemeScript.SEM_DAMAGE
+	sb.border_width_left = 2
+	sb.border_width_right = 2
+	sb.border_width_top = 2
+	sb.border_width_bottom = 2
+	return sb
+
+
+# 049b / T044: slot-button hover handler — populate outgoing preview.
+# Strikethrough on both the name line and the gameplay description via
+# [s]…[/s] BBCode (RichTextLabel native; not supported on plain Label).
+func _on_replace_slot_hover(slot_index: int) -> void:
+	if _replace_outgoing_label == null:
+		return
+	var existing = _peek_slot(slot_index)
+	if existing == null:
+		_replace_outgoing_label.text = "[s]%s[/s]" % Localization.t(
+				"skill_offer.replace.empty_slot", "(empty)")
+		return
+	var ex_key: String = String(existing.name) if "name" in existing else ""
+	var ex_id: String = str(existing.id) if "id" in existing else ""
+	var ex_disp: String = Localization.t(ex_key, ex_id) if ex_key != "" else ex_id
+	var gameplay: String = SkillFormatter.format_skill_human(existing)
+	# [b][s]NAME[/s][/b]\n[s]gameplay[/s] — bold name on top, body desc
+	# below; both strikethrough. Newline isn't BBCode in RichTextLabel, it
+	# just works as plain \n.
+	_replace_outgoing_label.text = "[b][s]%s[/s][/b]\n[s]%s[/s]" % [ex_disp, gameplay]
+
+
+# 049b / T044: hover-exit handler. Decision: keep the last-hovered preview
+# pinned rather than clearing on exit. Reasoning — on mobile / slow-pad
+# pointers the cursor flickers off-button between slot moves, and clearing
+# would create a strobing UX. Last-hover persists until a new slot fires
+# its mouse_entered. Clearing is left for the next hover.
+func _on_replace_slot_unhover() -> void:
+	pass
 
 
 func _peek_slot(idx: int):
@@ -246,6 +366,11 @@ func _on_cancel_replace() -> void:
 		_slot_picker.queue_free()
 	_slot_picker = null
 	_slot_picker_pinned_card = {}
+	# 049b / T044: drop refs to children that are about to be freed with
+	# the picker. Without this, _on_replace_slot_hover from a stale signal
+	# could touch a freed RichTextLabel — Godot 4.6 trap (CLAUDE.md).
+	_replace_outgoing_panel = null
+	_replace_outgoing_label = null
 	_cards_row.visible = true
 	_footer_row.visible = true
 

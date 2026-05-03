@@ -123,20 +123,60 @@ func refresh() -> void:
 					# the affected tiles given caster + target. Area can be null
 					# (single-target spells); skip those — primary hex above is
 					# already enough.
+					#
+					# 049b / T042: for actor-target skills tracking the player,
+					# the AoE follows the player at apply-time (see
+					# ai_driver._resolve_cast_intent: target_coord = live_coord).
+					# Walking ONE hex away rarely escapes — the AI re-anchors
+					# the AoE on the player's new position. Visual was lying:
+					# it only painted the AoE around the current player coord,
+					# so players read "leave the red zone = safe" and got
+					# clipped one hex away. Truthful paint = union of AoE
+					# anchored at every hex the player could reach this turn
+					# (clamped to AI's target range so far positions don't
+					# pollute the read).
 					if skill != null:
 						var caster_coord: Vector2i = grid.get_coord(enemy.actor_id)
 						for ab in skill.abilities:
 							var ability := ab as Ability
 							if ability == null or ability.area == null:
 								continue
-							var anchor: Vector2i = coord
+							# Anchor candidates the player could be at when
+							# the AI fires. Live coord first; reachable set
+							# bolted on for ActorTarget tracking the player.
+							var anchor_set: Dictionary = {}
+							var live_anchor: Vector2i = coord
 							if ability.target != null:
-								anchor = ability.target.preview_anchor_coord(caster_coord, coord)
-							var affected: Array[Vector2i] = ability.area.get_affected_hexes(
-									caster_coord, anchor, grid)
-							for ac in affected:
-								if not area_coords.has(ac):
-									area_coords[ac] = tag
+								live_anchor = ability.target.preview_anchor_coord(
+										caster_coord, coord)
+							anchor_set[live_anchor] = true
+							if ability.target is ActorTarget and ci.target_id == &"player":
+								var p: Actor = registry.get_actor(&"player")
+								if p != null and p.is_alive():
+									var p_coord: Vector2i = grid.get_coord(&"player")
+									if p_coord != Vector2i(-1, -1):
+										# Range gate — only candidate
+										# positions the AI would still target.
+										# Cheaper: use ability.target's own
+										# range_hexes once and dict-it for O(1).
+										var range_hexes: Array[Vector2i] = \
+												ability.target.get_range_hexes(caster_coord, grid)
+										var range_set: Dictionary = {}
+										for h in range_hexes:
+											range_set[h] = true
+										var reachable: Array[Vector2i] = \
+												grid.reachable_within(p_coord,
+												p.effective_speed(), [])
+										for r in reachable:
+											if range_set.has(r):
+												anchor_set[r] = true
+							# Paint AoE around every plausible anchor.
+							for anchor_coord in anchor_set.keys():
+								var affected: Array[Vector2i] = ability.area.get_affected_hexes(
+										caster_coord, anchor_coord, grid)
+								for ac in affected:
+									if not area_coords.has(ac):
+										area_coords[ac] = tag
 
 		# 049 / AC-7: enemy movement intent — drawn as a polyline through hex
 		# centers, red, with arrowhead at the destination. The path is

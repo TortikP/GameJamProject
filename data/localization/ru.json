@@ -594,5 +594,7 @@
   "ending_bad_final_version_opening_text": "Кто мы.",
   "ending_bad_final_version_heroine_text": "Откуда?",
   "ending_bad_final_version_monologue": "Куда мы идём?",
-  "ending_bad_final_version_final_text": "В начало..."
+  "ending_bad_final_version_final_text": "В начало...",
+  "skill_offer.replace.hover_hint": "Наведите на слот — увидите, что заменяете.",
+  "skill_offer.replace.empty_slot": "(пусто)"
 }
