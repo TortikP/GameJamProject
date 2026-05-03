@@ -17,9 +17,9 @@
 
 ## Phase 2 — gate empty-victim bail by target type
 
-- [ ] T2.1 — `ability.gd::cast()`: compute `target_requires_victims`
+- [x] T2.1 — `ability.gd::cast()`: compute `target_requires_victims`
       after the `has_create` detection block.
-- [ ] T2.2 — Update both `if victims.is_empty() ...` bail-outs to
+- [x] T2.2 — Update both `if victims.is_empty() ...` bail-outs to
       `and target_requires_victims`.
 - [ ] T2.3 — Smoke: `target=self` + `zone_circle` skill cast in an
       empty zone → no error log, cooldown ticks, audio fires (AC4).
