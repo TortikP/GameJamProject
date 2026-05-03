@@ -30,6 +30,22 @@ func _ready() -> void:
 	# always alive by the time this _ready fires.
 	if not RunScore.score_changed.is_connected(_on_score_changed):
 		RunScore.score_changed.connect(_on_score_changed)
+	# 047: score lives in the bottom-right corner; the dialogue panel is
+	# 280px tall full-width at the bottom and would cover the score
+	# whenever a story beat fires. Hide for the duration of the beat,
+	# show again when it ends. EventBus is an autoload — always alive.
+	if EventBus.has_signal("dialogue_started") and not EventBus.dialogue_started.is_connected(_on_dialogue_started):
+		EventBus.dialogue_started.connect(_on_dialogue_started)
+	if EventBus.has_signal("dialogue_finished") and not EventBus.dialogue_finished.is_connected(_on_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_dialogue_finished)
+
+
+func _on_dialogue_started(_dialogue_id: StringName) -> void:
+	visible = false
+
+
+func _on_dialogue_finished(_dialogue_id: StringName) -> void:
+	visible = true
 
 
 func _on_score_changed(total: int, delta: int) -> void:
