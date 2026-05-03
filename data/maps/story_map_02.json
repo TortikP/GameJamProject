@@ -57,7 +57,21 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {},
+	"music_config": {
+		"_desc": "Heaven — uplifted, abstract, epic. Slow-changing modal chords with sus4 pad and stately halftime drums.",
+		"seed": 1202,
+		"bpm": 92,
+		"base_state": "battle",
+		"progression": "am_c_g_em",
+		"scale": "dorian",
+		"bars_per_chord": 4,
+		"drum_pattern": "halftime",
+		"bass_pattern": "root_fifth",
+		"pad_voicing": "sus4",
+		"lead_density_battle": 0.5,
+		"pad_gain_db": 3,
+		"drums_gain_db": -2
+	},
 	"name": "Story Map 02",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,

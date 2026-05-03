@@ -57,7 +57,21 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {},
+	"music_config": {
+		"_desc": "Hell — evil, dynamic, doom-style fast. Harmonic minor + walking bass + drive drums + dense lead.",
+		"seed": 1203,
+		"bpm": 144,
+		"base_state": "battle",
+		"progression": "am_dm_e_am",
+		"scale": "harmonic_minor",
+		"bars_per_chord": 1,
+		"drum_pattern": "drive",
+		"bass_pattern": "walking",
+		"pad_voicing": "seven",
+		"lead_density_battle": 0.85,
+		"pad_gain_db": -3,
+		"drums_gain_db": 3
+	},
 	"name": "Story Map 03",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,

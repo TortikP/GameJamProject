@@ -56,7 +56,21 @@
 			"play_mode": "play"
 		}
 	],
-	"music_config": {},
+	"music_config": {
+		"_desc": "Office boss — heavy, evil, harsh. Mid-tempo with crushing halftime drums, syncopated bass for weight, harmonic-minor cadence.",
+		"seed": 1204,
+		"bpm": 100,
+		"base_state": "battle",
+		"progression": "am_dm_e_am",
+		"scale": "harmonic_minor",
+		"bars_per_chord": 2,
+		"drum_pattern": "halftime",
+		"bass_pattern": "syncopated",
+		"pad_voicing": "seven",
+		"lead_density_battle": 0.7,
+		"pad_gain_db": -1,
+		"drums_gain_db": 4
+	},
 	"name": "Story Map 04",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,

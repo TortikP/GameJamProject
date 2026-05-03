@@ -431,5 +431,19 @@
     }
   ],
   "dialogue_triggers": [],
-  "music_config": {}
+  "music_config": {
+    "_desc": "Light, minor, melancholic — slow contemplative intro.",
+    "seed": 1100,
+    "bpm": 76,
+    "base_state": "calm",
+    "progression": "am_g_f_g",
+    "scale": "natural_minor",
+    "bars_per_chord": 4,
+    "drum_pattern": "halftime",
+    "bass_pattern": "root",
+    "pad_voicing": "sus2",
+    "lead_density_calm": 0.2,
+    "pad_gain_db": 0,
+    "drums_gain_db": -16
+  }
 }
