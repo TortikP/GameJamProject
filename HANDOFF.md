@@ -943,3 +943,59 @@ T008, T015–T023 в `tasks.md`:
 4. Финальная волна без корпсов — пустой ритуал играется полную длительность с heroine FX (T016).
 5. F2 ресет в godmode → корпсы исчезают, leak-check (T018).
 6. F5 live-reload — следующий death использует новые `[fx]` значения (T022).
+
+## 23. 049-ux-rehaul — точки интеграции
+
+**Статус:** ветка `egor/049-ux-rehaul` (PR в открытом состоянии — http://github.com/TortikP/GameJamProject/pull/new/egor/049-ux-rehaul). Phases A→D реализованы. Smoke (T028–T030) — за тестирующим в Godot.
+
+Большой UX-rehaul, presentation-only, core не тронут. Главная идея: переход от click-to-inspect к ITB-стилю always-on hover-driven preview.
+
+### Что введено
+
+- **Source of truth для описаний** — `Localization.t(skill.tooltip)` через новый `SkillFormatter.format_skill_human(skill)`. При missing key показывается `[ДОБАВИТЬ]` placeholder (видно дизайнерам). Старый структурный `format_skill` остался как dev/debug fallback.
+- **HexTooltip** (`scripts/presentation/hex_tooltip.gd` + `scenes/ui/hex_tooltip.tscn`) — cursor-anchored multi-row table. Аккумулирует ВСЕ actions targeting hovered hex (player preview + enemy intents с `target_coord==coord` ИЛИ `coord ∈ ability.area.affected`). 3 колонки: actor name • skill icon+name • consequence.
+- **EnemyDetailsPanel** (`scripts/presentation/enemy_details_panel.gd` + `scenes/ui/enemy_details_panel.tscn`) — top-right hover-only widget. Bind на enter enemy hex, unbind на exit. Hor. layout: portrait • name+team • HP • status strip • abilities row.
+- **TelegraphHex иконка** — primary hex draws skill icon (texture via SkillIconResolver, fallback first letter). Damage label moved from above-hex (collision с HP bars) to bottom-center inside hex.
+- **CastRangeOverlay grey-out** — invalid range hexes (target.resolve null on per-hex ctx) drawn in `INVALID_TARGET_COLOR` dim grey vs valid SEM_DEBUFF.
+- **EnemyMovePath** (`scripts/presentation/enemy_move_path.gd`) — заменил straight-line IntentArrow. Polyline через hex centers по `grid.find_path_around` (matches AI's actual route, не straight через obstacles). Цвет SEM_DAMAGE.
+- **PSP hover-preview** — `set_hover_spell` + `slot_hovered/_unhovered` signals в SlotBar. Hover beats active в SpellSection.
+
+### Что выпилено
+
+- `ActorInspector` (правая панель + dev-mode SpinBox stat editor) — wholesale: `scripts/presentation/godmode/actor_inspector.gd` + `scenes/dev/actor_inspector.tscn`.
+- `HexInspectorSubpanel` — мёртвый parallel компонент, никем не инстанциировался.
+- `IntentArrow` — заменён на EnemyMovePath.
+- Selection-семантика в GodmodeController: `_selected, select(), deselect_to_player(), inspect_hex(), bind_hex_at(), _on_inspector_speed_changed, _on_actor_died_for_selection, var inspector, @export inspector_path`.
+- LMB-on-actor / LMB-on-hex без активного слота — теперь no-op.
+- Esc-handler shrunk с 3 tiers до 2 (cast cancel → pause menu; selection-tier удалён).
+
+### Точка интеграции с 029-feedback-polish (Andrey)
+
+Закрыты:
+- §req-6 «mob-hover tooltip + AoE telegraph shape» — заменён HexTooltip + EnemyDetailsPanel.
+- §Pillar-1 «иконка типа атаки на TelegraphHex» — реализовано (icon-or-letter fallback).
+- §Pillar-1 «cast-range overlay чище: явная разница между достижимо и out of range» — реализовано через grey-out invalid.
+
+Можно при следующей правке 029/spec.md пометить эти пункты как «закрыто 049».
+
+### Точка интеграции с 040-wave-skill-choice (Andrey)
+
+`SkillOfferCard._resolve_icon` шимится в `SkillIconResolver.resolve(skill)`. Старая inline-копия (lines 149-169) удалена. Поведение идентично, никаких изменений по слот-офферам.
+
+### Точка интеграции с 048-corpse-absorption (Egor)
+
+Нет пересечений по файлам. Параллельные ветки можно мерджить в любом порядке.
+
+### Inertia инвариант
+
+ActorInspector / HexInspectorSubpanel / IntentArrow удалены из репы (`git rm`). Сценарии где их можно бы было вернуть отдельным спеком:
+- Dev-only stat editor SpinBoxes (если кому понадобится для playtest tuning) — отдельная панель за F-toggle, не наследник ActorInspector. Spec 050+.
+- Per-hex tile inspector (kind/effect/object) — если будет нужно в editor mode. Editor scene уже имеет свой набор panels, godmode runtime не нуждается.
+
+### Pending Egor (smoke в Godot)
+
+T028..T031 в `tasks.md`:
+1. Запустить `scenes/dev/godmode.tscn`, F1 spawn 2 манекена; проверить все 10 AC.
+2. Запустить sample-уровень из editor с 2 волнами по 2 моба; проверить multi-row hex tooltip когда несколько мобов целятся в один hex.
+3. Edge cases (T030): cursor на player → enemy_details скрыт; AoE+single-target overlap → 2 строки в tooltip; cursor flick между гексами → no flicker.
+4. Localization audit (T031): уже сделано в impl-сессии, 55/55 skills локализованы. Placeholder редкий.

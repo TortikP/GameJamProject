@@ -17,14 +17,15 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var registry: ActorRegistry
 @export var player: Actor
 @export var slot_bar_path: NodePath  # path to HBoxContainer with slot_bar.gd
-@export var inspector_path: NodePath
+# 049 / T021: inspector_path removed — ActorInspector node deleted (AC-3).
+# Selection, hex inspect, dev SpinBox stat editing — all gone. EnemyDetails
+# panel + HexTooltip handle hover-driven info; no click-to-inspect path.
 @export var overlay_path: NodePath
 @export var player_status_panel_path: NodePath  # 016/F-034 — was hardcoded "../HUD/PlayerStatusPanel"
 
 # Shared scene-tree refs — public so sibling modules can read them via _ctrl.X.
 # Resolved by GodmodeSetup.run() in _ready.
 var slot_bar: Node
-var inspector: Node      # ActorInspector
 var overlay: Node        # MoveRangeOverlay
 var cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
 var tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
@@ -47,8 +48,15 @@ var hover: Node              # HoverDispatcher
 var manekin_spawner: Node    # ManekinSpawner
 var step_animator: Node      # StepAnimator
 
-# Selection / picker private state
-var _selected: Actor      # currently inspected actor (default: player)
+# 049 / T021: selection facade removed wholesale (AC-3). LMB-on-actor and
+# LMB-on-hex no longer drive any inspect/select flow — hover handles all
+# info readout via HexTooltip + EnemyDetailsPanel. Removed:
+#   - var _selected
+#   - func select / deselect_to_player / inspect_hex / bind_hex_at
+#   - func _on_inspector_speed_changed / _on_actor_died_for_selection
+# refresh_overlay stays — it's now player-only and triggered by slot
+# changes / wave events / setup, not selection. ActorInspector binding
+# was the only tie back to selection state and that's gone too.
 var _ability_picker: PopupMenu = null   # right-click slot → pick ability
 var _picker_target_slot: int = 0        # which slot the picker is assigning to
 
@@ -89,55 +97,15 @@ func _is_wave_transitioning() -> bool:
 	return wave_controller != null and wave_controller.is_transitioning()
 
 
-# ── Selection / Inspector / Overlay facade ───────────────────────────────────
-# Kept on controller because (a) selection is a small concern with no clear
-# home among the modules, (b) inspector + overlay are presentation glue not
-# gameplay rules, (c) sibling modules call into these as a stable API.
-
-func select(actor: Actor) -> void:
-	_selected = actor
-	if inspector != null and inspector.has_method("bind"):
-		inspector.bind(actor)
-	# Also show hex layer for this actor's current position
-	if actor != null:
-		var coord: Vector2i = grid.get_coord(actor.actor_id)
-		bind_hex_at(coord)
-	refresh_overlay()
-
-
-func deselect_to_player() -> void:
-	select(player)
-
-
-func inspect_hex(coord: Vector2i) -> void:
-	# Click on empty hex → inspector shows hex info, actor section hides.
-	# Selection state and player's move/cast overlay are NOT touched
-	# (009-ui-kit decoupling: overlay tracks player, not _selected).
-	# Note: we deliberately don't change _selected — leaving it on the
-	# player so subsequent overlay refreshes have a sensible source if
-	# anything ever re-introduces selection-driven logic.
-	if inspector != null and inspector.has_method("unbind"):
-		inspector.unbind()
-	bind_hex_at(coord)
-
-
-func bind_hex_at(coord: Vector2i) -> void:
-	if inspector == null or not inspector.has_method("bind_hex"):
-		return
-	if coord == Vector2i(-1, -1):
-		inspector.unbind_hex()
-		return
-	var tile_kind: StringName = grid.get_tile_kind(coord)
-	var effect_id: StringName = grid.get_effect_id(coord)
-	inspector.bind_hex(coord, tile_kind, effect_id)
-
+# ── Overlay facade ──────────────────────────────────────────────────────────
+# Selection is gone in 049 (AC-3) — overlay is always for the PLAYER. Slot
+# bar / wave events / setup trigger refresh_overlay; no actor binding.
 
 func refresh_overlay() -> void:
-	# Decoupled from _selected: the move-range and cast-range overlays are
-	# always for the PLAYER. Selecting an enemy/hex (LMB on actor, click on
-	# tile) should not hide the player's tactical info (Pillar 1 visibility).
-	# Inspector binding still follows _selected — that's the "what am I
-	# looking at" panel, separate concern from "what can I do this turn".
+	# 049 / T021: overlay is hard-bound to PLAYER. Selection no longer exists
+	# (AC-3) so the historical "what if selection drives this" branch is
+	# also gone. Triggers: slot_activated, refresh after FSM commit/cancel,
+	# wave events, setup.
 	if overlay == null or player == null:
 		return
 	# 031 phase 12+13: idle slot preview shows only the *current* ability's
@@ -155,13 +123,11 @@ func refresh_overlay() -> void:
 
 # ── Signal handlers wired by GodmodeSetup ────────────────────────────────────
 
-func _on_inspector_speed_changed(_actor: Actor) -> void:
-	refresh_overlay()
-
-
-func _on_actor_died_for_selection(id: StringName) -> void:
-	if _selected != null and _selected.actor_id == id:
-		deselect_to_player()
+# 049 / T021: removed _on_inspector_speed_changed + _on_actor_died_for_selection.
+# Inspector dev-mode SpinBoxes are gone (no speed_changed signal source);
+# selection is gone (no _selected to clear on death). Cleanup is handled
+# wholesale by _on_actor_died_for_cleanup below — that path was already
+# correct for non-selection state.
 
 
 # 041 follow-up: generic dead-actor cleanup. Pre-existing bug: only

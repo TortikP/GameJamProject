@@ -101,13 +101,12 @@ func run() -> void:
 		_ctrl.slot_bar.slot_hovered.connect(_ctrl._on_slot_hovered)
 	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_unhovered"):
 		_ctrl.slot_bar.slot_unhovered.connect(_ctrl._on_slot_unhovered)
-		_ctrl._build_ability_picker.call_deferred()
+	_ctrl._build_ability_picker.call_deferred()
 
-	# Inspector + overlay — resolve
-	if not _ctrl.inspector_path.is_empty():
-		_ctrl.inspector = _ctrl.get_node_or_null(_ctrl.inspector_path)
-	if _ctrl.inspector == null:
-		_ctrl.inspector = _ctrl.get_tree().root.find_child("ActorInspector", true, false)
+	# 049 / T024 + AC-3: ActorInspector resolution removed. EnemyDetailsPanel
+	# and HexTooltip are pure hover sinks — HoverDispatcher resolves them via
+	# get_node_or_null on each refresh, no controller-side caching required.
+	# MoveRangeOverlay + CastRangeOverlay still resolve here.
 	if not _ctrl.overlay_path.is_empty():
 		_ctrl.overlay = _ctrl.get_node_or_null(_ctrl.overlay_path)
 	if _ctrl.overlay == null:
@@ -124,14 +123,10 @@ func run() -> void:
 		# reads ctx.registry). Backward-compatible: setup() default-args to
 		# null on registry so older scenes won't 500.
 		_ctrl.cast_overlay.setup(_ctrl.grid, _ctrl.registry)
-	if _ctrl.inspector != null and _ctrl.inspector.has_signal("speed_changed"):
-		_ctrl.inspector.speed_changed.connect(_ctrl._on_inspector_speed_changed)
 	if campaign_mode:
 		var help_label: Node = _ctrl.get_node_or_null("../HUD/HelpLabel")
 		if help_label != null:
 			help_label.hide()
-		if _ctrl.inspector != null:
-			_ctrl.inspector.hide()
 		var combat_log: Node = _ctrl.get_node_or_null("../HUD/CombatLog")
 		if combat_log != null:
 			combat_log.hide()
@@ -141,8 +136,9 @@ func run() -> void:
 	# Force HUD to show initial value — also deferred so TurnLabel has connected.
 	_emit_initial_turn.call_deferred()
 
-	# Default selection = player (deferred so player node is fully initialised)
-	_select_deferred.call_deferred()
+	# 049 / T024: removed _select_deferred (selection is gone) — player
+	# auto-binds in PSP via bind_player below; nothing else needed an
+	# initial select(player) call.
 
 	# 024: announce the start of a fresh run so RunScore resets to 0 and
 	# any other run-scoped state listeners get a clean slate. Emitted
@@ -151,12 +147,13 @@ func run() -> void:
 	EventBus.run_started.emit()
 	# AI: enemies act each world turn
 	EventBus.world_turn_ended.connect(_ctrl.ai._on_world_turn_ended)
-	EventBus.actor_died.connect(_ctrl._on_actor_died_for_selection)
+	# 049 / T024: removed actor_died → _on_actor_died_for_selection wire.
+	# Selection no longer exists; cleanup wire below remains.
 	# 041 follow-up: generic dead-actor cleanup (frees node + clears grid +
 	# unregisters). Replaces ManekinSpawner's per-spawn died.connect path.
 	EventBus.actor_died.connect(_ctrl._on_actor_died_for_cleanup)
 
-	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=select, LMB=cast, F1=spawn, F2=clear")
+	GameLogger.info("Godmode", "ready. RMB=move, LMB/QWER/1234=cast, F1=spawn, F2=clear")
 	# 009-T038: bind PlayerStatusPanel if it's mounted in HUD. Uses get_node_or_null
 	# so godmode keeps booting if the HUD layout drops the panel.
 	var psp: Node = _ctrl._get_player_status_panel()
@@ -323,7 +320,3 @@ func _seed_slots() -> void:
 
 func _emit_initial_turn() -> void:
 	EventBus.world_turn_ended.emit(TurnManager.current())
-
-
-func _select_deferred() -> void:
-	_ctrl.select(_ctrl.player)
