@@ -80,7 +80,7 @@ tA+B     : EventBus.ability_cast.emit(...)                            конец
 
 | ID                | Kind | Шейдер                                       | Эффект                                                     |
 |-------------------|------|----------------------------------------------|------------------------------------------------------------|
-| `default_melee`   | body | `assets/shaders/fx/swipe.gdshader`           | Полоса-взмах под углом caster→victim                       |
+| `default_melee`   | body | `assets/shaders/fx/swipe.gdshader`           | Дуга-slash в направлении caster→victim, leading edge + trail |
 | `default_ranged`  | body | `assets/shaders/fx/impact_ring.gdshader`     | Радиальное кольцо от центра спрайта                        |
 | `default_heal`    | body | `assets/shaders/fx/heal_wave.gdshader`       | Горизонтальная волна снизу вверх                           |
 | `default_buff`    | body | `assets/shaders/fx/stream_up.gdshader`       | Вертикальные потоки вверх                                  |

@@ -1,27 +1,64 @@
 shader_type canvas_item;
-// 047-skill-fx-system / default_melee — diagonal swipe band moving across the
-// sprite at runtime-configurable angle (caster→victim direction). progress is
-// driven 0→1 by Tween; internally remapped to [-0.3, 1.3] so the band starts
-// fully off-frame on the entry side and ends fully off-frame on the exit side.
+// 047-skill-fx-system / default_melee — sword-slash arc. The slash front
+// sweeps in caster→victim direction along a parabolic arc (sin curve) so it
+// reads as "blade cut through here" rather than a flat wipe. The leading
+// edge is the brightest pixel; intensity falls off behind it down a tunable
+// trail length, giving a motion-trail feel.
 //
-// Uniforms editable via data/fx/collision_effects.json:
-//   stripe_color  — band tint
-//   stripe_width  — band thickness in normalized UV space
-//   angle         — set by FxDirector when uses_direction=true (radians)
+// Coordinate setup: UV is rotated around (0.5, 0.5) by `angle` (set per-victim
+// by FxDirector when uses_direction=true) so the slash always sweeps along
+// the rotated +X axis. The arc itself is in the rotated frame:
+//   arc_y(x) = 0.5 + arc_height * sin(x * PI)
+// peaking at x=0.5 with magnitude arc_height. Negative arc_height inverts
+// the curve direction (slash bowing the other way).
+//
+// Editable uniforms:
+//   slash_color    — band tint (RGBA, alpha modulates strength)
+//   band_thickness — perpendicular thickness around the arc curve
+//   arc_height     — curve amplitude. 0 = straight line. Negative = mirror.
+//   trail_length   — how far the trail extends behind the leading edge
 
-uniform float progress      : hint_range(0.0, 1.0)  = 0.0;
+uniform float progress       : hint_range(0.0, 1.0)  = 0.0;
 uniform float angle                                  = 0.0;
-uniform vec4  stripe_color  : source_color           = vec4(1.0, 0.85, 0.4, 1.0);
-uniform float stripe_width  : hint_range(0.05, 0.5) = 0.25;
+uniform vec4  slash_color    : source_color          = vec4(1.0, 0.85, 0.4, 1.0);
+uniform float band_thickness : hint_range(0.02, 0.3) = 0.08;
+uniform float arc_height     : hint_range(-0.4, 0.4) = 0.22;
+uniform float trail_length   : hint_range(0.1, 0.8)  = 0.45;
 
 void fragment() {
     vec4 tex = texture(TEXTURE, UV);
-    // Project UV (re-centered to [-0.5, 0.5]) onto the swipe axis, then bring
-    // back into [0, 1]-ish space so progress comparisons are meaningful.
+
+    // Rotate UV around (0.5, 0.5) so the swing axis aligns with +X. We
+    // rotate by -angle because we want the WORLD axis at `angle` to become
+    // the SHADER axis at 0.
     vec2 centered = UV - vec2(0.5);
-    float proj = centered.x * cos(angle) + centered.y * sin(angle) + 0.5;
-    // Remap progress 0..1 → -0.3..1.3 so band travels fully past the sprite.
-    float p = mix(-0.3, 1.3, progress);
-    float band = smoothstep(stripe_width, 0.0, abs(proj - p));
-    COLOR = vec4(mix(tex.rgb, stripe_color.rgb, band * stripe_color.a), tex.a);
+    float c = cos(-angle);
+    float s = sin(-angle);
+    vec2 rotated = vec2(
+        centered.x * c - centered.y * s,
+        centered.x * s + centered.y * c
+    ) + vec2(0.5);
+
+    // Leading edge of the slash sweeps left→right with overshoot on both
+    // sides so the slash enters and exits the sprite cleanly.
+    float x_front = mix(-0.2, 1.2, progress);
+
+    // Parabolic arc trajectory (sin peaks at x=0.5, zero at x=0 and x=1).
+    float arc_y = 0.5 + arc_height * sin(rotated.x * 3.14159);
+
+    // Distance from this pixel (in rotated frame) to the arc curve at the
+    // pixel's x position. smoothstep gives a soft band rather than a hard
+    // edge so the slash reads as motion blur.
+    float dist_to_curve = abs(rotated.y - arc_y);
+    float band = smoothstep(band_thickness, 0.0, dist_to_curve);
+
+    // Trail mask: pixel must be behind (lower x than) the leading edge AND
+    // within trail_length of it. Brightness drops with distance from front,
+    // so the leading edge is white-hot and the tail fades to nothing.
+    float front_dist = x_front - rotated.x;
+    float in_trail = step(0.0, front_dist) * step(front_dist, trail_length);
+    float trail_intensity = 1.0 - smoothstep(0.0, trail_length, front_dist);
+
+    float intensity = band * in_trail * trail_intensity * slash_color.a;
+    COLOR = vec4(mix(tex.rgb, slash_color.rgb, intensity), tex.a);
 }
