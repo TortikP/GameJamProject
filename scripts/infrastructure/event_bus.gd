@@ -45,8 +45,6 @@ signal actor_spawned(actor_id: StringName)
 # Run cycle
 signal run_started
 signal run_ended(reason: String)
-signal rewind_started
-signal rewind_finished
 
 # Dialogue
 signal dialogue_started(dialogue_id: StringName)

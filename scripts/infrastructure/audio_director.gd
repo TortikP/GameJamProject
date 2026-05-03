@@ -2,9 +2,9 @@ extends Node
 ## AudioDirector — centralized audio layer management.
 ##
 ## Stub for the bootstrap. Will manage:
-## - SFX → AI voice → human voice escalation tied to progression.
+## - SFX-bubbling for dialogues (Animal Crossing-style mumble).
 ## - Music layers (interactive composition).
-## - Dialogue audio_layer routing (sfx | ai_voice | human).
+## - Dialogue audio_layer routing (sfx default; tag-based).
 ##
 ## Owner: Andrey. Filled out as audio direction matures during the jam.
 
