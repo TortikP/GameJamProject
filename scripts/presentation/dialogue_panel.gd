@@ -36,16 +36,14 @@ func _ready() -> void:
 ## Re-applies UiTheme palette to all themable nodes in this panel. Idempotent.
 ## Replaces the .tscn-baked SubResource StyleBoxFlat with a fresh UiTheme one;
 ## relabels Name/Text with header/body kinds.
+##
+## 047: dialogue panel uses the standard sharp-corner stylebox. Earlier
+## attempts at rounded-top corners ("tray look") undermined the Win98
+## sharp-edge palette — every other surface is flat-rectangular.
 func _apply_theme() -> void:
 	# Build a fresh stylebox each call — UiTheme rule: don't share StyleBoxFlat
 	# instances between nodes (their bg_color is mutable).
 	var sb := UiTheme.make_panel_stylebox()
-	# Dialogue panel sits at the bottom of the screen — round only top corners
-	# for a "tray" look. Keep horizontal borders for clean delimitation.
-	sb.corner_radius_top_left     = 6
-	sb.corner_radius_top_right    = 6
-	sb.corner_radius_bottom_left  = 0
-	sb.corner_radius_bottom_right = 0
 	if _panel:
 		_panel.add_theme_stylebox_override("panel", sb)
 	if _name_lbl:
