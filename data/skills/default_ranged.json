@@ -17,9 +17,9 @@
   "abilities": [
     {
       "id": "default_ranged_damage",
-      "sound_start": "default_ranged_damage/default_ranged_damage_start.wav",
+      "sound_start": "default_ranged_damage_sound_start",
       "collision_effect": "ranged_neutral",
-      "sound_end": "default_ranged_damage/default_ranged_damage_end.wav",
+      "sound_end": "default_ranged_damage_sound_end",
       "animation": "cast_neutral",
       "target": {
         "kind": "actor",
@@ -31,8 +31,8 @@
       },
       "effects": [
         {
-          "damage": 20,
-          "status_id": "weak(3,5,3)"
+          "damage": 16,
+          "status_id": "weak(2,5,2)"
         }
       ]
     }
