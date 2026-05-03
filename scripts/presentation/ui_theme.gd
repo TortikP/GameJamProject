@@ -125,9 +125,12 @@ const FS_NUM_HUGE   := 40
 # Visibility doctrine: world UI must read at default zoom without leaning in.
 # These are bigger than the original 30×4×9px bar — that was readable on a
 # screenshot but invisible during actual play.
+# 047: BAR_FONT_SIZE_OVERHEAD bumped 18→22. VT323 has thinner strokes than
+# OpenSans, and HP digits sit on top of grass/fire/blood — extra pixels per
+# glyph win the contrast fight (Visibility doctrine: bump size, never the font).
 const BAR_WIDTH_OVERHEAD     := 64.0
 const BAR_HEIGHT_OVERHEAD    := 10.0
-const BAR_FONT_SIZE_OVERHEAD := 18
+const BAR_FONT_SIZE_OVERHEAD := 22
 
 # ── Outline / shadow for in-world text ───────────────────────
 # Combat text and HP digits sit on top of arbitrary backgrounds (grass, fire,
@@ -371,19 +374,37 @@ static func apply_button_styling(btn: Button) -> void:
 
 
 ## 047: load VT323 once at autoload init and wire it as the global default
-## font. Every Control without an explicit font override picks it up via
-## ThemeDB.fallback_font. No per-control change required.
+## font.
+##
+## Why this needs both knobs:
+##  - `ThemeDB.fallback_font` is the absolute-last-resort font, used only
+##    when no theme in the cascade provides one. Godot's built-in default
+##    theme always provides OpenSans, so fallback_font on its own NEVER
+##    fires for normal Controls.
+##  - `ThemeDB.get_default_theme().default_font` is the font the built-in
+##    default theme actually serves. Replacing it swaps the global font
+##    for every Control that doesn't have an explicit override.
+##  - Some scripts (e.g. health_bar.gd) read `ThemeDB.fallback_font`
+##    directly when calling `draw_string()`. Setting both keeps those
+##    paths consistent with the global theme.
 ##
 ## Failure mode: if the font file is missing or fails to load, log a warning
-## and let the game start with Godot's built-in default (OpenSans). Better to
-## ship with the wrong font than crash on boot.
+## and let the game start with Godot's built-in OpenSans. Better to ship
+## with the wrong font than crash on boot.
 func _ready() -> void:
 	var f := load(_FONT_PATH)
 	if f is Font:
 		_default_font = f
+		# (a) Replace the default theme's font — affects every Control globally.
+		var dt: Theme = ThemeDB.get_default_theme()
+		if dt != null:
+			dt.default_font = _default_font
+			dt.default_font_size = FS_BODY
+		# (b) Also set the absolute fallback — covers code paths that read
+		# `ThemeDB.fallback_font` directly (HP bar overhead labels etc.).
 		ThemeDB.fallback_font = _default_font
 		ThemeDB.fallback_font_size = FS_BODY
-		GameLogger.info("UiTheme", "VT323 loaded as fallback font (size %d)" % FS_BODY)
+		GameLogger.info("UiTheme", "VT323 loaded as global default font (size %d)" % FS_BODY)
 	else:
 		GameLogger.warn("UiTheme", "VT323 font missing at %s — using Godot default" % _FONT_PATH)
 
