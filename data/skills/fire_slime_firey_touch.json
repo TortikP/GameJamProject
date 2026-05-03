@@ -1,0 +1,40 @@
+{
+  "id": "fire_slime_firey_touch",
+  "name": "fire_slime_firey_touch_name",
+  "tooltip": "fire_slime_firey_touch_tooltip",
+  "desc": "fire_slime_firey_touch_desc",
+  "icon": "icons/skills/fire_slime_firey_touch.png",
+  "cooldown": 1,
+  "behaviour_tags": [
+    "melee",
+    "damage",
+    "debuff"
+  ],
+  "mood": [
+    "burnout"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "fire_slime_firey_touch_melee_damage",
+      "sound_start": "fire_slime_firey_touch_melee_damage_sound_start",
+      "collision_effect": "melee_burnout",
+      "sound_end": "fire_slime_firey_touch_melee_damage_sound_end",
+      "animation": "cast_burnout",
+      "target": {
+        "kind": "actor",
+        "range": 1
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 9,
+          "status_id": "burning(2,3,3)"
+        }
+      ]
+    }
+  ]
+}
