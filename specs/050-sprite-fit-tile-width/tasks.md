@@ -33,7 +33,15 @@
 - [x] **T018** — Удалить `scripts/presentation/godmode/player_view.gd` (больше не используется).
 - [x] **T019** — `scenes/ui/dialogue_panel.tscn` Portrait: per скриншот ревью — `expand_mode=0` (Keep Size), `stretch_mode=2` (Keep), `size_flags_vertical=4` (Shrink Center), `clip_contents=true`.
 - [x] **T020** — Импортировать партию ассетов от Кати (14 файлов из `assets_1639.zip`) с маппингом: `aspect_*` → `assets/portraits/`, `enemy_*` → `assets/sprites/enemies/` (drop prefix), `object_*`/`tile_*` → `assets/tiles/`. Сгенерировать `.png.import` sidecar для новых файлов; для overwritten (teapot.png, object_lava.png) — сохранить существующие .import (Godot re-импортирует на следующем открытии).
-- [ ] **T021** — Git commit + push fix-коммита поверх T013.
+- [x] **T021** — Git commit + push fix-коммита поверх T013.
+
+## Phase F — Revision 2 (post-review)
+
+- [x] **T022** — `scenes/dev/player.tscn`: удалить `scale = Vector2(1.5, 1.5)` у Body — native размер.
+- [x] **T023** — `scenes/runtime/spawner_placeholder.tscn`: удалить `scale = Vector2(0.09, 0.09)` у Sprite — native размер.
+- [x] **T024** — `scripts/presentation/dev/objects_overlay.gd`: убрать SpriteFit preload + вызов, восстановить `sprite.scale = Vector2(sprite_scale, sprite_scale)`. Удалить helper `_tile_width()`.
+- [x] **T025** — Удалить `scripts/infrastructure/sprite_fit.gd` — нет consumers.
+- [ ] **T026** — Git commit + push.
 
 ## Phase D — Smoke (manual, after merge)
 

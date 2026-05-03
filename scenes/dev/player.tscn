@@ -17,7 +17,6 @@ status_immunities = Array[StringName]([&"stunned"])
 texture_filter = 1
 texture = ExtResource("2_sprite")
 position = Vector2(0, -5)
-scale = Vector2(1.5, 1.5)
 z_index = 5
 
 [node name="HealthBar" type="Node2D" parent="."]

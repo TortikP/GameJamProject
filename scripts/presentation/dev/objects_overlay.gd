@@ -16,7 +16,6 @@ extends Node2D
 
 const ObjectSilhouette = preload("res://scripts/presentation/dev/object_silhouette.gd")
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
-const SpriteFit = preload("res://scripts/infrastructure/sprite_fit.gd")
 
 const PLACEHOLDER_TEXTURE: Texture2D = null  # null = no texture, just modulated rect via icon node
 
@@ -69,11 +68,8 @@ func set_object(coord: Vector2i, object_id: StringName) -> void:
 		var sprite := Sprite2D.new()
 		sprite.name = _node_name(coord)
 		sprite.position = center
+		sprite.scale = Vector2(sprite_scale, sprite_scale)
 		sprite.texture = tex
-		# Spec 050: fit displayed width to tile width, preserving aspect.
-		# Existing export var sprite_scale becomes a tuning multiplier on top
-		# (default 1.0 → exactly tile-wide; 1.1 → slightly oversized; etc).
-		SpriteFit.fit_to_tile_width(sprite, _tile_width(), sprite_scale)
 		add_child(sprite)
 		return
 
@@ -101,16 +97,6 @@ func clear_all() -> void:
 
 static func _node_name(coord: Vector2i) -> String:
 	return "o_%d_%d" % [coord.x, coord.y]
-
-
-## Spec 050: tile width source for SpriteFit. Reads tile_set.tile_size.x from
-## the bound grid if available; otherwise falls back to SpriteFit's default
-## (128, matches hex_terrain.tres). Returning int because TileSet.tile_size
-## is Vector2i.
-func _tile_width() -> int:
-	if grid != null and grid.tile_map_layer != null and grid.tile_map_layer.tile_set != null:
-		return grid.tile_map_layer.tile_set.tile_size.x
-	return SpriteFit.TILE_WIDTH_DEFAULT
 
 
 func _resolve_texture(object_id: StringName) -> Texture2D:

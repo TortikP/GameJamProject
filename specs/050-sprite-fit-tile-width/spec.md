@@ -3,7 +3,25 @@
 **Owner:** Andrey (UX/integration polish).
 **Status:** Draft → ready to land (две независимые правки, низкий риск).
 
-## Revision 1 (post-review)
+## Revision 2 (post-review)
+
+Полный откат sprite-fit. ObjectsOverlay тоже больше не fit'ит — все спрайты (player, enemies, tile-objects, spawner placeholder) рендерятся в нативных размерах. Конкретные правки:
+
+1. `scenes/dev/player.tscn` — убран `scale = Vector2(1.5, 1.5)` у Body. Игрок рендерится 32×50 (native player.png).
+2. `scenes/runtime/spawner_placeholder.tscn` — убран `scale = Vector2(0.09, 0.09)` у Sprite. **Известное следствие:** пока в `ENEMY_SPRITES` dict у `spawner_placeholder.gd` ссылка на manekin.png (664×788) — placeholder будет визуально гигантским. Решается заменой ассета (Катя).
+3. `scripts/presentation/dev/objects_overlay.gd` — откачен SpriteFit, восстановлен `sprite.scale = Vector2(sprite_scale, sprite_scale)` (export var, default 1.0 → native size). Helper `_tile_width()` удалён.
+4. `scripts/infrastructure/sprite_fit.gd` — удалён (нет consumers).
+
+Что остаётся в спеке после revision 2:
+- DialoguePanel Portrait widget (`130×180`, `expand_mode=0`, `stretch_mode=2`, `clip_contents=true`, `size_flags_vertical=4`).
+- `_make_placeholder` rewrite на `default_portrait.png` fallback.
+- Импорт 14 ассетов от Кати.
+
+Sprite-fit подсистема отменена целиком. Если позже понадобится возврат — `git revert` коммитов 78e01c7 (feat) и 66a074c (rev1) даст оригинальное состояние; новый подход будет жить в отдельном спеке.
+
+---
+
+
 
 После ревью на первой версии:
 1. **Actor sprite-fit откачен.** Player Body → возврат к `scale=Vector2(1.5,1.5)` в .tscn. EnemyView → SpriteFit вызов удалён, спрайты enemies снова рендерятся в нативных размерах (≠ 128). SpawnerPlaceholder → возврат к `scale=Vector2(0.09,0.09)` для маникена. Файл `scripts/presentation/godmode/player_view.gd` удалён. Tile-objects fit — **остаётся** (отдельная подсистема, не actors).
