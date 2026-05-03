@@ -4,7 +4,7 @@
   "tooltip": "mushroom_boar_weaken_tooltip",
   "desc": "mushroom_boar_weaken_desc",
   "icon": "icons/skills/mushroom_boar_weaken.png",
-  "cooldown": 2,
+  "cooldown": 3,
   "behaviour_tags": [
     "ranged",
     "debuff"
@@ -16,9 +16,9 @@
   "abilities": [
     {
       "id": "mushroom_boar_weaken_debuff_attack_ranged",
-      "sound_start": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged_start.wav",
+      "sound_start": "mushroom_boar_weaken_debuff_attack_ranged_sound_start",
       "collision_effect": "debuff_tranquility",
-      "sound_end": "mushroom_boar_weaken_debuff_attack_ranged/mushroom_boar_weaken_debuff_attack_ranged_end.wav",
+      "sound_end": "mushroom_boar_weaken_debuff_attack_ranged_sound_end",
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "status_id": "weak(3,10,5)"
+          "status_id": "weak(2,8,3)"
         }
       ]
     }
