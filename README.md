@@ -34,7 +34,7 @@ Full discussion in `THEME_PLAN.md` §1.5 and `CLAUDE.md`. PRs that violate these
 - `jam-concept-pitch.md` — game concept and theme analysis.
 - `THEME_PLAN.md` — narrative + design plan tied to jam theme.
 - `PROJECT_INSTRUCTIONS.md` — template for `claude.ai → Project → Instructions` (per-user, with personal token).
-- `specs/NNN-feature-name/` — `spec.md` / `plan.md` / `tasks.md` per feature. See `HANDOFF.md` §19. ~50 features shipped.
+- `specs/NNN-feature-name/` — `spec.md` / `plan.md` / `tasks.md` per feature. See `HANDOFF.md` §19. **54 numbered folders total: 41 real specs (features / systems / refactors), 11 minor fixes & cleanup, 2 reserved drafts (025, 029 — never implemented, subsumed by 039 / scattered polish).** Minor-fix folders: `013-refactor-wave-1`, `015-refactor-wave-2`, `016-cleanup-wave`, `017-doc-fixes`, `031-skill-system-fixes`, `036-level-builder-bugfix`, `037-player-stun-immunity`, `046-skill-bug-fix`, `051-ability-sfx-resolver`, `052-ability-sfx-fix`, `053-pck-audio-portrait-fix`.
 - `scenes/` — `main_menu.tscn`, `arena/`, `dev/` (godmode, editors, smoke tests), `meta/` (transitions, end screens), `ui/` (HUD, panels, overlays), `presentation/` (CRT post-fx, space bg).
 - `scripts/infrastructure/` — autoloads (GameSpeed, EventBus, AudioDirector, Localization, RunScore, ActiveLevel, ActiveGame, …).
 - `scripts/core/` — game logic. **Knows nothing of presentation.** `actors/`, `arena/` (HexGrid), `abilities/`, `skills/`, `statuses/`, `turn/`, `dialogue/`, `narrative/` (mood), `ai/`, `progression/`, `maps/`.
