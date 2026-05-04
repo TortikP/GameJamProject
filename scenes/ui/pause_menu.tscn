@@ -27,26 +27,26 @@ custom_minimum_size = Vector2(300, 0)
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
-text = "Paused"
+text = "ui_pause_menu_title_text"
 horizontal_alignment = 1
 
 [node name="ResumeButton" type="Button" parent="Center/Panel/VBox"]
-text = "Resume"
+text = "ui_pause_menu_resume_button_text"
 
 [node name="BackToEditorButton" type="Button" parent="Center/Panel/VBox"]
 visible = false
-text = "Back to Editor"
+text = "ui_pause_menu_back_to_editor_button_text"
 
 [node name="RestartButton" type="Button" parent="Center/Panel/VBox"]
-text = "Restart Run"
+text = "ui_pause_menu_restart_button_text"
 
 [node name="SettingsButton" type="Button" parent="Center/Panel/VBox"]
-text = "Settings"
+text = "ui_pause_menu_settings_button_text"
 
 [node name="MainMenuButton" type="Button" parent="Center/Panel/VBox"]
-text = "Main Menu"
+text = "ui_pause_menu_main_menu_button_text"
 
 [node name="QuitButton" type="Button" parent="Center/Panel/VBox"]
-text = "Quit"
+text = "ui_pause_menu_quit_button_text"
 
 [node name="ConfirmModal" parent="." instance=ExtResource("2_cm")]

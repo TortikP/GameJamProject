@@ -26,14 +26,14 @@ custom_minimum_size = Vector2(440, 0)
 theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
-text = "Settings"
+text = "ui_settings_panel_title_text"
 
 [node name="MasterRow" type="HBoxContainer" parent="Center/Panel/VBox"]
 theme_override_constants/separation = 12
 
 [node name="MasterLabel" type="Label" parent="Center/Panel/VBox/MasterRow"]
 custom_minimum_size = Vector2(120, 0)
-text = "Master"
+text = "ui_settings_panel_master_label_text"
 
 [node name="MasterSlider" type="HSlider" parent="Center/Panel/VBox/MasterRow"]
 size_flags_horizontal = 3
@@ -52,7 +52,7 @@ theme_override_constants/separation = 12
 
 [node name="MusicLabel" type="Label" parent="Center/Panel/VBox/MusicRow"]
 custom_minimum_size = Vector2(120, 0)
-text = "Music"
+text = "ui_settings_panel_music_label_text"
 
 [node name="MusicSlider" type="HSlider" parent="Center/Panel/VBox/MusicRow"]
 size_flags_horizontal = 3
@@ -71,7 +71,7 @@ theme_override_constants/separation = 12
 
 [node name="SfxLabel" type="Label" parent="Center/Panel/VBox/SfxRow"]
 custom_minimum_size = Vector2(120, 0)
-text = "SFX"
+text = "ui_settings_panel_sfx_label_text"
 
 [node name="SfxSlider" type="HSlider" parent="Center/Panel/VBox/SfxRow"]
 size_flags_horizontal = 3
@@ -90,7 +90,7 @@ theme_override_constants/separation = 12
 
 [node name="GameSpeedLabel" type="Label" parent="Center/Panel/VBox/GameSpeedRow"]
 custom_minimum_size = Vector2(120, 0)
-text = "Game speed"
+text = "ui_settings_panel_game_speed_label_text"
 
 [node name="GameSpeedSlider" type="HSlider" parent="Center/Panel/VBox/GameSpeedRow"]
 size_flags_horizontal = 3
@@ -109,20 +109,20 @@ theme_override_constants/separation = 12
 
 [node name="LanguageLabel" type="Label" parent="Center/Panel/VBox/LanguageRow"]
 custom_minimum_size = Vector2(120, 0)
-text = "Language"
+text = "ui_settings_panel_language_label_text"
 
 [node name="LanguageOption" type="OptionButton" parent="Center/Panel/VBox/LanguageRow"]
 size_flags_horizontal = 3
 
 [node name="KeybindsTitle" type="Label" parent="Center/Panel/VBox"]
-text = "Keybinds (read-only)"
+text = "ui_settings_panel_keybinds_title_text"
 
 [node name="KeybindsBody" type="Label" parent="Center/Panel/VBox"]
-text = "QWER / 1234 — cast slots\nSPACE — wait\nLMB — cast at hex\nRMB — move (1 step)\nESC — cancel cast / pause\nL — toggle combat log\n? — keybind overlay\nF1 — spawn dummy (godmode)\nF2 — clear (godmode)\nF5 — reload speed config"
+text = "ui_settings_panel_keybinds_body_text"
 
 [node name="ButtonRow" type="HBoxContainer" parent="Center/Panel/VBox"]
 alignment = 2
 theme_override_constants/separation = 12
 
 [node name="CloseButton" type="Button" parent="Center/Panel/VBox/ButtonRow"]
-text = "Close"
+text = "ui_settings_panel_close_button_text"

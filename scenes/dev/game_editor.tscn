@@ -33,29 +33,29 @@ theme_override_constants/separation = 12
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Margin/VBox/Header"]
-text = "Game Editor"
+text = "ui_game_editor_title_text"
 
 [node name="NameInput" type="LineEdit" parent="Margin/VBox/Header"]
 custom_minimum_size = Vector2(280, 0)
-placeholder_text = "Game name"
+placeholder_text = "ui_game_editor_name_input_placeholder_text"
 
 [node name="Spacer" type="Control" parent="Margin/VBox/Header"]
 size_flags_horizontal = 3
 
 [node name="SaveButton" type="Button" parent="Margin/VBox/Header"]
-text = "Save"
+text = "ui_game_editor_save_button_text"
 
 [node name="LoadButton" type="Button" parent="Margin/VBox/Header"]
-text = "Load"
+text = "ui_game_editor_load_button_text"
 
 [node name="PlaytestButton" type="Button" parent="Margin/VBox/Header"]
-text = "Playtest"
+text = "ui_game_editor_playtest_button_text"
 
 [node name="ExitButton" type="Button" parent="Margin/VBox/Header"]
-text = "Exit"
+text = "ui_game_editor_exit_button_text"
 
 [node name="HelpLabel" type="Label" parent="Margin/VBox"]
-text = "Compose levels in order. Each level is a map from data/maps/. Mark exactly one as Intro (cutscene fires before it). Save as .game.json."
+text = "ui_game_editor_help_label_text"
 autowrap_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
@@ -67,23 +67,23 @@ size_flags_vertical = 3
 theme_override_constants/separation = 6
 
 [node name="AddLevelButton" type="Button" parent="Margin/VBox"]
-text = "+ Add Level"
+text = "ui_game_editor_add_level_button_text"
 
 [node name="ConfirmModal" parent="." instance=ExtResource("2_modal")]
 
 [node name="ToastLayer" parent="." instance=ExtResource("3_toast")]
 
 [node name="SaveFileDialog" type="FileDialog" parent="."]
-title = "Save Game"
-ok_button_text = "Save"
+title = "ui_game_editor_save_file_dialog_title"
+ok_button_text = "ui_game_editor_save_file_dialog_ok_button_text"
 file_mode = 4
 access = 2
 filters = PackedStringArray("*.game.json ; Game files")
 size = Vector2i(800, 600)
 
 [node name="LoadFileDialog" type="FileDialog" parent="."]
-title = "Load Game"
-ok_button_text = "Load"
+title = "ui_game_editor_load_file_dialog_title"
+ok_button_text = "ui_game_editor_load_file_dialog_ok_button_text"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.game.json ; Game files")

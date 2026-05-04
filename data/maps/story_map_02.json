@@ -72,7 +72,7 @@
 		"scale": "dorian",
 		"seed": 1202.0
 	},
-	"name": "Story Map 02",
+	"name": "maps_story_map_02_name",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
 	"waves": [

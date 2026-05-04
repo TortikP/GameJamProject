@@ -1,5 +1,5 @@
 {
-	"name": "Sample Waves",
+	"name": "maps_sample_waves_name",
 	"version": 2,
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"waves": [

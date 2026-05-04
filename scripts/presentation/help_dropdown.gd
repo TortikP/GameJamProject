@@ -1,7 +1,7 @@
 extends PanelContainer
 ## HelpDropdown — small semi-transparent keybind reference that drops down
 ## from the HELP button in the top-right HUD strip. Sibling presentation of
-## KeybindOverlay (the centered `?` modal) — same source-of-truth _BINDS,
+## KeybindOverlay (the centered `?` modal) — same source-of-truth binds(),
 ## different placement.
 ##
 ## Click-through: root has mouse_filter = MOUSE_FILTER_IGNORE so clicks
@@ -24,9 +24,10 @@ func _ready() -> void:
 	# fully interactive even when the panel is open over it.
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_theme()
-	_build_grid()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
 	EventBus.help_dropdown_toggle_requested.connect(_on_toggle_requested)
+	Localization.locale_changed.connect(_on_locale_changed)
+	_refresh_texts()
 
 
 func _apply_theme() -> void:
@@ -54,19 +55,30 @@ func _build_grid() -> void:
 	if _grid == null:
 		return
 	for c in _grid.get_children():
+		_grid.remove_child(c)
 		c.queue_free()
-	for pair in KbOverlayScript._BINDS:
+	for bind in KbOverlayScript.binds():
 		var key_lbl := Label.new()
-		key_lbl.text = String(pair[0])
+		key_lbl.text = String(bind.get("keys", ""))
 		key_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTheme.apply_label_kind(key_lbl, "small")
 		key_lbl.add_theme_color_override("font_color", UiTheme.FOCUS)
 		_grid.add_child(key_lbl)
 		var desc_lbl := Label.new()
-		desc_lbl.text = Localization.t(String(pair[1]), String(pair[2]))
+		desc_lbl.text = KbOverlayScript.localized_bind_description(bind)
 		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTheme.apply_label_kind(desc_lbl, "small")
 		_grid.add_child(desc_lbl)
+
+
+func _refresh_texts() -> void:
+	if _title:
+		_title.text = Localization.t("ui_help_dropdown_title_text", "Keybinds")
+	_build_grid()
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_texts()
 
 
 func _on_toggle_requested() -> void:

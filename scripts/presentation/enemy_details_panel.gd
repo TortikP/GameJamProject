@@ -132,7 +132,7 @@ func _refresh_all() -> void:
 func _refresh_hp() -> void:
 	if _actor == null or _hp_label == null:
 		return
-	_hp_label.text = "HP %d/%d" % [_actor.hp, _actor.max_hp]
+	_hp_label.text = Localization.tf("ui_enemy_details_hp", [_actor.hp, _actor.max_hp], "HP %d/%d")
 	# HP-color tier (mirrors HealthBar / PSP).
 	var ratio: float = float(_actor.hp) / max(1.0, float(_actor.max_hp))
 	_hp_label.add_theme_color_override("font_color", UiTheme.hp_color_for(ratio))

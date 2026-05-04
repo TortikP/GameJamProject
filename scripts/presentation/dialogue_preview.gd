@@ -111,7 +111,7 @@ func _on_item_selected(index: int) -> void:
 			tag_strs.append(str(t))
 		b += "[color=#88ffcc]" + Localization.t("ui_dialogue_preview_tags_label", "tags:") + "[/color] " + ", ".join(PackedStringArray(tag_strs)) + "\n"
 		_request_btn.disabled = false
-		_tag_lbl.text = "-> request(" + str(line.tags[0]) + ")"
+		_tag_lbl.text = Localization.tf("ui_dialogue_preview_request_tag", [str(line.tags[0])], "-> request(%s)")
 	else:
 		_request_btn.disabled = true
 		_tag_lbl.text = ""

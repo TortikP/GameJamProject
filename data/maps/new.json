@@ -1,5 +1,5 @@
 {
-	"name": "New",
+	"name": "maps_new_name",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
 	"waves": [

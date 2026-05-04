@@ -55,6 +55,13 @@ Concrete:
    Programmers build engines; designers fill data files.
 8. Don't hardcode content in GDScript. If a modifier needs new code, that's
    a new modifier *type*, not a new modifier.
+9. Don't hardcode player-facing text anywhere. Visible strings in scenes,
+   scripts, data files, UI, popups, toasts, tooltips, maps, enemies, skills,
+   and dialogues must use stable localization keys that exist in both
+   `data/localization/en.json` and `data/localization/ru.json`. Language-neutral
+   values like pure numbers, timers, icon glyphs, ids, paths, and debug-only
+   internal tokens are the only normal exceptions. See
+   `data/localization/README.md`.
 
 ### Naming
 - Files: `snake_case.gd`, `snake_case.tscn`

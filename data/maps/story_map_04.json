@@ -71,7 +71,7 @@
 		"scale": "harmonic_minor",
 		"seed": 1204.0
 	},
-	"name": "Story Map 04",
+	"name": "maps_story_map_04_name",
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"version": 2,
 	"waves": [

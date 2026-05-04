@@ -1,5 +1,5 @@
 {
-	"name": "Track: Final Boss",
+	"name": "maps_music_track_final_boss_name",
 	"version": 2,
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"waves": [

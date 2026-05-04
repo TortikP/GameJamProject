@@ -1,5 +1,5 @@
 {
-	"name": "Music Test",
+	"name": "maps_sample_music_test_name",
 	"version": 2,
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"waves": [

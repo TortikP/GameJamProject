@@ -41,7 +41,7 @@ text = "—"
 
 [node name="HpLabel" type="Label" parent="HBox/Info"]
 layout_mode = 2
-text = "HP 0/0"
+text = "ui_enemy_details_panel_hp_label_text"
 
 [node name="StatusStrip" parent="HBox/Info" instance=ExtResource("2_strip")]
 layout_mode = 2

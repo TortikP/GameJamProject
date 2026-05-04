@@ -12,11 +12,5 @@ offset_left = 16.0
 offset_top = 16.0
 offset_right = 820.0
 offset_bottom = 160.0
-text = "019 tile-object-resolver smoke
-──────────────────────────────
-F5 this scene. Check Output panel for PASS / FAIL.
-No TileMap needed — pure logic test with stub grid + real JSON registries.
-
-Scenarios: A=on_enter  B=on_turn_end  C=linger(2turns)  D=aura_heal  E=breakable+on_destroy
-"
+text = "ui_resolver_smoke_help_text"
 theme_override_font_sizes/font_size = 14

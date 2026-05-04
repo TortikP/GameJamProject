@@ -1,5 +1,5 @@
 {
-	"name": "Sample Skill Offer",
+	"name": "maps_sample_skill_offer_name",
 	"version": 2,
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"waves": [
