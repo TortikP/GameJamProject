@@ -53,15 +53,25 @@ static func format_skill_human(skill) -> String:
 	return body
 
 
+static func format_skill_desc(skill) -> String:
+	if skill == null:
+		return ""
+	var key: String = String(skill.desc)
+	if key == "":
+		return ""
+	var body: String = Localization.t(key, key)
+	return _interpolate_skill_vars(body, skill)
+
+
 ## Replaces designer-authored tokens like `$damage$`, `$range$`, `$cooldown$`
 ## with numbers read from this exact Skill resource. Tokens are intentionally
 ## generic: the caller supplies the Skill, and this formatter derives the right
 ## parameters from its target/area/effects instead of requiring per-skill keys.
 static func _interpolate_skill_vars(text: String, skill) -> String:
-	if text == "" or text.find("$") < 0 or skill == null:
+	if text == "" or (text.find("$") < 0 and text.find("{") < 0) or skill == null:
 		return text
 	var values: Dictionary = _skill_var_values(skill)
-	var out: String = text
+	var out: String = _interpolate_plural_forms(text, values)
 	var pos: int = 0
 	while true:
 		var open: int = out.find("$", pos)
@@ -82,6 +92,61 @@ static func _interpolate_skill_vars(text: String, skill) -> String:
 		out = out.substr(0, open) + replacement + out.substr(close + 1)
 		pos = open + replacement.length()
 	return out
+
+
+static func _interpolate_plural_forms(text: String, values: Dictionary) -> String:
+	if text.find("{") < 0 or text.find(";") < 0:
+		return text
+	var out: String = text
+	var pos: int = 0
+	while true:
+		var open: int = out.find("{", pos)
+		if open < 0:
+			break
+		var close: int = out.find("}", open + 1)
+		if close < 0:
+			break
+		var body: String = out.substr(open + 1, close - open - 1)
+		var parts := body.split(";", true)
+		if parts.size() < 4:
+			pos = close + 1
+			continue
+		var count_value: Variant = _plural_count_value(String(parts[0]).strip_edges(), values)
+		if count_value == null:
+			pos = close + 1
+			continue
+		var forms: Array[String] = [
+			String(parts[1]).strip_edges(),
+			String(parts[2]).strip_edges(),
+			String(parts[3]).strip_edges(),
+		]
+		var replacement: String = "%s %s" % [_format_var_value(count_value), forms[_plural_form_index(int(count_value))]]
+		out = out.substr(0, open) + replacement + out.substr(close + 1)
+		pos = open + replacement.length()
+	return out
+
+
+static func _plural_count_value(source: String, values: Dictionary) -> Variant:
+	if source.begins_with("$") and source.ends_with("$") and source.length() >= 3:
+		var name := source.substr(1, source.length() - 2).strip_edges()
+		var key := StringName(name)
+		if not values.has(key):
+			return null
+		var value: Variant = values[key]
+		if typeof(value) == TYPE_INT:
+			return int(value)
+		if typeof(value) == TYPE_FLOAT:
+			return int(round(float(value)))
+		return null
+	if source.is_valid_int():
+		return int(source)
+	if source.is_valid_float():
+		return int(round(source.to_float()))
+	return null
+
+
+static func _plural_form_index(count: int) -> int:
+	return Localization.plural_form_index(count)
 
 
 static func _skill_var_values(skill) -> Dictionary:

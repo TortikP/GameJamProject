@@ -215,11 +215,13 @@ The Russian version must keep the same placeholders and markup:
 "ui_game_editor_overwrite_body": "%s уже существует.<br><br>Заменить?"
 ```
 
-### Skill tooltip variables
+### Skill text variables
 
-Skill tooltip strings (`<skill_id>_tooltip`) may use `$name$` variables. They
-are resolved by `SkillFormatter.format_skill_human(skill)` from the current
-skill config, after level scaling and parameter modifiers.
+Skill description and tooltip strings (`<skill_id>_desc`, `<skill_id>_tooltip`)
+may use `$name$` variables. They are resolved by
+`SkillFormatter.format_skill_desc(skill)` and
+`SkillFormatter.format_skill_human(skill)` from the current skill config, after
+level scaling and parameter modifiers.
 
 Common variables:
 
@@ -231,6 +233,43 @@ Common variables:
   `$poisoned_damage_pct$`, `$burning_damage$`
 
 Unknown variables are left unchanged so missing support is visible in-game.
+
+Skill descriptions and tooltips may also use plural blocks tied to a numeric variable:
+
+```text
+{$chain_targets$;target;targets;targets}
+{$duration$;ход;хода;ходов}
+```
+
+Syntax:
+
+```text
+{$variable$;one;few;many}
+```
+
+Keep the numeric `$variable$` inside the block; it renders both the number and
+the selected word form.
+
+Examples:
+
+```text
+Deals damage to {$chain_targets$;target;targets;targets}.
+Оглушает на {$duration$;ход;хода;ходов}.
+```
+
+Russian uses:
+
+- `one`: 1, 21, 31, etc., except 11.
+- `few`: 2, 3, 4, 22, 23, 24, etc., except 12, 13, 14.
+- `many`: 0, 5-20, 25-30, and other numbers ending in 0 or 5-9.
+
+English uses:
+
+- `one`: exactly 1.
+- `many`: all other values.
+
+For English, write the same syntax and usually duplicate the plural form in
+`few` and `many`, for example `{$duration$;turn;turns;turns}`.
 
 ### Runtime format variables
 

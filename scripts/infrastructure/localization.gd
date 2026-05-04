@@ -68,6 +68,26 @@ func tf(key_or_source: String, args: Array, fallback: String = "") -> String:
 	return t(key_or_source, fallback) % args
 
 
+func plural_form_index(count: int) -> int:
+	var n: int = absi(count)
+	if current_locale().begins_with("ru"):
+		var last_two: int = n % 100
+		if last_two >= 11 and last_two <= 14:
+			return 2
+		var last: int = n % 10
+		if last == 1:
+			return 0
+		if last >= 2 and last <= 4:
+			return 1
+		return 2
+	return 0 if n == 1 else 2
+
+
+func plural_form(count: int, one: String, few: String, many: String) -> String:
+	var forms: Array[String] = [one, few, many]
+	return String(forms[plural_form_index(count)])
+
+
 func _register_translation(locale: String, data: Dictionary, fallback_data: Dictionary) -> void:
 	var translation := Translation.new()
 	translation.locale = locale
