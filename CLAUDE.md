@@ -1,5 +1,8 @@
 # Jam Project — Conventions
 
+> **Note:** `PROJECT_INSTRUCTIONS.md` in repo root is an archived snapshot from
+> the 72h jam. It's kept as a public example. Don't use it as a source of rules.
+
 ## Context
 Game jam project. 72 hours from Thursday 19:00. Team of 7 (6 in repo, +Katya outside).
 Theme will be announced Thursday 19:00 from a list of 15.
