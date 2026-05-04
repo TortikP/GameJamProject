@@ -1,7 +1,7 @@
 {
   "id": "boss_intro",
   "speaker": "rival",
-  "text": "So you made it this far. I'm almost impressed.",
+  "text": "dialogues_boss_intro_text",
   "tags": ["boss_intro"],
   "priority": 100,
   "conditions": {

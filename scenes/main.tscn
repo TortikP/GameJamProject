@@ -16,7 +16,7 @@ offset_right = 120.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Jam Project Ready"
+text = "ui_main_label_text"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -29,7 +29,7 @@ offset_top = -60.0
 offset_right = 200.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = "Test dialogue"
+text = "ui_main_test_dialogue_btn_text"
 
 [node name="DebugBtn" type="Button" parent="UI" unique_id=99991002]
 anchors_preset = 2
@@ -40,7 +40,7 @@ offset_top = -60.0
 offset_right = 400.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = "Dialogue Preview (F2)"
+text = "ui_main_debug_btn_text"
 
 [node name="DebugLayer" type="CanvasLayer" parent="." unique_id=99991003]
 layer = 15

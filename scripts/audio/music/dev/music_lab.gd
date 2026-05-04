@@ -75,7 +75,7 @@ func _build_ui() -> void:
 	scroll.add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Music Lab — тюнинг музыки"
+	header.text = Localization.t("ui_music_lab_title", "Music Lab - music tuning")
 	vbox.add_child(header)
 
 	# ── Sliders ──────────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ func _build_ui() -> void:
 	# ── State + seed ─────────────────────────────────────────────────────────
 	var state_row := HBoxContainer.new()
 	vbox.add_child(state_row)
-	_lbl(state_row, "State: ")
+	_lbl(state_row, Localization.t("ui_music_lab_state_label", "State: "))
 
 	_state_dropdown = OptionButton.new()
 	for s in ["calm", "battle", "menu"]:
@@ -109,7 +109,7 @@ func _build_ui() -> void:
 	_state_dropdown.item_selected.connect(_on_state)
 	state_row.add_child(_state_dropdown)
 
-	_lbl(state_row, "  Seed: ")
+	_lbl(state_row, Localization.t("ui_music_lab_seed_label", "  Seed: "))
 	_seed_spin = SpinBox.new()
 	_seed_spin.min_value = 0
 	_seed_spin.max_value = 2147483647
@@ -118,7 +118,7 @@ func _build_ui() -> void:
 	state_row.add_child(_seed_spin)
 
 	var reroll := Button.new()
-	reroll.text = "Reroll"
+	reroll.text = Localization.t("ui_music_lab_reroll", "Reroll")
 	reroll.pressed.connect(func():
 		var s := randi() & 0x7fffffff
 		_seed_spin.value = float(s)
@@ -129,37 +129,37 @@ func _build_ui() -> void:
 	var struct_row1 := HBoxContainer.new()
 	vbox.add_child(struct_row1)
 
-	_progression_dropdown = _make_dropdown(struct_row1, "Progression:",
+	_progression_dropdown = _make_dropdown(struct_row1, Localization.t("ui_music_lab_progression_label", "Progression:"),
 			_Harmony.list_progression_ids(), "am_f_c_g",
 			func(id): _director.set_progression(StringName(id)))
-	_scale_dropdown = _make_dropdown(struct_row1, "  Scale:",
+	_scale_dropdown = _make_dropdown(struct_row1, Localization.t("ui_music_lab_scale_label", "  Scale:"),
 			_Harmony.list_scale_ids(), "natural_minor",
 			func(id): _director.set_scale(StringName(id)))
 
 	var struct_row2 := HBoxContainer.new()
 	vbox.add_child(struct_row2)
 
-	_bars_dropdown = _make_dropdown(struct_row2, "Bars/chord:",
+	_bars_dropdown = _make_dropdown(struct_row2, Localization.t("ui_music_lab_bars_label", "Bars/chord:"),
 			["1", "2", "4", "8"], "1",
 			func(s): _director.set_bars_per_chord(int(s)))
-	_drum_dropdown = _make_dropdown(struct_row2, "  Drums:",
+	_drum_dropdown = _make_dropdown(struct_row2, Localization.t("ui_music_lab_drums_label", "  Drums:"),
 			_DrumPatterns.list_ids(), "march",
 			func(id): _director.set_drum_pattern(StringName(id)))
 
 	var struct_row3 := HBoxContainer.new()
 	vbox.add_child(struct_row3)
 
-	_bass_dropdown = _make_dropdown(struct_row3, "Bass:",
+	_bass_dropdown = _make_dropdown(struct_row3, Localization.t("ui_music_lab_bass_label", "Bass:"),
 			_BassPatterns.list_ids(), "root_fifth",
 			func(id): _director.set_bass_pattern(StringName(id)))
-	_voicing_dropdown = _make_dropdown(struct_row3, "  Pad voicing:",
+	_voicing_dropdown = _make_dropdown(struct_row3, Localization.t("ui_music_lab_pad_voicing_label", "  Pad voicing:"),
 			_PadGenSrc.list_voicing_ids(), "triad",
 			func(id): _director.set_pad_voicing(StringName(id)))
 
 	# ── Presets + A/B ────────────────────────────────────────────────────────
 	var preset_row := HBoxContainer.new()
 	vbox.add_child(preset_row)
-	_lbl(preset_row, "Preset: ")
+	_lbl(preset_row, Localization.t("ui_music_lab_preset_label", "Preset: "))
 
 	_preset_dropdown = OptionButton.new()
 	for id in _PresetResolver.list_preset_ids():
@@ -167,24 +167,24 @@ func _build_ui() -> void:
 	preset_row.add_child(_preset_dropdown)
 
 	var apply_btn := Button.new()
-	apply_btn.text = "Apply"
+	apply_btn.text = Localization.t("ui_music_lab_apply", "Apply")
 	apply_btn.pressed.connect(_on_apply_preset)
 	preset_row.add_child(apply_btn)
 
-	var save_a := Button.new(); save_a.text = "Save A"
+	var save_a := Button.new(); save_a.text = Localization.t("ui_music_lab_save_a", "Save A")
 	save_a.pressed.connect(func(): _slot_a = _gather(); _current_ab = &"A")
 	preset_row.add_child(save_a)
 
-	var save_b := Button.new(); save_b.text = "Save B"
+	var save_b := Button.new(); save_b.text = Localization.t("ui_music_lab_save_b", "Save B")
 	save_b.pressed.connect(func(): _slot_b = _gather(); _current_ab = &"B")
 	preset_row.add_child(save_b)
 
-	var sw := Button.new(); sw.text = "Switch A<>B"
+	var sw := Button.new(); sw.text = Localization.t("ui_music_lab_switch_ab", "Switch A<>B")
 	sw.pressed.connect(_on_switch)
 	preset_row.add_child(sw)
 
 	# ── Stings ───────────────────────────────────────────────────────────────
-	_lbl(vbox, "Стинги:")
+	_lbl(vbox, Localization.t("ui_music_lab_stings_label", "Stings:"))
 	_stings_hbox = HFlowContainer.new()
 	vbox.add_child(_stings_hbox)
 	_build_stings()
@@ -193,17 +193,17 @@ func _build_ui() -> void:
 	var export_row := HBoxContainer.new()
 	vbox.add_child(export_row)
 
-	var copy_btn := Button.new(); copy_btn.text = "Copy JSON"
+	var copy_btn := Button.new(); copy_btn.text = Localization.t("ui_music_lab_copy_json", "Copy JSON")
 	copy_btn.pressed.connect(func():
 		DisplayServer.clipboard_set(JSON.stringify({"music_config": _gather()}, "  "))
-		EventBus.ui_toast_requested.emit("Copied!", 2.0, &"info"))
+		EventBus.ui_toast_requested.emit(Localization.t("ui_music_lab_copied", "Copied!"), 2.0, &"info"))
 	export_row.add_child(copy_btn)
 
-	var stop_btn := Button.new(); stop_btn.text = "Stop"
+	var stop_btn := Button.new(); stop_btn.text = Localization.t("ui_music_lab_stop", "Stop")
 	stop_btn.pressed.connect(func(): _director._stop())
 	export_row.add_child(stop_btn)
 
-	var start_btn := Button.new(); start_btn.text = "Start"
+	var start_btn := Button.new(); start_btn.text = Localization.t("ui_music_lab_start", "Start")
 	start_btn.pressed.connect(func(): _director._ensure_playing())
 	export_row.add_child(start_btn)
 

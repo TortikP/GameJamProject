@@ -26,7 +26,7 @@ custom_minimum_size = Vector2(520, 0)
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
-text = "Keybinds"
+text = "ui_keybind_overlay_title_text"
 horizontal_alignment = 1
 
 [node name="Grid" type="GridContainer" parent="Center/Panel/VBox"]
@@ -35,5 +35,5 @@ theme_override_constants/h_separation = 24
 theme_override_constants/v_separation = 6
 
 [node name="Hint" type="Label" parent="Center/Panel/VBox"]
-text = "(press ? to close)"
+text = "ui_keybind_overlay_hint_text"
 horizontal_alignment = 1

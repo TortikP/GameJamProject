@@ -88,7 +88,7 @@ grow_horizontal = 2
 [node name="HeaderRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]
 
 [node name="StatusLabel" type="Label" parent="HUD/WavePanel/VBox/HeaderRow"]
-text = "Wave 1 of 1"
+text = "ui_map_editor_status_label_text"
 custom_minimum_size = Vector2(220, 32)
 vertical_alignment = 1
 
@@ -97,15 +97,15 @@ size_flags_horizontal = 3
 mouse_filter = 2
 
 [node name="CopyBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
-text = "Copy from prev"
+text = "ui_map_editor_copy_btn_text"
 custom_minimum_size = Vector2(140, 32)
 
 [node name="SpecialBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
-text = "Make Special"
+text = "ui_map_editor_special_btn_text"
 custom_minimum_size = Vector2(120, 32)
 
 [node name="DeleteBtn" type="Button" parent="HUD/WavePanel/VBox/HeaderRow"]
-text = "Delete wave"
+text = "ui_map_editor_delete_btn_text"
 custom_minimum_size = Vector2(120, 32)
 
 [node name="TimelineRow" type="HBoxContainer" parent="HUD/WavePanel/VBox"]

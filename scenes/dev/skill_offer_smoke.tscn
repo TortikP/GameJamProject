@@ -20,7 +20,7 @@ offset_left = 16.0
 offset_top = 16.0
 offset_right = 720.0
 offset_bottom = 56.0
-text = "040 — skill offer smoke harness"
+text = "ui_skill_offer_smoke_title_text"
 theme_override_font_sizes/font_size = 22
 
 [node name="ButtonRow" type="VBoxContainer" parent="HUD"]
@@ -45,7 +45,7 @@ grow_horizontal = 0
 [node name="StatusScroll" type="ScrollContainer" parent="HUD/StatusPanel"]
 
 [node name="StatusLabel" type="Label" parent="HUD/StatusPanel/StatusScroll"]
-text = "(initializing…)"
+text = "ui_skill_offer_smoke_status_label_text"
 theme_override_font_sizes/font_size = 13
 custom_minimum_size = Vector2(620, 0)
 

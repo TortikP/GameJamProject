@@ -67,6 +67,9 @@ function ConvertTo-Slug([string]$Value) {
 }
 
 function ConvertTo-LocKey([string]$Value) {
+    if (Test-LocKey $Value) {
+        return $Value.Trim()
+    }
     return ConvertTo-Slug $Value
 }
 
@@ -227,8 +230,16 @@ function Read-SceneFiles {
             if ([string]::IsNullOrWhiteSpace($value) -or (Test-PathLike $value)) {
                 return
             }
-            $key = "ui_$(ConvertTo-Slug $sceneStem)_$(ConvertTo-Slug $currentNode)_$(ConvertTo-Slug $prop)"
-            Add-Entry $key $value "$(Get-RelativePath $path):$lineNo" "scene property"
+            if (Test-LocKey $value) {
+                $key = ConvertTo-LocKey $value
+                $text = ConvertFrom-LocKeyToText $value $prop
+                $note = "existing localization key in scene property"
+            } else {
+                $key = "ui_$(ConvertTo-Slug $sceneStem)_$(ConvertTo-Slug $currentNode)_$(ConvertTo-Slug $prop)"
+                $text = $value
+                $note = "scene property"
+            }
+            Add-Entry $key $text "$(Get-RelativePath $path):$lineNo" $note
         }
     }
 }
@@ -318,14 +329,18 @@ function Write-Outputs {
             $existingRu[(ConvertTo-LocKey $_.Name)] = [string]$_.Value
         }
     }
-    $sortedKeys = @($Entries.Keys | Sort-Object)
+    $allKeys = @{}
+    foreach ($key in $Entries.Keys) { $allKeys[$key] = $true }
+    foreach ($key in $existingEn.Keys) { $allKeys[$key] = $true }
+    foreach ($key in $existingRu.Keys) { $allKeys[$key] = $true }
+    $sortedKeys = @($allKeys.Keys | Sort-Object)
     $en = [ordered]@{}
     $ru = [ordered]@{}
     $src = [ordered]@{}
     foreach ($key in $sortedKeys) {
-        $en[$key] = if ($existingEn.ContainsKey($key) -and $existingEn[$key] -ne "") { $existingEn[$key] } else { $Entries[$key] }
+        $en[$key] = if ($existingEn.ContainsKey($key) -and $existingEn[$key] -ne "") { $existingEn[$key] } elseif ($Entries.Contains($key)) { $Entries[$key] } else { "" }
         $ru[$key] = if ($existingRu.ContainsKey($key)) { $existingRu[$key] } else { "" }
-        $src[$key] = $Sources[$key]
+        $src[$key] = if ($Sources.ContainsKey($key)) { $Sources[$key] } else { @() }
     }
     $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
     [System.IO.File]::WriteAllText((Join-Path $OutDir "en.json"), (($en | ConvertTo-Json -Depth 20) + "`n"), $utf8NoBom)
@@ -399,6 +414,8 @@ function Write-Outputs {
 
     $filled = @($sortedKeys | Where-Object { -not [string]::IsNullOrEmpty([string]$Entries[$_]) }).Count
     $missing = $sortedKeys.Count - $filled
+    $readmePath = Join-Path $OutDir "README.md"
+    if (-not (Test-Path $readmePath)) {
     $readme = @"
 # Localization Data
 
@@ -412,9 +429,37 @@ Current extraction: $($sortedKeys.Count) keys, $filled with source text, $missin
 
 Runtime loading is handled by ``scripts/infrastructure/localization.gd``. It registers these JSON files as Godot ``Translation`` resources through ``TranslationServer``.
 
+## Hard rule for player-facing text
+
+Do not add player-facing hardcoded text to scenes, scripts, data files, UI panels, popups, toasts, tooltips, dialogue configs, maps, enemies, skills, or editor/gameplay screens.
+
+Every visible string must have a stable localization key and that key must exist in both:
+
+- ``data/localization/en.json``
+- ``data/localization/ru.json``
+
+Allowed exceptions are values that are genuinely language-neutral and will never need translation, such as pure numbers, timers, percentages, coordinates, icon-only glyphs, file paths, ids, enum values, debug-only log categories, and other internal tokens.
+
+Scene files should store localization keys in text-like properties, for example:
+
+``````text
+text = "ui_pause_menu_resume_button_text"
+tooltip_text = "ui_top_hud_bar_help_button_tooltip_text"
+``````
+
+GDScript should use explicit lookup:
+
+``````gdscript
+label.text = Localization.t("ui_common_save", "Save")
+toast(Localization.tf("ui_score_total", [score], "Total score: %d"))
+``````
+
+When adding a new interface, window, button, tooltip, toast, prompt, dialogue line, map title, enemy text, or skill text, add the key to both locale files in the same change. Do not rely on English/source text literals as the long-term localization source.
+
 Re-run the extractor after adding or renaming content defs.
 "@
-    [System.IO.File]::WriteAllText((Join-Path $OutDir "README.md"), $readme, $utf8NoBom)
+    [System.IO.File]::WriteAllText($readmePath, $readme, $utf8NoBom)
+    }
     Write-Host "Extracted $($sortedKeys.Count) localization keys into $(Get-RelativePath $OutDir)"
 }
 

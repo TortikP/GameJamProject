@@ -1,5 +1,5 @@
 {
-	"name": "Preset Test",
+	"name": "maps_sample_preset_test_name",
 	"version": 2,
 	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
 	"waves": [

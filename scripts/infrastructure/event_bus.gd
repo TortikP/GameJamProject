@@ -107,7 +107,7 @@ signal ui_toast_requested(text: String, duration_sec: float, level: StringName) 
 signal ui_modal_opened(id: StringName)
 signal ui_modal_closed(id: StringName)
 # HUD HELP button (top-right) → HelpDropdown listens & toggles. Sibling
-# of the centered KeybindOverlay (`?` keybind), shares the same _BINDS
+# of the centered KeybindOverlay (`?` keybind), shares the same binds()
 # data; this one drops down under the HELP button so clicks elsewhere
 # stay unblocked.
 signal help_dropdown_toggle_requested

@@ -2,7 +2,7 @@
   {
     "id": "intro_office_monologue",
     "speaker": "heroine",
-    "text": "Ещё один понедельник. Стул, монитор, кулер.",
+    "text": "dialogues_intro_office_monologue_text",
     "next": "intro_office_monologue_02",
     "tags": ["intro"],
     "priority": 100,
@@ -12,7 +12,7 @@
   {
     "id": "intro_office_monologue_02",
     "speaker": "heroine",
-    "text": "Я сижу здесь который год. И ни разу не задавала себе вопрос — почему.",
+    "text": "dialogues_intro_office_monologue_02_text",
     "next": "intro_office_monologue_03",
     "tags": ["intro"],
     "priority": 100,
@@ -22,7 +22,7 @@
   {
     "id": "intro_office_monologue_03",
     "speaker": "heroine",
-    "text": "Хватит. Пора встать.",
+    "text": "dialogues_intro_office_monologue_03_text",
     "next": "",
     "tags": ["intro"],
     "priority": 100,

@@ -16,12 +16,12 @@ theme_override_constants/separation = 24
 
 [node name="TurnLabel" type="Label" parent="HBox"]
 layout_mode = 2
-text = "Turn: 0"
+text = "ui_top_hud_bar_turn_label_text"
 size_flags_horizontal = 3
 
 [node name="WaveLabel" type="Label" parent="HBox"]
 layout_mode = 2
-text = "Wave 1/?"
+text = "ui_top_hud_bar_wave_label_text"
 size_flags_horizontal = 3
 
 [node name="TimerLabel" type="Label" parent="HBox"]
@@ -40,4 +40,4 @@ layout_mode = 2
 text = "?"
 focus_mode = 0
 custom_minimum_size = Vector2(36, 28)
-tooltip_text = "Show keybinds"
+tooltip_text = "ui_top_hud_bar_help_button_tooltip_text"

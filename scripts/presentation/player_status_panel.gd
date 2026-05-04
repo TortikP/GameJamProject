@@ -30,6 +30,7 @@ var _hover_skill = null
 func _ready() -> void:
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
+	Localization.locale_changed.connect(_on_locale_changed)
 	# Spell section starts collapsed — no slot active means nothing to show.
 	_spell_section.visible = false
 
@@ -165,8 +166,8 @@ func _refresh_spell_section() -> void:
 func _refresh_all() -> void:
 	if _actor == null:
 		return
-	_name_label.text = String(_actor.actor_id)
-	_hp_value.text = "%d/%d" % [_actor.hp, _actor.max_hp]
+	_name_label.text = Localization.t("ui_player_actor_name", String(_actor.actor_id))
+	_hp_value.text = Localization.tf("ui_player_status_hp_value", [_actor.hp, _actor.max_hp], "%d/%d")
 	# Color HP value by threshold (mirrors HealthBar logic).
 	var ratio: float = float(_actor.hp) / max(1.0, float(_actor.max_hp))
 	_hp_value.add_theme_color_override("font_color", UiTheme.hp_color_for(ratio))
@@ -174,3 +175,8 @@ func _refresh_all() -> void:
 
 func _on_damaged(_id: StringName, _amount: int, _hp_left: int) -> void:
 	_refresh_all()
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_all()
+	_refresh_spell_section()

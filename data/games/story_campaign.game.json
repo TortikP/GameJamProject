@@ -1,34 +1,34 @@
 {
-	"name": "Story Campaign",
+	"name": "games_story_campaign_game_name",
 	"version": 1,
 	"levels": [
 		{
 			"map_path": "res://data/maps/office_intro.json",
-			"display_name": "Office",
+			"display_name": "games_story_campaign_game_levels_0_display_name",
 			"cutscene_id": "",
 			"is_intro": true
 		},
 		{
 			"map_path": "res://data/maps/story_map_01.json",
-			"display_name": "Gate One",
+			"display_name": "games_story_campaign_game_levels_1_display_name",
 			"cutscene_id": "",
 			"is_intro": false
 		},
 		{
 			"map_path": "res://data/maps/story_map_02.json",
-			"display_name": "Gate Two",
+			"display_name": "games_story_campaign_game_levels_2_display_name",
 			"cutscene_id": "",
 			"is_intro": false
 		},
 		{
 			"map_path": "res://data/maps/story_map_03.json",
-			"display_name": "Gate Three",
+			"display_name": "games_story_campaign_game_levels_3_display_name",
 			"cutscene_id": "",
 			"is_intro": false
 		},
 		{
 			"map_path": "res://data/maps/story_map_04.json",
-			"display_name": "Gate Four",
+			"display_name": "games_story_campaign_game_levels_4_display_name",
 			"cutscene_id": "",
 			"is_intro": false
 		}

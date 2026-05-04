@@ -23,7 +23,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="VBox" unique_id=1433473163]
 layout_mode = 2
-text = "Combat Log"
+text = "ui_combat_log_title_text"
 
 [node name="Scroll" type="ScrollContainer" parent="VBox" unique_id=1181486488]
 layout_mode = 2

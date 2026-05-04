@@ -40,68 +40,68 @@ theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="VBox" unique_id=1753367747]
 layout_mode = 2
-text = "Polyabsorb"
+text = "ui_main_menu_title_text"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="VBox" unique_id=1739584152]
 layout_mode = 2
-text = "YOU ARE WHAT YOU EAT"
+text = "ui_main_menu_subtitle_text"
 horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="VBox" unique_id=1017721551]
 layout_mode = 2
-text = "Начать забег"
+text = "ui_main_menu_start_button_text"
 
 [node name="ContinueButton" type="Button" parent="VBox" unique_id=96365709]
 layout_mode = 2
 disabled = true
-text = "Continue"
+text = "ui_main_menu_continue_button_text"
 
 [node name="GodmodeButton" type="Button" parent="VBox" unique_id=2058570593]
 layout_mode = 2
-text = "Godmode (dev)"
+text = "ui_main_menu_godmode_button_text"
 
 [node name="MapEditorButton" type="Button" parent="VBox" unique_id=1896317596]
 layout_mode = 2
-text = "Map Editor [Ctrl+E]"
+text = "ui_main_menu_map_editor_button_text"
 
 [node name="GameEditorButton" type="Button" parent="VBox" unique_id=1241180300]
 layout_mode = 2
-text = "Game Editor"
+text = "ui_main_menu_game_editor_button_text"
 
 [node name="LoadGameButton" type="Button" parent="VBox" unique_id=1943238625]
 layout_mode = 2
-text = "Load Game"
+text = "ui_main_menu_load_game_button_text"
 
 [node name="LoadCustomLevelButton" type="Button" parent="VBox" unique_id=250015659]
 layout_mode = 2
-text = "Load Custom Level"
+text = "ui_main_menu_load_custom_level_button_text"
 
 [node name="SettingsButton" type="Button" parent="VBox" unique_id=1020438414]
 layout_mode = 2
-text = "Settings"
+text = "ui_main_menu_settings_button_text"
 
 [node name="CreditsButton" type="Button" parent="VBox" unique_id=672007365]
 layout_mode = 2
-text = "Credits"
+text = "ui_main_menu_credits_button_text"
 
 [node name="QuitButton" type="Button" parent="VBox" unique_id=1572392609]
 layout_mode = 2
-text = "Quit"
+text = "ui_main_menu_quit_button_text"
 
 [node name="SettingsPanel" parent="." unique_id=1927933814 instance=ExtResource("2_sp")]
 
 [node name="LoadFileDialog" type="FileDialog" parent="." unique_id=1700559758]
-title = "Open a File"
+title = "ui_main_menu_load_file_dialog_title"
 size = Vector2i(720, 480)
-ok_button_text = "Open"
+ok_button_text = "ui_main_menu_load_file_dialog_ok_button_text"
 file_mode = 0
 filters = PackedStringArray("*.json ; Map JSON files")
 
 [node name="LoadGameFileDialog" type="FileDialog" parent="." unique_id=900161688]
-title = "Open a File"
+title = "ui_main_menu_load_game_file_dialog_title"
 size = Vector2i(720, 480)
-ok_button_text = "Open"
+ok_button_text = "ui_main_menu_load_game_file_dialog_ok_button_text"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.game.json ; Game files")

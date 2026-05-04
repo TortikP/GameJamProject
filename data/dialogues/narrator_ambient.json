@@ -2,7 +2,7 @@
   {
     "id": "wave_first",
     "speaker": "narrator",
-    "text": "Первая волна. Разминка. Или нет — они уже серьёзно.",
+    "text": "dialogues_wave_first_text",
     "tags": ["wave_start"],
     "priority": 20,
     "once_per_run": true
@@ -10,7 +10,7 @@
   {
     "id": "wave_getting_rough",
     "speaker": "narrator",
-    "text": "Вот теперь интересно.",
+    "text": "dialogues_wave_getting_rough_text",
     "tags": ["wave_start"],
     "priority": 10,
     "conditions": { "min_run": 0, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
@@ -19,7 +19,7 @@
   {
     "id": "upgrade_offered_comment",
     "speaker": "narrator",
-    "text": "Выбор, который что-то значит. Редкость.",
+    "text": "dialogues_upgrade_offered_comment_text",
     "tags": ["upgrade_screen"],
     "priority": 5,
     "once_per_session": true
@@ -27,7 +27,7 @@
   {
     "id": "upgrade_big_choice",
     "speaker": "narrator",
-    "text": "Хороший выбор. Или плохой. Узнаешь через две волны.",
+    "text": "dialogues_upgrade_big_choice_text",
     "tags": ["upgrade_chosen"],
     "priority": 5,
     "once_per_run": true
@@ -35,33 +35,33 @@
   {
     "id": "long_test_line",
     "speaker": "narrator",
-    "text": "Это длинная реплика специально для теста тайпрайтера и скипа. Буквы едут медленно, ты нажимаешь мышью — и всё появляется сразу. Потом второй клик закрывает. Если ты читаешь это целиком без клика — значит автоаванс работает. Хорошо.",
+    "text": "dialogues_long_test_line_text",
     "tags": ["debug"],
     "priority": 99
   },
   {
     "id": "choice_chain_test",
     "speaker": "narrator",
-    "text": "Тест цепочки с выбором. Выбери что-нибудь.",
+    "text": "dialogues_choice_chain_test_text",
     "tags": ["debug"],
     "priority": 98,
     "choices": [
-      { "label": "Вариант А", "next": "choice_chain_a" },
-      { "label": "Вариант Б", "next": "choice_chain_b" },
-      { "label": "Молчать", "next": null }
+      { "label": "dialogues_choice_chain_test_choices_0_label", "next": "choice_chain_a" },
+      { "label": "dialogues_choice_chain_test_choices_1_label", "next": "choice_chain_b" },
+      { "label": "dialogues_choice_chain_test_choices_2_label", "next": null }
     ]
   },
   {
     "id": "choice_chain_a",
     "speaker": "narrator",
-    "text": "Ты выбрал А. Разумно. Или нет — зависит от контекста, которого у меня нет.",
+    "text": "dialogues_choice_chain_a_text",
     "tags": [],
     "priority": 0
   },
   {
     "id": "choice_chain_b",
     "speaker": "rival",
-    "text": "Б? Серьёзно? Ладно, твоё дело.",
+    "text": "dialogues_choice_chain_b_text",
     "tags": [],
     "priority": 0
   }

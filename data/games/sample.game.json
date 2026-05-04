@@ -1,16 +1,16 @@
 {
-	"name": "Sample Campaign",
+	"name": "games_sample_game_name",
 	"version": 1,
 	"levels": [
 		{
 			"map_path": "res://data/maps/sample.json",
-			"display_name": "Awakening",
+			"display_name": "games_sample_game_levels_0_display_name",
 			"cutscene_id": "intro_awakening",
 			"is_intro": true
 		},
 		{
 			"map_path": "res://data/maps/sample_waves.json",
-			"display_name": "The Trial",
+			"display_name": "games_sample_game_levels_1_display_name",
 			"cutscene_id": "",
 			"is_intro": false
 		}

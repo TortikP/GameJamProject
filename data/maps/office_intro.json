@@ -1,5 +1,5 @@
 {
-  "name": "Office Intro",
+  "name": "maps_office_intro_name",
   "version": 2,
   "tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
   "waves": [
