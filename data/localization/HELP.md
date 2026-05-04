@@ -5,39 +5,39 @@
 | Def | EN/source | Где используется и как переводить |
 | --- | --- | --- |
 | `angel_desc` | A biblically accurate angel. Protects allies and attacks with holy light. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `angel_divine_word_desc` | The angel speaks a divine word, protecting the chosen area. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `angel_divine_word_desc` | The angel speaks a divine word, protecting the chosen area. Grants $n_block$ shield for {$duration$;turn;turns;turns} in radius $radius$ at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_divine_word_name` | Divine Word | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_divine_word_tooltip` | Grants a shield to targets in the area. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_name` | Biblically Accurate Angel | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `angel_scorching_ray_desc` | The angel fires a scorching ray that leaves a holy burn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `angel_scorching_ray_desc` | The angel fires a scorching ray that leaves a holy burn. Burns up to {$chain_targets$;target;targets;targets} for $burning_damage$ damage over {$burning_duration$;turn;turns;turns} at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_scorching_ray_name` | Scorching Ray | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `angel_scorching_ray_tooltip` | Burns up to $max_chain_length$ targets at range $range$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `angel_sharp_feathers_desc` | The angel rains sharp feathers over the chosen area. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `angel_scorching_ray_tooltip` | Burns up to {$chain_targets$;target;targets;targets} at range $range$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `angel_sharp_feathers_desc` | The angel rains sharp feathers over the chosen area. Deals $damage$ damage in radius $radius$ at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_sharp_feathers_name` | Sharp Feathers | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `angel_sharp_feathers_tooltip` | Deals $damage$ damage in radius $radius$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `ball_throw_desc` | The bear throws a ball at an enemy, knocking them off balance. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `ball_throw_name` | Ball Throw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `ball_throw_tooltip` | Deals $damage$ ranged damage and stuns the target for $duration$ turn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bear_ball_throw_desc` | The bear throws a ball at an enemy, knocking them off balance. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `ball_throw_tooltip` | Deals $damage$ ranged damage and stuns the target for {$duration$;turn;turns;turns}. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bear_ball_throw_desc` | The bear throws a ball at an enemy, knocking them off balance. Deals $damage$ damage at range $range$ and stuns for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_ball_throw_name` | Ball Throw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bear_ball_throw_tooltip` | Deals $damage$ ranged damage and stuns the target for $duration$ turn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bear_ball_throw_tooltip` | Deals $damage$ ranged damage and stuns the target for {$duration$;turn;turns;turns}. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_desc` | A sturdy forest bear. Throws a ball from range, heals itself, and powers up. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bear_hallo_desc` | The bear says its signature “Hai!” and gets fired up. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bear_hallo_desc` | The bear says its signature “Hai!” and gets fired up. Gains $n_attack_buff$ Strength for {$duration$;turn;turns;turns} and fears nearby enemies for {$feared_duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_hallo_name` | Hai! | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bear_hallo_tooltip` | Increases its own attack for a few turns. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bear_hallo_tooltip` | Strength $n_attack_buff$ for {$duration$;turn;turns;turns} and Fear for {$feared_duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_name` | Bear | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bear_paw_suck_desc` | The bear sucks its paw and quickly recovers health. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bear_paw_suck_desc` | The bear sucks its paw and quickly recovers health. Heals self for $heal$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_paw_suck_name` | Suck Paw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bear_paw_suck_tooltip` | Heals self for $heal$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_desc` | A fast and fragile bee. Stings, heals allies, and can summon another bee. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bee_honey_cold_desc` | The bee gives the target sweet honey with a chilly side effect. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bee_honey_cold_desc` | The bee gives the target sweet honey with a chilly side effect. Heals $heal$ at range $range$ and slows for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_honey_cold_name` | Honey and Chill | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bee_honey_cold_tooltip` | Heals the target for $heal$ and slows it for $duration$ turn(s). | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bee_honey_cold_tooltip` | Heals the target for $heal$ and slows it for {$duration$;turn;turns;turns}. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_name` | Bee | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bee_sting_desc` | The bee stings an enemy and leaves poison behind. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bee_sting_desc` | The bee stings an enemy and leaves poison behind. Deals $damage$ damage to an adjacent target and poisons for $poisoned_damage_pct$% max HP over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_sting_name` | Sting | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_sting_tooltip` | Deals $damage$ damage to an adjacent target and poisons it. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bee_summon_bee_desc` | The bee calls another bee for help. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bee_summon_bee_desc` | The bee calls another bee for help. Summons a bee on a hex within range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_summon_bee_name` | Summon Bee | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bee_summon_bee_tooltip` | Summons a bee on the chosen hex. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `berry_throw_desc` | The bush throws a heavy berry at an enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -59,29 +59,29 @@
 | `boss_victory_heroine_final_tranquility_text_01` | I don't want victory. I want silence, moss under my palms, and no one calling me urgent. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `boss_victory_heroine_final_tranquility_text_02` | Let everything that burned become ash. Sometimes grass grows in ash too. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `boss_victory_heroine_final_tranquility_text_03` | I'm not going up or down. I'm going where I don't have to answer right away. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `burning_bear_burning_claw_desc` | The burning bear strikes an enemy with a flaming claw. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `burning_bear_burning_claw_desc` | The burning bear strikes an enemy with a flaming claw. Deals $damage$ melee damage and burns for $burning_damage$ damage over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_burning_claw_name` | Burning Claw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_burning_claw_tooltip` | Deals $damage$ damage to an adjacent target and burns it. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_desc` | Boss. A burning bear with powerful attacks, summons, and a fiery quake. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `burning_bear_hellshake_desc` | The burning bear shakes the ground with hellish heat. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `burning_bear_hellshake_desc` | The burning bear shakes the ground with hellish heat. Deals $damage$ damage in radius $radius$ and burns for $burning_damage$ damage over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_hellshake_name` | Hellshake | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_hellshake_tooltip` | Deals $damage$ damage around itself and burns enemies. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_name` | Burning Bear | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `burning_bear_summon_bear_desc` | The burning bear calls a regular bear for help. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `burning_bear_summon_bear_desc` | The burning bear calls a regular bear for help. Summons a bear on a hex within range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_summon_bear_name` | Summon Bear | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_summon_bear_tooltip` | Summons a bear on the chosen hex. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `burning_bear_tire_throw_desc` | The burning bear hurls a burning tire at an enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `burning_bear_tire_throw_desc` | The burning bear hurls a burning tire at an enemy. Deals $damage$ damage at range $range$ and burns for $burning_damage$ damage over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_tire_throw_name` | Tire Throw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `burning_bear_tire_throw_tooltip` | Deals $damage$ ranged damage and burns the target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bush_berry_throw_desc` | The bush throws a heavy berry at an enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bush_berry_throw_desc` | The bush throws a heavy berry at an enemy. Deals $damage$ damage to one target at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_berry_throw_name` | Berry Throw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_berry_throw_tooltip` | Deals $damage$ damage to one target at range $range$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bush_curse_desc` | The bush curses an enemy and makes it harder for them to move. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bush_curse_desc` | The bush curses an enemy and makes it harder for them to move. Slows one target at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_curse_name` | Evil Eye | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_curse_tooltip` | Slows one target at range. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_desc` | A living bush. Stands still, throws berries, and pulls enemies in with a pleasant smell. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_name` | Bush | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `bush_nice_smell_desc` | The bush releases a pleasant smell, pulling enemies closer. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `bush_nice_smell_desc` | The bush releases a pleasant smell, pulling enemies closer. Pulls and slows enemies in radius $radius$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_nice_smell_name` | Pleasant Smell | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `bush_nice_smell_tooltip` | Pulls enemies in a large area around self. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `common_defeat_normal_none_01` | Good night, sweet princess. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -147,13 +147,13 @@
 | `curse_desc` | The bush curses an enemy and makes it harder for them to move. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `curse_name` | Evil Eye | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `curse_tooltip` | Slows one target at range. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `default_heal_desc` | Drink coffee to recover and feel more energized. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `default_heal_desc` | Drink coffee to recover and feel more energized. Heals self for $heal$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_heal_name` | Drink Coffee | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_heal_tooltip` | Heals self for $heal$ and briefly increases attack. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `default_melee_desc` | A simple punch against a nearby enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `default_melee_desc` | A simple punch against a nearby enemy. Deals $damage$ damage to an adjacent target. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_melee_name` | Punch | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_melee_tooltip` | Deals $damage$ damage to an adjacent target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `default_ranged_desc` | Throw coffee at a target, splashing nearby enemies. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `default_ranged_desc` | Throw coffee at a target, splashing nearby enemies. Deals $damage$ damage at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_ranged_name` | Throw Coffee | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `default_ranged_tooltip` | Deals $damage$ damage in radius $radius$ and weakens enemies. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `dialogues_boss_defeat_gloat_text` | Don't be upset. Losing is a skill too. You're clearly practicing it. | Текст диалога или вариант ответа. Сохранять смысл, тон и плейсхолдеры/BBCode, если есть. |
@@ -238,10 +238,10 @@
 | `ending_self_lavender_raf_opening_text` | That's it. Have you heard of the Ship of Theseus paradox? | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `ending_self_lavender_raf_opening_tranquility_text` | That's it. Ahead: a path, silence, and no one in a hurry. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_desc` | A fire slime. Spits magma and ignites enemies in melee. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `fire_slime_firey_touch_desc` | The slime touches an enemy with its burning body. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `fire_slime_firey_touch_desc` | The slime touches an enemy with its burning body. Deals $damage$ melee damage and burns for $burning_damage$ damage over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_firey_touch_name` | Fiery Touch | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_firey_touch_tooltip` | Deals $damage$ damage to an adjacent target and burns it. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `fire_slime_magma_spit_desc` | The fire slime spits magma onto the chosen hex. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `fire_slime_magma_spit_desc` | The fire slime spits magma onto the chosen hex. Deals $damage$ damage in radius $radius$ at range $range$ and burns for $burning_damage$ damage over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_magma_spit_name` | Magma Spit | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_magma_spit_tooltip` | Deals $damage$ damage in radius $radius$ and slows enemies. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `fire_slime_name` | Fire Slime | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -402,9 +402,9 @@
 | `games_story_campaign_game_levels_3_display_name` | Gate Three | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `games_story_campaign_game_levels_4_display_name` | Gate Four | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `games_story_campaign_game_name` | Story Campaign | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `hallo_desc` | A loud greeting that makes the bear noticeably bolder. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `hallo_desc` | A loud greeting that makes the bear noticeably bolder. Strength $n_attack_buff$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `hallo_name` | Hai! | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `hallo_tooltip` | Strength $n_attack_buff$ for $duration$ turn(s), 5% chance. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `hallo_tooltip` | Strength $n_attack_buff$ for {$duration$;turn;turns;turns}, 5% chance. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `heaven_enter_ascended_text` | Is this heaven? Or did I assemble the religious symbolism wrong? | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `heaven_enter_burnout_text` | Beautiful. Terrifying. I feel like I should behave better, but how exactly? | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `heaven_enter_chimera_text` | The sky does not press down. It waits for me to stop defending myself from air. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -455,18 +455,18 @@
 | `heaven_last_wave_victory_tranquility_text_01` | And hundreds of eyes watched not to judge, but to witness. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `heaven_last_wave_victory_tranquility_text_02` | Heaven frowned. Apparently I don't match the salvation brandbook. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `heaven_last_wave_victory_tranquility_text_03` | The angels came in one final batch. Classic: everything urgent arrives at the end of the day. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `honey_cold_desc` | Healing honey with a chilling side effect. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `honey_cold_desc` | Healing honey with a chilling side effect. Heals $heal$ at range $range$ and slows for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `honey_cold_name` | Honey and Chill | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `honey_cold_tooltip` | $heal$ healing, Slowed for $duration$ turn(s) (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `lavender_lion_bite_desc` | The lion bites an enemy and recovers from the successful bite. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `honey_cold_tooltip` | $heal$ healing, Slowed for {$duration$;turn;turns;turns} (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `lavender_lion_bite_desc` | The lion bites an enemy and recovers from the successful bite. Deals $damage$ melee damage and heals self for $heal$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_bite_name` | Bite | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_bite_tooltip` | Deals $damage$ damage to an adjacent target and heals self for $heal$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_desc` | A dangerous lavender lion. Bites, scares enemies, and buffs allies with a roar. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_name` | Lavender Lion | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `lavender_lion_roar_desc` | The lavender lion lets out a mighty roar, inspiring everyone nearby. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `lavender_lion_roar_desc` | The lavender lion lets out a mighty roar, inspiring everyone nearby. Grants $n_attack_buff$ Strength for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_roar_name` | Mighty Roar | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_roar_tooltip` | Increases the attack of nearby allies. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `lavender_lion_scare_desc` | The lion frightens enemies with a lavender roar and breaks their focus. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `lavender_lion_scare_desc` | The lion frightens enemies with a lavender roar and breaks their focus. Fears enemies in radius $radius$ at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_scare_name` | Scare | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `lavender_lion_scare_tooltip` | Frightens enemies in a small area. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `manekin_desc` | A training target with no emotions and questionable patience. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -493,26 +493,26 @@
 | `maps_story_map_03_name` | Story Map 03 | Название/описание карты или уровня. Можно переводить более художественно, но без потери смысла. |
 | `maps_story_map_04_name` | Story Map 04 | Название/описание карты или уровня. Можно переводить более художественно, но без потери смысла. |
 | `maps_untitled_name` | Untitled | Название/описание карты или уровня. Можно переводить более художественно, но без потери смысла. |
-| `monkey_business_desc` | The monkey gets up to monkey business and strikes a nearby enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `monkey_business_desc` | The monkey gets up to monkey business and strikes a nearby enemy. Deals $damage$ melee damage. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_business_name` | Monkey Business | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_business_tooltip` | Deals $damage$ damage to an adjacent target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_desc` | An office monkey. Hits fast and buffs itself before a fight. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_name` | Monkey | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `monkey_time_desc` | The monkey enters monkey time and gets ready to fight. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `monkey_time_desc` | The monkey enters monkey time and gets ready to fight. Gains $n_attack_buff$ Strength and $n_block$ shield for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_time_name` | Monkey Time | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `monkey_time_tooltip` | Buffs itself and gains a small shield. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_desc` | A mushroom boar that gores with tusks and disrupts enemies with spores. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_name` | Mushroom Boar | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `mushroom_boar_spores_desc` | The mushroom boar releases a cloud of spores around the chosen hex. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `mushroom_boar_spores_desc` | The mushroom boar releases a cloud of spores around the chosen hex. Stuns enemies in radius $radius$ at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_spores_name` | Mushroom Spores | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `mushroom_boar_spores_tooltip` | Stuns enemies in radius $radius$ for $duration$ turn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `mushroom_boar_tusk_attack_desc` | The mushroom boar strikes sharply with its tusks. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `mushroom_boar_spores_tooltip` | Stuns enemies in radius $radius$ for {$duration$;turn;turns;turns}. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `mushroom_boar_tusk_attack_desc` | The mushroom boar strikes sharply with its tusks. Deals $damage$ melee damage. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_tusk_attack_name` | Tusk Strike | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_tusk_attack_tooltip` | Deals $damage$ damage to an adjacent target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `mushroom_boar_weaken_desc` | The mushroom boar infects the target with spores, temporarily reducing its strength. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `mushroom_boar_weaken_desc` | The mushroom boar infects the target with spores, temporarily reducing its strength. Applies $n_attack_debuff$ Weakness at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_weaken_name` | Weaken | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `mushroom_boar_weaken_tooltip` | Weakens one target at range. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `nice_smell_desc` | An overly pleasant scent pulls everyone closer to the source. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `nice_smell_desc` | An overly pleasant scent pulls everyone closer to the source. Pulls targets in radius $radius$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `nice_smell_name` | Nice Smell | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `nice_smell_tooltip` | Pulls targets in radius $radius$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `office_final_enter` | How do you feel? | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
@@ -540,10 +540,10 @@
 | `office_final_pre_boss_tranquility_text_01` | Heaven became quiet, like water cupped in hands. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `office_final_pre_boss_tranquility_text_02` | I didn't take the light with me. I simply stopped hiding from it. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `office_final_pre_boss_tranquility_text_03` | How do you feel? | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `paper_jam_desc` | A classic office nightmare: paper jams everything nearby. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `paper_jam_desc` | A classic office nightmare: paper jams everything nearby. Roots enemies in radius $radius$ at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `paper_jam_name` | Paper Jam | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `paper_jam_tooltip` | Rooted for $duration$ turn(s) in radius $radius$ (hex within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `paw_suck_desc` | A short pause to soothe the paw and get back into the fight. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `paper_jam_tooltip` | Rooted for {$duration$;turn;turns;turns} in radius $radius$ (hex within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `paw_suck_desc` | A short pause to soothe the paw and get back into the fight. Heals self for $heal$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `paw_suck_name` | Suck Paw | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `paw_suck_tooltip` | $heal$ healing. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `skill_offer.cancel` | Cancel | Название, описание или подсказка навыка. Держать формулировку понятной игроку; сохранять числа и плейсхолдеры. |
@@ -573,23 +573,23 @@
 | `skill_test_status_runtime_desc` | Test ability for checking statuses during combat. | Название, описание или подсказка навыка. Держать формулировку понятной игроку; сохранять числа и плейсхолдеры. |
 | `skill_test_status_runtime_name` | Runtime Status Test | Название, описание или подсказка навыка. Держать формулировку понятной игроку; сохранять числа и плейсхолдеры. |
 | `skill_test_status_runtime_tooltip` | Creates a runtime status for testing. | Название, описание или подсказка навыка. Держать формулировку понятной игроку; сохранять числа и плейсхолдеры. |
-| `spores_desc` | A cloud of spores dazes enemies and steals their turn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `spores_desc` | A cloud of spores dazes enemies and steals their turn. Stuns enemies in radius $radius$ at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `spores_name` | Mushroom Spores | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `spores_tooltip` | Stunned for $duration$ turn(s) in radius $radius$ (hex within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `staple_shot_desc` | A staple flies straight, hurts, and slows the target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `spores_tooltip` | Stunned for {$duration$;turn;turns;turns} in radius $radius$ (hex within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `staple_shot_desc` | A staple flies straight, hurts, and slows the target. Deals $damage$ damage at range $range$ and slows for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `staple_shot_name` | Staple Shot | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `staple_shot_tooltip` | $damage$ damage, Slowed for $duration$ turn(s) (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `staple_shot_tooltip` | $damage$ damage, Slowed for {$duration$;turn;turns;turns} (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_desc` | A living stapler. Shoots staples, jams paper, and jumps around the office. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_name` | Stapler | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `stapler_paper_jam_desc` | The stapler creates a paper jam that blocks movement. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `stapler_paper_jam_desc` | The stapler creates a paper jam that blocks movement. Roots enemies in radius $radius$ at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_paper_jam_name` | Paper Jam | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `stapler_paper_jam_tooltip` | Roots enemies in radius $radius$ for $duration$ turn. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `stapler_staple_shot_desc` | The stapler fires a staple, hurting and slowing the enemy. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `stapler_paper_jam_tooltip` | Roots enemies in radius $radius$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `stapler_staple_shot_desc` | The stapler fires a staple, hurting and slowing the enemy. Deals $damage$ damage at range $range$ and slows for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_staple_shot_name` | Staple Shot | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_staple_shot_tooltip` | Deals $damage$ ranged damage and slows the target. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `stapler_under_desk_jump_desc` | The stapler suddenly jumps under the desk and changes position. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `stapler_under_desk_jump_desc` | The stapler suddenly jumps under the desk and changes position. Teleports to a safer place. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `stapler_under_desk_jump_name` | Under-Desk Jump | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `stapler_under_desk_jump_tooltip` | Teleports to a safer place. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `stapler_under_desk_jump_tooltip` | Teleports to a safer place. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `status.summoned.desc` |  | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `status.summoned.name` | Name | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `status_burning_desc` | Takes periodic fire damage. | Название или описание статуса. Переводить кратко, в стиле игровых эффектов. |
@@ -616,23 +616,23 @@
 | `status_summoned_name` | Name | Название или описание статуса. Переводить кратко, в стиле игровых эффектов. |
 | `status_weak_desc` | Deals less damage. | Название или описание статуса. Переводить кратко, в стиле игровых эффектов. |
 | `status_weak_name` | Weakness | Название или описание статуса. Переводить кратко, в стиле игровых эффектов. |
-| `sting_desc` | A quick jab with a poisonous aftertaste. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `sting_desc` | A quick jab with a poisonous aftertaste. Deals $damage$ damage and poisons for $poisoned_damage_pct$% max HP over {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `sting_name` | Sting | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `sting_tooltip` | $damage$ damage, Poisoned: $poisoned_damage_pct$% max HP for $duration$ turn(s), 2% chance (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `sting_tooltip` | $damage$ damage, Poisoned: $poisoned_damage_pct$% max HP for {$duration$;turn;turns;turns}, 2% chance (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `story_intro_heroine_text` | Five minutes. Just five minutes, and I'll be... I'll be... | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `story_intro_opening_text` | She sat between a mug, a monitor, and a deadline. The three things adults are usually assembled from. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `summon_bee_desc` | Calls another bee to help the hive. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `summon_bee_desc` | Calls another bee to help the hive. Creates a bee on a hex within range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `summon_bee_name` | Summon Bee | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `summon_bee_tooltip` | Creates a bee on a hex within $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_desc` | A living teapot. Manipulates the battlefield, lava, and strange probabilities. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `teapot_low_possibility_desc` | The teapot vanishes by taking advantage of a very low probability. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `teapot_low_possibility_desc` | The teapot vanishes by taking advantage of a very low probability. Turns invisible. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_low_possibility_name` | Low Probability | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `teapot_low_possibility_tooltip` | Turns self invisible for a few turns. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `teapot_low_possibility_tooltip` | Turns self invisible. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_name` | Teapot | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `teapot_spill_the_t_desc` | The teapot spills the truth, making the ground dangerous. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `teapot_spill_the_t_desc` | The teapot spills the truth, making the ground dangerous. Creates a lava pool on a hex within range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_spill_the_t_name` | Spill the Tea | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_spill_the_t_tooltip` | Creates a lava pool on the chosen hex. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `teapot_tea_gathering_desc` | The teapot gathers everyone for tea, pulling targets toward the center. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `teapot_tea_gathering_desc` | The teapot gathers everyone for tea, pulling targets toward the center. Pulls enemies in radius $radius$ at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_tea_gathering_name` | Tea Gathering | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `teapot_tea_gathering_tooltip` | Pulls enemies in an area toward the chosen point. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `tile_objects_ball_name` | Ball | Название объекта карты в редакторе. Лучше коротко, чтобы помещалось в панели. |
@@ -642,7 +642,7 @@
 | `tile_objects_object_lava_name` | Lava | Название объекта карты в редакторе. Лучше коротко, чтобы помещалось в панели. |
 | `tile_objects_object_on_chair_name` | Chair object | Название объекта карты в редакторе. Лучше коротко, чтобы помещалось в панели. |
 | `tile_objects_tree_name` | Tree | Название объекта карты в редакторе. Лучше коротко, чтобы помещалось в панели. |
-| `tusk_attack_desc` | The mushroom boar rams the nearest target with its tusks. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `tusk_attack_desc` | The mushroom boar rams the nearest target with its tusks. Deals $damage$ damage at range $range$. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `tusk_attack_name` | Tusk Strike | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `tusk_attack_tooltip` | $damage$ damage (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `ui_ability_target` | Target: %s | Текст игрового интерфейса. Переводить лаконично; обязательно сохранить %s, %d, переносы и порядок параметров. |
@@ -1010,9 +1010,9 @@
 | `ui_wave_panel_special_on` | Special (on) | Текст игрового интерфейса. Переводить лаконично; обязательно сохранить %s, %d, переносы и порядок параметров. |
 | `ui_wave_panel_status` | Wave %d of %d%s | Текст игрового интерфейса. Переводить лаконично; обязательно сохранить %s, %d, переносы и порядок параметров. |
 | `ui_wave_timeline_add_wave` | Add wave | Текст игрового интерфейса. Переводить лаконично; обязательно сохранить %s, %d, переносы и порядок параметров. |
-| `under_desk_jump_desc` | A sharp jump into the safe zone under the desk. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `under_desk_jump_desc` | A sharp jump into the safe zone under the desk. Teleports under the desk and gains a shield. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `under_desk_jump_name` | Under-Desk Jump | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `under_desk_jump_tooltip` | Moves under the desk. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `weaken_desc` | Mold finds weak points and cuts the target's fighting spirit. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `weaken_desc` | Mold finds weak points and cuts the target's fighting spirit. Applies $n_attack_debuff$ Weakness at range $range$ for {$duration$;turn;turns;turns}. Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
 | `weaken_name` | Weaken | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
-| `weaken_tooltip` | Weakness $n_attack_debuff$ for $duration$ turn(s), 5% chance (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |
+| `weaken_tooltip` | Weakness $n_attack_debuff$ for {$duration$;turn;turns;turns}, 5% chance (target within $range$). Cooldown: $cooldown$. | Игровая строка из данных проекта. Переводить по контексту источника; сохранить плейсхолдеры и разметку. |

@@ -1097,15 +1097,15 @@
                                "note":  "explicit Localization.t fallback"
                            },
     "skill_offer.mode.add":  {
-                                 "source":  "scripts/presentation/ui/skill_offer_card.gd:188",
+                                 "source":  "scripts/presentation/ui/skill_offer_card.gd:189",
                                  "note":  "explicit Localization.t fallback"
                              },
     "skill_offer.mode.replace":  {
-                                     "source":  "scripts/presentation/ui/skill_offer_card.gd:195",
+                                     "source":  "scripts/presentation/ui/skill_offer_card.gd:196",
                                      "note":  "explicit Localization.t fallback"
                                  },
     "skill_offer.mode.upgrade":  {
-                                     "source":  "scripts/presentation/ui/skill_offer_card.gd:192",
+                                     "source":  "scripts/presentation/ui/skill_offer_card.gd:193",
                                      "note":  "explicit Localization.tf fallback"
                                  },
     "skill_offer.pool.basic.name":  null,
@@ -1578,23 +1578,23 @@
                                               "note":  "existing localization key in scene property"
                                           },
     "ui_consequence_damage":  {
-                                  "source":  "scripts/presentation/skill_formatter.gd:245",
+                                  "source":  "scripts/presentation/skill_formatter.gd:310",
                                   "note":  "explicit Localization.tf fallback"
                               },
     "ui_consequence_heal":  {
-                                "source":  "scripts/presentation/skill_formatter.gd:248",
+                                "source":  "scripts/presentation/skill_formatter.gd:313",
                                 "note":  "explicit Localization.tf fallback"
                             },
     "ui_consequence_move":  {
-                                "source":  "scripts/presentation/skill_formatter.gd:265",
+                                "source":  "scripts/presentation/skill_formatter.gd:330",
                                 "note":  "explicit Localization.tf fallback"
                             },
     "ui_consequence_status":  {
-                                  "source":  "scripts/presentation/skill_formatter.gd:260",
+                                  "source":  "scripts/presentation/skill_formatter.gd:325",
                                   "note":  "explicit Localization.tf fallback"
                               },
     "ui_consequence_summon":  {
-                                  "source":  "scripts/presentation/skill_formatter.gd:269",
+                                  "source":  "scripts/presentation/skill_formatter.gd:334",
                                   "note":  "explicit Localization.t fallback"
                               },
     "ui_dialogue_preview_all_tags":  {
@@ -1766,15 +1766,15 @@
                                                    "note":  "explicit Localization.tf fallback"
                                                },
     "ui_effect_damage":  {
-                             "source":  "scripts/presentation/skill_formatter.gd:401",
+                             "source":  "scripts/presentation/skill_formatter.gd:466",
                              "note":  "explicit Localization.tf fallback"
                          },
     "ui_effect_damage_changed":  {
-                                     "source":  "scripts/presentation/skill_formatter.gd:400",
+                                     "source":  "scripts/presentation/skill_formatter.gd:465",
                                      "note":  "explicit Localization.tf fallback"
                                  },
     "ui_effect_generic":  {
-                              "source":  "scripts/presentation/skill_formatter.gd:403",
+                              "source":  "scripts/presentation/skill_formatter.gd:468",
                               "note":  "explicit Localization.tf fallback"
                           },
     "ui_enemy_details_hp":  {
@@ -2644,7 +2644,7 @@
                                   "note":  "explicit Localization.tf fallback"
                               },
                               {
-                                  "source":  "scripts/presentation/skill_formatter.gd:314",
+                                  "source":  "scripts/presentation/skill_formatter.gd:379",
                                   "note":  "explicit Localization.tf fallback"
                               }
                           ],
@@ -2654,12 +2654,12 @@
                                             "note":  "explicit Localization.tf fallback"
                                         },
                                         {
-                                            "source":  "scripts/presentation/skill_formatter.gd:312",
+                                            "source":  "scripts/presentation/skill_formatter.gd:377",
                                             "note":  "explicit Localization.tf fallback"
                                         }
                                     ],
     "ui_skill_headline_damage":  {
-                                     "source":  "scripts/presentation/skill_formatter.gd:360",
+                                     "source":  "scripts/presentation/skill_formatter.gd:425",
                                      "note":  "explicit Localization.tf fallback"
                                  },
     "ui_skill_offer_smoke_status_label_text":  {

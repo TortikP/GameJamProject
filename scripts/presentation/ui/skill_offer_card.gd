@@ -143,8 +143,9 @@ func _build_children() -> void:
 	_gameplay_label.add_theme_color_override("default_color", UiThemeScript.TEXT)
 	vbox.add_child(_gameplay_label)
 
-	# 049b / T040: LORE description (secondary). Sourced from
-	# Localization.t(skill.desc) — Nikita's flavour copy. Smaller font
+	# 049b / T040: description (secondary). Sourced from skill.desc and
+	# interpolated like tooltips, so flavor can include concrete mechanics.
+	# Smaller font
 	# (FS_SMALL), dim TEXT_DIM colour. Shrinks under gameplay to keep the
 	# focus where the player actually reads. SIZE_EXPAND_FILL on the lore
 	# rather than gameplay so a really long lore string scrolls/grows but
@@ -213,13 +214,9 @@ func _apply_data_to_children() -> void:
 	# fine here too: designer-visible signal that something needs writing.
 	_gameplay_label.text = SkillFormatter.format_skill_human(skill)
 
-	# 049b / T040: lore description in the secondary slot. Localization.t
-	# of skill.desc with the same key as fallback so missing-key shows the
-	# raw key for designer attention. Was the only thing on the card pre-
-	# 049b — now it's flavour text underneath the mechanical answer.
-	var desc_key: String = String(skill.desc) if skill != null and "desc" in skill else ""
-	var desc_text: String = Localization.t(desc_key, desc_key) if desc_key != "" else ""
-	_lore_label.text = desc_text
+	# 049b / T040: secondary description keeps flavor, but can now include
+	# variables and plural blocks for concrete mechanics.
+	_lore_label.text = SkillFormatter.format_skill_desc(skill)
 
 	# 049b / T040: icon — texture if SkillIconResolver finds one, else show
 	# the letter fallback Label (first letter of localised skill name, big).
