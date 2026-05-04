@@ -39,8 +39,10 @@ static func format_skill_human(skill) -> String:
 		body = Localization.t(key, _DESC_PLACEHOLDER)
 	else:
 		body = _DESC_PLACEHOLDER
+	var has_inline_cooldown: bool = body.find("$cooldown$") >= 0 or body.find("$cd$") >= 0
+	body = _interpolate_skill_vars(body, skill)
 	# Append CD indicator (matches format_skill).
-	if skill.cooldown > 0:
+	if skill.cooldown > 0 and not has_inline_cooldown:
 		var cd_remaining: int = int(skill.get("_cd_remaining"))
 		if cd_remaining > 0:
 			body += " " + Localization.tf("ui_skill_cooldown_remaining",
@@ -49,6 +51,181 @@ static func format_skill_human(skill) -> String:
 			body += " " + Localization.tf("ui_skill_cooldown",
 					[skill.cooldown], "(CD %d)")
 	return body
+
+
+## Replaces designer-authored tokens like `$damage$`, `$range$`, `$cooldown$`
+## with numbers read from this exact Skill resource. Tokens are intentionally
+## generic: the caller supplies the Skill, and this formatter derives the right
+## parameters from its target/area/effects instead of requiring per-skill keys.
+static func _interpolate_skill_vars(text: String, skill) -> String:
+	if text == "" or text.find("$") < 0 or skill == null:
+		return text
+	var values: Dictionary = _skill_var_values(skill)
+	var out: String = text
+	var pos: int = 0
+	while true:
+		var open: int = out.find("$", pos)
+		if open < 0:
+			break
+		var close: int = out.find("$", open + 1)
+		if close < 0:
+			break
+		var name: String = out.substr(open + 1, close - open - 1).strip_edges()
+		if name == "":
+			pos = close + 1
+			continue
+		var key: StringName = StringName(name)
+		if not values.has(key):
+			pos = close + 1
+			continue
+		var replacement: String = _format_var_value(values[key])
+		out = out.substr(0, open) + replacement + out.substr(close + 1)
+		pos = open + replacement.length()
+	return out
+
+
+static func _skill_var_values(skill) -> Dictionary:
+	var values: Dictionary = {}
+	_set_var(values, &"cooldown", skill.cooldown)
+	_set_var(values, &"cd", skill.cooldown)
+	_set_var(values, &"level", skill.level)
+
+	var totals: Dictionary = {
+		&"damage": 0,
+		&"heal": 0,
+	}
+	for ab in skill.abilities:
+		if ab == null:
+			continue
+		_collect_target_vars(values, ab.target, int(skill.level))
+		_collect_area_vars(values, ab.area, int(skill.level))
+		for base_eff in ab.effects:
+			var eff: AbilityEffect = base_eff.duplicate()
+			_apply_modifiers(eff, ab.modifiers)
+			eff.apply_level(int(skill.level))
+			_collect_effect_vars(values, totals, eff, int(skill.level))
+
+	for key in totals.keys():
+		if int(totals[key]) > 0:
+			_set_var(values, key, totals[key])
+	return values
+
+
+static func _collect_target_vars(values: Dictionary, target: AbilityTarget, level: int) -> void:
+	if target == null:
+		return
+	var dup: AbilityTarget = target.duplicate()
+	dup.apply_level(level)
+	_set_number_property(values, &"range", dup, &"range", false)
+	_set_number_property(values, &"target_range", dup, &"range", false)
+
+
+static func _collect_area_vars(values: Dictionary, area: AbilityArea, level: int) -> void:
+	if area == null:
+		return
+	var dup: AbilityArea = area.duplicate()
+	dup.apply_level(level)
+	_set_number_property(values, &"radius", dup, &"radius", false)
+	_set_number_property(values, &"area_radius", dup, &"radius", false)
+	_set_number_property(values, &"inner_radius", dup, &"inner_radius", false)
+	_set_number_property(values, &"length", dup, &"length", false)
+	_set_number_property(values, &"width", dup, &"width", false)
+	_set_number_property(values, &"angle", dup, &"angle", false)
+	_set_number_property(values, &"max_chain_length", dup, &"max_chain_length", false)
+	_set_number_property(values, &"chain_targets", dup, &"max_chain_length", false)
+
+
+static func _collect_effect_vars(values: Dictionary, totals: Dictionary,
+		eff: AbilityEffect, level: int) -> void:
+	if eff == null:
+		return
+	if eff is DamageEffect:
+		var damage: int = (eff as DamageEffect).damage
+		totals[&"damage"] = int(totals[&"damage"]) + damage
+		_set_var(values, &"damage", damage, false)
+		return
+	if eff is HealEffect:
+		var heal: int = (eff as HealEffect).heal
+		totals[&"heal"] = int(totals[&"heal"]) + heal
+		_set_var(values, &"heal", heal, false)
+		return
+	if eff is MoveEffect:
+		_set_var(values, &"move_distance", (eff as MoveEffect).move_distance, false)
+		return
+	if eff is CreateEffect:
+		var ce: CreateEffect = eff as CreateEffect
+		_set_var(values, &"duration", ce.duration, false)
+		_set_var(values, &"summon_duration", ce.duration, false)
+		_set_var(values, &"entity_id", String(ce.entity_id), false)
+		return
+	if eff is StatusEffect:
+		_collect_status_vars(values, eff as StatusEffect, level)
+
+
+static func _collect_status_vars(values: Dictionary, eff: StatusEffect, level: int) -> void:
+	if eff.status_id == &"":
+		return
+	var status_prefix: String = String(eff.status_id)
+	var args: Array[int] = eff.args
+	if not args.is_empty():
+		_set_var(values, &"duration", args[0], false)
+		_set_var(values, &"status_duration", args[0], false)
+		_set_var(values, StringName("%s_duration" % status_prefix), args[0], false)
+
+	var meta: Dictionary = StatusRegistry.meta_for(eff.status_id)
+	var names: Array = meta.get("param_names", [])
+	for i in mini(args.size(), names.size()):
+		var param: String = String(names[i])
+		if param == "":
+			continue
+		var value: int = args[i]
+		if i == 1:
+			var rt: GDScript = StatusRegistry.runtime_for(eff.status_id)
+			if rt != null:
+				value = rt.compute_snapshot(args, level)
+		_set_var(values, StringName(param), value, false)
+		_set_var(values, StringName("status_%s" % param), value, false)
+		_set_var(values, StringName("%s_%s" % [status_prefix, param]), value, false)
+		if i == 1:
+			_set_var(values, &"status_value", value, false)
+			_set_var(values, StringName("%s_value" % status_prefix), value, false)
+			if not values.has(&"damage") and (param == "damage" or param == "damage_pct"):
+				_set_var(values, &"damage", value, false)
+
+
+static func _set_number_property(values: Dictionary, key: StringName,
+		obj: Object, property: StringName, overwrite: bool = true) -> void:
+	if obj == null or not _has_property(obj, property):
+		return
+	var value: Variant = obj.get(property)
+	if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+		return
+	_set_var(values, key, value, overwrite)
+
+
+static func _set_var(values: Dictionary, key: StringName, value: Variant,
+		overwrite: bool = true) -> void:
+	if key == &"":
+		return
+	if values.has(key) and not overwrite:
+		return
+	values[key] = value
+
+
+static func _has_property(obj: Object, property: StringName) -> bool:
+	for p in obj.get_property_list():
+		if StringName(str(p.get("name", ""))) == property:
+			return true
+	return false
+
+
+static func _format_var_value(value: Variant) -> String:
+	if typeof(value) == TYPE_FLOAT:
+		var f: float = float(value)
+		if is_equal_approx(f, round(f)):
+			return str(int(round(f)))
+		return "%.2f" % f
+	return str(value)
 
 
 ## 049 / AC-2: short consequence string for HexTooltip's 3rd column.

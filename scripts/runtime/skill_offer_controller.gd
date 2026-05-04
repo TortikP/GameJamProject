@@ -31,6 +31,8 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const PlayerSkillAdapterScript = preload("res://scripts/runtime/player_skill_adapter.gd")
 const POOLS_DIR: String = "res://data/skill_offer_pools/"
 const MODAL_SCENE_PATH: String = "res://scenes/ui/skill_offer_modal.tscn"
+const OFFER_SOURCE_POOL: StringName = &"pool"
+const OFFER_SOURCE_DEFEATED_ENEMIES: StringName = &"defeated_enemies"
 
 # Pool cache: StringName id → Dictionary (raw parsed JSON).
 var _pools: Dictionary = {}
@@ -44,10 +46,16 @@ var _modal: Node = null
 # warn-once tracking
 var _warned_missing_skills: Dictionary = {}  # StringName id -> true
 
+# Current-wave loot source: wave index -> Dictionary[StringName skill_id, true].
+var _current_wave_index: int = -1
+var _defeated_skills_by_wave: Dictionary = {}
+
 
 func _ready() -> void:
 	_scan_pools()
 	EventBus.level_loaded.connect(_on_level_loaded)
+	EventBus.wave_started.connect(_on_wave_started)
+	EventBus.actor_died_snapshot.connect(_on_actor_died_snapshot)
 	EventBus.wave_cleared.connect(_on_wave_cleared)
 	EventBus.battle_ended.connect(_on_battle_ended)
 
@@ -134,6 +142,8 @@ func has_offer_for_wave(wave_index: int) -> bool:
 
 func _on_level_loaded(level: LevelData) -> void:
 	_level = level
+	_current_wave_index = -1
+	_defeated_skills_by_wave.clear()
 
 
 func _on_battle_ended(_victory: bool) -> void:
@@ -141,6 +151,29 @@ func _on_battle_ended(_victory: bool) -> void:
 	# stale modal + drop warn-once state so a new battle has a clean slate.
 	_close_modal_if_any()
 	_warned_missing_skills.clear()
+	_current_wave_index = -1
+	_defeated_skills_by_wave.clear()
+
+
+func _on_wave_started(index: int, _is_special: bool) -> void:
+	_current_wave_index = index
+	_defeated_skills_by_wave[index] = {}
+
+
+func _on_actor_died_snapshot(_id: StringName, team: StringName, skill_ids: Array) -> void:
+	if team != &"enemy":
+		return
+	if _current_wave_index < 0:
+		return
+	if not _defeated_skills_by_wave.has(_current_wave_index):
+		_defeated_skills_by_wave[_current_wave_index] = {}
+	var wave_skills: Dictionary = _defeated_skills_by_wave[_current_wave_index]
+	for sid_raw in skill_ids:
+		var sid: StringName = StringName(str(sid_raw))
+		if sid == &"":
+			continue
+		wave_skills[sid] = true
+	_defeated_skills_by_wave[_current_wave_index] = wave_skills
 
 
 func _on_wave_cleared(idx: int, _unused: int) -> void:
@@ -156,7 +189,8 @@ func _on_wave_cleared(idx: int, _unused: int) -> void:
 		_emit_closed_safely(idx, &"", &"skipped")
 		return
 
-	var cards: Array = _build_cards(pool, offer)
+	var effective_pool: Dictionary = _effective_pool_for_offer(idx, pool, offer)
+	var cards: Array = _build_cards(effective_pool, offer)
 	if cards.is_empty():
 		GameLogger.warn("SkillOfferController",
 			"wave %d: pool '%s' produced no cards — skipping offer" % [idx, pool_id])
@@ -186,6 +220,36 @@ func _on_wave_cleared(idx: int, _unused: int) -> void:
 
 
 # ── Card building ───────────────────────────────────────────────────────────
+
+func _effective_pool_for_offer(wave_index: int, pool: Dictionary, offer: Dictionary) -> Dictionary:
+	var source: StringName = StringName(str(offer.get("source", OFFER_SOURCE_POOL)))
+	if source != OFFER_SOURCE_DEFEATED_ENEMIES:
+		return pool
+
+	var defeated: Dictionary = _defeated_skills_by_wave.get(wave_index, {})
+	if defeated.is_empty():
+		var empty_pool: Dictionary = pool.duplicate(true)
+		empty_pool["skills"] = []
+		return empty_pool
+
+	var whitelist: Array = pool.get("skills", []) as Array
+	var allowed: Array = []
+	var seen: Dictionary = {}
+	for sid_raw in whitelist:
+		var sid: StringName = StringName(str(sid_raw))
+		if sid == &"" or seen.has(sid):
+			continue
+		if not defeated.has(sid):
+			continue
+		seen[sid] = true
+		allowed.append(String(sid))
+
+	var effective: Dictionary = pool.duplicate(true)
+	effective["skills"] = allowed
+	GameLogger.info("SkillOfferController",
+		"wave %d: defeated_enemies source yielded %d whitelist skill(s)" % [wave_index, allowed.size()])
+	return effective
+
 
 func _build_cards(pool: Dictionary, offer: Dictionary) -> Array:
 	var skills_in_pool: Array = pool.get("skills", []) as Array

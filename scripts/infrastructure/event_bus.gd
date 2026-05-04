@@ -82,6 +82,10 @@ signal ability_cast(caster_id: StringName, ability_id: StringName, target_ids: A
 # resolve" subscribe here; listeners that want "ability finished" use ability_cast.
 signal ability_cast_started(caster_id: StringName, ability_id: StringName, victim_ids: Array)
 signal skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array)  # 007
+# Emitted by Actor immediately before actor_died, while the dying node still
+# owns its team/skills. Consumers that need death loot snapshots should use
+# this instead of racing cleanup listeners on actor_died.
+signal actor_died_snapshot(id: StringName, team: StringName, skill_ids: Array)
 signal actor_died(id: StringName)
 # 034: emitted by Actor.add_status after on_apply + statuses_changed.
 # godmode_controller listens to replan affected enemy + refresh telegraphs

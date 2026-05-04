@@ -203,6 +203,9 @@ func validate() -> Array[String]:
 				var pool_v: String = str(so_d.get("pool", ""))
 				if pool_v == "":
 					errors.append("Wave %d: skill_offer.pool must be a non-empty StringName" % i)
+				var source_v: String = str(so_d.get("source", "pool"))
+				if source_v != "pool" and source_v != "defeated_enemies":
+					errors.append("Wave %d: skill_offer.source must be 'pool' or 'defeated_enemies'" % i)
 				var count_v: int = int(so_d.get("count", 3))
 				if count_v < 1:
 					errors.append("Wave %d: skill_offer.count must be >= 1 (got %d)" % [i, count_v])

@@ -188,6 +188,23 @@ The Russian version must keep the same placeholders and markup:
 "ui_game_editor_overwrite_body": "%s уже существует.<br><br>Заменить?"
 ```
 
+### Skill tooltip variables
+
+Skill tooltip strings (`<skill_id>_tooltip`) may use `$name$` variables. They
+are resolved by `SkillFormatter.format_skill_human(skill)` from the current
+skill config, after level scaling and parameter modifiers.
+
+Common variables:
+
+- `$damage$`, `$heal$`, `$cooldown$`, `$range$`
+- `$radius$`, `$area_radius$`, `$max_chain_length$`, `$chain_targets$`
+- `$duration$`, `$status_duration$`, `$status_value$`
+- Status-specific variables from `data/status_effects/*.json:param_names`,
+  for example `$n_attack_buff$`, `$n_attack_debuff$`,
+  `$poisoned_damage_pct$`, `$burning_damage$`
+
+Unknown variables are left unchanged so missing support is visible in-game.
+
 ## English and Russian file requirements
 
 When adding a new key:

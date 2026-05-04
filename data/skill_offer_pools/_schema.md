@@ -1,8 +1,11 @@
 # Skill offer pool JSON schema (`data/skill_offer_pools/*.json`)
 
 A pool is a list of skill ids that the runtime samples from when a wave's
-`skill_offer.pool` references this file. The runtime is `SkillOfferController`
-(autoload, `scripts/runtime/skill_offer_controller.gd`).
+`skill_offer.pool` references this file. For waves with
+`skill_offer.source = "defeated_enemies"`, this same list acts as a whitelist:
+only skills from enemies defeated during that wave and present in this pool can
+appear. The runtime is `SkillOfferController` (autoload,
+`scripts/runtime/skill_offer_controller.gd`).
 
 Filenames are arbitrary; the `id` field inside is what map JSON references.
 Files starting with `_` (e.g. this one) are skipped by the loader.
