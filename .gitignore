@@ -21,3 +21,7 @@ mono_crash.*.json
 # These are dev-loop scratch state, never meant to be committed.
 data/maps/__autosave__.json
 data/maps/__playtest__.json
+
+# Generated sprite-sheet outputs (scripts/tools/build_sprite_sheets.py).
+# Regenerate from sources whenever needed; not committed.
+/sprite_sheets/
