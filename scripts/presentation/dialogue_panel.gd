@@ -12,18 +12,24 @@ signal choice_picked(index: int)
 
 enum State { IDLE, TYPING, WAITING, CHOICES }
 
-# 052: mood-driven heroine portrait.
-# Speaker id, по которому распознаём главгероиню. Совпадает с ключом в
-# data/dialogues/_speakers.json и значением "speaker" в репликах.
-const PLAYER_SPEAKER: StringName = &"heroine"
-
-# Mood → portrait file (тематический маппинг, см. specs/052-mood-portrait).
-# `neutral` / `chimera` не указаны намеренно — у них нет mood-файла,
-# срабатывает fall-through на следующий шаг priority chain в _resolve_portrait.
+# Mood-driven dialogue presentation. Story-generated lines carry the exact
+# mood variant selected by DialogueDB; older lines fall back to MoodTracker.
 const MOOD_PORTRAIT: Dictionary = {
+	&"neutral":     "res://assets/portraits/default_portrait.png",
 	&"tranquility": "res://assets/portraits/aspect_forest.png",
 	&"burnout":     "res://assets/portraits/aspect_fire.png",
 	&"ascended":    "res://assets/portraits/aspect_heaven.png",
+}
+const CHIMERA_PORTRAITS: Array[String] = [
+	"res://assets/portraits/aspect_forest.png",
+	"res://assets/portraits/aspect_fire.png",
+	"res://assets/portraits/aspect_heaven.png",
+]
+const MOOD_TEXT_COLOR: Dictionary = {
+	&"tranquility": Color("#8EC79A"),
+	&"burnout":     Color("#D87A6F"),
+	&"ascended":    Color("#D9AC56"),
+	&"chimera":     Color("#82B8D4"),
 }
 
 @onready var _panel    : Panel         = $Panel
@@ -38,10 +44,9 @@ var _tween: Tween = null
 var _state: int = State.IDLE
 var _current_line: Object = null
 
-# 052: cached dominant mood from MoodTracker. Updated via
-# EventBus.player_mood_changed; read inside _resolve_portrait when
-# speaker == PLAYER_SPEAKER. Initial &"neutral" matches MoodTracker's
-# all-zero state — falls through to default_portrait when no signal yet.
+# Cached dominant mood from MoodTracker. Story lines carry their own mood;
+# older lines use this value. Initial &"neutral" matches MoodTracker's
+# all-zero state and uses default_portrait.
 var _dominant_mood: StringName = &"neutral"
 
 
@@ -95,6 +100,7 @@ func show_line(line: Object, speaker_data: Dictionary) -> void:
 	var speaker_fallback := String(speaker_data.get("display_name", str(line.speaker)))
 	_name_lbl.text = Localization.t("dialogues_speakers_%s_display_name" % str(line.speaker), speaker_fallback)
 	_portrait.texture = _resolve_portrait(line, speaker_data)
+	_apply_line_mood_style(_resolve_line_mood(line))
 
 	if line.image != "":
 		var img_tex = _try_load_texture(line.image)
@@ -209,7 +215,7 @@ func _on_player_mood_changed(_counts: Dictionary, dominant: StringName) -> void:
 func _resolve_portrait(line: Object, speaker_data: Dictionary) -> Texture2D:
 	# Priority chain (spec 052):
 	#   1. line.portrait        — explicit per-line override
-	#   2. mood-driven heroine  — only when speaker == PLAYER_SPEAKER
+	#   2. mood-driven portrait
 	#   3. speaker default      — speaker_data.default_portrait
 	#   4. _make_placeholder    — global default_portrait.png / generated quad
 
@@ -219,16 +225,12 @@ func _resolve_portrait(line: Object, speaker_data: Dictionary) -> Texture2D:
 		if line_tex != null:
 			return line_tex
 
-	# 2. Mood-driven heroine portrait.
-	# line.speaker is StringName (dialogue_line.gd:12) — direct compare.
-	# neutral/chimera intentionally absent from MOOD_PORTRAIT → .get() returns
-	# "" → step skipped → fall through to speaker default.
-	if line.speaker == PLAYER_SPEAKER:
-		var mood_path: String = MOOD_PORTRAIT.get(_dominant_mood, "")
-		if mood_path != "":
-			var mood_tex: Texture2D = _try_load_texture(mood_path)
-			if mood_tex != null:
-				return mood_tex
+	# 2. mood-driven portrait
+	var mood_path: String = _resolve_mood_portrait_path(_resolve_line_mood(line))
+	if mood_path != "":
+		var mood_tex: Texture2D = _try_load_texture(mood_path)
+		if mood_tex != null:
+			return mood_tex
 
 	# 3. Speaker default.
 	var default_path: String = speaker_data.get("default_portrait", "")
@@ -239,6 +241,25 @@ func _resolve_portrait(line: Object, speaker_data: Dictionary) -> Texture2D:
 
 	# 4. Placeholder.
 	return _make_placeholder(str(line.speaker))
+
+
+func _resolve_line_mood(line: Object) -> StringName:
+	if line != null and line.mood != &"":
+		return line.mood
+	return _dominant_mood
+
+
+func _apply_line_mood_style(mood: StringName) -> void:
+	if _text_lbl == null:
+		return
+	var color: Color = MOOD_TEXT_COLOR.get(mood, UiTheme.TEXT)
+	_text_lbl.add_theme_color_override("default_color", color)
+
+
+func _resolve_mood_portrait_path(mood: StringName) -> String:
+	if mood == &"chimera" and not CHIMERA_PORTRAITS.is_empty():
+		return CHIMERA_PORTRAITS[randi() % CHIMERA_PORTRAITS.size()]
+	return MOOD_PORTRAIT.get(mood, "")
 
 
 func _try_load_texture(path: String) -> Texture2D:

@@ -3,527 +3,2079 @@
     "id": "story_intro",
     "trigger": "story_intro",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "story_intro_opening_text",
-        "speaker": "narrator"
-      },
-      {
-        "def": "story_intro_heroine_text",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "story_intro_opening_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "story_intro_heroine_text",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_forest_arrive",
     "trigger": "story_forest_arrive",
     "mode": "random",
-    "options": [
-      {
-        "def": "forest_enter_heroine_text_01",
-        "speaker": "heroine"
-      },
-      {
-        "def": "forest_enter_heroine_text_02",
-        "speaker": "heroine"
-      },
-      {
-        "def": "forest_enter_heroine_text_03",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_forest_wave_first",
     "trigger": "story_forest_wave_first",
     "mode": "random_sequence",
-    "options": [
-      {
-        "lines": [
+    "moods": {
+      "neutral": {
+        "options": [
           {
-            "def": "forest_first_wave_intro01_text_01",
-            "speaker": "narrator",
-            "sound": "forest_first_wave_intro01_text_01.wav"
+            "lines": [
+              {
+                "def": "forest_first_wave_intro01_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro01_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro01_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "forest_first_wave_heroine_intro01_text_01",
-            "speaker": "heroine"
-          }
-        ]
-      },
-      {
-        "lines": [
-          {
-            "def": "forest_first_wave_intro02_text_01",
-            "speaker": "narrator",
-            "sound": "forest_first_wave_intro02_text_01.wav"
+            "lines": [
+              {
+                "def": "forest_first_wave_intro02_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro02_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro02_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "forest_first_wave_heroine_intro02_text_01",
-            "speaker": "heroine"
-          }
-        ]
-      },
-      {
-        "lines": [
-          {
-            "def": "forest_first_wave_intro03_text_01",
-            "speaker": "narrator",
-            "sound": "forest_first_wave_intro03_text_01.wav"
-          },
-          {
-            "def": "forest_first_wave_heroine_intro03_text_01",
-            "speaker": "heroine"
-          },
-          {
-            "def": "forest_first_wave_heroine_intro03_text_02",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "forest_first_wave_intro03_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro03_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro03_text_01",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_forest_wave_last",
     "trigger": "story_forest_wave_last",
     "mode": "random",
-    "options": [
-      {
-        "def": "forest_last_wave_heroine_text_01",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "forest_last_wave_heroine_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "forest_last_wave_heroine_text_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "options": [
+          {
+            "def": "forest_last_wave_heroine_tranquility_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_tranquility_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_tranquility_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "forest_last_wave_heroine_text_03",
-        "speaker": "heroine"
+      "burnout": {
+        "options": [
+          {
+            "def": "forest_last_wave_heroine_burnout_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_burnout_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_burnout_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "forest_last_wave_heroine_ascended_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_ascended_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_ascended_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "forest_last_wave_heroine_chimera_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_chimera_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_last_wave_heroine_chimera_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_forest_clear",
     "trigger": "story_forest_clear",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "forest_last_wave_victory_text_01",
-        "speaker": "narrator",
-        "sound": "forest_last_wave_victory_text_01.wav"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "forest_last_wave_victory_text_01",
+            "speaker": "narrator",
+            "sound": "forest_last_wave_victory_text_01.wav"
+          },
+          {
+            "def": "forest_last_wave_victory_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_text_03",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "forest_last_wave_victory_text_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "forest_last_wave_victory_tranquility_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_tranquility_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_tranquility_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "burnout": {
+        "lines": [
+          {
+            "def": "forest_last_wave_victory_burnout_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_burnout_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_burnout_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "ascended": {
+        "lines": [
+          {
+            "def": "forest_last_wave_victory_ascended_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_ascended_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_ascended_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "forest_last_wave_victory_chimera_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_chimera_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "forest_last_wave_victory_chimera_text_03",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_heaven_arrive",
     "trigger": "story_heaven_arrive",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "heaven_enter_text",
-        "speaker": "narrator",
-        "sound": "heaven_enter_text.wav"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "heaven_enter_text",
+            "speaker": "narrator",
+            "sound": "heaven_enter_text.wav"
+          },
+          {
+            "def": "heaven_enter_heroine_text",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "heaven_enter_heroine_text",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "heaven_enter_tranquility_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_enter_heroine_tranquility_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "burnout": {
+        "lines": [
+          {
+            "def": "heaven_enter_burnout_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_enter_heroine_burnout_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "lines": [
+          {
+            "def": "heaven_enter_ascended_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_enter_heroine_ascended_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "heaven_enter_chimera_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_enter_heroine_chimera_text",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_heaven_wave_first",
     "trigger": "story_heaven_wave_first",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "heaven_first_wave_intro_text",
-        "speaker": "narrator",
-        "sound": "heaven_first_wave_intro_text.wav"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "heaven_first_wave_intro_text",
+            "speaker": "narrator",
+            "sound": "heaven_first_wave_intro_text.wav"
+          },
+          {
+            "def": "heaven_first_wave_heroine_text",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "heaven_first_wave_heroine_text",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "heaven_first_wave_intro_tranquility_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_first_wave_heroine_tranquility_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "burnout": {
+        "lines": [
+          {
+            "def": "heaven_first_wave_intro_burnout_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_first_wave_heroine_burnout_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "lines": [
+          {
+            "def": "heaven_first_wave_intro_ascended_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_first_wave_heroine_ascended_text",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "heaven_first_wave_intro_chimera_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_first_wave_heroine_chimera_text",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_heaven_wave_last",
     "trigger": "story_heaven_wave_last",
     "mode": "random",
-    "options": [
-      {
-        "def": "heaven_last_wave_heroine_text_01",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "heaven_last_wave_heroine_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "heaven_last_wave_heroine_text_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "options": [
+          {
+            "def": "heaven_last_wave_heroine_tranquility_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_tranquility_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_tranquility_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "heaven_last_wave_heroine_text_03",
-        "speaker": "heroine"
+      "burnout": {
+        "options": [
+          {
+            "def": "heaven_last_wave_heroine_burnout_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_burnout_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_burnout_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "heaven_last_wave_heroine_ascended_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_ascended_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_ascended_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "heaven_last_wave_heroine_chimera_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_chimera_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "heaven_last_wave_heroine_chimera_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_heaven_clear",
     "trigger": "story_heaven_clear",
     "mode": "random",
-    "options": [
-      {
-        "def": "heaven_last_wave_victory_text_01",
-        "speaker": "narrator",
-        "sound": "heaven_last_wave_victory_text_01.wav"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "heaven_last_wave_victory_text_01",
+            "speaker": "narrator",
+            "sound": "heaven_last_wave_victory_text_01.wav"
+          },
+          {
+            "def": "heaven_last_wave_victory_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_text_03",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "heaven_last_wave_victory_text_02",
-        "speaker": "narrator"
+      "tranquility": {
+        "options": [
+          {
+            "def": "heaven_last_wave_victory_tranquility_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_tranquility_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_tranquility_text_03",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "heaven_last_wave_victory_text_03",
-        "speaker": "narrator"
+      "burnout": {
+        "options": [
+          {
+            "def": "heaven_last_wave_victory_burnout_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_burnout_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_burnout_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "heaven_last_wave_victory_ascended_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_ascended_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_ascended_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "heaven_last_wave_victory_chimera_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_chimera_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "heaven_last_wave_victory_chimera_text_03",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_fire_world_arrive",
     "trigger": "story_fire_world_arrive",
     "mode": "random_sequence",
-    "options": [
-      {
-        "lines": [
+    "moods": {
+      "neutral": {
+        "options": [
           {
-            "def": "fire_world_enter_text_01",
-            "speaker": "narrator"
+            "lines": [
+              {
+                "def": "fire_world_enter_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_enter_heroine_text_01",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_enter_text_02",
+                "speaker": "narrator",
+                "sound": "fire_world_enter_text_02.wav"
+              },
+              {
+                "def": "fire_world_enter_heroine_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_text_03",
+                "speaker": "narrator",
+                "sound": "fire_world_enter_text_03.wav"
+              },
+              {
+                "def": "fire_world_enter_heroine_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "tranquility": {
+        "options": [
           {
-            "def": "fire_world_enter_text_02",
-            "speaker": "narrator",
-            "sound": "fire_world_enter_text_02.wav"
+            "lines": [
+              {
+                "def": "fire_world_enter_tranquility_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_enter_heroine_text_02",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_enter_tranquility_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_tranquility_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_tranquility_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_tranquility_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "burnout": {
+        "options": [
           {
-            "def": "fire_world_enter_text_03",
-            "speaker": "narrator",
-            "sound": "fire_world_enter_text_03.wav"
+            "lines": [
+              {
+                "def": "fire_world_enter_burnout_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_enter_heroine_text_03",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_enter_burnout_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_burnout_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_burnout_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_burnout_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_ascended_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_ascended_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_ascended_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_ascended_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_ascended_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_chimera_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_chimera_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_chimera_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_chimera_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_enter_chimera_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_enter_heroine_chimera_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_fire_world_wave_first",
     "trigger": "story_fire_world_wave_first",
     "mode": "random_sequence",
-    "options": [
-      {
-        "lines": [
+    "moods": {
+      "neutral": {
+        "options": [
           {
-            "def": "fire_world_first_wave_intro_text_01",
-            "speaker": "narrator",
-            "sound": "fire_world_first_wave_intro_text_01.wav"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_text_01",
+                "speaker": "narrator",
+                "sound": "fire_world_first_wave_intro_text_01.wav"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_first_wave_heroine_text_01",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_text_02",
+                "speaker": "narrator",
+                "sound": "fire_world_first_wave_intro_text_02.wav"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_text_03",
+                "speaker": "narrator",
+                "sound": "fire_world_first_wave_intro_text_03.wav"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "tranquility": {
+        "options": [
           {
-            "def": "fire_world_first_wave_intro_text_02",
-            "speaker": "narrator",
-            "sound": "fire_world_first_wave_intro_text_02.wav"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_tranquility_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_first_wave_heroine_text_02",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_tranquility_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_tranquility_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_tranquility_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_tranquility_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "burnout": {
+        "options": [
           {
-            "def": "fire_world_first_wave_intro_text_03",
-            "speaker": "narrator",
-            "sound": "fire_world_first_wave_intro_text_03.wav"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_burnout_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_first_wave_heroine_text_03",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_burnout_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_burnout_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_burnout_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_burnout_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_ascended_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_ascended_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_ascended_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_ascended_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_ascended_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_chimera_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_chimera_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_chimera_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_chimera_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_first_wave_intro_chimera_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_first_wave_heroine_chimera_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_fire_world_wave_last",
     "trigger": "story_fire_world_wave_last",
     "mode": "random_sequence",
-    "options": [
-      {
-        "lines": [
+    "moods": {
+      "neutral": {
+        "options": [
           {
-            "def": "fire_world_last_wave_intro_text_01",
-            "speaker": "narrator",
-            "sound": "fire_world_last_wave_intro_text_01.wav"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_text_01",
+                "speaker": "narrator",
+                "sound": "fire_world_last_wave_intro_text_01.wav"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_last_wave_heroine_text_01",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_text_02",
+                "speaker": "narrator",
+                "sound": "fire_world_last_wave_intro_text_02.wav"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_text_03",
+                "speaker": "narrator",
+                "sound": "fire_world_last_wave_intro_text_03.wav"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "tranquility": {
+        "options": [
           {
-            "def": "fire_world_last_wave_intro_text_02",
-            "speaker": "narrator",
-            "sound": "fire_world_last_wave_intro_text_02.wav"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_tranquility_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_last_wave_heroine_text_02",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_tranquility_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_tranquility_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_tranquility_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_tranquility_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       },
-      {
-        "lines": [
+      "burnout": {
+        "options": [
           {
-            "def": "fire_world_last_wave_intro_text_03",
-            "speaker": "narrator",
-            "sound": "fire_world_last_wave_intro_text_03.wav"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_burnout_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
           },
           {
-            "def": "fire_world_last_wave_heroine_text_03",
-            "speaker": "heroine"
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_burnout_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_burnout_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_burnout_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_burnout_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_ascended_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_ascended_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_ascended_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_ascended_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_ascended_text_03",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_chimera_text_01",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_chimera_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_chimera_text_02",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_chimera_text_02",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "fire_world_last_wave_intro_chimera_text_03",
+                "speaker": "narrator"
+              },
+              {
+                "def": "fire_world_last_wave_heroine_chimera_text_03",
+                "speaker": "heroine"
+              }
+            ]
           }
         ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_fire_world_clear",
     "trigger": "story_fire_world_clear",
     "mode": "random",
-    "options": [
-      {
-        "def": "fire_world_last_wave_victory_text_01",
-        "speaker": "narrator",
-        "sound": "fire_world_last_wave_victory_text_01.wav"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "fire_world_last_wave_victory_text_01",
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_victory_text_01.wav"
+          },
+          {
+            "def": "fire_world_last_wave_victory_text_02",
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_victory_text_02.wav"
+          },
+          {
+            "def": "fire_world_last_wave_victory_text_03",
+            "speaker": "narrator",
+            "sound": "fire_world_last_wave_victory_text_03.wav"
+          }
+        ]
       },
-      {
-        "def": "fire_world_last_wave_victory_text_02",
-        "speaker": "narrator",
-        "sound": "fire_world_last_wave_victory_text_02.wav"
+      "tranquility": {
+        "options": [
+          {
+            "def": "fire_world_last_wave_victory_tranquility_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_tranquility_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_tranquility_text_03",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "fire_world_last_wave_victory_text_03",
-        "speaker": "narrator",
-        "sound": "fire_world_last_wave_victory_text_03.wav"
+      "burnout": {
+        "options": [
+          {
+            "def": "fire_world_last_wave_victory_burnout_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_burnout_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_burnout_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "fire_world_last_wave_victory_ascended_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_ascended_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_ascended_text_03",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "fire_world_last_wave_victory_chimera_text_01",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_chimera_text_02",
+            "speaker": "narrator"
+          },
+          {
+            "def": "fire_world_last_wave_victory_chimera_text_03",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_office_final_arrive",
     "trigger": "story_office_final_arrive",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "office_final_enter",
-        "speaker": "narrator"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "office_final_enter",
+            "speaker": "narrator"
+          },
+          {
+            "def": "office_final_enter_heroine",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "office_final_enter_heroine",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "office_final_enter_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "office_final_enter_heroine_tranquility",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "burnout": {
+        "lines": [
+          {
+            "def": "office_final_enter_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "office_final_enter_heroine_burnout",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "lines": [
+          {
+            "def": "office_final_enter_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "office_final_enter_heroine_ascended",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "office_final_enter_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "office_final_enter_heroine_chimera",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_office_final_pre_boss",
     "trigger": "story_office_final_pre_boss",
     "mode": "random",
-    "options": [
-      {
-        "def": "office_final_pre_boss_text_01",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "office_final_pre_boss_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "office_final_pre_boss_text_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "options": [
+          {
+            "def": "office_final_pre_boss_tranquility_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_tranquility_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_tranquility_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "office_final_pre_boss_text_03",
-        "speaker": "heroine"
+      "burnout": {
+        "options": [
+          {
+            "def": "office_final_pre_boss_burnout_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_burnout_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_burnout_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "office_final_pre_boss_ascended_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_ascended_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_ascended_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "office_final_pre_boss_chimera_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_chimera_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "office_final_pre_boss_chimera_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_boss_victory",
     "trigger": "story_boss_victory",
     "mode": "random",
-    "options": [
-      {
-        "def": "boss_victory_heroine_final_text_01",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "boss_victory_heroine_final_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "boss_victory_heroine_final_text_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "options": [
+          {
+            "def": "boss_victory_heroine_final_tranquility_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_tranquility_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_tranquility_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "boss_victory_heroine_final_text_03",
-        "speaker": "heroine"
+      "burnout": {
+        "options": [
+          {
+            "def": "boss_victory_heroine_final_burnout_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_burnout_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_burnout_text_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "boss_victory_heroine_final_text_04",
-        "speaker": "heroine"
+      "ascended": {
+        "options": [
+          {
+            "def": "boss_victory_heroine_final_ascended_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_ascended_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_ascended_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "boss_victory_heroine_final_chimera_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_chimera_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "boss_victory_heroine_final_chimera_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_wave_clear_nonfinal",
     "trigger": "story_wave_clear_nonfinal",
     "mode": "random",
-    "options": [
-      {
-        "def": "common_wave_victory_none_01",
-        "speaker": "heroine"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "common_wave_victory_none_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_03",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "common_wave_victory_none_02",
-        "speaker": "heroine"
+      "tranquility": {
+        "options": [
+          {
+            "def": "common_wave_victory_none_01_tranquility",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_02_tranquility",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_03_tranquility",
+            "speaker": "heroine"
+          }
+        ]
       },
-      {
-        "def": "common_wave_victory_none_03",
-        "speaker": "heroine"
+      "burnout": {
+        "options": [
+          {
+            "def": "common_wave_victory_none_01_burnout",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_02_burnout",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_03_burnout",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "common_wave_victory_none_01_ascended",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_02_ascended",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_03_ascended",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "common_wave_victory_none_01_chimera",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_02_chimera",
+            "speaker": "heroine"
+          },
+          {
+            "def": "common_wave_victory_none_03_chimera",
+            "speaker": "heroine"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "story_defeat_normal",
     "trigger": "story_defeat_normal",
     "mode": "random",
-    "options": [
-      {
-        "def": "common_defeat_normal_none_01",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_01.wav"
+    "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "common_defeat_normal_none_01",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_01.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_02",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_02.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_03",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_03.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_04",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_04.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_05",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_05.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_06",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_06.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_07",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_07.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_08",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_08.wav"
+          },
+          {
+            "def": "common_defeat_normal_none_09",
+            "speaker": "narrator",
+            "sound": "common_defeat_normal_none_09.wav"
+          }
+        ]
       },
-      {
-        "def": "common_defeat_normal_none_02",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_02.wav"
+      "tranquility": {
+        "options": [
+          {
+            "def": "common_defeat_normal_none_01_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_02_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_03_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_04_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_05_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_06_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_07_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_08_tranquility",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_09_tranquility",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "common_defeat_normal_none_03",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_03.wav"
+      "burnout": {
+        "options": [
+          {
+            "def": "common_defeat_normal_none_01_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_02_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_03_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_04_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_05_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_06_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_07_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_08_burnout",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_09_burnout",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "common_defeat_normal_none_04",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_04.wav"
+      "ascended": {
+        "options": [
+          {
+            "def": "common_defeat_normal_none_01_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_02_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_03_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_04_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_05_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_06_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_07_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_08_ascended",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_09_ascended",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "common_defeat_normal_none_05",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_05.wav"
-      },
-      {
-        "def": "common_defeat_normal_none_06",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_06.wav"
-      },
-      {
-        "def": "common_defeat_normal_none_07",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_07.wav"
-      },
-      {
-        "def": "common_defeat_normal_none_08",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_08.wav"
-      },
-      {
-        "def": "common_defeat_normal_none_09",
-        "speaker": "narrator",
-        "sound": "common_defeat_normal_none_09.wav"
+      "chimera": {
+        "options": [
+          {
+            "def": "common_defeat_normal_none_01_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_02_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_03_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_04_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_05_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_06_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_07_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_08_chimera",
+            "speaker": "narrator"
+          },
+          {
+            "def": "common_defeat_normal_none_09_chimera",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "ending_self_lavender_raf",
     "trigger": "ending_self_lavender_raf",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "ending_self_lavender_raf_opening_text",
-        "speaker": "narrator",
-        "sound": "ending_self_lavender_raf_opening_text.wav"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "ending_self_lavender_raf_opening_text",
+            "speaker": "narrator",
+            "sound": "ending_self_lavender_raf_opening_text.wav"
+          },
+          {
+            "def": "ending_self_lavender_raf_heroine_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_monologue",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_final_text",
+            "speaker": "narrator",
+            "sound": "ending_self_lavender_raf_final_text.wav"
+          }
+        ]
       },
-      {
-        "def": "ending_self_lavender_raf_heroine_text",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "ending_self_lavender_raf_opening_tranquility_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_self_lavender_raf_heroine_tranquility_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_monologue_tranquility",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_final_tranquility_text",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "ending_self_lavender_raf_monologue",
-        "speaker": "heroine"
+      "burnout": {
+        "lines": [
+          {
+            "def": "ending_self_lavender_raf_opening_burnout_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_self_lavender_raf_heroine_burnout_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_monologue_burnout",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_final_burnout_text",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "ending_self_lavender_raf_final_text",
-        "speaker": "narrator",
-        "sound": "ending_self_lavender_raf_final_text.wav"
+      "ascended": {
+        "lines": [
+          {
+            "def": "ending_self_lavender_raf_opening_ascended_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_self_lavender_raf_heroine_ascended_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_monologue_ascended",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_final_ascended_text",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "ending_self_lavender_raf_opening_chimera_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_self_lavender_raf_heroine_chimera_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_monologue_chimera",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_self_lavender_raf_final_chimera_text",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   },
   {
     "id": "ending_bad_final_version",
     "trigger": "ending_bad_final_version",
     "mode": "sequence",
-    "lines": [
-      {
-        "def": "ending_bad_final_version_opening_text",
-        "speaker": "narrator",
-        "sound": "ending_bad_final_version_opening_text.wav"
+    "moods": {
+      "neutral": {
+        "lines": [
+          {
+            "def": "ending_bad_final_version_opening_text",
+            "speaker": "narrator",
+            "sound": "ending_bad_final_version_opening_text.wav"
+          },
+          {
+            "def": "ending_bad_final_version_heroine_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_monologue",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_final_text",
+            "speaker": "narrator",
+            "sound": "ending_bad_final_version_final_text.wav"
+          }
+        ]
       },
-      {
-        "def": "ending_bad_final_version_heroine_text",
-        "speaker": "heroine"
+      "tranquility": {
+        "lines": [
+          {
+            "def": "ending_bad_final_version_opening_tranquility_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_bad_final_version_heroine_tranquility_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_monologue_tranquility",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_final_tranquility_text",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "ending_bad_final_version_monologue",
-        "speaker": "heroine"
+      "burnout": {
+        "lines": [
+          {
+            "def": "ending_bad_final_version_opening_burnout_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_bad_final_version_heroine_burnout_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_monologue_burnout",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_final_burnout_text",
+            "speaker": "narrator"
+          }
+        ]
       },
-      {
-        "def": "ending_bad_final_version_final_text",
-        "speaker": "narrator",
-        "sound": "ending_bad_final_version_final_text.wav"
+      "ascended": {
+        "lines": [
+          {
+            "def": "ending_bad_final_version_opening_ascended_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_bad_final_version_heroine_ascended_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_monologue_ascended",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_final_ascended_text",
+            "speaker": "narrator"
+          }
+        ]
+      },
+      "chimera": {
+        "lines": [
+          {
+            "def": "ending_bad_final_version_opening_chimera_text",
+            "speaker": "narrator"
+          },
+          {
+            "def": "ending_bad_final_version_heroine_chimera_text",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_monologue_chimera",
+            "speaker": "heroine"
+          },
+          {
+            "def": "ending_bad_final_version_final_chimera_text",
+            "speaker": "narrator"
+          }
+        ]
       }
-    ]
+    },
+    "moodFallback": "neutral"
   }
 ]
