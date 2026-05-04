@@ -6,7 +6,8 @@
   "icon": "icons/skills/bush_nice_smell.png",
   "cooldown": 4,
   "behaviour_tags": [
-    "move"
+    "move",
+    "debuff"
   ],
   "mood": [
     "tranquility"
@@ -28,6 +29,7 @@
       },
       "effects": [
         {
+          "status_id": "slowed(2)",
           "move_type": "pull"
         }
       ]

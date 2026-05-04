@@ -6,7 +6,7 @@
   "icon": "icons/skills/monkey_time.png",
   "cooldown": 3,
   "behaviour_tags": [
-	"buff",
+    "buff",
     "self"
   ],
   "mood": [
@@ -14,23 +14,23 @@
   ],
   "level": 0,
   "abilities": [
-	{
-	  "id": "monkey_time_buff",
-	  "sound_start": "monkey_time_buff_sound_start",
-	  "collision_effect": "buff_neutral",
-	  "sound_end": "monkey_time_buff_sound_end",
-	  "animation": "cast_neutral",
-	  "target": {
-		"kind": "self"
-	  },
-	  "area": {
-		"kind": "self"
-	  },
-	  "effects": [
-		{
-		  "status_id": "strong(2,8,3); shielded(2,1,2)"
-		}
-	  ]
-	}
+    {
+      "id": "monkey_time_buff",
+      "sound_start": "monkey_time_buff_sound_start",
+      "collision_effect": "buff_neutral",
+      "sound_end": "monkey_time_buff_sound_end",
+      "animation": "cast_neutral",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "status_id": "strong(2,8,3); shielded(2,1,2)"
+        }
+      ]
+    }
   ]
 }

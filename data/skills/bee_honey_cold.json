@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "heal": 16,
-          "status_id": "slowed(2)"
+          "heal": 24,
+          "status_id": "slowed(1)"
         }
       ]
     }

@@ -7,11 +7,10 @@
   "cooldown": 3,
   "behaviour_tags": [
     "buff",
-    "self"
+    "self",
+    "debuff"
   ],
-  "mood": [
-    "tranquility"
-  ],
+  "mood": [],
   "level": 0,
   "abilities": [
     {
@@ -29,6 +28,25 @@
       "effects": [
         {
           "status_id": "strong(2,8,3)"
+        }
+      ]
+    },
+    {
+      "id": "bear_hallo_fear_area",
+      "sound_start": "bear_hallo_fear_area_sound_start",
+      "collision_effect": "debuff_tranquility",
+      "sound_end": "bear_hallo_fear_area_sound_end",
+      "animation": "cast_tranquility",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "status_id": "feared(1)"
         }
       ]
     }
