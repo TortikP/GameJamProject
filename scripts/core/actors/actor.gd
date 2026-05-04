@@ -127,8 +127,7 @@ func take_damage(amount: int) -> void:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, reduced, hp, max_hp])
 	if hp == 0:
 		_dead = true
-		died.emit(actor_id)
-		EventBus.actor_died.emit(actor_id)
+		_emit_death_events()
 
 
 ## Restore a fixed amount of HP. Clamps to max_hp. No-op on dead actors.
@@ -164,12 +163,29 @@ func kill_with_reason(reason: String) -> void:
 	# (semantic "state changed, hp now 0") — listeners using amount<=0 for
 	# heal won't misinterpret because hp_left is also 0.
 	damaged.emit(actor_id, max_hp, hp)
-	died.emit(actor_id)
-	EventBus.actor_died.emit(actor_id)
+	_emit_death_events()
 
 
 func is_alive() -> bool:
 	return not _dead
+
+
+func _emit_death_events() -> void:
+	EventBus.actor_died_snapshot.emit(actor_id, team, _death_skill_ids())
+	died.emit(actor_id)
+	EventBus.actor_died.emit(actor_id)
+
+
+func _death_skill_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for skill_v in _skills:
+		var skill: Skill = skill_v as Skill
+		if skill == null or skill.id == &"":
+			continue
+		if ids.has(skill.id):
+			continue
+		ids.append(skill.id)
+	return ids
 
 
 ## Restore HP to max and clear death state. Used by godmode reset (F2),

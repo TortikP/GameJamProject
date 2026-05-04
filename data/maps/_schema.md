@@ -190,6 +190,7 @@ no offer, transition is silent.
 {
   "skill_offer": {
     "pool": "basic",
+    "source": "pool",
     "count": 3,
     "allow_upgrade": true,
     "allow_replace": true,
@@ -203,6 +204,7 @@ no offer, transition is silent.
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `pool` | string | required | id of a JSON file in `data/skill_offer_pools/` (without `.json`). |
+| `source` | string | `"pool"` | `"pool"` samples the configured pool directly. `"defeated_enemies"` samples only skills owned by enemies killed in this wave, then filters them through `pool` as a whitelist. |
 | `count` | int | 3 | how many cards to show. Pool may yield fewer if filters cut deeper than expected. |
 | `allow_upgrade` | bool | true | a card for an already-owned skill becomes "upgrade level → N+1" instead of being dropped. |
 | `allow_replace` | bool | true | when slots are full, card can offer to replace a chosen slot. Triggers a sub-screen with slot picker. |

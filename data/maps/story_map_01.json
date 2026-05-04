@@ -1143,7 +1143,8 @@
 				"count": 3.0,
 				"exclude_owned": true,
 				"force_replace": true,
-				"pool": "basic"
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
 			},
 			"spawners": [
 				{
@@ -2242,7 +2243,8 @@
 				"allow_upgrade": false,
 				"count": 3.0,
 				"exclude_owned": true,
-				"pool": "basic"
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
 			},
 			"spawners": [
 				{
@@ -3332,7 +3334,8 @@
 				"allow_upgrade": false,
 				"count": 3.0,
 				"exclude_owned": true,
-				"pool": "basic"
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
 			},
 			"spawners": [
 				{
