@@ -10,7 +10,9 @@ const SPEAKERS_FILE  := "res://data/dialogues/_speakers.json"
 
 var _lines:   Dictionary = {}   # StringName -> DialogueLine
 var _speakers: Dictionary = {}  # StringName -> Dictionary
-var _story_triggers: Dictionary = {}  # StringName trigger -> Array[StringName] start ids
+var _story_triggers: Dictionary = {}  # StringName trigger -> Array or mood map
+
+const STORY_MOOD_NEUTRAL: StringName = &"neutral"
 
 
 func _ready() -> void:
@@ -86,7 +88,7 @@ func _load_file(path: String) -> void:
 
 func get_line(id: StringName) -> Object:  # DialogueLine | null
 	if _story_triggers.has(id):
-		var starts: Array = _story_triggers[id]
+		var starts: Array = _resolve_story_starts(_story_triggers[id])
 		if starts.is_empty():
 			return null
 		var picked: StringName = starts[randi() % starts.size()]
@@ -189,6 +191,9 @@ func _load_story_entry(entry: Dictionary, path: String) -> void:
 	if id == "" or trigger == &"":
 		GameLogger.warn("DialogueDB", "story entry in '%s' missing id/trigger" % path)
 		return
+	if entry.has("moods") and entry["moods"] is Dictionary:
+		_load_story_mood_entry(id, trigger, mode, entry, path)
+		return
 
 	match mode:
 		"sequence":
@@ -219,8 +224,88 @@ func _load_story_entry(entry: Dictionary, path: String) -> void:
 			GameLogger.warn("DialogueDB", "story entry '%s' has unknown mode '%s'" % [id, mode])
 
 
+func _load_story_mood_entry(id: String, trigger: StringName, mode: String,
+		entry: Dictionary, path: String) -> void:
+	var moods_raw: Dictionary = entry["moods"]
+	var mood_map: Dictionary = {}
+	for mood_key in moods_raw.keys():
+		var mood_id: StringName = StringName(str(mood_key))
+		var mood_entry: Dictionary = moods_raw[mood_key] if moods_raw[mood_key] is Dictionary else {}
+		if mood_entry.is_empty():
+			GameLogger.warn("DialogueDB", "story entry '%s' mood '%s' has no data" % [id, mood_id])
+			mood_map[mood_id] = []
+			continue
+		var starts: Array = _register_story_mode(id, trigger, mode, mood_entry,
+			"mood_%s" % str(mood_id), path, mood_id)
+		mood_map[mood_id] = starts
+	if mood_map.is_empty():
+		GameLogger.warn("DialogueDB", "story entry '%s' in '%s' has no mood variants" % [id, path])
+		return
+	var fallback_raw: String = str(entry.get("moodFallback", entry.get("mood_fallback", STORY_MOOD_NEUTRAL)))
+	_story_triggers[trigger] = {
+		"moods": mood_map,
+		"fallback": StringName(fallback_raw),
+	}
+
+
+func _register_story_mode(base_id: String, trigger: StringName, mode: String,
+		entry: Dictionary, variant_prefix: String, path: String,
+		mood_id: StringName) -> Array:
+	var starts: Array[StringName] = []
+	match mode:
+		"sequence":
+			var start: StringName = _register_story_sequence(
+				base_id, trigger, entry.get("lines", []), "%s_seq" % variant_prefix, path, mood_id)
+			if start != &"":
+				starts.append(start)
+		"random":
+			var options: Array = entry.get("options", [])
+			for i in options.size():
+				var line_dict: Dictionary = options[i] if options[i] is Dictionary else {}
+				var start: StringName = _register_story_sequence(
+					base_id, trigger, [line_dict], "%s_opt_%d" % [variant_prefix, i], path, mood_id)
+				if start != &"":
+					starts.append(start)
+		"random_sequence":
+			var options: Array = entry.get("options", [])
+			for i in options.size():
+				var opt: Dictionary = options[i] if options[i] is Dictionary else {}
+				var start: StringName = _register_story_sequence(
+					base_id, trigger, opt.get("lines", []), "%s_opt_%d" % [variant_prefix, i], path, mood_id)
+				if start != &"":
+					starts.append(start)
+		_:
+			GameLogger.warn("DialogueDB", "story entry '%s' has unknown mode '%s'" % [base_id, mode])
+	return starts
+
+
+func _resolve_story_starts(story_entry: Variant) -> Array:
+	if story_entry is Array:
+		return story_entry
+	if not (story_entry is Dictionary):
+		return []
+	var data: Dictionary = story_entry
+	var moods: Dictionary = data.get("moods", {})
+	if moods.is_empty():
+		return []
+	var mood: StringName = _current_dialogue_mood()
+	if moods.has(mood):
+		return moods[mood] if moods[mood] is Array else []
+	var fallback: StringName = StringName(str(data.get("fallback", STORY_MOOD_NEUTRAL)))
+	if moods.has(fallback):
+		return moods[fallback] if moods[fallback] is Array else []
+	return []
+
+
+func _current_dialogue_mood() -> StringName:
+	var mt: Node = get_node_or_null("/root/MoodTracker")
+	if mt == null or not mt.has_method("get_dominant"):
+		return STORY_MOOD_NEUTRAL
+	return mt.get_dominant()
+
+
 func _register_story_sequence(base_id: String, trigger: StringName, raw_lines: Variant,
-		variant: String, path: String) -> StringName:
+		variant: String, path: String, mood_id: StringName = &"") -> StringName:
 	if not (raw_lines is Array) or raw_lines.is_empty():
 		GameLogger.warn("DialogueDB", "story entry '%s' in '%s' has no lines" % [base_id, path])
 		return &""
@@ -249,6 +334,8 @@ func _register_story_sequence(base_id: String, trigger: StringName, raw_lines: V
 			"once_per_session": bool(src.get("once_per_session", false)),
 			"next": "",
 		}
+		if mood_id != &"":
+			line_dict["mood"] = String(mood_id)
 		var line = DialogueLine.from_dict(line_dict)
 		if line == null:
 			continue

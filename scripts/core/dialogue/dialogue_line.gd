@@ -16,6 +16,7 @@ var text: String
 var portrait: String        # path or "" (null from JSON becomes "")
 var image: String           # path or ""
 var text_fx: String         # reserved, no-op + warn if set
+var mood: StringName        # story mood used for this generated line, or &""
 
 ## Audio
 var audio_layer: String     # tag for AudioDirector routing; default "sfx", "" = inherit speaker
@@ -53,6 +54,7 @@ static func from_dict(d: Dictionary) -> Object:
 	line.portrait        = str(d.get("portrait", "")) if d.get("portrait") != null else ""
 	line.image           = str(d.get("image", "")) if d.get("image") != null else ""
 	line.text_fx         = str(d.get("text_fx", "")) if d.get("text_fx") != null else ""
+	line.mood            = StringName(str(d.get("mood", ""))) if d.get("mood") != null else &""
 	line.audio_layer     = str(d.get("audio_layer", "")) if d.get("audio_layer") != null else ""
 	var audio_value = d.get("audio_clip", d.get("sound", ""))
 	line.audio_clip      = str(audio_value) if audio_value != null else ""

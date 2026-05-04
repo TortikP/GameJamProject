@@ -64,13 +64,14 @@ func get_counts() -> Dictionary:
 	return _counts.duplicate()
 
 
-## Picks one mood from MOODS_SKILL ∪ {chimera}.
-##   all-zero       → neutral
-##   single max > 0 → that mood
-##   multi max  > 0 → chimera (tie-breaker, "mixed character")
+## Picks the narrative mood from non-neutral skills first.
+## Neutral is the baseline: it wins only when there are no non-neutral
+## contributors. A tie between non-neutral leaders returns chimera.
 func get_dominant() -> StringName:
 	var max_v: int = 0
 	for m in MOODS_SKILL:
+		if m == &"neutral":
+			continue
 		var v: int = _counts[m]
 		if v > max_v:
 			max_v = v
@@ -78,6 +79,8 @@ func get_dominant() -> StringName:
 		return &"neutral"
 	var winners: Array[StringName] = []
 	for m in MOODS_SKILL:
+		if m == &"neutral":
+			continue
 		if (_counts[m] as int) == max_v:
 			winners.append(m)
 	if winners.size() > 1:
