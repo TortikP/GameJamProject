@@ -17,7 +17,8 @@
 | [`OPEN-QUESTIONS.md`](OPEN-QUESTIONS.md) | Незакрытые дизайн-вопросы. То, что висит и ждёт решения. |
 | [`REFERENCES.md`](REFERENCES.md) | Оммажи, тональные референсы, "как у X". |
 | [`GLOSSARY.md`](GLOSSARY.md) | Единая терминология. Аспекты, билды, секторы, волны. |
-| [`MAINTAINER.md`](MAINTAINER.md) | Роль агента, который следит за этими доками. |
+
+Агент, ведущий эти доки — `@design-keeper`. Описание роли: [`docs/agents/design-keeper.md`](../agents/design-keeper.md). Общая система агентов: [`docs/agents/README.md`](../agents/README.md).
 
 ## Конвенции
 
