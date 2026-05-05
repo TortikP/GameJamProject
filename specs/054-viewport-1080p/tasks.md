@@ -18,9 +18,18 @@
 
   Проверить что `_ready` вызывается ДО `grid.initialize()` (line 164) и до camera.position установки (line 180) — да, вставка идёт между resolve и initialize.
 
+### Post-smoke (Q-054-1 revised → B + new Q-054-5)
+
+- [x] **T010.** `project.godot`:
+  - `[display]`: добавить `window_width_override=1600`, `window_height_override=900`.
+  - `[autoload]`: добавить `WindowMode="*res://scripts/infrastructure/window_mode.gd"` (последним, без deps).
+  - `[input]`: добавить action `toggle_fullscreen` на F11 (keycode 4194342, формат как у `reload_speed_config`).
+- [x] **T011.** Создать `scripts/infrastructure/window_mode.gd` — autoload `extends Node`, `process_mode = ALWAYS`, `_unhandled_input` ловит `toggle_fullscreen`, переключает между `WINDOW_MODE_WINDOWED` и `WINDOW_MODE_FULLSCREEN` (borderless, не exclusive).
+
 ## Smoke (Andrey, manual в Godot после impl)
 
-- [ ] **T004 (AC2).** Запуск из `scenes/main_menu.tscn`. Окно открывается windowed на 1920×1080. Главное меню рендерится без обрезки и сдвига. Кнопки на местах (по центру). Console clean — никаких новых warn/error.
+- [ ] **T004 (AC2).** Запуск из `scenes/main_menu.tscn`. Окно открывается windowed на **1600×900** (а не 1920×1080 — Q-054-1.B revised). На 1080p мониторе остаётся «воздух» под IDE / console. Главное меню рендерится без обрезки и сдвига. Кнопки на местах (по центру). Console clean.
+- [ ] **T012 (AC8).** F11 в любой сцене (главное меню / godmode / editor) → окно становится borderless fullscreen на native 1920×1080. Pixel art crisp 1:1. Повторное F11 → возврат в windowed 1600×900. Alt-tab из fullscreen → мгновенно. Работает в том числе когда игра на pause.
 - [ ] **T005 (AC3).** Все три editor-сцены, по одной:
   - Main menu → Map Editor (`scenes/dev/map_editor.tscn`): открывается, sidebar справа (~376px) виден, tool panel слева виден, центральный canvas не перекрыт.
   - Main menu → Game Editor (`scenes/dev/game_editor.tscn`): 3-pane layout не overlapping, autosave restore modal (если есть) на месте.

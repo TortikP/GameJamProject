@@ -1,13 +1,14 @@
 # 054 — Plan: Viewport 1280×720 → 1920×1080
 
-Спек: [`spec.md`](./spec.md). Все Q-054-1..4 резолвлены.
+Спек: [`spec.md`](./spec.md). Все Q-054-1..5 резолвлены (Q-054-1 ревизирован после первого smoke).
 
 ## Что дальше (TL;DR)
 
-Три точечные правки:
-1. `project.godot` — viewport_width/height bump.
+Исходные три точечные правки + post-smoke window mode:
+1. `project.godot` — viewport bump + window override 1600×900 + new input action `toggle_fullscreen` + autoload `WindowMode`.
 2. `scenes/dev/map_editor.tscn` — убрать hardcoded position у HexGrid.
 3. `scripts/presentation/dev/map_editor_controller.gd` — добавить `grid.position = viewport_rect * 0.5` в `_ready`.
+4. `scripts/infrastructure/window_mode.gd` (новый) — F11 toggle между windowed и borderless fullscreen.
 
 Остальное — manual smoke в Godot (T004–T009 в [`tasks.md`](./tasks.md)).
 
@@ -22,22 +23,25 @@
 
 ### Code & config
 
-**1. `project.godot` — `[display]` блок.**
+**1. `project.godot` — `[display]`, `[autoload]`, `[input]` блоки.**
 
 ```ini
-# до
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/stretch/mode="viewport"
+# [display] — было / стало
+window/size/viewport_width=1280       →  1920
+window/size/viewport_height=720       →  1080
+                                      +  window/size/window_width_override=1600
+                                      +  window/size/window_height_override=900
+window/stretch/mode="viewport"        (без изменений)
 
-# после
-window/size/viewport_width=1920
-window/size/viewport_height=1080
-window/stretch/mode="viewport"
+# [autoload] — добавлено
+WindowMode="*res://scripts/infrastructure/window_mode.gd"
+
+# [input] — добавлено action toggle_fullscreen на F11 (keycode 4194342)
 ```
 
-Не добавляем `window_width_override` / `window_height_override` (Q-054-1.A: окно стартует size=viewport).
-Не трогаем `stretch/aspect` (Q-054-2: остаётся неявно `"keep"`).
+**Q-054-1 revised → B (post-smoke).** Окно стартует windowed 1600×900 (а не fullscreen 1920×1080) — оставляет место под Godot editor / console. F11 → борderless fullscreen для crispness checks. Stretch=`viewport` корректно downscale'ит 1920×1080 canvas в 1600×900 окно.
+
+**4. `scripts/infrastructure/window_mode.gd` (новый, ~22 lines)** — autoload с `_unhandled_input` handler для action `toggle_fullscreen`. Использует `DisplayServer.window_set_mode(WINDOW_MODE_FULLSCREEN)` (borderless windowed fullscreen) — alt-tab мгновенный, exclusive не используется. `process_mode = ALWAYS` чтобы F11 работал на pause.
 
 **2. `scenes/dev/map_editor.tscn:54` — HexGrid position.**
 

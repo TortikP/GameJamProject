@@ -11,10 +11,11 @@
 
 ## Resolved decisions
 
-- **Q-054-1 → A.** У всей команды Full HD мониторы. Окно стартует 1920×1080, никаких window_*_override.
+- **Q-054-1 → A → revised B (after smoke).** Изначально решили без override (окно 1920×1080 = весь монитор). На первом смоке выяснилось: при viewport == native монитор не остаётся места под Godot editor / console во время теста. Изменено на `window_width_override=1600`, `window_height_override=900`. Plus F11 toggle на native fullscreen для crispness checks (см. Q-054-5).
 - **Q-054-2 → отложено.** `stretch/aspect` остаётся неявно `"keep"`. Отдельным спеком после того как 1080p устаканится.
 - **Q-054-3 → B.** Убираем `position` у HexGrid в `map_editor.tscn`, центрирование через `viewport.size * 0.5` в `_ready` контроллера.
 - **Q-054-4 → как есть.** `zoom = Vector2(1.6, 1.6)` в `godmode.tscn` остаётся. После смока Andrey решает корректировать или нет — отдельным точечным коммитом, не блокер AC.
+- **Q-054-5 (новое, post-smoke) → F11 toggle через autoload.** Добавлен `WindowMode` autoload + input action `toggle_fullscreen`. F11 переключает между windowed (override 1600×900) и `WINDOW_MODE_FULLSCREEN` (borderless windowed fullscreen, native res). Borderless > exclusive — alt-tab мгновенный, нет переключения display mode.
 
 ## Проблема
 
@@ -43,13 +44,14 @@ window/stretch/mode="viewport"
 
 ## Acceptance criteria
 
-- **AC1.** `project.godot`: `viewport_width=1920`, `viewport_height=1080`. `stretch/mode="viewport"` остаётся.
-- **AC2.** Запуск игры: окно открывается в нативном 1080p (или в размере по решению Q-054-1). Главное меню рендерится без обрезки/сдвига.
+- **AC1.** `project.godot`: `viewport_width=1920`, `viewport_height=1080`. `stretch/mode="viewport"` остаётся. `window_*_override` = 1600×900 (Q-054-1.B revised).
+- **AC2.** Запуск игры: окно открывается windowed 1600×900 (на 1080p мониторе остаётся «воздух» под IDE/console). Главное меню рендерится без обрезки/сдвига. Картинка чуть downscale'ится (1920→1600 = 0.83×) — приемлемо для dev.
 - **AC3.** Все три editor-сцены (`map_editor.tscn`, `game_editor.tscn`, `godmode.tscn` в standalone playtest) — открываются, sidebar'ы видимы, центральный canvas не перекрыт. Никаких overlapping панелей по сравнению со staging.
 - **AC4.** Прохождение story_campaign до первого диалога: cutscene → диалог → шаг героини → transition. Никаких визуальных артефактов: dialogue panel не обрезается, hex tooltip не уезжает за экран, top_hud_bar / score_corner / combat_log на своих местах.
 - **AC5.** Map editor: при открытии HexGrid центрирован относительно нового viewport (фикс по Q-054-3). Pan/zoom работают.
 - **AC6.** Никаких новых runtime warn'ов в консоли при стандартных smoke-сценариях (запуск, главное меню, godmode F1, editor open, начало story_campaign).
-- **AC7.** На laptop с экраном меньше 1920×1080 (если такой есть в команде, см. Q-054-1) — игра запускается без краша. Допускается ужатое окно или ресайз пользователем.
+- **AC7.** На laptop с экраном меньше 1920×1080 — игра запускается без краша. (Не актуально по Q-054-1: у всех Full HD, оставлено для записи.)
+- **AC8 (Q-054-5).** F11 в любой сцене переключает между windowed (1600×900) и borderless fullscreen (native 1920×1080). На fullscreen pixel art crisp 1:1, alt-tab возвращает мгновенно. Работает в том числе на pause.
 
 ## Out of scope
 
