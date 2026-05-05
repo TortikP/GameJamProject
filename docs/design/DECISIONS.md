@@ -136,3 +136,18 @@
 **Контекст:** Овнеры в дизайн-фазе путают — они выглядят как назначения, хотя это ещё обсуждение. Кредит-поле "Обсуждали:" честнее отражает реальность дизайна и не блокирует пересмотр овнерства позже.
 **Обсуждали:** Андрей (идея), Claude (предложение термина).
 **Связано с:** [`README.md`](README.md), [`MAINTAINER.md`](MAINTAINER.md).
+
+## 2026-05-06 — Map Editor: полный rehaul вместо patching
+
+**Решение:** Map Editor переписывается с нуля 6-ю последовательными спеками: Spec 0 (`ui-panels` — отдельная система фреймворка панелей) + Specs 1–5 (`level-editor` — архитектура, palettes, wave data, validation, WavePanel UX). Дизайн зафиксирован в [`docs/systems/level-editor/design.md`](../systems/level-editor/design.md) и [`docs/systems/ui-panels/design.md`](../systems/ui-panels/design.md). Старый `MapEditorController` (1551 строка джем-кода) живёт параллельно до конца Spec 2, потом удаляется. Файлы карт (`data/maps/*.json`, schema v2) должны продолжать читаться (forward-only migration v2→v3 в Spec 3).
+**Контекст:** Map Editor сидел на джем-фундаменте: god-class на 1551 строку, Mode-enum размазан, нет реюза панелей, валидаций нет, resize не работает. Prior attempt (spec 055-editor-layers, дропнут — см. следующее решение) пытался чинить инкрементно поверх джема и провалил smoke. Андрей: «делать с нуля, потому что патчить ад». Цена — редактор временно нерабочий между Spec 1 и Spec 2 (Никита поживёт без него); выигрыш — чистая база на годы вперёд + reusable `ui-panels` фреймворк для будущих редакторов и потенциально in-game UI.
+**Обсуждали:** Андрей (идея, scope, UX-решения, can't-lose-UI правило), Никита (требования к layout, отверг bottom-dock концепт в пользу collapse-only), Claude (раскладка, slicing, развилки).
+**Связано с:** [`docs/systems/level-editor/design.md`](../systems/level-editor/design.md), [`docs/systems/ui-panels/design.md`](../systems/ui-panels/design.md), [`planning/plan.md`](../../planning/plan.md) §1.
+
+## 2026-05-06 — Spec 055-editor-layers и связанные ветки дропнуты целиком
+
+**Решение:** Удалены с remote 5 веток: `andrey/editor-layers` (spec 055), `andrey/wavepanel-ux-spec` (spec 056-draft), `andrey/023-editor-ux-polish`, `andrey/032-controller-refactor-spec`, `andrey/controller-refactor`. Никакой код, smoke-checklist или спека из этих веток не сохранён. Не реанимировать. Нумерация спеков 055 и 056 свободна для нового использования (новый Spec 0 ui-panels возьмёт `055-ui-panels`).
+**Контекст:** Spec 055 пытался mixin'ить collapse/resize поверх джем-фундамента Map Editor'а, прошёл 9 фаз имплементации (~2300 строк), на Phase 10 (manual smoke) провалился. Resize выпиливался по ходу из-за бага cursor surprises на невидимых HSIZE/VSIZE handles. По итогам ревью с Андреем — фундамент негоден к надстройке, нужен полный rewrite (см. предыдущее решение). Salvage обсуждён и отвергнут: smoke-checklist неприменим к новой архитектуре, дизайн-выводы перенесены в design.md новой системы.
+**Что унаследовано (не код, а decisions):** в `docs/systems/ui-panels/design.md` §7 зафиксировано почему resize выпиливался в 055 и как делаем по-другому (D-вариант, видимые handles, ≥10px зона захвата). В `docs/systems/level-editor/design.md` §9 D2 — почему Mode enum заменяется layer model.
+**Обсуждали:** Андрей (решение дропнуть, обоснование), Claude (предложение salvage отвергнуто Андреем).
+**Связано с:** [`docs/systems/level-editor/design.md`](../systems/level-editor/design.md) §9, [`docs/systems/ui-panels/design.md`](../systems/ui-panels/design.md) §7.

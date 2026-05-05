@@ -26,13 +26,30 @@
 
 ## 1. Редакторы
 
+**Текущая фокусировка: rehaul.** Map Editor переписывается с нуля 6-ю последовательными спеками (Spec 0 ui-panels → Specs 1-5 level-editor). Дизайн-документы на ветке `andrey/level-editor-design`:
+- [`docs/systems/ui-panels/design.md`](../docs/systems/ui-panels/design.md) — фреймворк панелей (фундамент Spec 0)
+- [`docs/systems/level-editor/design.md`](../docs/systems/level-editor/design.md) — общий дизайн редактора + слайсинг на 6 спеков
+
 | Задача | Тип | Заметки |
 |---|---|---|
-| Тоглы скрыть/показать панели разных фичей | [task-M] | Обсудить scope: per-panel toggles vs обобщённая система layout-presets. |
-| Удобный переключатель волн (без пиксель-хантинга) | [task-M] | Конкретику дизайна обсудить отдельно. |
-| Поддержка `source: "defeated_enemies"` в редакторе волны | [task-S] | В данных уже есть, нужен только UI. |
-| `dialogue_triggers` — UX и доки | [spec-S] | Двусоставное: (a) `docs/dialogue-triggers.md` для контентщиков; (b) UX-улучшения если после доков что-то ещё «непонятно». |
-| Эдитор аспектов/скиллов/мобов | [spec-L] | Q-04. Аналог game_editor / dialogue editor по UI-паттерну. Обсуждали Андрей (UX), Егор (архитектура). Зависит от Q-01. |
+| **Spec 0** ui-panels: универсальные окна интерфейса | **[spec-L]** | Container + drag + resize (D-вариант) + collapse + lock + persistence (`user://layouts.cfg`, per-screen/scene). Фундамент для Specs 1-5. Стартует следующим. |
+| **Spec 1** level-editor: architecture from scratch | [spec-L] | Layer model, InputDispatcher, новый EditorController, тонкий вертикальный срез на палитре hexes. Старый `MapEditorController` параллельно. |
+| **Spec 2** level-editor: layers + palettes (полная миграция) | [spec-M] | Объекты+спаунеры подключаются. Q/W/E/Tab, 1-9. Удаление старого `MapEditorController`. |
+| **Spec 3** level-editor: wave data + settings panel | [spec-M] | Расширение LevelData (`respawn_player`, spawner.amount/.delay, music_config), is_special: bool→string free-form. dialogue_triggers cleanup. |
+| **Spec 4** level-editor: validation pipeline | [spec-M] | REJECT/WARN модель, авто-проверки, UI подсветка. |
+| **Spec 5** level-editor: WavePanel UX (timeline) | [spec-M] | Timeline похожий на runtime UI. Андрей прорабатывает дизайн сам. |
+| `dialogue_triggers` — UX и доки | [spec-S] | Двусоставное: (a) `docs/dialogue-triggers.md` для контентщиков; (b) UX-улучшения. **Note:** часть (b) пересекается со Spec 3, координировать. |
+| Эдитор аспектов/скиллов/мобов | [spec-L] | Q-04. После завершения rehaul'а — переиспользовать `ui-panels` фреймворк. Зависит от Q-01. |
+
+**Предшественники, дропнутые:**
+- ~~`andrey/editor-layers` / spec 055-editor-layers~~ — дропнут целиком 6 мая 2026, см. [DECISIONS](../docs/design/DECISIONS.md). Не реанимировать. Нумерация с 055 свободна для нового Spec 0.
+- ~~`andrey/wavepanel-ux-spec` / 056-wavepanel-ux draft~~ — дропнут, идеи живут в Spec 5.
+- ~~`andrey/023-editor-ux-polish`, `andrey/032-controller-refactor-spec`, `andrey/controller-refactor`~~ — дропнуты, были пустыми относительно staging.
+
+**Закрытые в rehaul:**
+- ~~Тоглы скрыть/показать панели разных фичей~~ — частично закрывается Spec 0 (collapse + lock), полный layout-presets отложен.
+- ~~Удобный переключатель волн (без пиксель-хантинга)~~ — закрывается Spec 5.
+- ~~Поддержка `source: "defeated_enemies"` в редакторе волны~~ — закрывается Spec 3.
 
 ---
 

@@ -56,7 +56,21 @@
 
 ## Реестр
 
-_Здесь пусто. Первые блоки появятся когда начнём трогать фичи._
+## level-editor
+
+- **Название:** Map Editor.
+- **Статус:** partial / being-rewritten. Текущая джем-версия работает (с известными проблемами), переписывается с нуля 6-ю спеками. Между Spec 1 и Spec 2 — временно нерабочий.
+- **Спек(и):** *Запланированы:* `055-ui-panels` (Spec 0), `056..060-level-editor-*` (Specs 1-5). До этого старая версия — без формального спека (джем-наследие).
+- **Код:**
+  - Текущий джем-код: [`scripts/presentation/dev/map_editor_controller.gd`](../scripts/presentation/dev/map_editor_controller.gd) (1551 строка, удаляется в Spec 2)
+  - Сцена: [`scenes/dev/map_editor.tscn`](../scenes/dev/map_editor.tscn)
+  - Данные: [`scripts/core/maps/level_data.gd`](../scripts/core/maps/level_data.gd) (расширяется в Spec 3)
+- **Как проверить:** Запустить из главного меню → Game Editor → выбрать карту → Edit. Создать тайлы/спаунеры/объекты, сохранить, запустить playtest.
+- **Дизайн:** [`docs/systems/level-editor/design.md`](systems/level-editor/design.md), зависимый [`docs/systems/ui-panels/design.md`](systems/ui-panels/design.md), решения [`docs/design/DECISIONS.md`](design/DECISIONS.md) (2026-05-06).
+- **Заметки:**
+  - **Сильно ограниченный bug-fix policy на старую версию во время rehaul'а.** Чинить только blocker'ы (типа «ПКМ удаляет файлы с диска»). Polish и UX-фиксы — не делать, переходят в новую версию.
+  - Известные проблемы старой версии: god-class контроллер, Mode-enum размазан, нет валидаций (можно сохранить карту без player spawner'а), нет resize панелей, две панели накладываются на 1080p.
+  - Файлы карт schema v2 (`data/maps/*.json`) — должны продолжать читаться после rehaul'а. Hard constraint.
 
 <!--
 Шаблон для копирования:
