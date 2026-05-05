@@ -30,6 +30,7 @@ const TRANSITION_SCENE: PackedScene = preload("res://scenes/meta/level_transitio
 const GODMODE_SCENE: String = "res://scenes/dev/godmode.tscn"
 const CAMPAIGN_END_SCENE: String = "res://scenes/meta/campaign_end.tscn"
 const CAMPAIGN_DEFEAT_SCENE: String = "res://scenes/meta/campaign_defeat.tscn"
+const TUTORIAL_GAME_PATH: String = "res://data/games/tutorial.game.json"
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const PlayerSkillAdapterScript = preload("res://scripts/runtime/player_skill_adapter.gd")
 
@@ -177,9 +178,9 @@ func _run_post_level_flow(total_score: int) -> void:
 	# narrative-only — there's nothing to upgrade after the player gets up
 	# from the chair. ActiveGame.current_is_intro() still reflects the
 	# JUST-completed level here (advance() runs after this flow's transition).
-	var skip_upgrade: bool = ActiveGame.current_is_intro()
+	var skip_upgrade: bool = ActiveGame.current_is_intro() or ActiveGame.game_path() == TUTORIAL_GAME_PATH
 	if skip_upgrade:
-		GameLogger.info("CampaignController", "post-level flow: intro level — skipping upgrade screen + continue-input")
+		GameLogger.info("CampaignController", "post-level flow: skipping upgrade screen + continue-input")
 	else:
 		# 1. Upgrade screen (or stub).
 		GameLogger.info("CampaignController", "post-level flow: awaiting upgrade")

@@ -7,6 +7,7 @@ extends Node
 
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const TutorialDirector = preload("res://scripts/runtime/tutorial_director.gd")
 
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const HEX_TERRAIN := preload("res://scenes/arena/tilesets/hex_terrain.tres")
@@ -179,6 +180,8 @@ func run() -> void:
 			wt.bind_level.call_deferred(_ctrl.queued_level)
 		# Then start the wave controller — its first emit of wave_started
 		# is now safe because the timeline already has its anchors.
+		if _is_tutorial_level(_ctrl.queued_level):
+			_install_tutorial_director(_ctrl.queued_level)
 		_ctrl.wave_controller.start_level.call_deferred(_ctrl.queued_level)
 
 	# 045-intro-cutscene: on campaign intro levels, the HUD is invisible —
@@ -329,3 +332,17 @@ func _seed_slots() -> void:
 
 func _emit_initial_turn() -> void:
 	EventBus.world_turn_ended.emit(TurnManager.current())
+
+
+func _is_tutorial_level(level: LevelData) -> bool:
+	if level == null:
+		return false
+	return String(level.name) == "maps_tutorial_training_name" \
+		or ActiveGame.current_map_path().ends_with("/tutorial_training.json")
+
+
+func _install_tutorial_director(level: LevelData) -> void:
+	var director := TutorialDirector.new()
+	director.name = "TutorialDirector"
+	_ctrl.add_child(director)
+	director.setup(_ctrl, level)
