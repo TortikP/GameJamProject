@@ -8,6 +8,12 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const SKILLS_DIR := "res://data/skills/"
 const SKILL_SCRIPT := preload("res://scripts/core/skills/skill.gd")
 
+# 038: canonical mood vocabulary. Chimera intentionally excluded — meta-only,
+# returned by MoodTracker.get_dominant on a tie, never attached to a Skill.
+# Local copy (not MoodTracker.MOODS_SKILL ref) to avoid cross-autoload load
+# order dependency at SkillDatabase._ready time.
+const _VALID_MOODS: Array[StringName] = [&"neutral", &"tranquility", &"burnout", &"ascended"]
+
 var _by_id: Dictionary = {}   # StringName -> Skill
 
 
@@ -75,6 +81,9 @@ func _build_skill(data: Dictionary) -> Skill:
 	skill.tooltip = String(data.get("tooltip", ""))
 	skill.desc = String(data.get("desc", ""))
 
+	# 026: icon — id for future IconDB (storage only, no dispatch).
+	skill.icon = StringName(data.get("icon", ""))
+
 	# 021: skill level. Default 0 → no scaling (identity).
 	skill.level = int(data.get("level", 0))
 
@@ -87,12 +96,16 @@ func _build_skill(data: Dictionary) -> Skill:
 		skill.behaviour_tags.append(StringName(t))
 
 	# 021: mood — narrative archetype tags. Reserved.
+	# 038: validated against _VALID_MOODS canon; unknowns warn but still parse.
 	var mood_raw: Variant = data.get("mood", [])
 	if typeof(mood_raw) != TYPE_ARRAY:
 		GameLogger.warn("SkillDatabase", "%s: 'mood' must be array, got %s — using []" % [sid, type_string(typeof(mood_raw))])
 		mood_raw = []
 	for m in mood_raw:
-		skill.mood.append(StringName(m))
+		var m_sn: StringName = StringName(m)
+		if not _VALID_MOODS.has(m_sn):
+			GameLogger.warn("SkillDatabase", "%s: unknown mood '%s' (canon: %s)" % [sid, m_sn, _VALID_MOODS])
+		skill.mood.append(m_sn)
 
 	for ab_data in data.get("abilities", []):
 		var ab: Ability = AbilityDatabase.build_ability_from_dict(ab_data)

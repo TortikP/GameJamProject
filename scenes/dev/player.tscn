@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://godmode_player_001"]
+[gd_scene load_steps=5 format=3 uid="uid://godmode_player_001"]
 
 [ext_resource type="Script" path="res://scripts/core/actors/actor.gd" id="1_actor"]
 [ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="2_sprite"]
 [ext_resource type="Script" path="res://scripts/presentation/health_bar.gd" id="3_hpbar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/status_icon_strip.tscn" id="4_strip"]
 
 [node name="Player" type="Node2D"]
 script = ExtResource("1_actor")
@@ -10,13 +11,20 @@ actor_id = &"player"
 max_hp = 50
 team = &"player"
 speed = 2
+status_immunities = Array[StringName]([&"stunned"])
 
 [node name="Body" type="Sprite2D" parent="."]
+texture_filter = 1
 texture = ExtResource("2_sprite")
-scale = Vector2(0.1, 0.1)
+position = Vector2(0, -5)
+scale = Vector2(1.5, 1.5)
 z_index = 5
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("3_hpbar")
-y_offset = -58.0
-z_index = 7
+y_offset = -67.0
+z_index = 15
+
+[node name="StatusIconStrip" parent="." instance=ExtResource("4_strip")]
+center_anchor = Vector2(0, -100)
+z_index = 8

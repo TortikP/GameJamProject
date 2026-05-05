@@ -70,16 +70,23 @@ func _build_scenario(data: Dictionary) -> BehaviorScenario:
 	scenario.fallback_skill_id = StringName(data.get("fallback_skill_id", ""))
 
 	var rules_raw: Variant = data.get("rules", [])
-	if typeof(rules_raw) != TYPE_ARRAY or (rules_raw as Array).is_empty():
-		GameLogger.warn("BehaviorDatabase", "%s: 'rules' must be non-empty array" % sid)
+	if typeof(rules_raw) != TYPE_ARRAY:
+		GameLogger.warn("BehaviorDatabase", "%s: 'rules' must be array — skipping scenario" % sid)
 		return null
+	# 027 / 034: empty rules array is legal — it means "this scenario only uses
+	# movement_policy, never attacks". Required for the feared scenario
+	# (027 AC-X8). Pre-034 the loader rejected empty arrays, which silently
+	# degraded feared to default_melee at runtime → feared enemies chased
+	# and attacked the source instead of fleeing.
 	for r_data in rules_raw:
 		var rule := _build_rule(r_data, sid)
 		if rule != null:
 			scenario.rules.append(rule)
 
-	if scenario.rules.is_empty():
-		GameLogger.warn("BehaviorDatabase", "%s: no valid rules — skipping scenario" % sid)
+	# Only complain if the JSON declared rules but every one of them failed
+	# to parse. Empty intent (rules: []) is fine.
+	if scenario.rules.is_empty() and not (rules_raw as Array).is_empty():
+		GameLogger.warn("BehaviorDatabase", "%s: all rules failed to parse — skipping scenario" % sid)
 		return null
 
 	scenario.movement_policy = _build_policy(data.get("movement_policy", {}), sid)
@@ -182,6 +189,20 @@ func _build_condition(data: Variant, scenario_id: String, composers_allowed: boo
 			var n := ConditionNotOf.new()
 			n.child = _build_condition(data.get("child", {}), scenario_id, false)
 			return n
+		# 030 additions
+		"ally_exists": return ConditionAllyExists.new()
+		"aoe_net_positive":
+			var cn := ConditionAoeNetPositive.new()
+			cn.check_radius = int(data.get("check_radius", 1))
+			return cn
+		"unclaimed_hex_exists_near_enemy":
+			var c10 := ConditionUnclaimedHexExistsNearEnemy.new()
+			c10.distance = int(data.get("distance", 1))
+			return c10
+		"ally_count_below":
+			var c11 := ConditionAllyCountBelow.new()
+			c11.count = int(data.get("count", 2))
+			return c11
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown condition kind '%s' — using always" % [scenario_id, kind])
 			return ConditionAlways.new()
@@ -200,6 +221,21 @@ func _build_selector(data: Variant, scenario_id: String) -> TargetSelector:
 		"lowest_hp_ally":     return SelectorLowestHpAlly.new()
 		"densest_enemy_hex":  return SelectorDensestEnemyHex.new()
 		"random_enemy":       return SelectorRandomEnemy.new()
+		"specific_actor":     return SelectorSpecificActor.new()   # 027: feared/enraged
+		# 030 additions
+		"unclaimed_hex_near_enemy": return SelectorUnclaimedHexNearEnemy.new()
+		"highest_hp_ally":          return SelectorHighestHpAlly.new()
+		"player_escape_hex":        return SelectorPlayerEscapeHex.new()
+		# 044: summon-priority rule selector — empty hex closest to nearest enemy.
+		"nearest_empty_hex_to_enemy": return SelectorNearestEmptyHexToEnemy.new()
+		"hex_with_most_wounded_allies":
+			var s_hw := SelectorHexWithMostWoundedAllies.new()
+			s_hw.wounded_threshold = float(data.get("wounded_threshold", 0.7))
+			return s_hw
+		"target_without_status":
+			var s := SelectorTargetWithoutStatus.new()
+			s.status_id = StringName(data.get("status_id", ""))
+			return s
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown target_selector kind '%s'" % [scenario_id, kind])
 			return null
@@ -215,6 +251,24 @@ func _build_policy(data: Variant, scenario_id: String) -> MovementPolicy:
 		"kite_from_nearest_enemy":  return PolicyKiteFromNearestEnemy.new()
 		"hold_position":            return PolicyHoldPosition.new()
 		"follow_lowest_hp_ally":    return PolicyFollowLowestHpAlly.new()
+		"approach_specific_actor":  return PolicyApproachSpecificActor.new()   # 027: enraged
+		"kite_specific_actor":      return PolicyKiteSpecificActor.new()       # 027: feared
+		"approach_nearest_enemy_unclaimed": return PolicyApproachNearestEnemyUnclaimed.new()  # 030
+		"maintain_range":
+			var p := PolicyMaintainRange.new()
+			p.desired_min = int(data.get("desired_min", 2))
+			p.desired_max = int(data.get("desired_max", 3))
+			return p
+		"support_kite":
+			var p_sk := PolicySupportKite.new()
+			p_sk.ally_hp_threshold = float(data.get("ally_hp_threshold", 0.4))
+			p_sk.heal_range = int(data.get("heal_range", 2))
+			p_sk.safe_ally_range = int(data.get("safe_ally_range", 3))
+			return p_sk
+		"spread_from_allies":
+			var p_sf := PolicySpreadFromAllies.new()
+			p_sf.crowd_radius = int(data.get("crowd_radius", 1))
+			return p_sf
 		_:
 			GameLogger.warn("BehaviorDatabase", "%s: unknown movement_policy kind '%s' — using hold_position" % [scenario_id, kind])
 			return PolicyHoldPosition.new()

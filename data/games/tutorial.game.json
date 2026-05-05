@@ -1,0 +1,12 @@
+{
+  "name": "games_tutorial_game_name",
+  "version": 1,
+  "levels": [
+    {
+      "map_path": "res://data/maps/tutorial_training.json",
+      "display_name": "games_tutorial_game_levels_0_display_name",
+      "cutscene_id": "",
+      "is_intro": false
+    }
+  ]
+}

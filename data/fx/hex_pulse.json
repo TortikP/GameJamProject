@@ -1,0 +1,65 @@
+{
+  "_meta": {
+	"doc": "Summon context — pulsing concentric ring on the spawn hex tile. hex_pulse.gdshader runs on a MeshInstance2D + QuadMesh placed at hex world-pos. Mood-tuned: tranquility = slow blue ritual, ascended = stately gold heralding with extra rings, burnout = quick red emergency call, neutral = white reference.",
+	"kind": "hex",
+	"shader": "res://assets/shaders/fx/hex_pulse.gdshader",
+	"uniforms": {
+	  "ring_color": "RGBA tint",
+	  "ring_count": "number of pulses across the duration [1, 6]",
+	  "outer_radius": "circle radius in UV space [0.3, 0.5]",
+	  "ring_width": "outline thickness [0.02, 0.1]"
+	}
+  },
+
+  "summon_neutral": {
+	"shader": "res://assets/shaders/fx/hex_pulse.gdshader",
+	"kind": "hex",
+	"duration_ms": 600,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 1.0, 1.0, 1.0],
+	  "ring_count": 3.0,
+	  "outer_radius": 0.48,
+	  "ring_width": 0.05
+	}
+  },
+
+  "summon_tranquility": {
+	"shader": "res://assets/shaders/fx/hex_pulse.gdshader",
+	"kind": "hex",
+	"duration_ms": 720,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [0.5, 0.9, 1.0, 1.0],
+	  "ring_count": 3.0,
+	  "outer_radius": 0.48,
+	  "ring_width": 0.04
+	}
+  },
+
+  "summon_ascended": {
+	"shader": "res://assets/shaders/fx/hex_pulse.gdshader",
+	"kind": "hex",
+	"duration_ms": 660,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 0.92, 0.55, 1.0],
+	  "ring_count": 4.0,
+	  "outer_radius": 0.5,
+	  "ring_width": 0.06
+	}
+  },
+
+  "summon_burnout": {
+	"shader": "res://assets/shaders/fx/hex_pulse.gdshader",
+	"kind": "hex",
+	"duration_ms": 560,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 0.45, 0.25, 1.0],
+	  "ring_count": 3.0,
+	  "outer_radius": 0.48,
+	  "ring_width": 0.05
+	}
+  }
+}

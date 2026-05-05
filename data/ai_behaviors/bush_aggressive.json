@@ -1,0 +1,37 @@
+{
+  "id": "bush_aggressive",
+  "rules": [
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 3
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "debuff",
+        "ranged"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 4
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "ranged"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy"
+  },
+  "fallback_skill_id": "bush_berry_throw"
+}

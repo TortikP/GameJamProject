@@ -1,0 +1,17 @@
+{
+  "id": "burning_bear",
+  "name": "burning_bear_name",
+  "desc": "burning_bear_desc",
+  "sprite": "assets/sprites/enemies/burning_bear.png",
+  "max_hp": 220,
+  "team": "enemy",
+  "speed": 4,
+  "skills": [
+	"burning_bear_tire_throw",
+	"burning_bear_burning_claw",
+	"burning_bear_summon_bear",
+    "burning_bear_hellshake"
+  ],
+  "behavior_id": "default_ranged",
+  "fallback_skill_id": "burning_bear_tire_throw"
+}

@@ -1,68 +1,154 @@
 extends Node2D
-## MoveRangeOverlay — draws translucent hex highlights for all coords
-## reachable by the selected actor in one turn.
+## MoveRangeOverlay — visualizes "where can the player go this turn" + the
+## active ability's reach + the AoE zone the cursor would land. All three
+## layers are now drawn in a single _draw() pass (no per-hex Polygon2D + Line2D
+## nodes). Same Node2D parent / z-index conventions, just lighter on allocs
+## and the visual is a clean editor-brush style.
 ##
-## Lives as a child of HexGrid in godmode.tscn. Rendered below actors (z_index 2).
-## Call show_for() whenever the selected actor or its speed changes.
-## Call clear() to hide all highlights.
+## 029 / req-3, req-4:
+##   - MOVE RANGE: drawn as a SINGLE BOUNDARY OUTLINE around the whole
+##     reachable region (not a fill or per-hex outline). Reads as "this is the
+##     area you can walk inside" — matches how a typical CRPG paints movement
+##     zones. Uses team color.
+##   - ATTACK RANGE: per-hex thin outlines, paint_preview style (mirrors
+##     CastRangeOverlay). Active slot's abilities[] feed in. Uses SEM_DEBUFF.
+##   - AOE ZONE PREVIEW (cursor hover): per-hex thin outlines too. Uses
+##     SEM_CONTROL — purple is the "this is what would be hit" semantic.
 ##
-## Palette: team colors via UiTheme.team_color, attack range via UiTheme.SEM_DEBUFF
-## (orange — visually distinct from team blue/red, signals "this is reachable for
-## an attack, not movement"). Zone preview uses UiTheme.SEM_CONTROL (purple — the
-## affected-area semantic). All colors derived once on each show_for call.
+## Pathfinding around enemies/obstacles is already correct (occupied list
+## passed to HexGrid.reachable_within); this rewrite is presentation-only.
+##
+## Z-index: 2 (set in scene). Below CastRangeOverlay (z=4), below cursor (z=7).
 
-const RADIUS: float = 60.0  # must match godmode_terrain.tres hex size
+const HexGeometry = preload("res://scripts/infrastructure/hex_geometry.gd")
+
+# 029 / B-003: removed the polygon-edge-index → CELL_NEIGHBOR_*_SIDE enum table.
+# The mapping was correct for tile_shape = HEXAGON but Godot returns different
+# neighbor coords for the same enums on tile_shape = HALF_OFFSET_SQUARE, which
+# is what hex_terrain.tres currently uses. Now boundary detection works
+# geometrically: for each polygon edge, project a sample point just past the
+# edge midpoint and ask the layer which cell owns that point via local_to_map.
+# Independent of tile_shape interpretation — works on either tileset. Slightly
+# more work per edge (vec math + one local_to_map call) but still O(N * 6),
+# negligible for N ≤ 20 typical zone sizes.
 
 var _grid: Node = null  # HexGrid
-var _polys: Array[Node2D] = []
-var _zone_polys: Array[Node2D] = []  # hover AoE preview — cleared every frame
+
+# Move-range zone (drawn as boundary outline). Includes the actor's own hex.
+var _zone_coords: Dictionary = {}   # Vector2i → true (set semantics for fast neighbor lookups)
+var _self_coord: Vector2i = Vector2i(-1, -1)
+var _zone_color: Color = Color.WHITE
+
+# Attack-range hexes (per-hex outlines).
+var _attack_coords: Array[Vector2i] = []
+var _attack_color: Color = Color.WHITE
+
+# AoE preview (per-hex outlines, refreshed every frame from controller).
+var _zone_preview: Array[Vector2i] = []
+var _zone_preview_color: Color = Color.WHITE
+
+# 029 / bonus-2: hover-path preview. Coords from the actor to the cursor's
+# hex (inclusive). Empty when the cursor isn't over a reachable hex (or hover
+# is on the actor's own coord). Pushed by godmode_controller every frame from
+# _update_castability.
+var _hover_path: Array[Vector2i] = []
+
+# 029 / bonus-3: breathing alpha on the move-zone boundary outline. Phase
+# advances in _process; alpha modulates as a sine across BREATH_PERIOD_S.
+# Costs one queue_redraw per frame while the zone is active — _draw is cheap
+# for typical zone sizes (~12 hexes × 6 edges = 72 line draws max).
+const BREATH_PERIOD_S: float = 1.6
+const BREATH_AMP: float = 0.18           # peak ± from mid-alpha
+const BREATH_MID_ALPHA: float = 0.78     # average alpha — boundary is ALWAYS visible
+var _breath_phase: float = 0.0
 
 
 func setup(grid: Node) -> void:
 	_grid = grid
 
 
-## Dynamic zone AoE preview — call every frame from _update_castability.
-## Pass [] to erase the preview. Color: SEM_CONTROL (purple — "this is the
-## affected area").
+func _ready() -> void:
+	# 031 phase 14: z=5 so the unified _draw() output (including zone preview)
+	# renders ABOVE CastRangeOverlay's polys (z=4). Pre-029 zone preview was
+	# z=4 via individual Polygon2D children with explicit z_index; the 029
+	# refactor merged everything into one _draw at the node's z, which had
+	# been z=2 — leaving cast-range hexes painted on top of the area zone.
+	# Area is "what your cast will hit" → must visually dominate the
+	# "where you can click" target range.
+	# Other z=5 users: spawner_placeholder (runtime), delete_highlight /
+	# paint_preview (editor only). spawner_placeholder coexists rarely
+	# (player rarely stands on a spawner during cast).
+	z_index = 5
+	EventBus.ui_theme_reloaded.connect(queue_redraw)
+
+
+# 029 / bonus-3: advance breath phase + redraw while a zone is shown. No-op
+# when no zone — saves a per-frame draw call when the player has no movement
+# (cleared zone, e.g. during AI turn or stunned).
+func _process(delta: float) -> void:
+	if _zone_coords.is_empty():
+		return
+	_breath_phase += delta
+	queue_redraw()
+
+
+# ── Public API (same surface as before — controller calls untouched) ────────
+
+## AoE preview around the cursor; called every frame from _update_castability.
+## Pass [] to erase. Color: SEM_CONTROL ("this is the area that would be hit").
 func show_zone_preview(hexes: Array[Vector2i]) -> void:
-	clear_zone_preview()
-	var base: Color = UiTheme.SEM_CONTROL
-	var fill: Color = Color(base.r, base.g, base.b, 0.32)
-	var outline: Color = Color(base.r, base.g, base.b, 0.80)
-	for coord in hexes:
-		_add_hex(coord, fill, outline, 4, _zone_polys)
+	if _zone_preview == hexes:
+		return
+	_zone_preview = hexes
+	_zone_preview_color = UiTheme.SEM_CONTROL
+	queue_redraw()
 
 
 func clear_zone_preview() -> void:
-	for p in _zone_polys:
-		if is_instance_valid(p):
-			p.free()   # immediate — queue_free() lags one frame, leaves ghost hexes
-	_zone_polys.clear()
+	if _zone_preview.is_empty():
+		return
+	_zone_preview = []
+	queue_redraw()
 
 
+## 029 / bonus-2: set hover-path preview — line through hex centers from the
+## actor to the hovered hex. Pass [] to clear. Caller pushes new coords every
+## frame; we no-op when unchanged to skip redundant queue_redraw calls (the
+## breathing _process triggers redraws anyway, so visual updates are immediate
+## either way).
+func set_hover_path(coords: Array[Vector2i]) -> void:
+	if _hover_path == coords:
+		return
+	_hover_path = coords
+	queue_redraw()
+
+
+## Wipe everything (move zone, attack range, AoE preview, hover path).
 func clear() -> void:
-	for p in _polys:
-		if is_instance_valid(p):
-			p.queue_free()
-	_polys.clear()
-	clear_zone_preview()
+	if _zone_coords.is_empty() and _attack_coords.is_empty() and _zone_preview.is_empty() and _hover_path.is_empty():
+		return
+	_zone_coords = {}
+	_attack_coords = []
+	_zone_preview = []
+	_hover_path = []
+	_self_coord = Vector2i(-1, -1)
+	queue_redraw()
 
 
 ## Show reachable hexes for `actor`. `registry` is ActorRegistry — used to
 ## build the occupied list so BFS doesn't route through other actors.
-## `ability_ids` — which abilities to draw attack range for. Pass [] to skip
-## attack range entirely (e.g. when no spell is selected).
-func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
-	clear()
+## `ability_items` — Ability instances (or legacy StringName ids) for the
+## currently active slot's skill. Pass [] to skip attack-range layer.
+func show_for(actor: Actor, registry: Node, ability_items: Array) -> void:
 	if _grid == null or actor == null:
+		clear()
 		return
-
 	var actor_coord: Vector2i = _grid.get_coord(actor.actor_id)
 	if actor_coord == Vector2i(-1, -1):
+		clear()
 		return
 
-	# Build occupied list: all actor positions except the selected one
+	# ── Build occupied list (other actors block pathing) ───────────────────
 	var occupied: Array = []
 	if registry != null and registry.has_method("all"):
 		for a in registry.all():
@@ -71,35 +157,25 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 				if c != Vector2i(-1, -1):
 					occupied.append(c)
 
-	var reachable: Array[Vector2i] = _grid.reachable_within(actor_coord, actor.speed, occupied)
+	# ── Move zone ─────────────────────────────────────────────────────────
+	# 027: effective_speed accounts for slowed (×0.5) and rooted (→0).
+	var reachable: Array[Vector2i] = _grid.reachable_within(
+			actor_coord, actor.effective_speed(), occupied)
+	_zone_coords = {}
+	# Always include the actor's own hex so the boundary closes around it
+	# (player standing inside the zone, not on an island).
+	_zone_coords[actor_coord] = true
+	for c in reachable:
+		_zone_coords[c] = true
+	_self_coord = actor_coord
+	_zone_color = UiTheme.team_color(actor.team)
 
-	# Resolve colors via UiTheme. Team color drives both fill (low alpha) and
-	# outline (higher alpha). Self-hex uses heal-green for "you are here".
-	var team_base: Color = UiTheme.team_color(actor.team)
-	var fill_col: Color = Color(team_base.r, team_base.g, team_base.b, 0.22)
-	var outline_col: Color = Color(team_base.r, team_base.g, team_base.b, 0.55)
-	var self_fill: Color = Color(UiTheme.SEM_HEAL.r, UiTheme.SEM_HEAL.g, UiTheme.SEM_HEAL.b, 0.35)
-
-	# Draw self-hex (accent — marker for current position)
-	_add_hex(actor_coord, self_fill, outline_col)
-
-	# Draw reachable hexes
-	for coord in reachable:
-		_add_hex(coord, fill_col, outline_col)
-
-	# ── Attack range ──────────────────────────────────────────────────────────
-	# Collect all coords reachable by any of this actor's abilities.
-	# Shown in debuff-orange, drawn ON TOP of move range (higher z).
-	# ability_ids items can be Ability objects (player slot path, post-007)
-	# or StringName IDs (legacy enemy path via actor.get_abilities()). Objects
-	# are preferred — ID lookup via AbilityDatabase is unsafe when multiple
-	# skills share an ability ID.
-	var attack_base: Color = UiTheme.SEM_DEBUFF
-	var attack_fill: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.28)
-	var attack_outline: Color = Color(attack_base.r, attack_base.g, attack_base.b, 0.72)
-
-	var attack_coords: Dictionary = {}  # Vector2i → true (dedup)
-	for item in ability_ids:
+	# ── Attack range ──────────────────────────────────────────────────────
+	# Item is either an Ability object (preferred — direct ref) or a
+	# StringName id (legacy enemy path). Object route avoids AbilityDatabase
+	# collisions when multiple skills share an ability id.
+	var attack_set: Dictionary = {}
+	for item in ability_items:
 		var ability: Ability
 		if item is Ability:
 			ability = item as Ability
@@ -107,44 +183,131 @@ func show_for(actor: Actor, registry: Node, ability_ids: Array) -> void:
 			ability = AbilityDatabase.get_ability(StringName(str(item)))
 		if ability == null or ability.target == null:
 			continue
-		var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(actor_coord, _grid)
-		for c in range_hexes:
-			attack_coords[c] = true
+		for c in ability.target.get_range_hexes(actor_coord, _grid):
+			attack_set[c] = true
+	_attack_coords = []
+	for c in attack_set.keys():
+		_attack_coords.append(c)
+	_attack_color = UiTheme.SEM_DEBUFF
 
-	for coord in attack_coords.keys():
-		_add_hex(coord, attack_fill, attack_outline, 3)
+	queue_redraw()
 
 
-func _add_hex(coord: Vector2i, fill: Color, outline: Color, z: int = 2, target_array = null) -> void:
-	var poly: Node2D = Node2D.new()
-	poly.position = _grid.tile_map_layer.map_to_local(coord)
-	poly.z_index = z
-	poly.set_meta("fill", fill)
-	poly.set_meta("outline", outline)
-	_grid.add_child(poly)
-	if target_array == null:
-		_polys.append(poly)
-	else:
-		target_array.append(poly)
-	# Draw immediately via a draw-script attached inline.
-	# Simplest jam approach: use a child Polygon2D (no custom _draw needed).
-	var pts: PackedVector2Array = []
-	for i in 6:
-		var a: float = deg_to_rad(60.0 * i)
-		pts.append(Vector2(cos(a) * RADIUS, sin(a) * RADIUS))
-	var pgon := Polygon2D.new()
-	pgon.polygon = pts
-	pgon.color = fill
-	pgon.z_index = 2
-	poly.add_child(pgon)
-	# Outline via Line2D
-	var line := Line2D.new()
-	var line_pts := PackedVector2Array()
-	for p in pts:
-		line_pts.append(p)
-	line_pts.append(pts[0])  # close
-	line.points = line_pts
-	line.default_color = outline
-	line.width = 1.5
-	line.z_index = 2
-	poly.add_child(line)
+# ── Drawing ─────────────────────────────────────────────────────────────────
+
+func _draw() -> void:
+	if _grid == null:
+		return
+	var layer: TileMapLayer = _grid.tile_map_layer
+	if layer == null or layer.tile_set == null:
+		return
+	var corners: PackedVector2Array = HexGeometry.flat_top_polygon(Vector2(layer.tile_set.tile_size))
+	if corners.is_empty():
+		return
+
+	# 1) Move zone — single boundary outline around the whole reachable region.
+	#    Alpha breathes via _breath_phase (bonus-3).
+	_draw_zone_outline(layer, corners)
+
+	# 2) Self-hex marker — small dot at actor center. Subtle, just a "you are
+	#    here" affordance. The boundary outline already implies "inside the
+	#    zone is where you stand"; a full hex highlight on self competes with it.
+	if _self_coord != Vector2i(-1, -1):
+		var center: Vector2 = layer.map_to_local(_self_coord)
+		draw_circle(center, 3.5, Color(UiTheme.SEM_HEAL.r, UiTheme.SEM_HEAL.g, UiTheme.SEM_HEAL.b, 0.9))
+
+	# 3) Hover-path preview (bonus-2). Drawn AFTER the zone outline (so the
+	#    line sits on top) but BEFORE attack/AoE outlines (so range overlays
+	#    aren't crossed by it). Skip when only one coord (player on themselves)
+	#    or empty.
+	if _hover_path.size() >= 2:
+		_draw_hover_path(layer)
+
+	# 4) Attack-range — per-hex thin outlines (paint_preview style).
+	var attack_line: Color = Color(_attack_color.r, _attack_color.g, _attack_color.b, 0.55)
+	for c in _attack_coords:
+		var cen: Vector2 = layer.map_to_local(c)
+		for i in 6:
+			draw_line(cen + corners[i], cen + corners[(i + 1) % 6],
+					attack_line, 1.5, true)
+
+	# 5) AoE preview — залитые гексы (051) + outline. Fill даёт честную
+	#    видимость всей зоны (Pillar 1), outline сохраняет границу при
+	#    наложениях. Alpha 0.22 fill — ниже tile content, alpha 0.80
+	#    outline — ярче, граница читается.
+	var aoe_fill: Color = Color(_zone_preview_color.r, _zone_preview_color.g, _zone_preview_color.b, 0.22)
+	var aoe_line: Color = Color(_zone_preview_color.r, _zone_preview_color.g, _zone_preview_color.b, 0.80)
+	for c in _zone_preview:
+		var cen: Vector2 = layer.map_to_local(c)
+		var poly := PackedVector2Array()
+		for i in 6:
+			poly.append(cen + corners[i])
+		draw_colored_polygon(poly, aoe_fill)
+		for i in 6:
+			draw_line(cen + corners[i], cen + corners[(i + 1) % 6],
+					aoe_line, 2.0, true)
+
+
+## 029 / req-3 + bonus-3 + B-003: outline ONLY the boundary edges of the zone.
+## For each cell in the zone, for each of its 6 polygon edges, draw the edge
+## IFF the cell that owns the point JUST PAST the edge midpoint is NOT in the
+## zone. Geometric — no dependency on TileSet's CellNeighbor enum semantics
+## (which differ between HEXAGON and HALF_OFFSET_SQUARE shapes — see B-003).
+##
+## Bonus-3: alpha modulates as a sine across BREATH_PERIOD_S. Mid-alpha is
+## high enough that the contour is always clearly visible — the breathing is
+## a "this is alive UI" cue, not a flash that loses information.
+##
+## Cost: O(N * 6) where N = zone size. Per edge: 1 local_to_map call (cheap
+## hash on the layer's tile grid). For typical reach (≤12 hexes) that's
+## ~72 probes per redraw — still cheap, called per frame for the breath.
+func _draw_zone_outline(layer: TileMapLayer, corners: PackedVector2Array) -> void:
+	if _zone_coords.is_empty():
+		return
+	# Breathing alpha — sine across the full period, centered on
+	# BREATH_MID_ALPHA, peak ±BREATH_AMP. Width 2.5 px reads as "intentional
+	# UI element" vs the 1.5 px brush outlines below.
+	var t: float = (_breath_phase / BREATH_PERIOD_S) * TAU
+	var alpha: float = clampf(BREATH_MID_ALPHA + BREATH_AMP * sin(t), 0.0, 1.0)
+	var outline: Color = Color(_zone_color.r, _zone_color.g, _zone_color.b, alpha)
+	for coord_v in _zone_coords.keys():
+		var coord: Vector2i = coord_v
+		var center: Vector2 = layer.map_to_local(coord)
+		for edge_idx in 6:
+			var v_a: Vector2 = corners[edge_idx]
+			var v_b: Vector2 = corners[(edge_idx + 1) % 6]
+			# Probe a point past the edge midpoint, away from the cell center.
+			# midpoint × 1.4 in local space lands a few pixels inside the
+			# neighbor cell. local_to_map then routes through the tileset's
+			# actual neighbor topology — works on HEXAGON and HALF_OFFSET_SQUARE
+			# alike (no enum mapping needed).
+			var probe: Vector2 = center + (v_a + v_b) * 0.5 * 1.4
+			var neighbor: Vector2i = layer.local_to_map(probe)
+			if neighbor == coord:
+				# Probe didn't escape the cell (very squashed tile geometry).
+				# Try a bigger reach as fallback.
+				neighbor = layer.local_to_map(center + (v_a + v_b) * 0.5 * 2.0)
+			if neighbor != coord and _zone_coords.has(neighbor):
+				continue   # internal edge — neighbor is also in the zone
+			# Boundary edge — draw it.
+			draw_line(center + v_a, center + v_b, outline, 2.5, true)
+
+
+## 029 / bonus-2: draw a thin polyline through hex centers along _hover_path.
+## Source coord is the actor (path[0]), terminal is the hovered hex
+## (path[-1]). Color: team-color for cohesion with the zone outline. Endpoint
+## gets a small filled disc to make "this is where you'd land" unambiguous.
+func _draw_hover_path(layer: TileMapLayer) -> void:
+	if _hover_path.size() < 2:
+		return
+	# Polyline. polyline draw call would also work but draws unsmoothed —
+	# explicit per-segment draw_line lets us pass antialiased=true cheaply.
+	var col: Color = Color(_zone_color.r, _zone_color.g, _zone_color.b, 0.85)
+	for i in range(1, _hover_path.size()):
+		var a: Vector2 = layer.map_to_local(_hover_path[i - 1])
+		var b: Vector2 = layer.map_to_local(_hover_path[i])
+		draw_line(a, b, col, 2.0, true)
+	# Endpoint marker — small filled disc at the destination so the eye lands
+	# on "I will be HERE" without parsing the polyline.
+	var end_pos: Vector2 = layer.map_to_local(_hover_path[_hover_path.size() - 1])
+	draw_circle(end_pos, 4.5, Color(_zone_color.r, _zone_color.g, _zone_color.b, 0.95))

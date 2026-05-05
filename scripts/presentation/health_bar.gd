@@ -18,6 +18,11 @@ extends Node2D
 
 var _actor: Actor
 var _preview_damage: int = 0
+# 051b: self-cast warning latch. Set true when this bar belongs to an actor
+# that is about to be hit by its OWN player's incoming spell (friendly fire
+# / self-AoE). Triggers a large red "!" above the bar so the player can't
+# miss the misclick before committing.
+var _self_warning: bool = false
 
 
 func _ready() -> void:
@@ -34,10 +39,14 @@ func _on_damaged(_id: StringName, _amount: int, _hp_left: int) -> void:
 
 
 ## Set predicted incoming damage. 0 to clear. Used by hover-preview UI.
-func set_preview_damage(amount: int) -> void:
-	if _preview_damage == amount:
+## 051b: optional `self_warning` — when true and damage>0, a large red "!"
+## is drawn above the bar (player about to hit themselves). Defaults to
+## false so existing enemy-preview callers keep their old visual.
+func set_preview_damage(amount: int, self_warning: bool = false) -> void:
+	if _preview_damage == amount and _self_warning == self_warning:
 		return
 	_preview_damage = amount
+	_self_warning = self_warning
 	queue_redraw()
 
 
@@ -67,9 +76,15 @@ func _draw() -> void:
 	# 2px wide so it reads at the new bar size.
 	draw_rect(Rect2(x, y_offset, width, height), team_outline, false, 2.0)
 	# Numbers above the bar — outline first for contrast on any background,
-	# then fill text.
+	# then fill text. 051: when a damage preview is active, render
+	# "current → after" so the player reads the predicted outcome of the
+	# next click directly. Otherwise fall back to "hp/max_hp".
 	var font: Font = ThemeDB.fallback_font
-	var text: String = "%d/%d" % [_actor.hp, _actor.max_hp]
+	var text: String
+	if _preview_damage > 0:
+		text = "%d → %d" % [_actor.hp, max(0, _actor.hp - _preview_damage)]
+	else:
+		text = "%d/%d" % [_actor.hp, _actor.max_hp]
 	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
 	var text_pos: Vector2 = Vector2(-size.x * 0.5, y_offset - 4.0)
 	draw_string_outline(font, text_pos, text,
@@ -77,3 +92,19 @@ func _draw() -> void:
 		UiTheme.WORLD_TEXT_OUTLINE_SIZE, UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	draw_string(font, text_pos, text,
 		HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, UiTheme.TEXT)
+	# 051b: self-cast warning glyph — large red "!" centred above the
+	# numbers. Drawn last so it sits on top. Roughly 2× the bar font size
+	# (caps at 32 px to stay sane on small camera zooms). Skipped when no
+	# preview to clear visually.
+	if _self_warning and _preview_damage > 0:
+		var warn_size: int = int(min(32, font_size * 2))
+		var warn_text: String = "!"
+		var warn_dim: Vector2 = font.get_string_size(warn_text, HORIZONTAL_ALIGNMENT_CENTER, -1, warn_size)
+		var warn_pos: Vector2 = Vector2(-warn_dim.x * 0.5, y_offset - height - 8.0)
+		# Outline thicker than normal world-text — this glyph is the loudest
+		# UI element on screen at this moment.
+		draw_string_outline(font, warn_pos, warn_text,
+			HORIZONTAL_ALIGNMENT_CENTER, -1, warn_size,
+			UiTheme.WORLD_TEXT_OUTLINE_SIZE + 2, UiTheme.WORLD_TEXT_OUTLINE_COLOR)
+		draw_string(font, warn_pos, warn_text,
+			HORIZONTAL_ALIGNMENT_CENTER, -1, warn_size, UiTheme.SEM_DAMAGE)

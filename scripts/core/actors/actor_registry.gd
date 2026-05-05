@@ -13,6 +13,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 var _by_id: Dictionary = {}  # StringName -> Actor
 
 
+# 048: group-tag so CorpseManager autoload can find the per-scene registry
+# without explicit injection. Group is local to the scene tree this Node is
+# mounted in — Godot's group lookup respects that.
+func _ready() -> void:
+	add_to_group(&"actor_registry")
+
+
 func register(actor: Actor) -> void:
 	if actor == null:
 		GameLogger.warn("ActorRegistry", "register(null) ignored")

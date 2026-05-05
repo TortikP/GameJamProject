@@ -1,4 +1,23 @@
-# Jam Project — Conventions
+<!--
+  ============================================================================
+  JAM-ERA ARCHIVE ABOVE — ACTUAL RULES BELOW
+  ============================================================================
+
+  Этот файл был расшарен публично как пример работы с Claude в режиме джема.
+  Та версия сохранена ниже как исторический артефакт. Текущие правила —
+  под маркером ACTUAL_RULES_BELOW в самом низу.
+
+  Claude: пролистай до маркера `<!-- ACTUAL_RULES_BELOW -->`. Всё выше — архив,
+  не используй как источник правил. Применяй только правила под маркером.
+  -->
+
+# Jam Project — Conventions (jam-era archive)
+
+> **Архивный документ.** Это снимок правил времён 72-часового джема. Сохранён
+> как публичный пример. Для актуальных правил — пролистай до маркера
+> `<!-- ACTUAL_RULES_BELOW -->` в конце файла.
+>
+> `PROJECT_INSTRUCTIONS.md` в корне репо тоже архивный — не использовать.
 
 ## Context
 Game jam project. 72 hours from Thursday 19:00. Team of 7 (6 in repo, +Katya outside).
@@ -42,6 +61,8 @@ Concrete:
 3. Autoloads (GameSpeed, EventBus, AudioDirector, UiTheme) are accessible from anywhere. Stateless logging via `GameLogger` — preload-only utility, see traps table.
 4. Cross-system communication goes through EventBus signals, not direct references.
 5. UI colors and spacing — only via `UiTheme.X`. No `Color(...)` inline in `scripts/presentation/`. New stylebox? `UiTheme.make_*_stylebox()`. New label kind? Extend `UiTheme.apply_label_kind`.
+6. Hex polygon geometry — via `HexGeometry.flat_top_polygon(layer.tile_set.tile_size)` (preload `scripts/infrastructure/hex_geometry.gd`). No hardcoded `RADIUS = 60.0` in overlays — `tile_size` in the .tres is the single source of truth, polygons inscribe into the tile bbox at draw time. See spec 022.
+7. **One TileSet — `scenes/arena/tilesets/hex_terrain.tres`** (`tile_shape = HEXAGON`, `tile_size = Vector2i(128, 80)`). Source 0 = `godmode_atlas.png` (Katya's hand-drawn green grass tile at 128×80 — the default visible floor everywhere; tagged `tile_kind = &"forest"` for legacy reasons). Source 1 = `hex_atlas.png` — 8 painterly variant tiles at 128×80 stitched horizontally: 2× `forest`, 3× `heaven`, 2× `lava` (effect_id `damage_zone`), 1× `ice`. Used in editor for marking tile_kind variations and for visually mixing biomes. All scenes (godmode procedural sandbox, map editor, every loaded level) reference this single .tres file. Per 032: `scenes/dev/godmode_terrain.tres` was deleted in the consolidation PR — adding a second tileset re-introduces shape-mismatch bugs (B-003 origin) and divergent neighbour topology (`*_SIDE` enums). Don't.
 
 ### Timing
 5. NO hardcoded timer values. Use `GameSpeed.wait(section, key)` or read
@@ -53,6 +74,13 @@ Concrete:
    Programmers build engines; designers fill data files.
 8. Don't hardcode content in GDScript. If a modifier needs new code, that's
    a new modifier *type*, not a new modifier.
+9. Don't hardcode player-facing text anywhere. Visible strings in scenes,
+   scripts, data files, UI, popups, toasts, tooltips, maps, enemies, skills,
+   and dialogues must use stable localization keys that exist in both
+   `data/localization/en.json` and `data/localization/ru.json`. Language-neutral
+   values like pure numbers, timers, icon glyphs, ids, paths, and debug-only
+   internal tokens are the only normal exceptions. See
+   `data/localization/README.md`.
 
 ### Naming
 - Files: `snake_case.gd`, `snake_case.tscn`
@@ -116,6 +144,15 @@ Append yourself when you start a feature.
 | 009-ui-kit (spec; Phase 4 blocked on 007 + 008) | Andrey |
 | 018-tile-objects (data class + registry, HexGrid wiring, EventBus signals) | Sergey (spec) → Andrey (impl) |
 | 021-skill-system-v2 (loc keys, mood, level scaling, sound/animation, entity→actor) | Egor |
+| 024-wave-editor (LevelData waves, WaveController, WaveTimeline, RunScore, push-out) | Andrey |
+| 032-controller-refactor (godmode_controller split into 8 modules, tileset consolidation) | Andrey |
+| 038-mood-counter (player narrative tracker driven by equipped skills, JSON mood vocab rename) | Egor |
+| 041-effect-create-entity (CreateEffect impl: object/actor summon + summoned status) | Egor |
+| 039-dialogue-triggers (LevelData triggers, LevelDialogueDirector, WaveTimeline markers, DialogueTriggerPanel editor) | Andrey |
+| 040-wave-skill-choice (per-wave skill_offer schema, SkillOfferController autoload, modal + card UI, WavePanel section, WaveTimeline markers) | Andrey |
+| 045-intro-cutscene (CutscenePlayer + IntroDirector autoloads, office_intro level, is_intro semantics) | Andrey |
+| 048-corpse-absorption (CorpseManager autoload, Corpse scene, GodmodeCamera multi-layer shake, WaveController final-wave hook, biome tint) | Egor |
+| 049-ux-rehaul (HexTooltip, EnemyDetailsPanel, EnemyMovePath, SkillFormatter human, TelegraphHex icon, CastRangeOverlay grey-out, kill ActorInspector + selection) | Egor |
 
 ## Git workflow
 
@@ -185,3 +222,134 @@ When we hit a new trap, append a row here in the same PR that fixes it.
 | **`_ready` order trap.** Godot вызывает `_ready` снизу-вверх по дереву сцены (дети раньше родителей), а среди siblings — в порядке появления в .tscn. Если node A в `_ready` вызывает метод node B из соседнего sub-tree который идёт **позже** в дереве — у B `@onready` ещё `null`. Краш: `Invalid assignment of property 'text' on a base object of type 'Nil'`. Реальный пример: `GodmodeController` (дочерний root'а, идёт раньше) вызывает `PlayerStatusPanel.bind_player()` из `HUD/` (идёт позже) — у PSP `@onready var _name_label` ещё не resolved. | Защита на стороне callee: первой строкой `if not is_node_ready(): ready.connect(method.bind(args), CONNECT_ONE_SHOT); return`. Это работает для любых вызовов из чужого `_ready` без перестройки порядка нод в .tscn. Не использовать `call_deferred` в caller'е — это перенесёт проблему на следующий call-site. |
 | `cat > file.gd << 'HEREDOC'` для записи GDScript — bash single-quoted heredoc сохраняет `\\n` как литеральный `\n`, `\\"` как `\"`, итого escape-последовательности в строках GDScript ломаются и Godot выдаёт Parse error. | Писать GDScript файлы через `python3 -c "with open(...) as f: f.write(content)"` или через `create_file` tool. Никаких bash heredoc для .gd файлов. |
 | `Array[CustomClass]` (типизованный массив с пользовательским классом) — Godot 4.6 при присваивании `arr[i] = value` делает строгую проверку, и сюрприз: **даже plain `Array` иногда отказывается принять `Resource`-подкласс**, если значение пришло через Variant-границу (`Dictionary.get()`, duck-typed call на `Node` без `as`-каста, параметр функции с типом `CustomClass`). Падает с `Invalid assignment of index 'N' (on base: 'Array' or 'Array[X]') with value of type 'Resource (X)'`. | Кувалда: `var _store: Dictionary = {}` вместо Array. У словаря значения не типизуются совсем. Доступ `_store[i] = v` / `_store.get(i, null)`. На границах функций — параметры без типа (`func set(i: int, v) -> void`) либо явно `Variant`. Принимаем потерю автокомплита. Для джемного кода — это меньшее зло. |
+
+<!-- ============================================================================ -->
+<!-- ACTUAL_RULES_BELOW                                                           -->
+<!-- ============================================================================ -->
+
+# Conventions — actual rules
+
+> Это раздел с **текущими** правилами. Всё выше — архив джем-эпохи, держится для
+> исторической справки и для людей, пришедших по старым публичным ссылкам.
+> При работе над проектом используй только правила из этого раздела.
+
+## Контекст
+
+Пост-джем расширенная разработка. Команда: 7 человек (Андрей, Егор, Никита, Сергей, Алексей, Стасян, Марк) + Катя через файлообмен. Сроков нет, идёт работа на качество.
+
+Stack: Godot 4.6.2 + GDScript, JSON / .tres для контента. Десктоп-сборки.
+
+## Где какая память живёт
+
+Источники истины — **в этом порядке** при поиске информации:
+
+- **`docs/design/`** — концептуальная память: почему так. Содержит:
+  - `PILLARS.md` — дизайн-пилларсы (фильтр для всех фич)
+  - `DECISIONS.md` — журнал ратифицированных решений (не редактируется, отменяется новой записью)
+  - `OPEN-QUESTIONS.md` — открытые вопросы с уникальными `Q-NN`
+  - `GLOSSARY.md` — стабильные термины
+  - `VISION.md`, `REFERENCES.md`, `aspects.md` — концепция, отсылки, конкретные дизайн-доки
+- **`docs/FEATURES.md`** — реестр фич с текущим статусом (lazy backfill — заполняется когда трогаем фичу).
+- **`docs/agents/`** — система агентов с роутингом через `@`-меншны. См. ниже.
+- **`planning/plan.md`** — текущий план спеков и задач.
+- **`specs/NNN-name/`** — исторический лог решений по конкретным фичам (что планировали в момент X).
+- **Этот файл (`CLAUDE.md`)** — конвенции, которые не меняются от фичи к фиче (архитектура, naming, git workflow).
+
+## Система агентов
+
+Агент — `.md`-файл в `docs/agents/`, меняющий фрейм Claude (тон, фокус, запреты, обязанности) под конкретный тип задачи. Адресуется через `@<имя>` в любом месте сообщения:
+
+```
+@design-keeper зафиксируй, что мы решили скрывать прогресс аспектов
+```
+
+Полное описание системы — `docs/agents/README.md`. Что важно знать всегда:
+
+- **Явный тэг `@<имя>`** — Claude читает соответствующий `.md`-файл и работает в этом фрейме до конца ответа, потом возвращается в дефолтный режим («мозг»).
+- **Без тэга, но запрос ложится на агента** — Claude спрашивает: «как @X? или @Y?».
+- **Без тэга и без явного матча** — Claude отвечает как мозг (этот файл + `docs/design/`).
+- **Текущие агенты** — список в `docs/agents/README.md`. Сейчас рабочий: `@design-keeper`.
+
+## Конвенция «Обсуждали:» вместо «Овнер:»
+
+Овнеры в спеках, доках и решениях **не указываются**. Вместо этого — поле «Обсуждали:» с маркером `(идея)` для автора инициативы. Пример:
+
+```
+Обсуждали: Андрей (идея), Сергей, Никита.
+```
+
+Овнерство закрепляется только по явному запросу Андрея или мозга. Каждый берёт задачу которая нравится. Полное описание — DECISIONS, запись 2026-05-05.
+
+## Hard rules
+
+Эти правила пережили джем без изменений и продолжают действовать. Полные секции с деталями — выше в архивной части (см. «## Hard rules»). Кратко:
+
+### Архитектура
+- `scripts/core/` ничего не знает о текстурах, аудио, сценах.
+- `scripts/presentation/` зависит от core, не наоборот.
+- Cross-system communication — через EventBus сигналы, не прямые ссылки.
+- Autoloads (GameSpeed, EventBus, AudioDirector, UiTheme) доступны отовсюду. Логирование — через `GameLogger` (preload, не autoload).
+- UI цвета и spacing — только через `UiTheme.X`. Никаких `Color(...)` inline в `scripts/presentation/`.
+- Геометрия гексов — через `HexGeometry.flat_top_polygon(layer.tile_set.tile_size)`. Никаких хардкоженных `RADIUS` в overlay'ях.
+- **Один TileSet** — `scenes/arena/tilesets/hex_terrain.tres`. Не заводить второй (см. spec 032 про последствия).
+
+### Тайминг
+- Никаких хардкоженных таймеров. Только `GameSpeed.wait(section, key)` или `GameSpeed.get_value(...)`.
+- Все tunables живут в `config/game_speed.cfg`. F5 перезагружает live.
+
+### Контент
+- Modifiers, enemies, spells, dialogues — JSON в `data/`. Программисты пишут движки, дизайнеры заполняют данные.
+- Не хардкодить контент в GDScript. Если модификатору нужен новый код — это новый *тип* модификатора.
+- Не хардкодить player-facing текст. Все видимые строки — через локализационные ключи в `data/localization/{en,ru}.json`. См. `data/localization/README.md`.
+
+### Naming
+- Файлы: `snake_case.gd`, `snake_case.tscn`
+- Классы (`class_name`): `PascalCase`
+- Сигналы: `snake_case` past tense (`battle_started`, `wave_spawned`)
+- Константы: `SCREAMING_SNAKE_CASE`
+- Приватные члены: `_leading_underscore`
+
+### Accepted compromises (legacy джем-долг)
+
+`Actor extends Node2D` и `HexGrid extends Node2D` нарушают «core knows nothing of presentation». Это grandfathered долг, не лицензия расширять. Новый код в `scripts/core/` не должен вводить дополнительные Node2D зависимости или презентационные ссылки.
+
+## Git workflow
+
+Two-tier branching:
+- **`main`** — protected. Прямой push только Андрей и Егор. Стабильный, deployable. PR в main только из `staging`.
+- **`staging`** — интеграционная ветка. Feature PR'ы мерджатся сюда. Ревью обязательно.
+- **`<user>/<short-name>`** — индивидуальная работа. Создаётся от `staging`, мерджится через PR. `<user>` — lowercase имя автора.
+
+Поток:
+1. `git checkout staging && git pull && git checkout -b <user>/your-thing`
+2. Работаешь, коммитишь, пушишь.
+3. PR `<user>/your-thing → staging`. Ревью человеком (Claude может помочь, человек подписывает).
+4. Периодически: Андрей или Егор открывает PR `staging → main`, smoke-tests, мерджит.
+
+Claude push access: только в `<user>/*` ветки и PR в `staging`. Никогда напрямую в main.
+
+## Don't
+
+- Не рефакторить файлы вне текущей задачи. Если cruft мешает — отдельный `chore:` коммит или запись в tech-debt.
+- Не переименовывать публичные API без согласия claimer'а модуля.
+- Не пушить в main напрямую.
+- Не добавлять библиотеки/аддоны без team agreement.
+- Не байпасить GameSpeed для таймингов.
+- Не байпасить EventBus для cross-module коммуникации.
+- Не хардкодить контент в скриптах.
+- Не предлагать абстракции «на будущее». Если есть второй конкретный use-case — обсудим.
+
+## Don't (для не-кодеров)
+
+- Не редактировать код напрямую. Редактировать JSON в `data/`, спросить программиста если нужен новый *тип* модификатора.
+- Не коммитить большие неоптимизированные ассеты. Сжать спрайты перед коммитом.
+
+## Claude usage
+
+- Каждая сессия Claude начинается с чтения этого файла (актуальной части под маркером) и `planning/plan.md`.
+- Для незнакомых файлов Claude читает их перед предложением изменений.
+- Network constraint: из контейнера Claude `github.com` работает (git ops), но `api.github.com` заблокирован. PR создание/мердж делает человек в браузере по URL'у который Claude печатает из `git push` output.
+
+## Known Godot 4.6 traps
+
+Список traps живёт в архивной части файла выше (см. «## Known Godot 4.6 traps»). Список актуален — Godot 4.6 не сменился, traps те же. Когда ловим новый — добавляем строку в той же таблице тем же PR'ом, который трап чинит.

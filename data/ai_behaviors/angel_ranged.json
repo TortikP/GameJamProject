@@ -1,0 +1,33 @@
+{
+  "id": "angel_ranged",
+  "rules": [
+	{
+	  "condition": {
+		"kind": "all_of",
+		"children": [
+		  {
+			"kind": "enemy_in_range",
+			"distance": 4
+		  },
+		  {
+			"kind": "aoe_net_positive",
+			"check_radius": 1
+		  }
+		]
+	  },
+	  "target_selector": {
+		"kind": "nearest_enemy"
+	  },
+	  "tag_priority": [
+        "damage"
+	  ],
+	  "min_skill_count": 1
+	}
+  ],
+  "movement_policy": {
+	"kind": "maintain_range",
+	"desired_min": 2,
+	"desired_max": 3
+  },
+  "fallback_skill_id": ""
+}

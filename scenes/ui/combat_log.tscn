@@ -1,11 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://combat_log_001"]
+[gd_scene format=3 uid="uid://jbixtkfb2hc1"]
 
-[ext_resource type="Script" path="res://scripts/presentation/combat_log.gd" id="1_cl"]
+[ext_resource type="Script" uid="uid://cbmyixjyjy1pp" path="res://scripts/presentation/combat_log.gd" id="1_cl"]
 
-[node name="CombatLog" type="PanelContainer"]
-script = ExtResource("1_cl")
+[node name="CombatLog" type="PanelContainer" unique_id=2112040482]
 visible = false
-mouse_filter = 2
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -17,15 +15,21 @@ offset_right = -16.0
 offset_bottom = -120.0
 grow_horizontal = 0
 grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_cl")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1773077952]
+layout_mode = 2
 
-[node name="Title" type="Label" parent="VBox"]
-text = "Combat Log"
+[node name="Title" type="Label" parent="VBox" unique_id=1433473163]
+layout_mode = 2
+text = "ui_combat_log_title_text"
 
-[node name="Scroll" type="ScrollContainer" parent="VBox"]
+[node name="Scroll" type="ScrollContainer" parent="VBox" unique_id=1181486488]
+layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Lines" type="VBoxContainer" parent="VBox/Scroll"]
+[node name="Lines" type="VBoxContainer" parent="VBox/Scroll" unique_id=326961581]
+layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2

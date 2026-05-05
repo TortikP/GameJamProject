@@ -1,0 +1,40 @@
+{
+  "id": "fire_slime_magma_spit",
+  "name": "fire_slime_magma_spit_name",
+  "tooltip": "fire_slime_magma_spit_tooltip",
+  "desc": "fire_slime_magma_spit_desc",
+  "icon": "icons/skills/fire_slime_magma_spit.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "ranged",
+    "debuff",
+    "damage"
+  ],
+  "mood": [
+    "burnout"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "fire_slime_magma_spit_ranged_damage",
+      "sound_start": "fire_slime_magma_spit_ranged_damage_sound_start",
+      "collision_effect": "ranged_burnout",
+      "sound_end": "fire_slime_magma_spit_ranged_damage_sound_end",
+      "animation": "cast_burnout",
+      "target": {
+        "kind": "hex",
+        "range": 4
+      },
+      "area": {
+        "kind": "zone_circle",
+        "radius": 1
+      },
+      "effects": [
+        {
+          "damage": 12,
+          "status_id": "burning(2,3,3)"
+        }
+      ]
+    }
+  ]
+}

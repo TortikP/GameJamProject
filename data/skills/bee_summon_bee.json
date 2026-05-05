@@ -1,0 +1,37 @@
+{
+  "id": "bee_summon_bee",
+  "name": "bee_summon_bee_name",
+  "tooltip": "bee_summon_bee_tooltip",
+  "desc": "bee_summon_bee_desc",
+  "icon": "icons/skills/bee_summon_bee.png",
+  "cooldown": 5,
+  "behaviour_tags": [
+    "summon"
+  ],
+  "mood": [
+    "ascended"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bee_summon_bee_summon_bee",
+      "sound_start": "bee_summon_bee_summon_bee_sound_start",
+      "collision_effect": "summon_ascended",
+      "sound_end": "bee_summon_bee_summon_bee_sound_end",
+      "animation": "cast_ascended",
+      "target": {
+        "kind": "hex",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "entity_id": "bee(-1)"
+        }
+      ]
+    }
+  ]
+}

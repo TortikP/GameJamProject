@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://gameedit_lvlrow035"]
+
+[ext_resource type="Script" path="res://scripts/presentation/dev/game_editor_level_row.gd" id="1_row"]
+
+[node name="LevelRow" type="PanelContainer"]
+script = ExtResource("1_row")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+
+[node name="IndexLabel" type="Label" parent="HBox"]
+custom_minimum_size = Vector2(36, 0)
+text = "1."
+
+[node name="MapOption" type="OptionButton" parent="HBox"]
+custom_minimum_size = Vector2(220, 0)
+
+[node name="NameInput" type="LineEdit" parent="HBox"]
+custom_minimum_size = Vector2(180, 0)
+placeholder_text = "ui_game_editor_level_row_name_input_placeholder_text"
+
+[node name="CutsceneInput" type="LineEdit" parent="HBox"]
+custom_minimum_size = Vector2(140, 0)
+placeholder_text = "ui_game_editor_level_row_cutscene_input_placeholder_text"
+
+[node name="IntroCheck" type="CheckBox" parent="HBox"]
+text = "ui_game_editor_level_row_intro_check_text"
+
+[node name="EditButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(56, 0)
+text = "ui_game_editor_level_row_edit_button_text"
+tooltip_text = "ui_game_editor_level_row_edit_button_tooltip_text"
+
+[node name="UpButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(28, 0)
+text = "↑"
+
+[node name="DownButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(28, 0)
+text = "↓"
+
+[node name="RemoveButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(28, 0)
+text = "✕"

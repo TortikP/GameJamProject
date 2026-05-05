@@ -1,0 +1,16 @@
+{
+  "id": "stapler",
+  "name": "stapler_name",
+  "desc": "stapler_desc",
+  "sprite": "assets/sprites/enemies/stapler.png",
+  "max_hp": 35,
+  "team": "enemy",
+  "speed": 3,
+  "skills": [
+	"stapler_staple_shot",
+	"stapler_paper_jam",
+    "stapler_under_desk_jump"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "stapler_staple_shot"
+}

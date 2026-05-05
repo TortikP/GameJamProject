@@ -24,6 +24,12 @@ var _runtime_hp: Dictionary = {}
 # Populated by _on_tile_object_actor_exited; ticked down each player_turn_ended.
 var _linger_stack: Dictionary = {}
 
+# 041: coord (Vector2i) -> int turns_left. >0 ticks down each player_turn_ended;
+# -1 means infinite (never ticks). Populated by add_summon_timer (called from
+# CreateEffect on object summon). Cleared on natural expire OR on
+# tile_object_destroyed (cleanup listener — handles combat-destroy before expire).
+var _summon_timers: Dictionary = {}
+
 
 # ────────────────────────────────────────────────────────────────────────────
 # Public API
@@ -83,6 +89,9 @@ func _connect_signals() -> void:
 	EventBus.tile_entered.connect(_on_tile_entered)
 	EventBus.player_turn_ended.connect(_on_player_turn_ended)
 	EventBus.tile_object_actor_exited.connect(_on_tile_object_actor_exited)
+	# 041: clean up summon timers when object is destroyed (combat or other path)
+	# before its summoned timer expires — avoids double-destroy on later tick.
+	EventBus.tile_object_destroyed.connect(_on_tile_object_destroyed_summon_cleanup)
 
 
 ## applies_on_enter: actor stepped onto tile -> apply behavior_effect_id once.
@@ -102,10 +111,12 @@ func _on_tile_entered(actor_id: StringName, coord: Vector2i) -> void:
 
 
 ## Fired once per player action. Drives: applies_on_turn_end, aura, linger tick.
+## 041: also ticks summon timers for transient objects.
 func _on_player_turn_ended(_turn: int) -> void:
 	_tick_turn_end_effects()
 	_tick_aura_effects()
 	_tick_linger_stacks()
+	_tick_summon_timers()
 
 
 ## linger push: actor left a tile whose object has linger_effect_id set.
@@ -274,3 +285,52 @@ func _team_matches(actor: Actor, eff: Dictionary) -> bool:
 	if applies_to.is_empty():
 		return true	# no filter = all teams
 	return applies_to.has(str(actor.team))
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 041: Summon timers (transient tile objects)
+# ────────────────────────────────────────────────────────────────────────────
+
+## Public — called by CreateEffect after grid.set_tile_object_id(coord, obj_id).
+## duration > 0: object lives N turns then auto-destroys.
+## duration < 0: infinite (no decrement, no auto-destroy). Stored for completeness.
+## duration == 0: invalid, ignored with warn (parser already filters).
+func add_summon_timer(coord: Vector2i, duration: int) -> void:
+	if duration == 0:
+		GameLogger.warn("TileObjectResolver", "add_summon_timer: duration=0 invalid for %s — ignored" % str(coord))
+		return
+	_summon_timers[coord] = duration
+	GameLogger.info("TileObjectResolver", "summon timer set at %s for %d turns" % [str(coord), duration])
+
+
+## Decrement all summon timers each player_turn_ended. On 0, destroy via
+## the standard _destroy_object path (emits tile_object_destroyed, fires
+## on_destroy_* chains). Self-cleanup on the destroyed signal keeps the
+## dict consistent if combat reaches the object first.
+func _tick_summon_timers() -> void:
+	var done: Array[Vector2i] = []
+	for coord_v: Variant in _summon_timers.keys():
+		var c: Vector2i = coord_v
+		var t: int = int(_summon_timers[c])
+		if t < 0:
+			continue   # infinite — never decrement
+		t -= 1
+		if t <= 0:
+			done.append(c)
+		else:
+			_summon_timers[c] = t
+	for c: Vector2i in done:
+		_summon_timers.erase(c)
+		var obj_id: StringName = _grid.get_tile_object_id(c)
+		if obj_id == &"":
+			continue   # already destroyed by combat; cleanup-listener got it first
+		var obj: TileObject = _object_registry.get_object(obj_id)
+		GameLogger.info("TileObjectResolver", "summoned object %s at %s expired" % [obj_id, str(c)])
+		_destroy_object(c, obj)
+
+
+## Cleanup: object destroyed (combat or other path) before its summon timer
+## expired. Erase the entry so _tick_summon_timers doesn't fire a second
+## destroy on a now-empty coord.
+func _on_tile_object_destroyed_summon_cleanup(coord: Vector2i, _obj_id: StringName) -> void:
+	_summon_timers.erase(coord)

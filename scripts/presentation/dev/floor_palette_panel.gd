@@ -1,7 +1,7 @@
 extends PanelContainer
 ## FloorPalettePanel — pick a floor tile to paint. Dropdown switches between
-## available TileSets (godmode_terrain / hex_terrain); each TileSet's tiles
-## render as a button grid. Erase mode is a separate button.
+## available TileSets (post-032: only hex_terrain.tres ships); each TileSet's
+## tiles render as a button grid. Erase mode is a separate button.
 ##
 ## Right-click on any tile button opens a "Replace all" popup, listing every
 ## OTHER tile_kind currently in the level — picking one swaps every painted
@@ -16,10 +16,15 @@ extends PanelContainer
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
+const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
-	{"label": "Godmode Terrain", "path": "res://scenes/dev/godmode_terrain.tres"},
-	{"label": "Hex Terrain",     "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
+	# Per 032-controller-refactor: single tileset post-refactor — hex_terrain.tres
+	# (HEXAGON shape, 128×80 cells). Source 0 = godmode_atlas (Katya's grass tile,
+	# the default everywhere). Source 1 = hex_atlas (placeholder palette:
+	# grass/wall/swamp/acid/fountain). Old levels referencing godmode_terrain.tres
+	# won't load anymore — that file was deleted in the same PR.
+	{"label": "Hex Terrain", "path": "res://scenes/arena/tilesets/hex_terrain.tres"},
 ]
 
 const ICON_SIZE: Vector2 = Vector2(48, 48)
@@ -63,21 +68,26 @@ func _build_ui() -> void:
 	add_child(vbox)
 
 	var header := Label.new()
-	header.text = "Floor"
+	header.text = Localization.t("ui_floor_palette_title", "Floor")
 	UiTheme.apply_label_kind(header, "header")
 	vbox.add_child(header)
+	_install_drag(header)
 
-	# Tileset dropdown
+	# Tileset dropdown — only useful when there's more than one option.
+	# Hidden in jam config (godmode-only); re-shows automatically if
+	# TILESETS gains entries.
 	_tileset_dropdown = OptionButton.new()
 	for i in TILESETS.size():
-		_tileset_dropdown.add_item(TILESETS[i].label, i)
+		var label := String(TILESETS[i].label)
+		_tileset_dropdown.add_item(Localization.t("ui_floor_palette_tileset_%s" % label.to_lower().replace(" ", "_"), label), i)
 	_tileset_dropdown.item_selected.connect(_on_tileset_selected)
 	UiTheme.apply_button_styling(_tileset_dropdown)
+	_tileset_dropdown.visible = TILESETS.size() > 1
 	vbox.add_child(_tileset_dropdown)
 
 	# Erase button
 	_erase_btn = Button.new()
-	_erase_btn.text = "Erase"
+	_erase_btn.text = Localization.t("ui_floor_palette_erase", "Erase")
 	_erase_btn.toggle_mode = true
 	_erase_btn.pressed.connect(_on_erase_pressed)
 	UiTheme.apply_button_styling(_erase_btn)
@@ -100,10 +110,13 @@ func _on_tileset_selected(idx: int) -> void:
 
 
 func _on_erase_pressed() -> void:
-	# Untoggle other tile buttons (visual feedback only)
+	# Untoggle other tile buttons (visual feedback only). set_pressed_no_signal
+	# prevents Godot from re-firing 'pressed' on the buttons we're resetting,
+	# which in toggle-mode can cascade into unexpected mode flips at the
+	# controller (seen in 023: every tile-click would re-trigger erase mode).
 	for child in _tile_grid.get_children():
 		if child is Button:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	erase_picked.emit()
 
 
@@ -152,18 +165,23 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 			btn.tooltip_text = String(tk)
 
 	UiTheme.apply_button_styling(btn)
+	btn.set_meta("source_id", source_id)
+	btn.set_meta("atlas_coord", atlas_coord)
 	btn.pressed.connect(_on_tile_pressed.bind(source_id, atlas_coord, btn))
 	btn.gui_input.connect(_on_tile_gui_input.bind(source_id, atlas_coord))
 	return btn
 
 
 func _on_tile_pressed(source_id: int, atlas: Vector2i, btn: Button) -> void:
-	# Untoggle erase + every other button (visual single-select)
+	# Untoggle erase + every other tile button (visual single-select).
+	# set_pressed_no_signal so the un-press doesn't re-emit `pressed` on the
+	# Erase button — that was cascading into ERASING_FLOOR mode at the
+	# controller every time a tile was clicked.
 	if _erase_btn != null:
-		_erase_btn.button_pressed = false
+		_erase_btn.set_pressed_no_signal(false)
 	for child in _tile_grid.get_children():
 		if child is Button and child != btn:
-			(child as Button).button_pressed = false
+			(child as Button).set_pressed_no_signal(false)
 	tile_picked.emit(source_id, atlas)
 
 
@@ -191,14 +209,14 @@ func _show_replace_menu(target_source: int, target_atlas: Vector2i) -> void:
 		var label: String = _label_for_atlas(f.source_id, f.atlas_coord)
 		seen[key] = [f.source_id, f.atlas_coord, label]
 	if seen.is_empty():
-		EventBus.ui_toast_requested.emit("Нечего заменять — других типов нет", 1.5, &"info")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_floor_replace_none", "Nothing to replace — no other types"), 1.5, &"info")
 		return
 	var menu := PopupMenu.new()
 	add_child(menu)
 	var entries: Array = seen.values()
 	for i in entries.size():
 		var entry: Array = entries[i]
-		menu.add_item("Заменить все «%s» на этот" % entry[2], i)
+		menu.add_item(Localization.tf("ui_floor_replace_menu_item", [entry[2]], "Replace all \"%s\" with this"), i)
 	menu.id_pressed.connect(_on_replace_picked.bind(entries, target_source, target_atlas, menu))
 	menu.popup_hide.connect(menu.queue_free)
 	menu.popup(Rect2i(DisplayServer.mouse_get_position(), Vector2i.ZERO))
@@ -224,9 +242,10 @@ func _on_replace_picked(item_id: int, entries: Array, to_source: int,
 			if f.source_id == from_source and f.atlas_coord == from_atlas:
 				count += 1
 		var ok: bool = await confirm.ask(
-			"Заменить тайлы?",
-			"Заменить %d тайлов «%s» на «%s»?" % [count, from_label, to_label],
-			"Заменить", "Отмена", false)
+			Localization.t("ui_floor_replace_confirm_title", "Replace tiles?"),
+			Localization.tf("ui_floor_replace_confirm_body", [count, from_label, to_label], "Replace %d tiles \"%s\" with \"%s\"?"),
+			Localization.t("ui_floor_replace_confirm", "Replace"),
+			Localization.t("ui_common_cancel", "Cancel"), false)
 		if not ok:
 			return
 	replace_all_requested.emit(from_source, from_atlas, to_source, to_atlas)
@@ -244,3 +263,52 @@ func _label_for_atlas(source_id: int, atlas: Vector2i) -> String:
 			if tk != null and String(tk) != "":
 				return String(tk)
 	return "%d:%d,%d" % [source_id, atlas.x, atlas.y]
+
+
+func _install_drag(handle: Control) -> void:
+	var dragger := DraggablePanel.new()
+	add_child(dragger)
+	dragger.setup(self, handle)
+
+
+# ── Public selection API (eyedropper / 1-9 quick select) ───────────────────
+
+## Programmatically select the tile button matching (source_id, atlas).
+## Toggles the button as if user clicked it — including emitting tile_picked
+## so the controller switches mode. No-op if no button matches.
+func select_tile(source_id: int, atlas: Vector2i) -> void:
+	if _tile_grid == null:
+		return
+	for child in _tile_grid.get_children():
+		if not (child is Button):
+			continue
+		var btn := child as Button
+		if int(btn.get_meta("source_id", -1)) != source_id:
+			continue
+		if Vector2i(btn.get_meta("atlas_coord", Vector2i(-1, -1))) != atlas:
+			continue
+		# Found — simulate press.
+		btn.button_pressed = true
+		_on_tile_pressed(source_id, atlas, btn)
+		return
+
+
+## Quick palette select — pick the N-th tile button (0-indexed). Out of range
+## → no-op. Erase button is NOT counted; only the actual tile grid.
+func select_nth(idx: int) -> void:
+	if _tile_grid == null or idx < 0:
+		return
+	var i: int = 0
+	for child in _tile_grid.get_children():
+		if not (child is Button):
+			continue
+		if i == idx:
+			var btn := child as Button
+			var src_id: int = int(btn.get_meta("source_id", -1))
+			var atlas: Vector2i = Vector2i(btn.get_meta("atlas_coord", Vector2i(-1, -1)))
+			if src_id < 0:
+				return
+			btn.button_pressed = true
+			_on_tile_pressed(src_id, atlas, btn)
+			return
+		i += 1

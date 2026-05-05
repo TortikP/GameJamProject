@@ -1,0 +1,60 @@
+{
+  "_meta": {
+	"doc": "Ranged context — radial impact ring on victim.Body. impact_ring.gdshader expands a ring outward from sprite center while fading. Mood-tuned: tranquility = thinner slow ripple, burnout = sharp aggressive shock, ascended = wide gold halo, neutral = clean white reference.",
+	"kind": "body",
+	"shader": "res://assets/shaders/fx/impact_ring.gdshader",
+	"uniforms": {
+	  "ring_color": "RGBA tint",
+	  "ring_width": "shock band thickness [0.02, 0.3]",
+	  "max_radius": "final ring radius [0.3, 0.8]"
+	}
+  },
+
+  "ranged_neutral": {
+	"shader": "res://assets/shaders/fx/impact_ring.gdshader",
+	"kind": "body",
+	"duration_ms": 220,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 1.0, 1.0, 1.0],
+	  "ring_width": 0.08,
+	  "max_radius": 0.6
+	}
+  },
+
+  "ranged_tranquility": {
+	"shader": "res://assets/shaders/fx/impact_ring.gdshader",
+	"kind": "body",
+	"duration_ms": 280,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [0.55, 0.9, 1.0, 1.0],
+	  "ring_width": 0.06,
+	  "max_radius": 0.55
+	}
+  },
+
+  "ranged_ascended": {
+	"shader": "res://assets/shaders/fx/impact_ring.gdshader",
+	"kind": "body",
+	"duration_ms": 240,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 0.92, 0.55, 1.0],
+	  "ring_width": 0.10,
+	  "max_radius": 0.7
+	}
+  },
+
+  "ranged_burnout": {
+	"shader": "res://assets/shaders/fx/impact_ring.gdshader",
+	"kind": "body",
+	"duration_ms": 200,
+	"uses_direction": false,
+	"uniforms": {
+	  "ring_color": [1.0, 0.4, 0.2, 1.0],
+	  "ring_width": 0.10,
+	  "max_radius": 0.6
+	}
+  }
+}

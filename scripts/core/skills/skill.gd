@@ -5,8 +5,16 @@ extends Resource
 ## cast() executes abilities in array order. Each ability resolves its own targets
 ## at execution time (not at skill-start) — enabling multi-ability combos like vampirism.
 ##
-## tick_cooldown(n) is called by TurnManager each turn. Cooldown ticks at
-## "end of caster's turn" by convention — clarified once TurnManager integrates.
+## tick_cooldown(n) is called once per round by
+## godmode_controller._tick_all_skills (driven from _on_world_turn_ended)
+## for every live Actor. See spec 031-skill-cooldown-fix.
+##
+## 031 phase 4 — first-tick absorption: world_turn_ended fires in the
+## same TurnManager.advance() that caps off the cast turn, so the very
+## next tick after cast() lands inside the *cast turn itself* and would
+## erase one round of cooldown. _skip_next_tick=true on cast absorbs
+## exactly that tick, so cooldown=N means N rounds of being unavailable
+## (the design intent in JSON), not N-1.
 ##
 ## 021 additions (021-skill-system-v2):
 ##  - name / tooltip / desc — localization keys (raw strings; resolution out of scope).
@@ -15,6 +23,24 @@ extends Resource
 ##  - level — power axis. Propagated into Ability.cast and predicted_damage_to.
 ##    Components (target/area/effect) self-react via apply_level(level) on a duplicate
 ##    before resolve/apply — base resource stays untouched.
+##
+## 026 additions (026-skill-system-v3):
+##  - icon — StringName id for future IconDB. Stored, not dispatched.
+##  - cast(caster, ctxs: Array[Dictionary]) — per-ability ctx. ctxs.size() must
+##    equal abilities.size(); abilities[i] gets ctxs[i]. Caller (godmode_controller
+##    for player, _resolve_cast_intent for AI) is responsible for collecting
+##    targets per ability before calling cast.
+##
+## 047 additions (047-skill-fx-system):
+##  - cast(caster, ctxs, fx: Object = null) — coroutine. When fx != null,
+##    awaits FxDirector.play_cast / play_collisions per ability between the
+##    pure resolve phase and the side-effecting apply phase. fx is duck-typed
+##    Object so this file has no presentation import. Callers MUST `await`
+##    skill.cast(...) — without await the bool return value is not realised.
+##  - Per-ability skip on empty plan: if Ability.resolve returns {} (e.g.
+##    target died from previous ability in same skill), THAT ability is
+##    skipped and the loop continues. Cooldown is still applied as long as
+##    AT LEAST ONE ability resolved (any_resolved).
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
@@ -22,6 +48,7 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var name: String = ""
 @export var tooltip: String = ""
 @export var desc: String = ""
+@export var icon: StringName = &""                   # 026: future IconDB lookup
 @export var cooldown: int = 0
 @export var behaviour_tags: Array[StringName] = []   # was: tags (renamed in 021)
 @export var mood: Array[StringName] = []
@@ -29,15 +56,25 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var abilities: Array[Ability] = []
 
 var _cd_remaining: int = 0
+# 031 phase 4 — true between cast() and the very next tick_cooldown call,
+# which fires inside the same world_turn_ended as the cast itself. Set on
+# cast (cooldown>0), cleared by the absorbing tick.
+var _skip_next_tick: bool = false
 
 
 func is_ready() -> bool:
 	return _cd_remaining <= 0
 
 
-## Pre-check for UI slot greying. Delegates to first ability.
+## Pre-check for UI slot greying. Castable iff (a) skill is off cooldown
+## and (b) the first ability accepts the current ctx. Without the
+## is_ready guard, slot bar wouldn't grey out on cooldown (and the
+## set_castable early-return short-circuits cd label refreshes — see
+## spec 031 phase 3). Spec 031 phase 3.
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
 	if abilities.is_empty():
+		return false
+	if not is_ready():
 		return false
 	return (abilities[0] as Ability).can_apply(caster, ctx)
 
@@ -59,34 +96,148 @@ func get_ability_ids() -> Array[StringName]:
 	return ids
 
 
-func cast(caster: Actor, ctx: Dictionary) -> bool:
+func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 	if not is_ready():
 		GameLogger.info("Skill", "%s on cooldown (%d remaining)" % [id, _cd_remaining])
+		return false
+
+	# 026: ctxs is one Dictionary per ability — caller collects targets in phase 1.
+	if ctxs.size() != abilities.size():
+		GameLogger.error("Skill", "%s: ctxs.size()=%d != abilities.size()=%d" % [id, ctxs.size(), abilities.size()])
 		return false
 
 	var any_resolved: bool = false
 	var all_target_ids: Array = []
 
-	for ab in abilities:
-		# 021: pass this skill's level into each ability so per-component
-		# apply_level(level) hooks fire on duplicates inside Ability.cast.
-		var resolved: bool = ab.cast(caster, ctx, level)
+	# 047 addendum: derive a single mood StringName for FxDirector to drive
+	# the <context>_<mood> palette. mood is an Array<StringName> on Skill but
+	# in practice every shipping skill carries exactly one tag (and 5 test
+	# skills carry zero — those fall through to "neutral" via the default).
+	var mood_for_fx: StringName = mood[0] if not mood.is_empty() else &"neutral"
+
+	# 052b: capture caster_id eagerly. The await chain inside the loop
+	# (fx.play_cast / play_collisions) opens a window where the caster's
+	# Node can be queue_free'd by an unrelated path — corpse-ritual, wave
+	# snapshot apply, an effect from a previous ability iteration that
+	# reflected damage, etc. Apply_resolved then crashes with
+	# "argument 2 (previously freed)". Captured id lets us still emit
+	# skill_cast and log cleanly when caster is gone.
+	var caster_id: StringName = caster.actor_id
+
+	for i in abilities.size():
+		var ab: Ability = abilities[i] as Ability
+		# 047: split resolve / FX / apply per ability so visuals land BEFORE
+		# damage. Empty plan → ability is pure no-op (e.g. target died after
+		# the previous ability in this skill killed it). Skill continues to
+		# the next ability instead of failing the whole cast.
+		var plan: Dictionary = ab.resolve(caster, ctxs[i], level)
+		if plan.is_empty():
+			continue
+
+		# 047: announce the cast BEFORE FX/apply. victim_ids extracted from
+		# the plan's victims array — Actor instances filtered. UI listeners
+		# (telegraph hide, preview clear, future cast-bar) hook here.
+		# 052b: is_instance_valid guard — a previous ability iteration may
+		# have killed and queue_free'd a victim that's still in this plan.
+		var victim_ids: Array = []
+		for v in plan.get("victims", []):
+			if not is_instance_valid(v):
+				continue
+			if v is Actor:
+				victim_ids.append((v as Actor).actor_id)
+		EventBus.ability_cast_started.emit(caster_id, ab.id, victim_ids)
+
+		# 047: FX phase — sound_start + caster anim (parallel inside play_cast),
+		# then collision shader on victims (or hex pulse on summon coords —
+		# play_collisions dispatches by registry kind). fx is duck-typed Object
+		# so core stays free of presentation imports — null-safe for non-FX
+		# call sites (tests, headless, AI without a visible scene). mood is
+		# threaded so FxDirector picks the right palette per skill.
+		if fx != null:
+			await fx.play_cast(caster, ab, mood_for_fx)
+			# 052b: the await above is the actual freed-instance window.
+			# If caster is gone, no point doing collisions / apply / sound
+			# — break the whole loop, the cast is over.
+			if not is_instance_valid(caster):
+				break
+			await fx.play_collisions(caster, ab, plan, ctxs[i], mood_for_fx)
+			if not is_instance_valid(caster):
+				break
+
+		# 047: apply phase — effects run AFTER visuals. damage_dealt / heal_done
+		# emit from inside DamageEffect.apply / HealEffect.apply, so floating
+		# numbers spawn after the flash, which is the desired UX order.
+		var resolved: bool = ab.apply_resolved(plan, caster, ctxs[i])
+
+		# 047: sound_end at primary impact pos. Fire-and-forget — happens in
+		# parallel with whatever comes next in this loop.
+		# 052b: skip if caster freed (defence in depth — apply_resolved above
+		# would have already crashed in that case, but post-apply effects
+		# might also have killed the caster).
+		if fx != null and resolved and is_instance_valid(caster):
+			fx.play_sound_end(_primary_world_pos(plan, caster), ab)
+
 		if resolved:
 			any_resolved = true
 			# 015 / F-014: aggregate per-ability target_ids into skill-level emit.
-			# Read last_target_ids immediately after cast() — see Ability docstring.
+			# Read last_target_ids immediately after apply_resolved — see Ability docstring.
 			for tid in ab.last_target_ids:
 				if not all_target_ids.has(tid):
 					all_target_ids.append(tid)
 
 	if any_resolved:
 		_cd_remaining = cooldown
-		EventBus.skill_cast.emit(caster.actor_id, id, all_target_ids)
-		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster.actor_id, _cd_remaining])
+		# 031 phase 4: world_turn_ended fires later in the same advance() that
+		# closes this turn → tick_cooldown lands inside the cast turn. Skip it
+		# once so 'cooldown=N' means N rounds of skip, not N-1.
+		if cooldown > 0:
+			_skip_next_tick = true
+		# 052b: use captured caster_id so the post-cast emit still works
+		# even if caster was freed mid-loop.
+		EventBus.skill_cast.emit(caster_id, id, all_target_ids)
+		GameLogger.info("Skill", "%s cast by %s → cd=%d" % [id, caster_id, _cd_remaining])
 
 	return any_resolved
 
 
-## Reduce remaining cooldown by `by` turns. Called from TurnManager.
+## 047: best-effort world position for sound_end placement. First Actor victim
+## wins; falls back to primary if it's an Actor; falls back to caster.
+## 052b: every Object access is wrapped in is_instance_valid because this is
+## called AFTER the apply phase, by which point an effect could have killed
+## any of the victims (or even the caster, via reflected damage). Returns
+## Vector2.ZERO as last resort — sound just plays at world origin then.
+func _primary_world_pos(plan: Dictionary, caster: Actor) -> Vector2:
+	for v in plan.get("victims", []):
+		if not is_instance_valid(v):
+			continue
+		if v is Actor:
+			return (v as Actor).global_position
+	var primary: Variant = plan.get("primary")
+	if is_instance_valid(primary) and primary is Actor:
+		return (primary as Actor).global_position
+	if caster != null and is_instance_valid(caster):
+		return caster.global_position
+	return Vector2.ZERO
+
+
+## Reduce remaining cooldown by `by` turns. Called from
+## godmode_controller._tick_all_skills once per round per live actor.
 func tick_cooldown(by: int = 1) -> void:
+	# 031 phase 4: absorb the very first tick after a cast (see cast() above).
+	if _skip_next_tick:
+		_skip_next_tick = false
+		return
 	_cd_remaining = maxi(0, _cd_remaining - by)
+
+
+## 034: returns a fresh copy with its own cooldown state — call this when
+## an Actor takes ownership of a skill resource so cooldowns don't leak
+## between owners (Skill is a Resource → SkillDatabase.get_skill returns
+## a single shared instance). `abilities` array stays shared (Ability has
+## no per-cast persistent state — last_target_ids is read immediately
+## after cast(), no race in single-threaded execution).
+func clone_for_owner() -> Skill:
+	var copy: Skill = self.duplicate()   # shallow — abilities[] shared
+	copy._cd_remaining = 0
+	copy._skip_next_tick = false
+	return copy

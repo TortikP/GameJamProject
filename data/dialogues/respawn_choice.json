@@ -2,18 +2,18 @@
   {
     "id": "respawn_choice",
     "speaker": "narrator",
-    "text": "You died. Again. Are you learning anything from this?",
+    "text": "dialogues_respawn_choice_text",
     "tags": ["respawn"],
     "priority": 5,
     "choices": [
-      { "label": "Yes, absolutely.", "next": "respawn_choice_yes" },
-      { "label": "Not even a little.", "next": null }
+      { "label": "dialogues_respawn_choice_choices_0_label", "next": "respawn_choice_yes" },
+      { "label": "dialogues_respawn_choice_choices_1_label", "next": null }
     ]
   },
   {
     "id": "respawn_choice_yes",
     "speaker": "narrator",
-    "text": "Sure you are.",
+    "text": "dialogues_respawn_choice_yes_text",
     "tags": [],
     "priority": 0
   }

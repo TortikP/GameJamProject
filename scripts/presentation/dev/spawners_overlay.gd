@@ -22,7 +22,7 @@ func _ready() -> void:
 		grid = get_parent() as HexGrid
 
 
-func set_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
+func set_spawner(coord: Vector2i, kind: StringName, ref: StringName, timer: int = 1) -> void:
 	var existing: Node = get_node_or_null(_node_name(coord))
 	if existing != null:
 		existing.queue_free()
@@ -44,7 +44,7 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 	glyph_label.add_theme_font_size_override("font_size", 48)
 	glyph_label.add_theme_color_override("font_color", color)
 	glyph_label.add_theme_constant_override("outline_size", 4)
-	glyph_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	glyph_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	glyph_label.position = Vector2(-22, -34)
 	glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(glyph_label)
@@ -54,10 +54,24 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 	tag_label.add_theme_font_size_override("font_size", 14)
 	tag_label.add_theme_color_override("font_color", UiTheme.TEXT if "TEXT" in UiTheme else Color.WHITE)
 	tag_label.add_theme_constant_override("outline_size", 3)
-	tag_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	tag_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)
 	tag_label.position = Vector2(-12, 6)
 	tag_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(tag_label)
+
+	# T88 — countdown label drawn always (visibility doctrine: big number,
+	# outline, sits over the spawner sprite). Uses UiTheme.FS_NUM_HUGE so
+	# it reads at default zoom. Player spawner shows timer too for symmetry,
+	# even though runtime ignores it for kind=player.
+	var timer_label := Label.new()
+	timer_label.name = "TimerLabel"
+	timer_label.text = str(timer)
+	UiTheme.apply_label_kind(timer_label, "num_huge")
+	UiTheme.apply_world_text_outline(timer_label)
+	timer_label.add_theme_color_override("font_color", color)
+	timer_label.position = Vector2(18, -52)
+	timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(timer_label)
 
 	add_child(holder)
 

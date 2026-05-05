@@ -6,6 +6,7 @@ extends Node2D
 ##   - Own hp / max_hp.
 ##   - Expose take_damage(amount) and emit `damaged` / `died` signals.
 ##   - Emit EventBus.actor_died on death (one-shot, idempotent).
+##   - 027: own active StatusInstance dict + dispatch tick to runtimes.
 ##
 ## NON-responsibilities:
 ##   - Movement (HexGrid handles position by id).
@@ -16,6 +17,8 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 signal damaged(id: StringName, amount: int, hp_left: int)
 signal died(id: StringName)
+# 027: emitted whenever _statuses changes — UI subscribes to rebuild pill strip.
+signal statuses_changed(actor_id: StringName)
 
 @export var actor_id: StringName = &""
 @export var max_hp: int = 100
@@ -23,6 +26,12 @@ signal died(id: StringName)
 @export var behavior_id: StringName = &""   # 008: id in BehaviorDatabase. &"" → fallback default_melee.
 @export var speed: int = 1                  # hex steps per turn (0 = immobile)
 @export var damage_bonus: int = 0           # flat bonus added to any DamageEffect cast by this actor
+
+## 037: status ids this actor refuses to receive. Checked in add_status — listed
+## ids never apply (no on_apply, no statuses_changed, no EventBus emit). Symmetric:
+## player sets [&"stunned"] in player.tscn; enemies can opt out of feared/enraged/etc
+## via their own scene or (future) JSON data. Empty by default.
+@export var status_immunities: Array[StringName] = []
 
 var hp: int = 0
 var _dead: bool = false
@@ -33,6 +42,17 @@ var _skills: Array = []   # Array[Skill] — plain Array to avoid typed-array Va
 # concrete type would force every Actor consumer to preload it. Read via `actor.cast_intent`.
 var cast_intent: Resource = null
 var move_intent_coord: Vector2i = Vector2i(-1, -1)   # 008: planned move target. (-1,-1) = no move.
+
+# 027: status state. Dictionary not Array[StatusInstance] — CLAUDE trap #6
+# (Array[Resource] capricious with subclasses through Variant boundary).
+var _statuses: Dictionary = {}   # StringName status_id -> StatusInstance
+
+# 027: behavior-override slot for feared/enraged. Mutually exclusive — only one
+# of feared/enraged active at a time on an Actor (AC-RA3). _BEHAVIOR_OVERRIDE_IDS
+# enumerates which status_ids participate in this slot.
+var _original_behavior_id: StringName = &""
+var _behavior_override_id: StringName = &""
+const _BEHAVIOR_OVERRIDE_IDS: Array[StringName] = [&"feared", &"enraged"]
 
 
 ## Returns ability ids available to this actor (set externally by controller or subclass).
@@ -54,6 +74,17 @@ func set_skills(skills: Array) -> void:
 	_skills = skills
 
 
+## 034: lookup an actor's per-instance Skill by id. AI cast resolution
+## (and player cast paths) must read cooldown state from the *actor's*
+## skill copy, not from the SkillDatabase shared instance — see spec 034.
+## Returns null if the actor doesn't own a skill with this id.
+func get_skill_by_id(skill_id: StringName) -> Skill:
+	for s in _skills:
+		if (s as Skill).id == skill_id:
+			return s
+	return null
+
+
 ## Reduce cooldown on all skills by 1. Call from controller on each turn advance.
 func tick_skills(by: int = 1) -> void:
 	for s in _skills:
@@ -64,21 +95,39 @@ func _ready() -> void:
 	hp = max_hp
 	if actor_id == &"":
 		GameLogger.warn("Actor", "spawned with empty actor_id — abilities can't target it")
+	# 027: optional over-actor StatusIconStrip child. Bind if present; not all
+	# scenes (tests, sandbox dummies) need one. Child's own _ready ran first
+	# per Godot scene-tree order, so bind_actor is safe to call here.
+	if has_node("StatusIconStrip"):
+		var strip: Node = get_node("StatusIconStrip")
+		if strip.has_method("bind_actor"):
+			strip.bind_actor(self)
+	else:
+		GameLogger.info("Actor", "%s: no StatusIconStrip child (statuses won't render over actor)" % actor_id)
 
+
+# ── Damage / heal ───────────────────────────────────────────────────────────
 
 func take_damage(amount: int) -> void:
 	if _dead or amount <= 0:
 		return
-	hp = max(0, hp - amount)
-	damaged.emit(actor_id, amount, hp)
-	# 013/F-002: world-space feedback channel (floating numbers, combat log).
-	# Separate from `damaged` — that's HP-state for HealthBar; this is UI events.
-	EventBus.damage_dealt.emit(actor_id, amount, global_position)
-	GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, amount, hp, max_hp])
+	# 027: shielded (and any future damage_reduction status) absorbs first.
+	var reduced: int = maxi(0, amount - damage_reduction())
+	hp = max(0, hp - reduced)
+	# `damaged` (HP-state) only fires when HP actually changed — semantic for
+	# HealthBar redraw. damage_dealt (UI feedback channel) fires unconditionally
+	# so a fully-absorbed hit shows a "0" floating number instead of looking
+	# like the cast missed. (027 fix per spec §"Open after playtest" #6.)
+	if reduced > 0:
+		damaged.emit(actor_id, reduced, hp)
+	EventBus.damage_dealt.emit(actor_id, reduced, global_position)
+	if reduced != amount:
+		GameLogger.info("Actor", "%s -%d hp (%d/%d) [absorbed %d]" % [actor_id, reduced, hp, max_hp, amount - reduced])
+	else:
+		GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, reduced, hp, max_hp])
 	if hp == 0:
 		_dead = true
-		died.emit(actor_id)
-		EventBus.actor_died.emit(actor_id)
+		_emit_death_events()
 
 
 ## Restore a fixed amount of HP. Clamps to max_hp. No-op on dead actors.
@@ -99,8 +148,44 @@ func heal(amount: int) -> void:
 	GameLogger.info("Actor", "%s +%d hp (%d/%d)" % [actor_id, healed, hp, max_hp])
 
 
+## Instant death with a logged reason (e.g. "crushed" by no-target push-out
+## from 024-wave-editor). Idempotent on already-dead actors. Bypasses
+## take_damage hooks (no damage_dealt emit, no per-amount HP step) — this is
+## a discrete out-of-combat death event. Fires `died` and `EventBus.actor_died`
+## exactly once.
+func kill_with_reason(reason: String) -> void:
+	if _dead:
+		return
+	hp = 0
+	_dead = true
+	GameLogger.info("Actor", "%s killed (%s)" % [actor_id, reason])
+	# Reuse `damaged` so HealthBar repaints to 0. Amount = current full bar
+	# (semantic "state changed, hp now 0") — listeners using amount<=0 for
+	# heal won't misinterpret because hp_left is also 0.
+	damaged.emit(actor_id, max_hp, hp)
+	_emit_death_events()
+
+
 func is_alive() -> bool:
 	return not _dead
+
+
+func _emit_death_events() -> void:
+	EventBus.actor_died_snapshot.emit(actor_id, team, _death_skill_ids())
+	died.emit(actor_id)
+	EventBus.actor_died.emit(actor_id)
+
+
+func _death_skill_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for skill_v in _skills:
+		var skill: Skill = skill_v as Skill
+		if skill == null or skill.id == &"":
+			continue
+		if ids.has(skill.id):
+			continue
+		ids.append(skill.id)
+	return ids
 
 
 ## Restore HP to max and clear death state. Used by godmode reset (F2),
@@ -112,3 +197,161 @@ func heal_to_full() -> void:
 	# repaints. Amount=0, hp_left=hp — semantic 'state changed, redraw'.
 	damaged.emit(actor_id, 0, hp)
 	GameLogger.info("Actor", "%s healed to full (%d/%d)" % [actor_id, hp, max_hp])
+
+
+# ── 027: Statuses ───────────────────────────────────────────────────────────
+
+## Apply a StatusInstance. Re-apply with the same status_id replaces the
+## existing instance (AC-RA1). Mutual exclusivity: applying feared while
+## enraged is active (or vice versa) silently removes the active one first
+## (AC-RA3). Fires runtime.on_remove for the old instance and on_apply for
+## the new one. Emits statuses_changed once.
+func add_status(instance: StatusInstance) -> void:
+	if instance == null or instance.status_id == &"":
+		return
+	# 037: immunity guard — refuse listed status_ids before any side effects.
+	# Order matters: must run BEFORE the _BEHAVIOR_OVERRIDE_IDS removal block,
+	# otherwise we'd evict an existing feared to make room for a stunned we
+	# then refuse. info-level log: this is expected behavior, not an error.
+	if instance.status_id in status_immunities:
+		GameLogger.info("Actor", "%s immune to %s — refused" % [actor_id, instance.status_id])
+		return
+	# Mutual exclusivity for behavior-override statuses.
+	if instance.status_id in _BEHAVIOR_OVERRIDE_IDS:
+		for other_id in _BEHAVIOR_OVERRIDE_IDS:
+			if other_id != instance.status_id and _statuses.has(other_id):
+				remove_status(other_id)   # fires on_remove → restore behavior_id
+	# Re-apply: fire on_remove for the existing instance before overwriting.
+	if _statuses.has(instance.status_id):
+		var old: StatusInstance = _statuses[instance.status_id]
+		var old_rt: GDScript = StatusRegistry.runtime_for(old.status_id)
+		if old_rt != null:
+			old_rt.on_remove(self, old)
+	_statuses[instance.status_id] = instance
+	var rt: GDScript = StatusRegistry.runtime_for(instance.status_id)
+	if rt != null:
+		rt.on_apply(self, instance)
+	statuses_changed.emit(actor_id)
+	# 034: replan trigger. Listener (godmode_controller) recomputes the
+	# enemy's intent under the new status (rooted/stunned/feared/enraged
+	# change available actions; plan() handles them all). Fired after
+	# on_apply + statuses_changed so listeners see fully-bound state.
+	EventBus.actor_status_added.emit(actor_id, instance.status_id)
+
+
+## Remove a status by id. No-op if not present. Fires on_remove. Emits
+## statuses_changed when something was actually removed.
+func remove_status(id: StringName) -> void:
+	if not _statuses.has(id):
+		return
+	var inst: StatusInstance = _statuses[id]
+	var rt: GDScript = StatusRegistry.runtime_for(id)
+	if rt != null:
+		rt.on_remove(self, inst)
+	_statuses.erase(id)
+	statuses_changed.emit(actor_id)
+
+
+## Returns Array[StatusInstance] (untyped Array — Variant boundary).
+func get_statuses() -> Array:
+	return _statuses.values()
+
+
+## Lookup by id; null if not active. Used by AI planner for source-tracking.
+func get_status(id: StringName) -> StatusInstance:
+	return _statuses.get(id, null) as StatusInstance
+
+
+func has_status(id: StringName) -> bool:
+	return _statuses.has(id)
+
+
+func is_stunned() -> bool:
+	return _statuses.has(&"stunned")
+
+
+## Effective speed = base speed after running through every active runtime's
+## modify_speed. Order: base → each runtime in dictionary insertion order.
+## rooted clamps to 0 (rooted_runtime returns 0). slowed halves.
+func effective_speed() -> int:
+	var s: int = speed
+	for inst_v in _statuses.values():
+		var inst := inst_v as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt != null:
+			s = rt.modify_speed(s, inst)
+	return maxi(0, s)
+
+
+## Sum of damage_reduction across active statuses. Currently only shielded
+## contributes; multi-shield stack would sum here (out of scope).
+func damage_reduction() -> int:
+	var sum: int = 0
+	for inst_v in _statuses.values():
+		var inst := inst_v as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt != null:
+			sum += rt.damage_reduction(inst)
+	return maxi(0, sum)
+
+
+## Signed sum of damage_amplifier across active statuses. strong returns
+## positive, weak returns negative — they coexist via algebraic sum.
+## Used by DamageEffect / predicted_damage_to: outgoing damage += this value.
+## Final damage is clamped to 0 minimum at apply-site.
+func damage_amplifier() -> int:
+	var sum: int = 0
+	for inst_v in _statuses.values():
+		var inst := inst_v as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt != null:
+			sum += rt.damage_amplifier(inst)
+	return sum
+
+
+## Tick all statuses one turn. Called by godmode_controller from
+## _on_world_turn_ended at the start of the turn, before AI plans / player
+## acts. ctx is built by the caller (registry/grid/all_actors/turn) — passed
+## through to runtime.on_turn_start so DoT-style runtimes can do source
+## lookups via ctx["registry"].
+##
+## Order per actor: insertion order of _statuses (deterministic).
+## DoT can kill actor mid-loop → short-circuit. Expired statuses (duration <= 0
+## after decrement) are removed via remove_status (full path, on_remove fires).
+func tick_statuses_with_ctx(ctx: Dictionary) -> void:
+	if _dead:
+		return
+	if _statuses.is_empty():
+		return
+	# Snapshot keys to allow safe expire-during-iter (statuses can remove
+	# themselves or set duration=0 for next sweep).
+	var ids: Array = _statuses.keys()
+	var to_remove: Array[StringName] = []
+	var any_decremented: bool = false
+	for id_v in ids:
+		if not _statuses.has(id_v):
+			continue   # cascaded-removed (e.g. by mutual exclusivity earlier)
+		var inst := _statuses[id_v] as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt != null:
+			rt.on_turn_start(self, inst, ctx)
+		if _dead:
+			return   # DoT killed us; remaining statuses won't tick this turn
+		if inst.duration < 0:
+			continue   # 041: infinite-duration sentinel — never decrement, never expire
+		inst.duration -= 1
+		any_decremented = true
+		if inst.duration <= 0:
+			to_remove.append(inst.status_id)
+	for id in to_remove:
+		remove_status(id)   # fires on_remove (e.g. behavior_id restore for feared/enraged)
+	# 034: pure-decrement turns (no status expired) still need a UI rebuild —
+	# StatusIconStrip listens to statuses_changed to refresh duration digits.
+	# Without this emit, durations only redrew when something actually
+	# expired, so players saw "3 → 1" with the "2" frame missing, and any
+	# enemy carrying a single non-expiring status (e.g. slowed mid-flight)
+	# kept its initial duration onscreen indefinitely. remove_status above
+	# already emits per-removal — skip here to avoid double-emit on
+	# expire-only turns.
+	if any_decremented and to_remove.is_empty():
+		statuses_changed.emit(actor_id)

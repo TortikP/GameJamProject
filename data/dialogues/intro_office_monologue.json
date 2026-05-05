@@ -1,0 +1,32 @@
+[
+  {
+    "id": "intro_office_monologue",
+    "speaker": "heroine",
+    "text": "dialogues_intro_office_monologue_text",
+    "next": "intro_office_monologue_02",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  },
+  {
+    "id": "intro_office_monologue_02",
+    "speaker": "heroine",
+    "text": "dialogues_intro_office_monologue_02_text",
+    "next": "intro_office_monologue_03",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  },
+  {
+    "id": "intro_office_monologue_03",
+    "speaker": "heroine",
+    "text": "dialogues_intro_office_monologue_03_text",
+    "next": "",
+    "tags": ["intro"],
+    "priority": 100,
+    "conditions": { "min_run": 1, "max_run": 999, "flags_required": [], "flags_forbidden": [] },
+    "once_per_run": false
+  }
+]

@@ -7,7 +7,7 @@ script = ExtResource("1_tophud")
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 0.0
-offset_bottom = 44.0
+offset_bottom = 52.0
 grow_horizontal = 2
 
 [node name="HBox" type="HBoxContainer" parent="."]
@@ -16,12 +16,12 @@ theme_override_constants/separation = 24
 
 [node name="TurnLabel" type="Label" parent="HBox"]
 layout_mode = 2
-text = "Turn: 0"
+text = "ui_top_hud_bar_turn_label_text"
 size_flags_horizontal = 3
 
 [node name="WaveLabel" type="Label" parent="HBox"]
 layout_mode = 2
-text = "Wave 1/?"
+text = "ui_top_hud_bar_wave_label_text"
 size_flags_horizontal = 3
 
 [node name="TimerLabel" type="Label" parent="HBox"]
@@ -34,3 +34,10 @@ layout_mode = 2
 text = "II"
 focus_mode = 0
 custom_minimum_size = Vector2(36, 28)
+
+[node name="HelpButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "?"
+focus_mode = 0
+custom_minimum_size = Vector2(36, 28)
+tooltip_text = "ui_top_hud_bar_help_button_tooltip_text"

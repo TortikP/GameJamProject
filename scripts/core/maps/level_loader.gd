@@ -18,13 +18,8 @@ class_name LevelLoader
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/dev/player.tscn")
-const MANEKIN_SCENE: PackedScene = preload("res://scenes/dev/manekin.tscn")
-
-# enemy_id → PackedScene mapping. New enemies plug in here as we add prefabs.
-# data/enemies/<id>.json files declare existence; this table maps id → scene.
-const ENEMY_SCENES: Dictionary = {
-	&"manekin": MANEKIN_SCENE,
-}
+const ENEMY_SCENE: PackedScene = preload("res://scenes/dev/enemy.tscn")
+const ENEMIES_DIR: String = "res://data/enemies/"
 
 const PLAYER_ID: StringName = &"player"
 
@@ -34,8 +29,14 @@ const PLAYER_ID: StringName = &"player"
 ##
 ## actors_node: the parent Node that should own actor instances. Typically
 ## grid.get_node("Actors") if it exists, else grid itself.
+##
+## skip_enemies (024-wave-editor): when true, only the player spawner from
+## wave 0 is consumed; enemy spawners are left for WaveController to manage
+## as countdown placeholders. Default false preserves legacy single-wave
+## "everything spawns now" behavior for callers that don't yet integrate
+## with WaveController.
 static func apply_to(grid: HexGrid, registry: ActorRegistry, level: LevelData,
-		actors_node: Node = null) -> Actor:
+		actors_node: Node = null, skip_enemies: bool = false) -> Actor:
 	if grid == null:
 		GameLogger.error("LevelLoader", "apply_to: grid is null")
 		return null
@@ -77,18 +78,62 @@ static func apply_to(grid: HexGrid, registry: ActorRegistry, level: LevelData,
 					continue
 				player = _spawn_player(grid, registry, actors_node, coord)
 			&"enemy":
+				if skip_enemies:
+					continue  # 024: WaveController handles enemy spawners
 				_spawn_enemy(grid, registry, actors_node, coord, ref, enemy_idx)
 				enemy_idx += 1
 			_:
 				GameLogger.warn("LevelLoader", "Unknown spawner kind: %s" % kind)
 
-	GameLogger.info("LevelLoader", "Applied '%s': %d objects / %d spawners" % [
-		level.name, level.objects.size(), level.spawners.size()
+	GameLogger.info("LevelLoader", "Applied '%s': %d objects / %d spawners (skip_enemies=%s)" % [
+		level.name, level.objects.size(), level.spawners.size(), skip_enemies
 	])
 	return player
 
 
+## Public spawn helper used by 024-wave-editor's WaveController to instantiate
+## an enemy from a spawner dict at countdown=0. Mirrors the private path used
+## by apply_to — same id pattern, same registry registration, same place_actor
+## semantics. Returns the spawned Actor (or null on failure).
+##
+## 036: enemy_id resolved via data/enemies/<id>.json existence — single generic
+## scene + per-id JSON, no hardcoded id→scene table.
+static func spawn_enemy_at(grid: HexGrid, registry: ActorRegistry,
+		actors_node: Node, coord: Vector2i, enemy_id: StringName,
+		idx_for_id: int) -> Actor:
+	if not _enemy_data_exists(enemy_id):
+		GameLogger.warn("LevelLoader", "spawn_enemy_at: unknown enemy_id '%s' at %s" % [enemy_id, coord])
+		return null
+	var enemy: Actor = ENEMY_SCENE.instantiate() as Actor
+	if enemy == null:
+		GameLogger.warn("LevelLoader", "spawn_enemy_at: scene for %s did not instantiate as Actor" % enemy_id)
+		return null
+	# Set enemy_data_id BEFORE add_child so _ready() loads the right JSON.
+	enemy.set(&"enemy_data_id", enemy_id)
+	enemy.actor_id = StringName("%s_%03d" % [enemy_id, idx_for_id])
+	enemy.position = grid.tile_map_layer.map_to_local(coord)
+	actors_node.add_child(enemy)
+	if not grid.place_actor(enemy.actor_id, coord):
+		GameLogger.warn("LevelLoader", "spawn_enemy_at: place_actor failed for %s at %s" % [enemy.actor_id, coord])
+		enemy.queue_free()
+		return null
+	registry.register(enemy)
+	return enemy
+
+
 # ── Internal ────────────────────────────────────────────────────────────────
+
+static func _enemy_data_exists(enemy_id: StringName) -> bool:
+	if enemy_id == &"":
+		return false
+	return FileAccess.file_exists(ENEMIES_DIR + str(enemy_id) + ".json")
+
+
+## 041: public alias on _enemy_data_exists. CreateEffect uses this to discriminate
+## actor ids vs tile-object ids without a duplicate FileAccess implementation.
+static func enemy_data_exists(enemy_id: StringName) -> bool:
+	return _enemy_data_exists(enemy_id)
+
 
 static func _spawn_player(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i) -> Actor:
@@ -111,14 +156,15 @@ static func _spawn_player(grid: HexGrid, registry: ActorRegistry,
 
 static func _spawn_enemy(grid: HexGrid, registry: ActorRegistry,
 		actors_node: Node, coord: Vector2i, enemy_id: StringName, idx: int) -> void:
-	if not ENEMY_SCENES.has(enemy_id):
+	if not _enemy_data_exists(enemy_id):
 		GameLogger.warn("LevelLoader", "Unknown enemy_id '%s' — skipping spawner at %s" % [enemy_id, coord])
 		return
-	var scene: PackedScene = ENEMY_SCENES[enemy_id]
-	var enemy: Actor = scene.instantiate() as Actor
+	var enemy: Actor = ENEMY_SCENE.instantiate() as Actor
 	if enemy == null:
 		GameLogger.warn("LevelLoader", "Scene for %s did not instantiate as Actor" % enemy_id)
 		return
+	# Set enemy_data_id BEFORE add_child so _ready() loads the right JSON.
+	enemy.set(&"enemy_data_id", enemy_id)
 	# id pattern follows godmode's _spawn_manekin convention.
 	enemy.actor_id = StringName("%s_%03d" % [enemy_id, idx])
 	enemy.position = grid.tile_map_layer.map_to_local(coord)

@@ -1,0 +1,15 @@
+{
+  "id": "monkey",
+  "name": "monkey_name",
+  "desc": "monkey_desc",
+  "sprite": "assets/sprites/enemies/monkey.png",
+  "max_hp": 25,
+  "team": "enemy",
+  "speed": 4,
+  "skills": [
+	"monkey_time",
+    "monkey_business"
+  ],
+  "behavior_id": "default_melee",
+  "fallback_skill_id": "monkey_business"
+}

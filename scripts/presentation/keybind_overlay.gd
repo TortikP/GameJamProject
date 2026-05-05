@@ -7,21 +7,11 @@ extends CanvasLayer
 ## tooltips suppress while it's up (cleaner).
 
 const UiHelpers = preload("res://scripts/presentation/ui_signal_helpers.gd")
+const SlotBarScript = preload("res://scripts/presentation/slot_bar.gd")
 const MODAL_ID: StringName = &"keybind_overlay"
 
-const _BINDS: Array = [
-	["QWER / 1234", "Cast slot 1-4"],
-	["LMB",         "Cast at hex (with slot active)"],
-	["RMB",         "Move 1 step"],
-	["SPACE",       "Wait turn"],
-	["ESC",         "Cancel cast / open pause"],
-	["L",           "Toggle combat log"],
-	["?",           "Toggle this overlay"],
-	["F1",          "Spawn dummy (godmode)"],
-	["F2",          "Clear actors (godmode)"],
-	["F5",          "Reload speed config"],
-	["F6",          "Toggle CRT effect"],
-]
+const MOVE_STEP_COUNT := 1
+const DEBUG_DUMMY_COUNT := 1
 
 @onready var _panel: PanelContainer = $Center/Panel
 @onready var _title: Label = $Center/Panel/VBox/Title
@@ -33,7 +23,43 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
-	_build_grid()
+	Localization.locale_changed.connect(_on_locale_changed)
+	_refresh_texts()
+
+
+static func binds() -> Array:
+	return [
+		{"keys": "QWER / 1234", "label_key": "ui_keybind_cast_slots", "fallback": "Cast slot %d-%d", "args": [1, SlotBarScript.SLOT_COUNT]},
+		{"keys": "LMB", "label_key": "ui_keybind_cast_hex", "fallback": "Cast at hex (with slot active)", "args": []},
+		{"keys": "RMB", "label_key": "ui_keybind_move_step", "fallback": "Move %d step", "args": [MOVE_STEP_COUNT]},
+		{"keys": "MMB drag", "label_key": "ui_keybind_pan_camera", "fallback": "Pan camera (release to keep view)", "args": []},
+		{"keys": "Wheel", "label_key": "ui_keybind_zoom", "fallback": "Zoom", "args": []},
+		{"keys": "C", "label_key": "ui_keybind_recenter", "fallback": "Recenter on player", "args": []},
+		{"keys": "SPACE", "label_key": "ui_keybind_wait_turn", "fallback": "Wait turn", "args": []},
+		{"keys": "ESC", "label_key": "ui_keybind_cancel_pause", "fallback": "Cancel cast / open pause", "args": []},
+		{"keys": "L", "label_key": "ui_keybind_toggle_combat_log", "fallback": "Toggle combat log", "args": []},
+		{"keys": "?", "label_key": "ui_keybind_toggle_overlay", "fallback": "Toggle this overlay", "args": []},
+		{"keys": "F1", "label_key": "ui_keybind_spawn_dummy", "fallback": "Spawn %d dummy (godmode)", "args": [DEBUG_DUMMY_COUNT]},
+		{"keys": "F2", "label_key": "ui_keybind_clear_actors", "fallback": "Clear actors (godmode)", "args": []},
+		{"keys": "F5", "label_key": "ui_keybind_reload_speed_config", "fallback": "Reload speed config", "args": []},
+		{"keys": "F6", "label_key": "ui_keybind_toggle_crt", "fallback": "Toggle CRT effect", "args": []},
+	]
+
+
+static func localized_bind_description(bind: Dictionary) -> String:
+	var label_key := String(bind.get("label_key", ""))
+	var fallback := String(bind.get("fallback", ""))
+	var args: Array = bind.get("args", [])
+	if args.is_empty():
+		return Localization.t(label_key, fallback)
+	return Localization.tf(label_key, args, fallback)
+
+
+static func localized_keybinds_body() -> String:
+	var lines: Array[String] = []
+	for bind in binds():
+		lines.append("%s - %s" % [String(bind.get("keys", "")), localized_bind_description(bind)])
+	return "\n".join(lines)
 
 
 func _apply_theme() -> void:
@@ -48,17 +74,28 @@ func _apply_theme() -> void:
 
 func _build_grid() -> void:
 	for c in _grid.get_children():
+		_grid.remove_child(c)
 		c.queue_free()
-	for pair in _BINDS:
+	for bind in binds():
 		var key_lbl := Label.new()
-		key_lbl.text = pair[0]
+		key_lbl.text = String(bind.get("keys", ""))
 		UiTheme.apply_label_kind(key_lbl, "body")
 		key_lbl.add_theme_color_override("font_color", UiTheme.FOCUS)
 		_grid.add_child(key_lbl)
 		var desc_lbl := Label.new()
-		desc_lbl.text = pair[1]
+		desc_lbl.text = localized_bind_description(bind)
 		UiTheme.apply_label_kind(desc_lbl, "body")
 		_grid.add_child(desc_lbl)
+
+
+func _refresh_texts() -> void:
+	_title.text = Localization.t("ui_keybind_overlay_title_text", "Keybinds")
+	_hint.text = Localization.t("ui_keybind_overlay_hint_text", "(press ? to close)")
+	_build_grid()
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_texts()
 
 
 func toggle() -> void:

@@ -49,10 +49,10 @@ func _apply_theme() -> void:
 ## false on Cancel (or ESC).
 func ask(title: String, body: String, confirm_label: String = "OK",
 		cancel_label: String = "Cancel", danger: bool = false) -> bool:
-	_title_label.text = title
-	_body_label.text = body
-	_confirm_btn.text = confirm_label
-	_cancel_btn.text = cancel_label
+	_title_label.text = Localization.t(title, title)
+	_body_label.text = Localization.t(body, body)
+	_confirm_btn.text = Localization.t(confirm_label, confirm_label)
+	_cancel_btn.text = Localization.t(cancel_label, cancel_label)
 	_danger = danger
 	_apply_theme()  # repaint confirm button color for danger state
 	visible = true

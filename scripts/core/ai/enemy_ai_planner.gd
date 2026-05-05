@@ -28,7 +28,44 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 	if not actor.is_alive():
 		return
 
-	# Resolve scenario (with default fallback).
+	# 027 / AC-RT-stunned: stunned actors skip planning entirely.
+	if actor.is_stunned():
+		return
+
+	# 027 / AC-AI3: enrich ctx with behavior_target_id from active feared/enraged.
+	# Mutual exclusivity (AC-RA3) means at most one is active. Enraged checked
+	# first — but in practice add_status enforces only-one, so order is moot.
+	# CTX is shared across iterations in godmode_controller's enemy loop; we
+	# must clear stale state from the previous enemy before setting (or not).
+	ctx.erase("behavior_target_id")
+	var bid: StringName = &""
+	var enr: StatusInstance = actor.get_status(&"enraged")
+	if enr != null:
+		bid = enr.source_id
+	else:
+		var fer: StatusInstance = actor.get_status(&"feared")
+		if fer != null:
+			bid = fer.source_id
+	if bid != &"":
+		ctx["behavior_target_id"] = bid
+
+	# 027: status-driven movement override (slowed flip-flop / rooted hold).
+	# Computed before scenario logic so we can suppress movement_policy.pick_step
+	# if any active status returns the (-2,-2) hold sentinel. Cast-intent still
+	# gets a chance — slowed/rooted don't block casting.
+	var hold_movement: bool = false
+	for inst_v in actor.get_statuses():
+		var inst := inst_v as StatusInstance
+		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
+		if rt == null:
+			continue
+		var ov: Vector2i = rt.override_movement(actor, inst, ctx)
+		if ov == Vector2i(-2, -2):
+			hold_movement = true
+			break
+
+	# Resolve scenario (with default fallback). 027: feared/enraged AI gets
+	# its swapped behavior_id here, so the dedicated scenario is loaded.
 	var scenario: BehaviorScenario = BehaviorDatabase.get_scenario(actor.behavior_id)
 	if scenario == null:
 		scenario = BehaviorDatabase.get_scenario(DEFAULT_BEHAVIOR)
@@ -48,8 +85,8 @@ func plan(actor: Actor, ctx: Dictionary) -> void:
 		if _try_rule(actor, rule, ctx):
 			return  # cast_intent set, planning done
 
-	# Fallback: movement.
-	if scenario.movement_policy != null:
+	# Fallback: movement. 027: suppress if any status held movement.
+	if scenario.movement_policy != null and not hold_movement:
 		actor.move_intent_coord = scenario.movement_policy.pick_step(actor, ctx)
 
 	# Last-ditch: scenario.fallback_skill_id if defined and movement gave no anchor.
@@ -142,7 +179,20 @@ func _build_target_candidates(actor: Actor, selector: TargetSelector, ctx: Dicti
 	var actors: Array = ctx.get("all_actors", [])
 	if selector is SelectorSelf:
 		return [actor]
-	var want_allies: bool = selector is SelectorLowestHpAlly
+	# 027 / AC-AI4: SelectorSpecificActor reads behavior_target_id, ignores
+	# team filter. Singleton list (or empty if source is gone).
+	if selector is SelectorSpecificActor:
+		var bid: StringName = ctx.get("behavior_target_id", &"")
+		if bid == &"":
+			return []
+		var registry: ActorRegistry = ctx.get("registry") as ActorRegistry
+		if registry == null:
+			return []
+		var src: Actor = registry.get_actor(bid)
+		if src == null or not src.is_alive():
+			return []
+		return [src]
+	var want_allies: bool = selector is SelectorLowestHpAlly or selector is SelectorHighestHpAlly  # 030 AC-PL1
 	var result: Array = []
 	for other_v in actors:
 		if not (other_v is Actor):
@@ -198,7 +248,10 @@ func _target_in_skill_range(actor: Actor, skill: Skill, target: Variant, ctx: Di
 # ── Fallback skill (backward-compat path for current manekin) ────────────────
 
 func _try_fallback_skill(actor: Actor, skill_id: StringName, ctx: Dictionary) -> void:
-	var skill: Skill = SkillDatabase.get_skill(skill_id)
+	# 034: per-actor skill lookup so cooldown state is read from this
+	# actor's own copy, not the DB-shared resource. Symmetric with the
+	# main planner path (line 148: iterates actor's _skills directly).
+	var skill: Skill = actor.get_skill_by_id(skill_id)
 	if skill == null or not skill.is_ready():
 		return
 	# Fallback only triggers if there's an enemy in skill range — match current

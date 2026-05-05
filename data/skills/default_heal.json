@@ -1,0 +1,36 @@
+{
+  "id": "default_heal",
+  "name": "default_heal_name",
+  "tooltip": "default_heal_tooltip",
+  "desc": "default_heal_desc",
+  "icon": "icons/skills/default_heal.png",
+  "cooldown": 3,
+  "behaviour_tags": [
+    "self",
+    "heal"
+  ],
+  "mood": [
+    "neutral"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "default_heal_self",
+      "sound_start": "default_heal_self_sound_start",
+      "collision_effect": "heal_neutral",
+      "sound_end": "default_heal_self_sound_end",
+      "animation": "cast_neutral",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "self"
+      },
+      "effects": [
+        {
+          "heal": 14
+        }
+      ]
+    }
+  ]
+}
