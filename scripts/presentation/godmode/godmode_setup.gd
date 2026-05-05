@@ -8,6 +8,7 @@ extends Node
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const TutorialDirector = preload("res://scripts/runtime/tutorial_director.gd")
+const HubController = preload("res://scripts/runtime/hub_controller.gd")
 
 const PLAYER_SCENE := preload("res://scenes/dev/player.tscn")
 const HEX_TERRAIN := preload("res://scenes/arena/tilesets/hex_terrain.tres")
@@ -26,6 +27,7 @@ func _ready() -> void:
 ## Mirrors the original controller._ready setup chain 1:1.
 func run() -> void:
 	var campaign_mode: bool = ActiveGame.has_active_game()
+	var hub_mode: bool = campaign_mode and ActiveGame.is_in_hub()
 	# 1. Resolve scene-tree refs the @export NodePaths didn't populate.
 	if _ctrl.grid == null:
 		_ctrl.grid = _ctrl.get_node_or_null("../HexGrid") as HexGrid
@@ -131,6 +133,10 @@ func run() -> void:
 		var combat_log: Node = _ctrl.get_node_or_null("../HUD/CombatLog")
 		if combat_log != null:
 			combat_log.hide()
+	if hub_mode:
+		var wave_timeline: Node = _ctrl.get_node_or_null("../HUD/WaveTimeline")
+		if wave_timeline != null:
+			wave_timeline.hide()
 
 	# Reset turn counter for this session
 	TurnManager.reset()
@@ -164,7 +170,7 @@ func run() -> void:
 	# 024-wave-editor: spin up WaveController iff we loaded a custom level.
 	# Procedural godmode sandbox (no queued level) leaves it null — runtime
 	# stays single-wave-implicit and behaves as before.
-	if _ctrl.queued_level != null:
+	if _ctrl.queued_level != null and not hub_mode:
 		_ctrl.wave_controller = WaveController.new()
 		_ctrl.wave_controller.name = "WaveController"
 		_ctrl.wave_controller.grid = _ctrl.grid
@@ -183,6 +189,8 @@ func run() -> void:
 		if _is_tutorial_level(_ctrl.queued_level):
 			_install_tutorial_director(_ctrl.queued_level)
 		_ctrl.wave_controller.start_level.call_deferred(_ctrl.queued_level)
+	elif _ctrl.queued_level != null and hub_mode:
+		_install_hub_controller(_ctrl.queued_level)
 
 	# 045-intro-cutscene: on campaign intro levels, the HUD is invisible —
 	# the player can't act, the cutscene/dialogue/scripted-step flow plays
@@ -346,3 +354,11 @@ func _install_tutorial_director(level: LevelData) -> void:
 	director.name = "TutorialDirector"
 	_ctrl.add_child(director)
 	director.setup(_ctrl, level)
+
+
+func _install_hub_controller(level: LevelData) -> void:
+	var hub := HubController.new()
+	hub.name = "HubController"
+	_ctrl.add_child(hub)
+	_ctrl.hub_controller = hub
+	hub.setup(_ctrl, level)

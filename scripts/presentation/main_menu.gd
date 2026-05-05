@@ -7,7 +7,7 @@ extends Control
 ##                  arena/godmode scene. Until a run-loop scene exists, this
 ##                  loads scenes/dev/godmode.tscn (sandbox). When 010+ ships
 ##                  scenes/arena/run.tscn, swap target.
-##   Continue     — disabled (no save system in jam scope; AC-spec)
+##   Continue     — loads the single continue slot if present
 ##   Godmode      — straight-to-sandbox button (dev convenience)
 ##   Settings     — opens embedded SettingsPanel
 ##   Credits      — toast for now (no credits scene yet)
@@ -16,6 +16,27 @@ extends Control
 const RUN_SCENE: String = "res://scenes/dev/godmode.tscn"
 const STORY_CAMPAIGN_PATH: String = "res://data/games/story_campaign.game.json"
 const TUTORIAL_GAME_PATH: String = "res://data/games/tutorial.game.json"
+
+const RUN_CHOICES: Array[Dictionary] = [
+	{
+		"title_key": "ui_main_menu_run_mode_tutorial_title",
+		"title_fallback": "Tutorial",
+		"body_key": "ui_main_menu_run_mode_tutorial_body",
+		"body_fallback": "Learn the basics in a short guided map.",
+		"path": TUTORIAL_GAME_PATH,
+		"hub": false,
+		"error_key": "ui_main_menu_start_tutorial_failed",
+	},
+	{
+		"title_key": "games_story_campaign_game_name",
+		"title_fallback": "Story Campaign",
+		"body_key": "ui_main_menu_run_mode_story_body",
+		"body_fallback": "Start in the office hub, then dive into the dream.",
+		"path": STORY_CAMPAIGN_PATH,
+		"hub": true,
+		"error_key": "ui_main_menu_start_campaign_failed",
+	},
+]
 
 @onready var _title: Label = $VBox/Title
 @onready var _subtitle: Label = $VBox/Subtitle
@@ -36,9 +57,8 @@ const TUTORIAL_GAME_PATH: String = "res://data/games/tutorial.game.json"
 @onready var _run_mode_panel: PanelContainer = $RunModeDialog/Center/Panel
 @onready var _run_mode_title: Label = $RunModeDialog/Center/Panel/Margin/VBox/Title
 @onready var _run_mode_body: Label = $RunModeDialog/Center/Panel/Margin/VBox/Body
-@onready var _run_mode_tutorial_btn: Button = $RunModeDialog/Center/Panel/Margin/VBox/ButtonRow/TutorialButton
-@onready var _run_mode_standard_btn: Button = $RunModeDialog/Center/Panel/Margin/VBox/ButtonRow/StandardButton
-@onready var _run_mode_cancel_btn: Button = $RunModeDialog/Center/Panel/Margin/VBox/ButtonRow/CancelButton
+@onready var _run_mode_list: VBoxContainer = $RunModeDialog/Center/Panel/Margin/VBox/Scroll/CampaignList
+@onready var _run_mode_cancel_btn: Button = $RunModeDialog/Center/Panel/Margin/VBox/CancelButton
 
 
 func _ready() -> void:
@@ -53,6 +73,7 @@ func _ready() -> void:
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
 	_start_btn.pressed.connect(_on_start)
+	_continue_btn.pressed.connect(_on_continue)
 	_godmode_btn.pressed.connect(_on_godmode)
 	_map_editor_btn.pressed.connect(_on_map_editor)
 	_game_editor_btn.pressed.connect(_on_game_editor)
@@ -61,12 +82,11 @@ func _ready() -> void:
 	_settings_btn.pressed.connect(_on_settings)
 	_credits_btn.pressed.connect(_on_credits)
 	_quit_btn.pressed.connect(_on_quit)
-	_run_mode_tutorial_btn.pressed.connect(_on_start_tutorial)
-	_run_mode_standard_btn.pressed.connect(_on_start_standard)
 	_run_mode_cancel_btn.pressed.connect(_close_run_mode_dialog)
 	_file_dialog.file_selected.connect(_on_custom_level_selected)
 	_game_file_dialog.file_selected.connect(_on_game_selected)
-	# Continue button stays disabled — no save system in jam scope.
+	_continue_btn.disabled = not GameSave.has_continue_save()
+	_build_run_mode_list()
 	EventBus.main_menu_entered.emit()
 	_start_btn.grab_focus()
 
@@ -92,8 +112,15 @@ func _apply_theme() -> void:
 		_run_mode_panel.add_theme_stylebox_override("panel", UiTheme.make_modal_stylebox())
 	UiTheme.apply_label_kind(_run_mode_title, "header")
 	UiTheme.apply_label_kind(_run_mode_body, "body")
-	for btn in [_run_mode_tutorial_btn, _run_mode_standard_btn, _run_mode_cancel_btn]:
+	for btn in [_run_mode_cancel_btn]:
 		UiTheme.apply_button_styling(btn)
+	if _run_mode_list != null:
+		for child in _run_mode_list.get_children():
+			for nested in child.get_children():
+				if nested is Button:
+					UiTheme.apply_button_styling(nested)
+				elif nested is Label:
+					UiTheme.apply_label_kind(nested, "body")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -114,7 +141,11 @@ func _on_start() -> void:
 
 func _open_run_mode_dialog() -> void:
 	_run_mode_dialog.visible = true
-	_run_mode_tutorial_btn.grab_focus()
+	var first_btn := _first_run_choice_button()
+	if first_btn != null:
+		first_btn.grab_focus()
+	else:
+		_run_mode_cancel_btn.grab_focus()
 
 
 func _close_run_mode_dialog() -> void:
@@ -122,18 +153,59 @@ func _close_run_mode_dialog() -> void:
 	_start_btn.grab_focus()
 
 
-func _on_start_tutorial() -> void:
-	_start_game(TUTORIAL_GAME_PATH, "ui_main_menu_start_tutorial_failed")
+func _on_continue() -> void:
+	if not GameSave.continue_from_save():
+		EventBus.ui_toast_requested.emit(Localization.t("ui_main_menu_continue_failed", "Failed to continue (see log)"), 3.0, &"error")
+		_continue_btn.disabled = true
+		return
+	EventBus.run_started_requested.emit()
+	get_tree().change_scene_to_file(RUN_SCENE)
 
 
-func _on_start_standard() -> void:
-	_start_game(STORY_CAMPAIGN_PATH, "ui_main_menu_start_campaign_failed")
+func _build_run_mode_list() -> void:
+	for child in _run_mode_list.get_children():
+		child.queue_free()
+	for choice in RUN_CHOICES:
+		var card := VBoxContainer.new()
+		card.add_theme_constant_override("separation", 4)
+		var btn := Button.new()
+		btn.text = Localization.t(String(choice["title_key"]), String(choice["title_fallback"]))
+		btn.custom_minimum_size = Vector2(0, 48)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		UiTheme.apply_button_styling(btn)
+		btn.pressed.connect(_start_game.bind(
+			String(choice["path"]),
+			String(choice["error_key"]),
+			bool(choice["hub"])
+		))
+		card.add_child(btn)
+		var body := Label.new()
+		body.text = Localization.t(String(choice["body_key"]), String(choice["body_fallback"]))
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.add_theme_constant_override("outline_size", 2)
+		body.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+		UiTheme.apply_label_kind(body, "body")
+		card.add_child(body)
+		_run_mode_list.add_child(card)
 
 
-func _start_game(game_path: String, error_key: String) -> void:
+func _first_run_choice_button() -> Button:
+	for card in _run_mode_list.get_children():
+		for child in card.get_children():
+			if child is Button:
+				return child
+	return null
+
+
+func _start_game(game_path: String, error_key: String, start_in_hub: bool = false) -> void:
 	_close_run_mode_dialog()
 	EventBus.run_started_requested.emit()
-	if not ActiveGame.load_game(game_path):
+	if start_in_hub:
+		CampaignController.prepare_hub_entry(&"new_game")
+	var loaded: bool = ActiveGame.load_game_to_hub(game_path) if start_in_hub else ActiveGame.load_game(game_path)
+	if not loaded:
+		if start_in_hub:
+			CampaignController.prepare_hub_entry(&"")
 		EventBus.ui_toast_requested.emit(Localization.t(error_key, "Failed to start game (see log)"), 3.0, &"error")
 		return
 	get_tree().change_scene_to_file(RUN_SCENE)
