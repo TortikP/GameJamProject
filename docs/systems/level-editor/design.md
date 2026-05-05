@@ -205,7 +205,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 | Field | Status | Default | Замечание |
 |---|---|---|---|
 | `index` | exists | — | |
-| `is_special` | **changes** `bool → String` | `"normal"` | Migration: `false → "normal"`, `true → "boss"`. Будущие значения `"miniboss_*"` ([OQ-1](#10-открытые-вопросы)). |
+| `is_special` | **changes** `bool → String` | `"normal"` | Free-form string. Migration: `false → "normal"`, `true → "boss"`. Конвенция: `"normal"`, `"boss"`, `"miniboss_*"`. Валидация **не** ограничивает значения — любая строка проходит, чтобы не блокировать плейтест-итерации с новыми типами. Long-term возможно станет computed-from-reward, см. [Q-11](../../design/OPEN-QUESTIONS.md#q-11-тип-волны-определяется-наградой-за-неё). |
 | `turns_to_next` | exists | `0` (final) / `5` (non-final) | |
 | `floor`, `objects`, `spawners` | exists | `[]` | |
 | `respawn_player` | **new** | `false` | Wave 0 — implicit `true` (всегда спавнит player'а). Для wave > 0: если `true` — на этой волне player ставится заново на свой спаунер; если `false` — player остаётся где был. Если `true` — валидация требует player-спаунер на этой волне. |
@@ -238,14 +238,14 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 
 | # | Spec | Что внутри | Зависит от |
 |---|---|---|---|
-| **0** | `ui-panels`: универсальные окна интерфейса | Container + drag (existing mixin → промоушен) + collapse-в-плашку (свёрнутая = заголовок + `[+]`) + resize (D-вариант, 8 видимых handles, ≥10px зона захвата, cursor change только над handle, фикс 055-бага). Живёт в `docs/systems/ui-panels/`. Reusable, потенциально для in-game UI позже. | — |
+| **0** | `ui-panels`: универсальные окна интерфейса | Container + drag + collapse-в-плашку (`[−]` / `[+]`) + resize (D-вариант, 8 видимых handles, ≥10px зона захвата, фикс 055-бага) + замочек + persistence раскладки (per-screen/scene, узкое snapshot, `user://layouts.cfg`) + 5 правил защиты от потери интерфейса (clamps + min size). Закрытия панели нет совсем. Детали — в [`docs/systems/ui-panels/design.md`](../ui-panels/design.md). | — |
 | **1** | `level-editor`: architecture from scratch | Layer model, InputDispatcher, новый EditorController (~300 строк цель), тонкий вертикальный срез: палитра hexes → клик → тайл лежит в LevelData. Без объектов, без спаунеров, без валидаций, без волн. Старый `MapEditorController` параллельно живёт. | Spec 0 |
 | **2** | `level-editor`: layers + palettes (полная миграция) | Объекты и спаунеры подключаются. Q/W/E/Tab, 1-9, HELP modal, delete_flash. Удаление старого `MapEditorController` и `floor_palette_panel` / `object_palette_panel`. | Spec 1 |
 | **3** | `level-editor`: wave data + settings panel | Расширение `LevelData` (см. §7), wave settings UI с группами (level / wave / spawner / skill_offer / dialogue_triggers / music_config). dialogue_triggers cleanup (OQ-2). | Spec 1 (panel host) |
 | **4** | `level-editor`: validation pipeline | `LevelValidator`, REJECT/WARN модель, авто-проверки (§6), UI подсветка. | Spec 3 (data model должна быть стабильна) |
 | **5** | `level-editor`: WavePanel UX (timeline) | Timeline похожий на runtime UI, tooltip с содержимым волны, drag-reorder, badges (статус-цвет читается из validator'а), inline `turns_to_next` с ±, активная волна сильно подсвечена. Андрей прорабатывает дизайн сам, как доберётся. | Spec 4 (badges читают результат) |
 
-**Параллелизм.** Specs 0 → 1 → 2 строго последовательны. Spec 3 может стартовать параллельно со Spec 2 после готовности Spec 1 (data work не пересекается с palette migration). Specs 4 и 5 — после Spec 3.
+**Порядок.** Строго последовательно: 0 → 1 → 2 → 3 → 4 → 5. Никаких параллельных спеков. Каждый стартует только после merge предыдущего в staging и подтверждения Андрея. Это дороже по календарю, но дешевле по rework: если Spec 1 при имплементации обнажит проблему в дизайне — Specs 2/3 не идут в холостую.
 
 **Между специами — review pause** per [`docs/workflow.md`](../../workflow.md). Spec не заводится автоматически по завершении предыдущего; решает Андрей.
 
@@ -263,7 +263,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 
 **D4. Layer state в presentation, не в core.** Concept «активного слоя» — чисто редакторский. Игровой runtime читает только `LevelData`. Если runtime AI/balancing когда-нибудь захочет layer info — пересмотрим. Сейчас YAGNI.
 
-**D5. `is_special` переходит из bool в enum.** Расширение в сторону `miniboss_*`-волн (Mark обсуждал). Конкретные значения — [OQ-1](#10-открытые-вопросы), но enum-форма зафиксирована.
+**D5. `is_special` переходит из bool в free-form string.** Расширение в сторону мини-боссов (Марк обсуждал) и других типов, которые ещё не придуманы. Изначально предполагался строгий enum, но Андрей: «нам нужна максимально гибкая система для плейтестов и итераций, ничего не проибываем» — поэтому валидация не ограничивает значения. Конвенция (не enforce'ится): `"normal"`, `"boss"`, `"miniboss_*"`. Долгосрочно тип волны может стать computed-from-reward — см. [Q-11](../../design/OPEN-QUESTIONS.md#q-11-тип-волны-определяется-наградой-за-неё).
 
 ---
 
@@ -271,7 +271,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 
 Это не блокеры на старт Spec 0/1, но должны быть закрыты до соответствующего спека.
 
-- **OQ-1 (Spec 3): `is_special` enum — какие значения?** Сейчас известно: `"normal"`, `"boss"` (текущий end-game). Будущие: `"miniboss_1"`, `"miniboss_2"`, ...? Или категории типа `"miniboss"` без номера + отдельное поле `boss_id`? Решает Mark + Андрей.
+- **OQ-1 (Spec 3): `is_special` enum — какие значения?** **Закрыто для целей рехауля:** free-form string, валидация не ограничивает. Migration `false → "normal"`, `true → "boss"`. Конвенция-не-обязательно: `"miniboss_*"`. Долгосрочный вопрос «должен ли тип волны определяться наградой за неё, а не задаваться явно» вынесен в [Q-11](../../design/OPEN-QUESTIONS.md#q-11-тип-волны-определяется-наградой-за-неё) — решается по итогам плейтестов с разными наградными конфигами, не сейчас.
 - **OQ-2 (Spec 3): `dialogue_triggers.id` vs `dialogue_triggers.dialogue_id`.** Никита: «отвечают за одно и то же». Надо посмотреть текущий код `DialogueManager` и `DialogueTriggerPanel`, понять кто реально читается, что deprecated. Резолвится в Spec 3.
 - **OQ-3 (Spec 4): severity для object/spawner на пустом гексе.** Андрей подтвердил оба как WARN. **Закрыто, ссылка для прослеживаемости.**
 - **OQ-4 (Spec 3): `waves.timer` (Никитин) vs `waves.turns_to_next` (текущий).** Никита подразумевает `timer` как опциональный bool «есть ли таймер до следующей волны вообще»; если `false` — `turns_to_next` игнорируется. Если `true` — текущая семантика. Это новое поле или семантика `turns_to_next == 0` уже это покрывает на non-final волне? Уточнить с Алексеем (owner `WaveController`).
