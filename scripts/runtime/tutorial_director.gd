@@ -2,7 +2,6 @@ extends CanvasLayer
 ## TutorialDirector -- friendly, state-based guidance for the tutorial mission.
 
 const TutorialHexHighlight = preload("res://scripts/presentation/tutorial_hex_highlight.gd")
-const ConfirmModalScene: PackedScene = preload("res://scenes/ui/confirm_modal.tscn")
 
 const MELEE_RANGE := 1
 const RANGED_RANGE := 2
@@ -47,12 +46,6 @@ var _slot_indices: Array[int] = []
 var _current_wave: int = -1
 var _current_tip: StringName = &""
 var _seen_tips: Dictionary = {}
-var _after_dialog_seen: Dictionary = {}
-var _after_dialog_suppressed: Dictionary = {}
-var _after_dialog_queue: Array[Dictionary] = []
-var _after_dialog_showing: bool = false
-var _after_dialog_waiting_for_player_turn: bool = false
-var _after_dialog: Node = null
 var _player_was_threatened: bool = false
 var _hint_collapsed: bool = false
 var _in_skill_offer: bool = false
@@ -211,7 +204,7 @@ func _connect_events() -> void:
 	EventBus.actor_died_snapshot.connect(_on_actor_died_snapshot)
 	EventBus.actor_died.connect(_on_actor_died)
 	EventBus.player_turn_ended.connect(_on_turn_changed)
-	EventBus.world_turn_ended.connect(_on_world_turn_ended)
+	EventBus.world_turn_ended.connect(_on_turn_changed)
 	EventBus.skill_offer_about_to_open.connect(_on_skill_offer_about_to_open)
 	EventBus.skill_offer_closed.connect(_on_skill_offer_closed)
 	EventBus.level_completed.connect(_on_level_completed)
@@ -512,52 +505,6 @@ func _show_candidate(candidate: Dictionary) -> void:
 	_set_slots(candidate.slots)
 
 
-func _queue_after_dialog(id: StringName, title_key: String, body_key: String, wait_for_player_turn: bool = true) -> void:
-	if _after_dialog_suppressed.has(id) or _after_dialog_seen.has(id):
-		return
-	_after_dialog_seen[id] = true
-	_after_dialog_queue.append({
-		"id": id,
-		"title_key": title_key,
-		"body_key": body_key,
-	})
-	if wait_for_player_turn:
-		_after_dialog_waiting_for_player_turn = true
-	else:
-		_drain_after_dialog_queue.call_deferred()
-
-
-func _show_after_dialogs_on_next_player_turn() -> void:
-	if not _after_dialog_waiting_for_player_turn or _after_dialog_queue.is_empty():
-		return
-	_after_dialog_waiting_for_player_turn = false
-	await get_tree().process_frame
-	while _ctrl != null and _ctrl.ai != null and _ctrl.ai.has_method("is_world_processing") and _ctrl.ai.is_world_processing():
-		await get_tree().process_frame
-	_drain_after_dialog_queue()
-
-
-func _drain_after_dialog_queue() -> void:
-	if _after_dialog_showing or _after_dialog_queue.is_empty() or not is_inside_tree():
-		return
-	_after_dialog_showing = true
-	var entry: Dictionary = _after_dialog_queue.pop_front()
-	var id: StringName = entry.get("id", &"")
-	if _after_dialog == null:
-		_after_dialog = ConfirmModalScene.instantiate()
-		add_child(_after_dialog)
-	var hide_forever: bool = await _after_dialog.ask(
-			String(entry.title_key),
-			String(entry.body_key),
-			"ui_tutorial_after_hide_button",
-			"ui_tutorial_after_close_button")
-	if hide_forever:
-		_after_dialog_suppressed[id] = true
-	_after_dialog_seen.erase(id)
-	_after_dialog_showing = false
-	_drain_after_dialog_queue.call_deferred()
-
-
 func _hide_guidance() -> void:
 	_current_tip = &""
 	_clear_hexes()
@@ -647,17 +594,6 @@ func _skill_first_target_range(skill: Skill) -> int:
 	if "range" in ability.target:
 		return int(ability.target.range)
 	return -1
-
-
-func _target_ids_include_enemy(target_ids: Array) -> bool:
-	if _ctrl == null or _ctrl.registry == null:
-		return false
-	for target_id_v in target_ids:
-		var target_id := StringName(str(target_id_v))
-		var actor := _ctrl.registry.get_actor(target_id) as Actor
-		if actor != null and actor.team == &"enemy":
-			return true
-	return false
 
 
 func _all_slots_on_cooldown(slots: Array) -> bool:
@@ -947,10 +883,7 @@ func _on_wave_started(index: int, _is_special: bool) -> void:
 
 func _on_actor_changed(_actor_id: StringName, _from: Vector2i, _to: Vector2i) -> void:
 	if _actor_id == &"player":
-		var first_move := not bool(_checklist_done.get(&"movement", false))
 		_complete_check(&"movement")
-		if first_move:
-			_queue_after_dialog(&"move_done", "ui_tutorial_move_done_title", "ui_tutorial_move_done_body")
 	_evaluate_guidance.call_deferred()
 
 
@@ -960,15 +893,9 @@ func _on_actor_spawned(_actor_id: StringName) -> void:
 
 func _on_skill_cast(caster_id: StringName, skill_id: StringName, target_ids: Array) -> void:
 	if caster_id == &"player":
-		var skill: Skill = SkillDatabase.get_skill(skill_id)
 		_complete_skill_role(skill_id)
 		if target_ids.has(&"player") or target_ids.has("player"):
 			_complete_check(&"self_effect")
-			_queue_after_dialog(&"after_heal", "ui_tutorial_after_heal_title", "ui_tutorial_after_heal_body")
-		elif skill != null and _skill_matches_role(skill, &"melee") and _target_ids_include_enemy(target_ids):
-			_queue_after_dialog(&"after_melee", "ui_tutorial_after_melee_title", "ui_tutorial_after_melee_body")
-		elif skill != null and skill.behaviour_tags.has(&"damage") and _target_ids_include_enemy(target_ids):
-			_queue_after_dialog(&"after_attack", "ui_tutorial_after_attack_title", "ui_tutorial_after_attack_body")
 		_evaluate_guidance.call_deferred()
 
 
@@ -979,7 +906,6 @@ func _on_damage_dealt(_target_id: StringName, _amount: int, _world_pos: Vector2)
 func _on_heal_done(target_id: StringName, _amount: int, _world_pos: Vector2) -> void:
 	if target_id == &"player":
 		_complete_check(&"self_effect")
-		_queue_after_dialog(&"after_heal", "ui_tutorial_after_heal_title", "ui_tutorial_after_heal_body")
 	_evaluate_guidance.call_deferred()
 
 
@@ -994,11 +920,6 @@ func _on_actor_died(_actor_id: StringName) -> void:
 
 func _on_turn_changed(_turn: int) -> void:
 	_evaluate_guidance.call_deferred()
-
-
-func _on_world_turn_ended(turn: int) -> void:
-	_on_turn_changed(turn)
-	_show_after_dialogs_on_next_player_turn.call_deferred()
 
 
 func _on_skill_offer_about_to_open(_wave_index: int, _count: int, _pool_id: StringName) -> void:
@@ -1017,11 +938,6 @@ func _on_skill_offer_closed(_wave_index: int, _picked_skill_id: StringName, _mod
 	_in_skill_offer = false
 	if _picked_skill_id != &"":
 		_complete_check(&"skill")
-	_queue_after_dialog(
-			&"skill_offer_done",
-			"ui_tutorial_skill_offer_done_title",
-			"ui_tutorial_skill_offer_done_body",
-			false)
 	_evaluate_guidance.call_deferred()
 
 
