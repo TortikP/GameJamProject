@@ -19,10 +19,18 @@ const SkillFormatter = preload("res://scripts/presentation/skill_formatter.gd")
 
 var _actor: Actor = null
 
+# 049 / AC-8: hover beats active. Slot bar emits slot_hovered/_unhovered;
+# controller pipes into set_hover_spell. set_active_spell is unchanged callsite-
+# wise (slot_activated). Both targets feed _refresh_spell_section so toggling
+# either updates the visible text.
+var _active_skill = null
+var _hover_skill = null
+
 
 func _ready() -> void:
 	_apply_theme()
 	EventBus.ui_theme_reloaded.connect(_apply_theme)
+	Localization.locale_changed.connect(_on_locale_changed)
 	# Spell section starts collapsed — no slot active means nothing to show.
 	_spell_section.visible = false
 
@@ -34,7 +42,15 @@ func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_hp_value, "num_large")
 	UiTheme.apply_label_kind(_spell_header, "small")
 	UiTheme.apply_label_kind(_spell_name, "header")
-	UiTheme.apply_label_kind(_spell_desc, "small")
+	# 049b / T035: spell description bumped from "small" to "body" — was
+	# barely-readable at default zoom. autowrap stays on (set in .tscn) so
+	# longer authored tooltips still fit the column without jittering the
+	# panel width. Per-skill semantic tint applied in _refresh_spell_section.
+	UiTheme.apply_label_kind(_spell_desc, "body")
+	# 049b / T035: enable autowrap programmatically in case the .tscn
+	# doesn't have it set — tooltip strings can be 80–120 chars and the PSP
+	# column is fixed-width.
+	_spell_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 ## Bind to player actor. Auto-listens to damaged and statuses_changed
@@ -89,38 +105,69 @@ func set_active_spell(skill_or_ability) -> void:
 	if not is_node_ready():
 		ready.connect(set_active_spell.bind(skill_or_ability), CONNECT_ONE_SHOT)
 		return
-	if skill_or_ability == null:
+	_active_skill = skill_or_ability
+	_refresh_spell_section()
+
+
+## 049 / AC-8: per-slot hover description. Hovered skill takes priority over
+## active selection — moving the cursor across slots previews each spell
+## without committing. Pass null on mouse_exited to fall back to active.
+func set_hover_spell(skill) -> void:
+	if not is_node_ready():
+		ready.connect(set_hover_spell.bind(skill), CONNECT_ONE_SHOT)
+		return
+	_hover_skill = skill
+	_refresh_spell_section()
+
+
+## 049: shared rebuild path for active + hover. Hover beats active; both
+## null hides the section.
+func _refresh_spell_section() -> void:
+	var s = _hover_skill if _hover_skill != null else _active_skill
+	if s == null:
 		_spell_section.visible = false
 		return
-	# Skill has .abilities[]; bare Ability does not.
-	var has_abilities: bool = "abilities" in skill_or_ability
-	_spell_name.text = String(skill_or_ability.id)
+	# Header — localised name + CD when active. Same compact "name (CD x/y)"
+	# convention format_skill uses on its first line, kept inline because
+	# format_skill_human bakes CD into the body string and the header label
+	# wants name-only.
+	var display_name: String = Localization.t(String(s.name), String(s.id))
+	if "cooldown" in s and s.cooldown > 0:
+		var cd_remaining: int = int(s.get("_cd_remaining"))
+		if cd_remaining > 0:
+			display_name += "  (CD %d/%d)" % [cd_remaining, s.cooldown]
+		else:
+			display_name += "  (CD %d)" % s.cooldown
+	_spell_name.text = display_name
+	# Body — human-readable per AC-1. format_skill_human collapses to the
+	# Localization.t(skill.tooltip) string (or [ДОБАВИТЬ] placeholder when
+	# the key is missing) so designers see un-authored skills immediately.
+	# Bare-Ability legacy callers (no .abilities[]) still fall through to
+	# the structural format_ability path so they don't 500.
+	var has_abilities: bool = "abilities" in s
 	if has_abilities:
-		# Skill path — full multi-ability dump via formatter.
-		var lines: Array[String] = []
-		for ab in skill_or_ability.abilities:
-			for l in SkillFormatter.format_ability(ab):
-				lines.append(l)
-		_spell_desc.text = "\n".join(lines)
-		# Cooldown indicator in the header line.
-		if skill_or_ability.cooldown > 0:
-			var cd_remaining: int = int(skill_or_ability.get("_cd_remaining"))
-			if cd_remaining > 0:
-				_spell_name.text += "  (CD %d/%d)" % [cd_remaining, skill_or_ability.cooldown]
-			else:
-				_spell_name.text += "  (CD %d)" % skill_or_ability.cooldown
+		_spell_desc.text = SkillFormatter.format_skill_human(s)
+		# 049b / T035: tint the description (and the name) by the skill's
+		# dominant semantic — damage red, heal green, control purple, etc.
+		# Read-at-a-glance "what kind of spell is this" before parsing the
+		# words. Falls through to TEXT for skills with no recognised first
+		# effect, which keeps the legacy look on broken/unfilled skills.
+		var col: Color = SkillFormatter.consequence_color(s)
+		_spell_name.add_theme_color_override("font_color", col)
+		_spell_desc.add_theme_color_override("font_color", col)
 	else:
-		# Plain Ability path — mostly for legacy / direct ability passes.
-		var lines: Array[String] = SkillFormatter.format_ability(skill_or_ability)
-		_spell_desc.text = "\n".join(lines)
+		_spell_desc.text = "\n".join(SkillFormatter.format_ability(s))
+		# Plain Ability legacy path — keep neutral TEXT.
+		_spell_name.add_theme_color_override("font_color", UiTheme.TEXT)
+		_spell_desc.add_theme_color_override("font_color", UiTheme.TEXT)
 	_spell_section.visible = true
 
 
 func _refresh_all() -> void:
 	if _actor == null:
 		return
-	_name_label.text = String(_actor.actor_id)
-	_hp_value.text = "%d/%d" % [_actor.hp, _actor.max_hp]
+	_name_label.text = Localization.t("ui_player_actor_name", String(_actor.actor_id))
+	_hp_value.text = Localization.tf("ui_player_status_hp_value", [_actor.hp, _actor.max_hp], "%d/%d")
 	# Color HP value by threshold (mirrors HealthBar logic).
 	var ratio: float = float(_actor.hp) / max(1.0, float(_actor.max_hp))
 	_hp_value.add_theme_color_override("font_color", UiTheme.hp_color_for(ratio))
@@ -128,3 +175,8 @@ func _refresh_all() -> void:
 
 func _on_damaged(_id: StringName, _amount: int, _hp_left: int) -> void:
 	_refresh_all()
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_all()
+	_refresh_spell_section()

@@ -80,11 +80,22 @@ func _on_pause_toggled(paused: bool) -> void:
 func _on_restart() -> void:
 	if _confirm == null or not _confirm.has_method("ask"):
 		return
-	var ok: bool = await _confirm.ask("Restart run?", "Current progress will be lost.",
-			"Restart", "Cancel", true)
+	var ok: bool = await _confirm.ask(
+			Localization.t("ui_pause_restart_title", "Restart run?"),
+			Localization.t("ui_pause_restart_body", "Current progress will be lost."),
+			Localization.t("ui_pause_restart_confirm", "Restart"),
+			Localization.t("ui_common_cancel", "Cancel"), true)
 	if ok:
 		close()
-		EventBus.run_started_requested.emit()
+		if ActiveGame.has_active_game():
+			EventBus.run_started_requested.emit()
+			if ActiveGame.restart():
+				get_tree().paused = false
+				get_tree().change_scene_to_file("res://scenes/dev/godmode.tscn")
+			else:
+				EventBus.ui_toast_requested.emit(Localization.t("ui_pause_restart_failed", "Restart failed"), 2.0, &"error")
+		else:
+			EventBus.run_started_requested.emit()
 
 
 func _on_settings() -> void:
@@ -94,20 +105,25 @@ func _on_settings() -> void:
 	if settings != null and settings.has_method("open"):
 		settings.open()
 	else:
-		EventBus.ui_toast_requested.emit("Settings unavailable", 2.0, &"warn")
+		EventBus.ui_toast_requested.emit(Localization.t("ui_pause_settings_unavailable", "Settings unavailable"), 2.0, &"warn")
 
 
 func _on_main_menu() -> void:
 	if _confirm == null or not _confirm.has_method("ask"):
 		return
-	var ok: bool = await _confirm.ask("Return to main menu?", "Current run will end.",
-			"Main Menu", "Cancel", true)
+	var ok: bool = await _confirm.ask(
+			Localization.t("ui_pause_main_menu_title", "Return to main menu?"),
+			Localization.t("ui_pause_main_menu_body", "Current run will end."),
+			Localization.t("ui_pause_main_menu_confirm", "Main Menu"),
+			Localization.t("ui_common_cancel", "Cancel"), true)
 	if ok:
 		# 020 — leaving for main menu invalidates the playtest-origin link;
 		# clear it so a future Ctrl+E from a different battle doesn't try to
 		# return us to a stale editor session.
 		ActiveLevel.clear_playtest_origin()
 		ActiveLevel.clear()
+		ActiveGame.clear()
+		get_tree().paused = false
 		close()
 		EventBus.main_menu_entered.emit()
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
@@ -128,7 +144,10 @@ func _on_back_to_editor() -> void:
 func _on_quit() -> void:
 	if _confirm == null or not _confirm.has_method("ask"):
 		return
-	var ok: bool = await _confirm.ask("Quit game?", "Unsaved progress will be lost.",
-			"Quit", "Cancel", true)
+	var ok: bool = await _confirm.ask(
+			Localization.t("ui_pause_quit_title", "Quit game?"),
+			Localization.t("ui_pause_quit_body", "Unsaved progress will be lost."),
+			Localization.t("ui_pause_quit_confirm", "Quit"),
+			Localization.t("ui_common_cancel", "Cancel"), true)
 	if ok:
 		get_tree().quit()

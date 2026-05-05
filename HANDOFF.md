@@ -1,3 +1,21 @@
+<!--
+  ============================================================================
+  Этот файл — архивный handoff времён 72-часового джема (апрель 2025).
+  Сохранён как исторический артефакт. Текущий план и контекст работы:
+  - planning/plan.md
+  - docs/design/ (DECISIONS, OPEN-QUESTIONS, PILLARS, VISION)
+  - docs/FEATURES.md (реестр фич)
+  - docs/agents/ (система агентов с @-роутингом)
+
+  Claude: не используй этот файл как источник правил или текущего контекста.
+  ============================================================================
+-->
+
+> **Архивный документ.** Это handoff времён 72-часового джема. Текущий контекст
+> живёт в `planning/plan.md`, `docs/design/`, `docs/FEATURES.md`, `docs/agents/`.
+
+---
+
 # HANDOFF — джем-проект
 
 > Документ для передачи контекста в новый чат Клода. Самодостаточен — содержит всё необходимое для продолжения работы. Сопутствующий артефакт: `jam-concept-pitch.md` (детальный концепт игры).
@@ -40,8 +58,6 @@
 Пошаговая магическая арена со спелл-крафтом через модификаторы (как Ball x Pit / Brotato), QWER-style слоты заклинаний, гекс-арена, рогаликовая петля в стиле Megabonk. Полный концепт — в `jam-concept-pitch.md`.
 
 **Идентичность (не зависит от темы):**
-- Перемотка плёнки между петлями.
-- SFX → ИИ-голос → реальный человек по мере прогресса.
 - Community-style мета-ирония, переключаемая на Гайман-тон под серьёзную тему.
 
 ---
@@ -154,7 +170,7 @@ jam-project/
 │   ├── audio/
 │   │   ├── sfx/
 │   │   ├── music/
-│   │   └── voice/               # SFX-бормотание, AI-голоса, human-голоса
+│   │   └── voice/               # SFX-бормотание (Animal Crossing-style)
 │   └── fonts/
 └── tests/                       # GUT, опционально
 ```
@@ -211,7 +227,6 @@ upgrade_screen_min_display=2.0
 respawn_animation_duration=1.5
 
 [meta]
-rewind_effect_duration=0.8
 boss_intro_duration=3.0
 
 [clock]
@@ -219,6 +234,10 @@ tick_animation_duration=0.2
 ```
 
 **Правило для всей команды:** хардкоженных таймеров в коде не должно быть. PR с `await get_tree().create_timer(0.5)` без обёртки `GameSpeed.wait(...)` — отклоняется на ревью.
+
+### `RunScore` (`scripts/infrastructure/run_score.gd`) — добавлен в 024
+
+Per-run счётчик очков. `RunScore.add(delta)` → `total += delta` + emit `score_changed(total, delta)`. Подписан на `EventBus.run_started` для авто-сброса при новом ране (godmode emits run_started в `_ready`). Используется WaveController'ом (auto-clear → `add(turns_to_next - turns_into_wave)`) и HUD виджетом `score_corner.tscn`.
 
 ### `EventBus` (`scripts/infrastructure/event_bus.gd`)
 
@@ -239,11 +258,17 @@ signal portal_opened
 signal upgrade_offered(options: Array)
 signal upgrade_chosen(modifier_id)
 
+# Waves (024) — runtime wave lifecycle, separate from legacy wave_spawned.
+# WaveController emits these; HUD wave_timeline + score_corner + 025
+# level_dialogues subscribe.
+signal wave_started(index: int, is_special: bool)
+signal wave_cleared(index: int, unused_turns: int)
+signal level_completed(total_score: int)
+signal actor_spawned(actor_id: StringName)
+
 # Run-цикл
 signal run_started
 signal run_ended(reason: String)
-signal rewind_started
-signal rewind_finished
 
 # Диалоги
 signal dialogue_started(dialogue_id)
@@ -273,7 +298,21 @@ func debug(tag: String, msg: String) -> void: log(Level.DEBUG, tag, msg)
 
 ### `AudioDirector` (`scripts/infrastructure/audio_director.gd`)
 
-Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями, поддержка эскалации SFX → AI → human.
+Заготовка на вечер среды, наполняется по мере. Идея: централизованное управление звуковыми слоями (SFX-бормотание для диалогов, общий микс).
+
+### `MusicDirector` (`scripts/audio/music/music_director.gd`) — добавлен в 042
+
+Процедурный музыкальный движок. Real-time PCM через `AudioStreamGenerator`, без аудиоассетов в сорсе. Два состояния (`calm`/`battle`), JSON-конфигурируемые стинги (заменяемые на OGG без правки кода). Подписан на EventBus: `level_loaded`, `wave_started`, `wave_cleared`, `level_completed`, `run_ended`, `main_menu_entered`, `run_started_requested`.
+
+Архитектура (low→high): `Wavetables` → `ADSR` → `VoicePool` → `Conductor` + `Harmony` + `StateMixer` → `BassGen`/`PadGen`/`LeadGen`/`DrumsGen` → `MusicDirector` → `StingPlayer`.
+
+Per-level конфиг в `LevelData.music_config` (опциональный, `{}`=дефолты). Меню-конфиг в `data/music/main_menu.json`. Стинги в `data/music/stings.json` (swap OGG: `"kind":"stream","path":"res://..."` в одной строке JSON). Пресеты в `data/music/presets.json`.
+
+**Публичный API** (Music Lab и `_on_level_loaded`): `set_bpm`, `set_state`, `set_seed`, `set_layer_db(layer, db)`, `set_lead_density(calm, battle)`, `play_sting(name)`.
+
+**Music Lab**: `scenes/dev/music_lab.tscn` — F6 для запуска. Слайдеры (BPM, lead density, gain), A/B слоты, стинг-кнопки, «Copy JSON» в clipboard (готово к вставке в level.json). Что слышишь в лабе = что услышишь в игре с тем же конфигом.
+
+Полная архитектура: `specs/042-proc-music/`.
 
 ---
 
@@ -480,7 +519,7 @@ JSON-формат:
 }
 ```
 
-`audio_layer` — `sfx`, `ai_voice`, `human` — управляется AudioDirector.
+`audio_layer` — опциональный тег для аудио-роутинга AudioDirector'ом (default `sfx`).
 
 Под любую тему DialogueManager работает идентично — меняется только контент.
 
@@ -561,16 +600,13 @@ JSON-формат:
 - 4 заклинания, 10+ модификаторов в пуле.
 - Экран апгрейда между боями.
 - Несколько диалогов в run'е.
-- Перемотка плёнки на респауне.
 
 **Если играется — остаток дня = polish и контент.** Не новые фичи. Катя доделывает ассеты, Никита заливает диалоги, Стасян балансирует.
 
 ### Суббота днём
 
 - Финальные диалоги.
-- ИИ-голос на ключевых репликах (опционально).
 - Музыкальные слои (опционально).
-- Финальный приём (скип отключён + реальный голос) — если успели записать живой голос. Если не записали — без него, не страшно.
 
 ### Суббота вечер (последние 3 часа)
 
@@ -715,6 +751,8 @@ JSON-формат:
 
 **В работе сейчас:** `020-map-editor` (data-driven mouse-driven editor для карт: пол/объекты/спавнеры → `data/maps/*.json`, Playtest сразу в бой). Ветка `andrey/020-map-editor-impl`, spec/plan/tasks в `specs/020-map-editor/`. После мержа Стасян может рисовать карты мышью или править JSON руками по `data/maps/_schema.md`. **Смерженное в staging:** `018-tile-objects` (data-driven статика тайлов: камни/лава/фонтаны/бочки), `019-tile-object-resolver` (runtime триггеры этих объектов).
 
+**032-controller-refactor (in-PR, ветка `andrey/controller-refactor`):** `godmode_controller.gd` распилен с 1432 строк до 225 — 8 sibling-нод под GodmodeController в `scripts/presentation/godmode/`: `godmode_setup.gd` (288), `ai_driver.gd` (224), `godmode_input.gd` (210), `telegraph_renderer.gd` (194), `hover_dispatcher.gd` (193), `cast_fsm.gd` (169), `manekin_spawner.gd` (77), `step_animator.gd` (24). Контроллер держит селекшн-фасад (`select`/`inspect_hex`/`bind_hex_at`/`refresh_overlay`/`deselect_to_player`), SlotBar signal pump, ability picker, `_resolve_modules` и `_is_wave_transitioning` proxy. Pattern: модули читают shared state через `_ctrl.X` (controller as facade), нет EventBus-шума. Параллельно — tileset consolidation: `scenes/dev/godmode_terrain.tres` удалён, `scenes/arena/tilesets/hex_terrain.tres` (`tile_shape = HEXAGON`, 128×80) — единственный TileSet в проекте (sample maps + level_data + map_editor + floor_palette перенаправлены). B-001 верифицирован закрытым (гарды `is_instance_valid` в обеих фазах AI после переноса). B-003 (move-overlay не отрисовывается) — теоретически закрыт ещё в 029 геометрической edge-detection, тайлсет-консолидация снимает остаточный риск. **Pending Andrey:** ручная смок-проверка в Godot editor по T29 (procedural godmode + sample.json Playtest + sample_waves.json Playtest). **B-002** (`UiTheme.apply_label_kind` static-call warning) — out-of-scope, отдельным PR.
+
 ---
 
 **Удачи. Документ обновляется по ходу — после ключевых решений правьте его и перекидывайте свежую версию в новые чаты Клода.**
@@ -791,3 +829,238 @@ JSON-формат:
 - `006-meta-screens` — owner Alexey (после темы).
 
 Темы заготовок (002, 003) можно разрабатывать в параллель вечером среды или утром четверга. Темы 004-006 — после объявления темы джема, потому что они привязаны к концепту.
+
+## 20. 039-dialogue-triggers — точки интеграции
+
+**Статус (2026-05-03):** PR открыт, ждёт ревью. Реализовано всё из spec.
+
+### Что добавлено
+
+- `scripts/core/dialogue/dialogue_trigger.gd` — value class (`from_dict`, `to_dict`, `validate`).
+- `LevelData.dialogue_triggers: Array[Dictionary]` — персистентно в JSON, backward-compatible.
+- `EventBus`: новые сигналы `wave_about_to_start(index)` и `level_loaded(level)`.
+- `WaveController`: эмитит `battle_started` из `start_level`, `wave_about_to_start` перед snapshot N>0, `battle_ended(true)` на `level_completed`.
+- `scripts/runtime/level_dialogue_director.gd` — autoload. Слушает `level_loaded` → кэширует level; `battle_started` → коннектит хендлеры по уникальным event; `battle_ended` → дисконнектит.
+- `WaveTimeline`: `set_dialogue_trigger_markers(triggers, level)` — violet circles в `Mode.EDIT`. Click → `dialogue_trigger_marker_clicked(id)`.
+- `scenes/dev/dialogue_trigger_panel.tscn` + `dialogue_trigger_panel.gd` — CRUD sidebar. Сигналы → controller.
+- `map_editor_controller.gd`: `_wire_dialogue_trigger_panel`, `_refresh_timeline_dialogue_markers`, CRUD handlers.
+- `data/maps/sample_dialogues.json` — smoke-уровень, 5 триггеров.
+
+### Точка интеграции с 040 (wave-skill-choice)
+
+040 должен добавить в `EventBus`:
+```gdscript
+signal skill_offer_about_to_open(wave_index: int, ...)
+signal skill_offer_closed(wave_index: int, ...)
+```
+Director подключится к ним автоматически когда trigger `event` = `"skill_offer_about_to_open"` / `"skill_offer_closed"` встретится в level JSON. До мержа 040 — warn-once в лог, триггеры мёртвы, остальные работают.
+
+### Известные ограничения (post-jam)
+
+- Editor: ConfirmModal не задействован для Delete (прямой emit сигнала). Добавить при наличии времени.
+- Markers: tooltip при hover — не реализован (P3, cut из scope). Позиция marker Y считается от `BAR_Y - ANCHOR_RADIUS - 6` — если добавятся anchors другого размера, пересмотреть.
+- `_refresh_timeline_dialogue_markers()` ищет Timeline по hardcoded path `VBox/TimelineRow/Timeline` внутри WavePanel — хрупко если WavePanel перестроится.
+
+## 21. 040-wave-skill-choice — точки интеграции
+
+**Статус (2026-05-03):** ветка `andrey/040-wave-skill-choice`, готов к ревью / merge в staging.
+
+### Что добавлено
+
+- **Schema:** `LevelData.waves[i].skill_offer` — optional Dictionary, поля `pool/count/allow_upgrade/allow_replace/allow_skip/exclude_owned`. `validate()` правила, `to_dict` + `_wave_dict_from_arr` round-trip. Backward-compat: старые JSON без поля грузятся как «нет offer'а».
+- **EventBus:** `skill_offer_about_to_open(wave_index, count, pool_id)`, `skill_offer_closed(wave_index, picked_skill_id, mode)`. mode ∈ {add, upgrade, replace, skipped}.
+- **Pool format:** `data/skill_offer_pools/*.json` — id, label_key, skills[], optional weights{}, tags[]. `_schema.md` рядом. Sample: `basic.json` (8 скиллов из data/skills).
+- **`scripts/runtime/skill_offer_controller.gd`** (autoload, после `SkillDatabase`): pool scan на `_ready`, listener на `wave_cleared`, weighted-unique sampling, mode resolution против owned set, modal flow с `await dialogue_finished` → `paused=true` → `await player_picked` → `_apply_pick` → `_emit_closed_safely`. Public: `has_offer_for_wave`, `has_pool`, `get_pool_ids`, `get_pool_label`.
+- **`scripts/runtime/player_skill_adapter.gd`** — static wrapper. SlotBar (`set_slot/get_slot`) + `GodmodeController.sync_player_skills_from_slots()` mirror. Methods: `add_skill / upgrade_skill / replace_slot / owned_skills_array / owned_skills_dict / can_upgrade / has_skill / first_empty_slot / filled_slot_indices / peek_slot`. Lazy GodmodeController lookup; warn-once on absence (smoke / map editor).
+- **`scenes/ui/skill_offer_modal.tscn`** + `skill_offer_modal.gd` (CanvasLayer=25): backdrop, header, cards row, optional Skip. Replace-mode submenu — second screen с Q/W/E/R picker, Cancel button. `process_mode=ALWAYS` для работы под `paused=true`.
+- **`scenes/ui/skill_offer_card.tscn`** + `skill_offer_card.gd`: PanelContainer с icon / name / mode-badge / mood / desc. Click → `card_clicked(card_data)`.
+- **`WaveController._check_auto_clear`**: после `wave_cleared.emit` — `await EventBus.skill_offer_closed` если у волны `skill_offer != null`. Функция теперь coroutine; все callers fire-and-forget.
+- **WavePanel:** новая секция `SkillOfferSection` (программно собирается в `_build_skill_offer_section`), enable checkbox + pool dropdown + count spinbox + 4 toggle CheckBoxes + Preview button. Сигналы `skill_offer_changed(wave_idx, offer | null)`, `skill_offer_marker_clicked(wave_idx)`, `skill_offer_preview_requested(wave_idx)` (preview spawn — внутри панели сама, не через controller).
+- **WaveTimeline:** `_layout_skill_offer_markers` + `_draw` маркеры (mint-teal) — видны в EDIT и RUNTIME. LMB hit-test (только EDIT) → `skill_offer_marker_clicked(wave_idx)`.
+- **MapEditorController:** +27 строк (укладывается в AC-S22 budget ≤30). Handlers: `_on_skill_offer_changed` (history push + dict write/erase + mark_dirty), `_on_skill_offer_marker_clicked` (switch active wave).
+- **UiTheme:** `SKILL_OFFER_MARKER_COLOR` (`#4dd6c1`), `SKILL_OFFER_MARKER_RADIUS` 6.0, `SKILL_OFFER_MARKER_GLYPH`.
+- **Sample:** `data/maps/sample_skill_offer.json` — 3 волны, offer на волне 1, allow_skip on.
+
+### Точка интеграции с 039-dialogue-triggers
+
+039 Director уже знает про `skill_offer_about_to_open` / `skill_offer_closed` (см. wave_timeline `_layout_trigger_markers` events list, `data/maps/_schema.md` curated events). После мержа 040: триггеры `event="skill_offer_about_to_open"` срабатывают **перед** открытием модалки (controller `await EventBus.dialogue_finished` если DialogueManager.is_playing()), `event="skill_offer_closed"` — после закрытия.
+
+### Известные ограничения / cuts deferred
+
+- **Turn-runout без offer.** Если игрок исчерпал `turns_to_next` с живыми врагами — следующая волна стартует без модалки (controller hook на `wave_cleared`, который fires только при kill-clear). Документировано в `data/maps/_schema.md`.
+- **No icon DB.** Skill.icon рендерится через path-search (`assets/icons/...`); если файла нет — placeholder. Реальный IconDB — отдельная фича.
+- **Weights в editor не правятся.** Hand-edit JSON. См. OQ-4 в spec.
+- **Tooltip над маркером** — не реализован, только текстовый label в editor controller (через layout). P3, cut.
+- **Theme reload не пересобирает SkillOfferSection** — section building в `_ready` only. Fire UiTheme reload → старые styleboxes остаются. Не критично для джема (theme reloads редки).
+- **AC-S15 chained dialog interplay** — реализовано (`await EventBus.dialogue_finished` if `DialogueManager.is_playing()`), но manual-smoke testing pending.
+
+### Pending Andrey (manual smoke)
+
+T009, T012, T020, T030 в `tasks.md`:
+1. Загрузить `sample_skill_offer.json` через Load Custom Level → Playtest → клир волны 1 → пауза → 3 cards → выбор → волна 2 стартует с новым скиллом.
+2. Обе ветки flow: add (свободный слот) и replace (заняты все 4) → submenu выбора слота.
+3. 039 trigger на `skill_offer_about_to_open` `play_mode=play` → диалог играется ДО модалки.
+4. Edge: pool < count (filter exclude_owned + 6 owned из 8) → меньше карточек, UI не падает.
+
+## 22. 048-corpse-absorption — точки интеграции
+
+**Статус (2026-05-03):** ветка `egor/048-corpse-absorption`, Phase A (T001–T012, T014) реализована и запушена; smoke-тесты T008/T015 + Phase C edge-cases — pending Egor в Godot.
+
+### Что добавлено
+
+- **Schema:** ничего — фича чисто runtime, не правит LevelData / Skill / EnemyData.
+- **EventBus:** +3 сигнала. `actor_corpse_spawned(coord: Vector2i, corpse_node: Node)` — на каждый спавн корпса. `corpses_absorbing_started(count: int, total_sec: float)` — на старте ритуала (count=0 OK при пустой арене). `corpses_absorbed` — после `total_sec` фиксированных секунд, гейтит advance в `WaveController._check_auto_clear` на финальной волне.
+- **Autoload `CorpseManager`** (`scripts/runtime/corpse_manager.gd`): listener на `actor_died` (фильтр player), `run_started`, `battle_started`, `scene_ready` (последние три → `clear_all`). Snapshot'ит `body.texture / global_position / flip_h / scale` ДО cleanup'а в godmode_controller (autoload connect order гарантирует первенство), спавнит `Corpse` под `<HexGrid>/Corpses` sibling от `Actors`. Public: `has_corpses()`, `corpse_count()`, `play_absorption_ritual(target_provider, grid)`, `clear_all()`.
+- **`scenes/runtime/corpse.tscn`** + `scripts/presentation/corpse.gd` (`class_name Corpse extends Node2D`). z=3, PROCESS_MODE_PAUSABLE. API: `init`, `play_death` (parallel hop+blink+shrink+topple Tween), `play_absorption` (cubic Bezier через tween_method + Callable.bind), `dispose`. Signals: `absorbed_arrived` (per-arrival hook), `death_anim_finished`.
+- **`WaveController._check_auto_clear`** — гейт на финальной волне: `_is_transitioning=true → CorpseManager.play_absorption_ritual(...) → await EventBus.corpses_absorbed → _is_transitioning=false → skill_offer-блок → _advance_wave`. Helper `_is_final_wave(idx)`.
+- **`GodmodeCamera.shake(amp, freq, duration)`** — multi-layer аддитивный аккумулятор (несколько concurrent shake'ов складываются через `offset`, expired удаляются). Группа `&"main_camera"`.
+- **`ActorRegistry`** — `add_to_group(&"actor_registry")` в `_ready()` для group-lookup из CorpseManager без injection.
+- **`UiTheme`** — `ABSORPTION_PARTICLE_COLOR`, `BIOME_TINTS` Dictionary (forest/heaven/lava/ice → Color), `static func biome_tint_for(kind) -> Color` (WHITE fallback).
+- **`config/game_speed.cfg [fx]`** — 22 ключа (`corpse_death_*`, `absorption_*`). F5 reload работает на следующую анимацию (running tweens доигрывают со старыми значениями).
+
+### Точка интеграции с 040-wave-skill-choice (Andrey)
+
+040 уже работает корректно. Мы вклиниваемся ДО его блока:
+- `wave_cleared.emit` → **NEW: if final wave → await corpses_absorbed (input lock)** → если `_has_skill_offer_for(cleared_idx)` → `await skill_offer_closed` → `_advance_wave`.
+- `skill_offer_about_to_open` / `skill_offer_closed` — НЕ трогаем.
+- На non-final волнах путь skill_offer не меняется, корпсы накапливаются между волнами без действий со стороны 040.
+
+### Точка интеграции с 029-feedback-polish (Andrey)
+
+029 catalog содержит пункт «Death animation manekin'ов — сейчас просто исчезают, нужен fall/dissolve» (строка 24). После мержа 048 этот пункт **закрыт** — отдельный fall/dissolve-pass в 029 не нужен. В spec.md 029 при следующей правке можно снять или закомментировать.
+
+### Точка интеграции с 047-skill-fx-system (Egor)
+
+Переиспользуем `flash.gdshader` (`flash_amount`, `flash_color`) — на корпсе для death/absorption blink, на героине для абсорпции pulse. **Не правим** FxDirector — он сам по себе flash-cast'ы для скиллов делает, наши flash'и независимы (отдельные ShaderMaterial-инстансы на body'ях). Если в одном кадре сработает skill-cast на героине ВО ВРЕМЯ нашей абсорпции — материал перетрётся, pulse прервётся; защита через `_is_transitioning=true` в WaveController блокирует input на время ритуала, AI не кастует (волна последняя, мобы мертвы), коллизий не должно быть.
+
+### Inertia инвариант (D-5 / AC-15)
+
+Корпс — **только** presentation-узел под `<HexGrid>/Corpses`. By construction:
+
+- НЕ зарегистрирован в `ActorRegistry` (audit grep'ом подтвердил: нет вызовов `registry.register(corpse_*)`).
+- НЕ присутствует в `HexGrid._tiles[*].actor_id` (audit grep'ом: нет вызовов `grid.place_actor(corpse_*)`).
+- `_apply_wave_snapshot` трогает только floor/objects/spawners — `Corpses` Node не упомянут. Wave-transition N→N+1 сохраняет корпсы автоматически.
+- Damage / spell / tile_effect resolution идёт через `registry.get_actor(id)` — корпс не вернётся.
+- Pathfinder через гекс с корпсом проходит как через пустой (`grid.is_walkable` не учитывает Corpses Node).
+
+Единственные пути исчезновения: `dispose()` после `absorbed_arrived` (абсорпция), `clear_all()` (ресет/выход).
+
+### Известные ограничения / OQ-2
+
+- **Editor playtest reset.** Если playtest перезапускает уровень не через `EventBus.scene_ready` / `run_started` / `battle_started`, corpses могут утечь между прогонами. Audit pending на T019 (Phase C). Если не закрывается через имеющиеся сигналы — добавить hook на editor-specific signal (TBD имя сигнала).
+- **Particle texture.** Сейчас GPUParticles2D без texture → дефолтный Godot square. Если Катя пришлёт круглый glow — добавить `p.texture = preload("res://assets/sprites/fx/particle_dot.png")` в `_spawn_heroine_particles`.
+- **Heroine `Body` resolve.** Привязан к node-name `"Body"` под player Actor. Если героиня пересоберётся с другим именем спрайта — pulse молча не сработает (graceful — `body == null → return`). Не критично.
+- **Scale-punch на героине** в `_heroine_scale_punch` пишет напрямую в `heroine.scale`. Если героиня сама в этот момент имеет scale-tween (другой системы — телепорт, knockback) — коллизия. На финальной волне таких систем не активно, но потенциальный конфликт стоит держать в голове.
+
+### Pending Egor (smoke в Godot)
+
+T008, T015–T023 в `tasks.md`:
+1. Godmode F1 → spawn маникена → убить → корпс прыгает/мигает/уменьшается/заваливается, лежит, AOE на гекс не убирает (T008 + T021b#3).
+2. Sample level с двумя волнами (3+3 моба), убить первую — корпсы лежат всю вторую волну (T021b#4); добить вторую — absorption ritual: 6 трупов летят к героине, разные траектории, на каждое прибытие punch+burst, после 2.5с emit corpses_absorbed → skill_offer (если есть) → level_completed (T015).
+3. Forest / heaven / lava / ice уровни → biome-tint на heroine pulse и particles меняется (T023).
+4. Финальная волна без корпсов — пустой ритуал играется полную длительность с heroine FX (T016).
+5. F2 ресет в godmode → корпсы исчезают, leak-check (T018).
+6. F5 live-reload — следующий death использует новые `[fx]` значения (T022).
+
+## 23. 049-ux-rehaul — точки интеграции
+
+**Статус:** ветка `egor/049-ux-rehaul` (PR в открытом состоянии — http://github.com/TortikP/GameJamProject/pull/new/egor/049-ux-rehaul). Phases A→D реализованы. Smoke (T028–T030) — за тестирующим в Godot.
+
+Большой UX-rehaul, presentation-only, core не тронут. Главная идея: переход от click-to-inspect к ITB-стилю always-on hover-driven preview.
+
+### Что введено
+
+- **Source of truth для описаний** — `Localization.t(skill.tooltip)` через новый `SkillFormatter.format_skill_human(skill)`. При missing key показывается `[ДОБАВИТЬ]` placeholder (видно дизайнерам). Старый структурный `format_skill` остался как dev/debug fallback.
+- **HexTooltip** (`scripts/presentation/hex_tooltip.gd` + `scenes/ui/hex_tooltip.tscn`) — cursor-anchored multi-row table. Аккумулирует ВСЕ actions targeting hovered hex (player preview + enemy intents с `target_coord==coord` ИЛИ `coord ∈ ability.area.affected`). 3 колонки: actor name • skill icon+name • consequence.
+- **EnemyDetailsPanel** (`scripts/presentation/enemy_details_panel.gd` + `scenes/ui/enemy_details_panel.tscn`) — top-right hover-only widget. Bind на enter enemy hex, unbind на exit. Hor. layout: portrait • name+team • HP • status strip • abilities row.
+- **TelegraphHex иконка** — primary hex draws skill icon (texture via SkillIconResolver, fallback first letter). Damage label moved from above-hex (collision с HP bars) to bottom-center inside hex.
+- **CastRangeOverlay grey-out** — invalid range hexes (target.resolve null on per-hex ctx) drawn in `INVALID_TARGET_COLOR` dim grey vs valid SEM_DEBUFF.
+- **EnemyMovePath** (`scripts/presentation/enemy_move_path.gd`) — заменил straight-line IntentArrow. Polyline через hex centers по `grid.find_path_around` (matches AI's actual route, не straight через obstacles). Цвет SEM_DAMAGE.
+- **PSP hover-preview** — `set_hover_spell` + `slot_hovered/_unhovered` signals в SlotBar. Hover beats active в SpellSection.
+
+### Что выпилено
+
+- `ActorInspector` (правая панель + dev-mode SpinBox stat editor) — wholesale: `scripts/presentation/godmode/actor_inspector.gd` + `scenes/dev/actor_inspector.tscn`.
+- `HexInspectorSubpanel` — мёртвый parallel компонент, никем не инстанциировался.
+- `IntentArrow` — заменён на EnemyMovePath.
+- Selection-семантика в GodmodeController: `_selected, select(), deselect_to_player(), inspect_hex(), bind_hex_at(), _on_inspector_speed_changed, _on_actor_died_for_selection, var inspector, @export inspector_path`.
+- LMB-on-actor / LMB-on-hex без активного слота — теперь no-op.
+- Esc-handler shrunk с 3 tiers до 2 (cast cancel → pause menu; selection-tier удалён).
+
+### Точка интеграции с 029-feedback-polish (Andrey)
+
+Закрыты:
+- §req-6 «mob-hover tooltip + AoE telegraph shape» — заменён HexTooltip + EnemyDetailsPanel.
+- §Pillar-1 «иконка типа атаки на TelegraphHex» — реализовано (icon-or-letter fallback).
+- §Pillar-1 «cast-range overlay чище: явная разница между достижимо и out of range» — реализовано через grey-out invalid.
+
+Можно при следующей правке 029/spec.md пометить эти пункты как «закрыто 049».
+
+### Точка интеграции с 040-wave-skill-choice (Andrey)
+
+`SkillOfferCard._resolve_icon` шимится в `SkillIconResolver.resolve(skill)`. Старая inline-копия (lines 149-169) удалена. Поведение идентично, никаких изменений по слот-офферам.
+
+### Точка интеграции с 048-corpse-absorption (Egor)
+
+Нет пересечений по файлам. Параллельные ветки можно мерджить в любом порядке.
+
+### Inertia инвариант
+
+ActorInspector / HexInspectorSubpanel / IntentArrow удалены из репы (`git rm`). Сценарии где их можно бы было вернуть отдельным спеком:
+- Dev-only stat editor SpinBoxes (если кому понадобится для playtest tuning) — отдельная панель за F-toggle, не наследник ActorInspector. Spec 050+.
+- Per-hex tile inspector (kind/effect/object) — если будет нужно в editor mode. Editor scene уже имеет свой набор panels, godmode runtime не нуждается.
+
+### Pending Egor (smoke в Godot)
+
+T028..T031 в `tasks.md`:
+1. Запустить `scenes/dev/godmode.tscn`, F1 spawn 2 манекена; проверить все 10 AC.
+2. Запустить sample-уровень из editor с 2 волнами по 2 моба; проверить multi-row hex tooltip когда несколько мобов целятся в один hex.
+3. Edge cases (T030): cursor на player → enemy_details скрыт; AoE+single-target overlap → 2 строки в tooltip; cursor flick между гексами → no flicker.
+4. Localization audit (T031): уже сделано в impl-сессии, 55/55 skills локализованы. Placeholder редкий.
+## 23. 045-intro-cutscene — точки интеграции
+
+### Поток
+
+1. Главное меню → "Начать забег" → `MainMenu._on_start` грузит `data/games/story_campaign.game.json`. Первый уровень там — `office_intro` (`is_intro=true`, `cutscene_id="intro_office"`). `change_scene_to_file(godmode.tscn)`.
+2. `godmode_setup.run()` загружает уровень, плейсит игрока. **Если `is_intro=true` — `HUD.visible = false`.** WaveController стартует, wave 0 с 0 врагов висит.
+3. `EventBus.scene_ready("godmode")` — два слушателя:
+   - `CampaignController._on_scene_ready` — видит `cutscene_id != ""` → emit `campaign_cutscene_requested("intro_office", on_done)` + 4-сек timeout (`game_speed.cfg [meta] cutscene_request_timeout_sec`).
+   - `IntroDirector._on_scene_ready` — видит `current_is_intro()` → `_run_sequence.call_deferred()`.
+4. `CutscenePlayer._on_cutscene_requested` подхватывает: `paused=true`, инстанцирует `scenes/meta/cutscene_player.tscn` (CanvasLayer 30, parented к current_scene чтобы не переживал scene change), играет `data/cutscenes/intro_office.json` (2 кадра scale + cross-fade), эмитит `cutscene_finished("intro_office")`, `paused=false`, on_done.call().
+5. `IntroDirector._run_sequence` ждёт `CutscenePlayer.cutscene_finished` (timeout 6s). Затем `DialogueManager.play("intro_office_monologue")` + ждёт `EventBus.dialogue_finished`. Затем `grid.step_actor(player, BOTTOM_SIDE)` + ждёт `actor_moved` (camera-follow 043 центрирует автоматом). Beat 0.4s. Эмитит `EventBus.level_completed.emit(0)`.
+6. `CampaignController._on_level_completed` → `_run_post_level_flow`. **На is_intro skip upgrade screen** (5-line patch); сразу transition shader → `ActiveGame.advance()` → `change_scene` → `story_map_01` уже без is_intro, HUD/zoom/input нормально.
+
+### Локи (включаются по `ActiveGame.current_is_intro()`)
+
+| Локация | Эффект |
+|---|---|
+| `godmode_setup.run` (конец) | `HUD.visible = false` |
+| `godmode_camera._unhandled_input` (first line) | `return` — ни zoom, ни pan |
+| `godmode_input._unhandled_input` (first line) | early-return после ESC-pass-through (pause-меню работает) |
+
+`@export var allow_pan: bool = false` в `godmode_camera.gd` — глобальный pan-killer для godmode/runtime сцен. В `map_editor.tscn` вручную выставлено `allow_pan = true`. is_intro лочит pan **дополнительно** (через первую line guard).
+
+### Контракты сигналов и таймауты
+
+`IntroDirector` все awaits ограничены timeout'ом — broken contract не softlock'ит:
+- cutscene_finished: 6.0s
+- dialogue_finished: 60.0s (диалог ждёт ввод игрока — даём с запасом)
+- actor_moved: 2.0s (step_duration=0.18s, запас на лаг)
+
+### Известные ограничения / cuts
+
+- **Не generic.** `IntroDirector` хардкодит `intro_office_monologue` и `BOTTOM_SIDE`. Для второго intro-уровня нужен копи-паст или расширение схемы game.json. Делать generic — постджемно.
+- **Quit-to-menu во время cutscene'а** — overlay парентится к current_scene, при scene change освобождается. Но `paused=true` на root остаётся → main_menu без обработки рискует подвиснуть. Если ломается, добавить `if get_tree().paused: get_tree().paused = false` в main_menu._ready (P2 cut).
+- **Player spawn ≠ chair tile.** `place_actor` блокируется на blocking-объектах. Стул `object_on_chair` стоит на (2,2), игрок на (2,3) к югу от него. Визуально — «уже встал, перед стулом».
+- **Dialogue placeholder.** `data/dialogues/intro_office_monologue.json` — 3 реплики на русском, speaker `heroine` (портрет `assets/portraits/heroine_neutral.png` отсутствует — DialoguePanel рендерит без). Никите переписать текст и/или сменить speaker.
+
+### Pending Andrey (manual smoke)
+
+T014–T020 в `specs/045-intro-cutscene/tasks.md`:
+1. Happy path: меню → "Начать забег" → cutscene art (≤3s) → диалог → шаг на юг → transition shader → story_map_01 с HUD.
+2. Skip path: Space на cutscene → диалог → шаг → transition.
+3. Godmode regression: меню → Godmode → нет intro, HUD виден.
+4. Load Custom Level regression: то же.
+5. Load Game на story_campaign: intro проигрывается как через "Начать забег".
+6. Pause во время cutscene'а: ESC → pause menu открывается. Если ломает overlay — добавить early-return в `_unhandled_input` overlay'а (acceptable cut).
+7. Quit-to-menu из intro → ActiveGame.clear() → "Начать забег" заново работает.

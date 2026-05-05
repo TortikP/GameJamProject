@@ -1,0 +1,53 @@
+{
+  "id": "under_desk_jump",
+  "name": "under_desk_jump_name",
+  "tooltip": "under_desk_jump_tooltip",
+  "desc": "under_desk_jump_desc",
+  "icon": "icons/skills/under_desk_jump.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "melee"
+  ],
+  "mood": [
+    "ascended"
+  ],
+  "level": 1,
+  "abilities": [
+	{
+	  "id": "teleport_self",
+	  "sound_start": "teleport_self/teleport_self_start.wav",
+	  "collision_effect": "buff_ascended",
+	  "sound_end": "teleport_self/teleport_self_end.wav",
+	  "animation": "cast_ascended",
+	  "target": {
+		"kind": "self"
+	  },
+	  "area": {
+		"kind": "self"
+	  },
+	  "effects": [
+		{
+		  "move_type": "teleport"
+		}
+	  ]
+	},
+	{
+	  "id": "self_shield",
+	  "sound_start": "self_shield/self_shield_start.wav",
+	  "collision_effect": "buff_ascended",
+	  "sound_end": "self_shield/self_shield_end.wav",
+	  "animation": "cast_ascended",
+	  "target": {
+		"kind": "self"
+	  },
+	  "area": {
+		"kind": "self"
+	  },
+	  "effects": [
+		{
+		  "status_id": "shielded(2)"
+		}
+	  ]
+	}
+  ]
+}

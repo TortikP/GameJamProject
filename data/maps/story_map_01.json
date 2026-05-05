@@ -1,0 +1,4463 @@
+{
+	"dialogue_triggers": [
+		{
+			"conditions": {
+				"once_per_run": true
+			},
+			"dialogue_id": "story_forest_arrive",
+			"event": "level_started",
+			"id": "m01_arrive",
+			"play_mode": "play"
+		},
+		{
+			"conditions": {
+				"once_per_run": true,
+				"wave_index": 0.0
+			},
+			"dialogue_id": "story_forest_wave_first",
+			"event": "wave_started",
+			"id": "m01_wave_first",
+			"play_mode": "play"
+		},
+		{
+			"conditions": {
+				"wave_index": 0.0
+			},
+			"dialogue_id": "story_wave_clear_nonfinal",
+			"event": "wave_cleared",
+			"id": "m01_wave_clear_0",
+			"play_mode": "play"
+		},
+		{
+			"conditions": {
+				"wave_index": 1.0
+			},
+			"dialogue_id": "story_wave_clear_nonfinal",
+			"event": "wave_cleared",
+			"id": "m01_wave_clear_1",
+			"play_mode": "play"
+		},
+		{
+			"conditions": {
+				"once_per_run": true,
+				"wave_index": 2.0
+			},
+			"dialogue_id": "story_forest_wave_last",
+			"event": "wave_about_to_start",
+			"id": "m01_wave_last",
+			"play_mode": "play"
+		},
+		{
+			"conditions": {
+				"once_per_run": true
+			},
+			"dialogue_id": "story_forest_clear",
+			"event": "level_completed",
+			"id": "m01_clear",
+			"play_mode": "play"
+		}
+	],
+	"music_config": {
+		"_desc": "Forest, cute, calm — pastoral dorian, gentle drums, breathing pad.",
+		"bars_per_chord": 2.0,
+		"base_state": "calm",
+		"bass_pattern": "root_fifth",
+		"bpm": 88.0,
+		"drum_pattern": "halftime",
+		"drums_gain_db": -8.0,
+		"lead_density_calm": 0.45,
+		"pad_gain_db": 1.0,
+		"pad_voicing": "sus2",
+		"progression": "am_f_c_g",
+		"scale": "dorian",
+		"seed": 1201.0
+	},
+	"name": "maps_story_map_01_name",
+	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
+	"version": 2,
+	"waves": [
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				}
+			],
+			"index": 0,
+			"is_special": false,
+			"objects": [
+				{
+					"coord": [
+						0,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-2,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-1,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						4
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						4
+					],
+					"object_id": "tree"
+				}
+			],
+			"skill_offer": {
+				"allow_replace": true,
+				"allow_skip": false,
+				"allow_upgrade": false,
+				"count": 3.0,
+				"exclude_owned": true,
+				"force_replace": true,
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
+			},
+			"spawners": [
+				{
+					"coord": [
+						1,
+						1
+					],
+					"kind": "player",
+					"ref": "",
+					"timer": 1
+				},
+				{
+					"coord": [
+						1,
+						-1
+					],
+					"kind": "enemy",
+					"ref": "bush",
+					"timer": 1
+				},
+				{
+					"coord": [
+						-3,
+						2
+					],
+					"kind": "enemy",
+					"ref": "monkey",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 10
+		},
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						1,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 1
+				}
+			],
+			"index": 1,
+			"is_special": false,
+			"objects": [
+				{
+					"coord": [
+						0,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-2,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-1,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						4
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						4
+					],
+					"object_id": "tree"
+				}
+			],
+			"skill_offer": {
+				"allow_replace": true,
+				"allow_skip": false,
+				"allow_upgrade": false,
+				"count": 3.0,
+				"exclude_owned": true,
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
+			},
+			"spawners": [
+				{
+					"coord": [
+						5,
+						-1
+					],
+					"kind": "enemy",
+					"ref": "monkey",
+					"timer": 1
+				},
+				{
+					"coord": [
+						-1,
+						3
+					],
+					"kind": "enemy",
+					"ref": "monkey",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 12
+		},
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						3
+					],
+					"source_id": 0
+				}
+			],
+			"index": 2,
+			"is_special": true,
+			"objects": [
+				{
+					"coord": [
+						0,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-2,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-1,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						4
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						4
+					],
+					"object_id": "tree"
+				}
+			],
+			"skill_offer": {
+				"allow_replace": true,
+				"allow_skip": false,
+				"allow_upgrade": false,
+				"count": 3.0,
+				"exclude_owned": true,
+				"pool": "campaign_enemy_skills",
+				"source": "defeated_enemies"
+			},
+			"spawners": [
+				{
+					"coord": [
+						-2,
+						2
+					],
+					"kind": "enemy",
+					"ref": "bush",
+					"timer": 1
+				},
+				{
+					"coord": [
+						-1,
+						3
+					],
+					"kind": "enemy",
+					"ref": "mushroom_boar",
+					"timer": 1
+				},
+				{
+					"coord": [
+						5,
+						-2
+					],
+					"kind": "enemy",
+					"ref": "monkey",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 10
+		},
+		{
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						0
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						1
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						2
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						3
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-1,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-2,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-3,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						-4,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						0,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						0
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-1
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						4,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						2,
+						-4
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						1,
+						-5
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						5,
+						-3
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						6,
+						-2
+					],
+					"source_id": 1
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						3,
+						1
+					],
+					"source_id": 0
+				}
+			],
+			"index": 3,
+			"is_special": false,
+			"objects": [
+				{
+					"coord": [
+						0,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						-2
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-2,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						-1,
+						1
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						4
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						0,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						3
+					],
+					"object_id": "tree"
+				},
+				{
+					"coord": [
+						1,
+						4
+					],
+					"object_id": "tree"
+				}
+			],
+			"spawners": [
+				{
+					"coord": [
+						1,
+						-4
+					],
+					"kind": "enemy",
+					"ref": "bear",
+					"timer": 1
+				},
+				{
+					"coord": [
+						5,
+						-1
+					],
+					"kind": "enemy",
+					"ref": "bush",
+					"timer": 1
+				},
+				{
+					"coord": [
+						-1,
+						2
+					],
+					"kind": "enemy",
+					"ref": "mushroom_boar",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 0
+		}
+	]
+}

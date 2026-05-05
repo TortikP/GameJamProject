@@ -21,6 +21,11 @@ const SLOT_COUNT := 4
 
 signal slot_activated(index: int)
 signal slot_right_clicked(index: int)  # for ability picker popup
+# 049 / AC-8: per-slot hover signals so PSP can preview the hovered spell
+# description before the player commits via Q/W/E/R or LMB. Active selection
+# stays driven by slot_activated; hover is a separate, transient state.
+signal slot_hovered(index: int)
+signal slot_unhovered(index: int)
 
 ## Slot map: int index → Ability instance (or absent if empty).
 ## Dictionary intentionally — Godot 4.6 array element type-check fires
@@ -32,6 +37,15 @@ var _hovered: Dictionary = {}   # int → bool — mouse over slot
 var _buttons: Array[Button] = []
 var _cd_labels: Array[Label] = []  # cooldown overlay, one per slot — empty text when ready
 var _active: int = -1  # -1 = no spell selected
+# 029 / bonus-1: cached styleboxes for active-state perimeter outline. Active
+# slot swaps "normal" + "hover" overrides to the focus-bordered variant
+# (FOCUS-yellow 2px border baked by UiTheme.make_button_stylebox("focus")).
+# Keeps the per-button stylebox unique — StyleBoxFlat instances must NOT be
+# shared across buttons per UiTheme convention.
+var _styles_normal: Array[StyleBoxFlat] = []
+var _styles_hover:  Array[StyleBoxFlat] = []
+var _styles_active_normal: Array[StyleBoxFlat] = []
+var _styles_active_hover:  Array[StyleBoxFlat] = []
 
 
 func _ready() -> void:
@@ -45,7 +59,7 @@ func _ready() -> void:
 		btn.mouse_entered.connect(_on_mouse_entered.bind(i))
 		btn.mouse_exited.connect(_on_mouse_exited.bind(i))
 		btn.gui_input.connect(_on_button_gui_input.bind(i))
-		UiTheme.apply_button_styling(btn)
+		_apply_slot_styles(btn, i)
 		add_child(btn)
 		_buttons.append(btn)
 		# T062 numeric cooldown overlay — Label centered on the button. Hidden
@@ -65,11 +79,42 @@ func _ready() -> void:
 	_refresh_all()
 
 
+# 029 / bonus-1: build BOTH the normal and the active-state stylebox sets per
+# button, keep them cached so _refresh_visual just swaps overrides without
+# allocating per-frame. UiTheme.apply_button_styling builds the regular set;
+# we duplicate the "focus" variant (which has the FOCUS-yellow 2px border) for
+# the active state's "normal" + "hover" slots.
+func _apply_slot_styles(btn: Button, idx: int) -> void:
+	UiTheme.apply_button_styling(btn)
+	# Pull what apply_button_styling just installed so we can restore them
+	# when the slot leaves active state. get_theme_stylebox returns the
+	# override exactly as set above (StyleBoxFlat).
+	var normal := btn.get_theme_stylebox("normal") as StyleBoxFlat
+	var hover  := btn.get_theme_stylebox("hover")  as StyleBoxFlat
+	var act_n := UiTheme.make_button_stylebox("focus")
+	var act_h := UiTheme.make_button_stylebox("focus")
+	# Active-hover bg slightly lifted vs active-normal so hover still reads
+	# as hover even when the slot is selected.
+	act_h.bg_color = Color(act_h.bg_color.r, act_h.bg_color.g, act_h.bg_color.b, 1.0).lightened(0.06)
+	# Pad arrays per index so swap doesn't out-of-bounds.
+	while _styles_normal.size() <= idx:
+		_styles_normal.append(null)
+		_styles_hover.append(null)
+		_styles_active_normal.append(null)
+		_styles_active_hover.append(null)
+	_styles_normal[idx] = normal
+	_styles_hover[idx]  = hover
+	_styles_active_normal[idx] = act_n
+	_styles_active_hover[idx]  = act_h
+
+
 func set_slot(index: int, ability) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
 	_slots[index] = ability
-	var label_id := "—" if ability == null else String(ability.id)
+	var label_id := "—"
+	if ability != null:
+		label_id = Localization.t(String(ability.name), String(ability.id)) if "name" in ability else String(ability.id)
 	_buttons[index].text = "%s\n%s" % [SLOT_LABELS[index], label_id]
 	_refresh_visual(index)
 
@@ -81,11 +126,15 @@ func get_slot(index: int):
 
 
 ## Called by controller per-frame for each slot. true → bright, false → dim.
+##
+## Spec 031 phase 3: this also drives cooldown-label refreshes —
+## _refresh_visual reads the slot's _cd_remaining each call. The earlier
+## early-return on unchanged castability skipped those refreshes, leaving
+## stale numbers on slots that stayed dim across multiple ticks. 4 slots
+## × per-frame is negligible.
 func set_castable(index: int, castable: bool) -> void:
 	if index < 0 or index >= SLOT_COUNT:
 		return
-	if _castable.get(index, false) == castable:
-		return  # no-op skip to avoid redundant modulate writes
 	_castable[index] = castable
 	_refresh_visual(index)
 
@@ -121,11 +170,15 @@ func _on_button_pressed(index: int) -> void:
 func _on_mouse_entered(index: int) -> void:
 	_hovered[index] = true
 	_refresh_visual(index)
+	# 049 / AC-8: forward to PSP via controller. _refresh_visual already does
+	# the brightness tweak; this is the descriptive-text channel.
+	slot_hovered.emit(index)
 
 
 func _on_mouse_exited(index: int) -> void:
 	_hovered[index] = false
 	_refresh_visual(index)
+	slot_unhovered.emit(index)
 
 
 func _on_button_gui_input(event: InputEvent, index: int) -> void:
@@ -139,8 +192,10 @@ func _on_button_gui_input(event: InputEvent, index: int) -> void:
 func _on_theme_reloaded() -> void:
 	# Rebuild styleboxes (StyleBoxFlat instances are not shared per CLAUDE.md;
 	# re-apply via helper). Modulate / scale state preserved by _refresh_all.
-	for btn in _buttons:
-		UiTheme.apply_button_styling(btn)
+	# 029 / bonus-1: rebuild the active-state cache too — UiTheme palette may
+	# have changed, FOCUS color in particular drives the active border.
+	for i in _buttons.size():
+		_apply_slot_styles(_buttons[i], i)
 	_refresh_all()
 
 
@@ -171,6 +226,18 @@ func _refresh_visual(index: int) -> void:
 		else:
 			cd_lbl.text = ""
 			cd_lbl.visible = false
+	# 029 / bonus-1: stylebox swap for the active-state perimeter outline. The
+	# previous active-state visual (modulate tint + scale-pop) is kept; the
+	# border just adds a clearer "this is locked in" cue. Override BOTH
+	# normal and hover so the border survives the mouse moving over the slot.
+	var is_active: bool = (index == _active and has_ability)
+	if index < _styles_active_normal.size():
+		if is_active:
+			btn.add_theme_stylebox_override("normal", _styles_active_normal[index])
+			btn.add_theme_stylebox_override("hover",  _styles_active_hover[index])
+		else:
+			btn.add_theme_stylebox_override("normal", _styles_normal[index])
+			btn.add_theme_stylebox_override("hover",  _styles_hover[index])
 	# Modulate is layered on top of the stylebox — kept simple to avoid
 	# stylebox recompilation per state change. Active state uses FOCUS tint.
 	if not has_ability:

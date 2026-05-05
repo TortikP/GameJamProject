@@ -1,0 +1,40 @@
+{
+  "id": "bear_ball_throw",
+  "name": "bear_ball_throw_name",
+  "tooltip": "bear_ball_throw_tooltip",
+  "desc": "bear_ball_throw_desc",
+  "icon": "icons/skills/bear_ball_throw.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage",
+    "debuff"
+  ],
+  "mood": [
+    "tranquility"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bear_ball_throw_ranged_damage",
+      "sound_start": "bear_ball_throw_ranged_damage_sound_start",
+      "collision_effect": "ranged_tranquility",
+      "sound_end": "bear_ball_throw_ranged_damage_sound_end",
+      "animation": "cast_tranquility",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 14,
+          "status_id": "stunned(1)"
+        }
+      ]
+    }
+  ]
+}

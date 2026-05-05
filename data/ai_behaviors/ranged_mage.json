@@ -1,0 +1,75 @@
+{
+  "id": "ranged_mage",
+  "rules": [
+	{
+	  "condition": {
+		"kind": "all_of",
+		"children": [
+		  {
+			"kind": "enemy_in_range",
+			"distance": 4
+		  },
+		  {
+			"kind": "unclaimed_hex_exists_near_enemy",
+			"distance": 2
+		  }
+		]
+	  },
+	  "target_selector": {
+		"kind": "player_escape_hex"
+	  },
+	  "tag_priority": [
+		"damage_aoe",
+		"damage",
+        "ranged"
+	  ],
+	  "min_skill_count": 1
+	},
+	{
+	  "condition": {
+		"kind": "all_of",
+		"children": [
+		  {
+			"kind": "enemy_in_range",
+			"distance": 4
+		  },
+		  {
+			"kind": "unclaimed_hex_exists_near_enemy",
+			"distance": 1
+		  }
+		]
+	  },
+	  "target_selector": {
+		"kind": "unclaimed_hex_near_enemy"
+	  },
+	  "tag_priority": [
+		"damage_aoe",
+		"damage",
+        "ranged"
+	  ],
+	  "min_skill_count": 1
+	},
+	{
+	  "condition": {
+		"kind": "enemy_in_range",
+		"distance": 4
+	  },
+	  "target_selector": {
+		"kind": "nearest_enemy"
+	  },
+	  "tag_priority": [
+		"damage",
+		"damage_aoe",
+		"ranged",
+        "debuff"
+	  ],
+	  "min_skill_count": 1
+	}
+  ],
+  "movement_policy": {
+	"kind": "maintain_range",
+	"desired_min": 2,
+	"desired_max": 3
+  },
+  "fallback_skill_id": ""
+}

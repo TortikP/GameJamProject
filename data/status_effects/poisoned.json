@@ -1,0 +1,13 @@
+{
+  "id": "poisoned",
+  "family": "dot",
+  "icon": "",
+  "arity": 3,
+  "param_names": [
+    "duration",
+    "damage_pct",
+    "lvl_bonus_pct"
+  ],
+  "loc_name": "status_poisoned_name",
+  "loc_desc": "status_poisoned_desc"
+}

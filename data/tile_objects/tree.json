@@ -1,0 +1,25 @@
+{
+  "id": "tree",
+  "level": -1,
+  "sprite_path": "res://assets/tiles/tree.png",
+
+  "breakable": true,
+  "hp": 3,
+  "armor_tags": ["physical"],
+
+  "behavior_effect_id": "",
+  "applies_on_enter": false,
+  "applies_on_turn_end": false,
+  "aura_radius": 0,
+  "applies_on_attacked": false,
+
+  "linger_effect_id": "",
+
+  "tags": ["wood", "plant", "flammable"],
+
+  "on_destroy_effect_id": "",
+  "on_destroy_spawn_object_id": "",
+
+  "vfx_destroy": "",
+  "sfx_destroy": ""
+}

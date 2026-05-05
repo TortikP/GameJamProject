@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "default": "am_f_c_g",
+  "_doc": "Each chord = [root_midi, [intervals from root]]. Intervals: 0=root, 3=minor3, 4=major3, 7=fifth.",
+  "progressions": {
+    "am_f_c_g": {
+      "_name": "i-VI-III-VII (classic minor)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [65, [0, 4, 7]],
+        [60, [0, 4, 7]],
+        [67, [0, 4, 7]]
+      ]
+    },
+    "am_dm_e_am": {
+      "_name": "i-iv-V-i (harmonic minor cadence, dramatic)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [62, [0, 3, 7]],
+        [64, [0, 4, 7]],
+        [69, [0, 3, 7]]
+      ]
+    },
+    "am_g_f_g": {
+      "_name": "i-VII-VI-VII (dark, descending)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [67, [0, 4, 7]],
+        [65, [0, 4, 7]],
+        [67, [0, 4, 7]]
+      ]
+    },
+    "am_e_am_e": {
+      "_name": "i-V-i-V (medieval/menuet, stark)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [64, [0, 4, 7]],
+        [69, [0, 3, 7]],
+        [64, [0, 4, 7]]
+      ]
+    },
+    "am_bb_f_e": {
+      "_name": "i-bII-VI-V (eastern/phrygian flavor)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [70, [0, 4, 7]],
+        [65, [0, 4, 7]],
+        [64, [0, 4, 7]]
+      ]
+    },
+    "am_c_g_em": {
+      "_name": "i-III-VII-v (epic, modal)",
+      "chords": [
+        [69, [0, 3, 7]],
+        [60, [0, 4, 7]],
+        [67, [0, 4, 7]],
+        [64, [0, 3, 7]]
+      ]
+    }
+  }
+}

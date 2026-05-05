@@ -1,0 +1,38 @@
+{
+  "id": "bush_berry_throw",
+  "name": "bush_berry_throw_name",
+  "tooltip": "bush_berry_throw_tooltip",
+  "desc": "bush_berry_throw_desc",
+  "icon": "icons/skills/bush_berry_throw.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "tranquility"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "bush_berry_throw_ranged_damage",
+      "sound_start": "bush_berry_throw_ranged_damage_sound_start",
+      "collision_effect": "ranged_tranquility",
+      "sound_end": "bush_berry_throw_ranged_damage_sound_end",
+      "animation": "cast_tranquility",
+      "target": {
+        "kind": "actor",
+        "range": 4
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 13
+        }
+      ]
+    }
+  ]
+}

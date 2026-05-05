@@ -2,32 +2,32 @@
   {
     "id": "merchant_greet",
     "speaker": "merchant",
-    "text": "А, клиент. Живой, судя по всему. Чем могу?",
+    "text": "dialogues_merchant_greet_text",
     "tags": ["merchant_enter"],
     "priority": 10,
     "choices": [
-      { "label": "Что у тебя есть?", "next": "merchant_goods" },
-      { "label": "Просто мимо шёл.", "next": "merchant_brush_off" }
+      { "label": "dialogues_merchant_greet_choices_0_label", "next": "merchant_goods" },
+      { "label": "dialogues_merchant_greet_choices_1_label", "next": "merchant_brush_off" }
     ]
   },
   {
     "id": "merchant_goods",
     "speaker": "merchant",
-    "text": "Много чего. Часть из этого даже работает. Выбирай, не стесняйся.",
+    "text": "dialogues_merchant_goods_text",
     "tags": [],
     "priority": 0
   },
   {
     "id": "merchant_brush_off",
     "speaker": "merchant",
-    "text": "Понятно. Заходи, если передумаешь. Или если снова умрёшь — тут рядом.",
+    "text": "dialogues_merchant_brush_off_text",
     "tags": [],
     "priority": 0
   },
   {
     "id": "merchant_sold_out",
     "speaker": "merchant",
-    "text": "Мог бы сказать «всё распродано», но честнее будет — ничего стоящего не завезли.",
+    "text": "dialogues_merchant_sold_out_text",
     "tags": ["merchant_enter"],
     "priority": 5,
     "once_per_run": true
@@ -35,7 +35,7 @@
   {
     "id": "merchant_late_run",
     "speaker": "merchant",
-    "text": "Уже не первый раз заходишь. Уважаю настойчивость. Скидку всё равно не дам.",
+    "text": "dialogues_merchant_late_run_text",
     "tags": ["merchant_enter"],
     "priority": 3,
     "conditions": { "min_run": 3, "max_run": 999, "flags_required": [], "flags_forbidden": [] }

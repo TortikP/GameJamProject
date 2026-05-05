@@ -23,22 +23,32 @@ func resolve(caster: Actor, primary_target: Variant, ctx: Dictionary) -> Array:
 
 	var registry: ActorRegistry = ctx.get("registry")
 
-	# BFS — collect hexes layer by layer (nearest→farthest)
-	var visited: Dictionary = {center: true}
-	var frontier: Array[Vector2i] = [center]
-	var ordered_hexes: Array[Vector2i] = [center]
+	# 046: radius < 0 = unrestricted (whole walkable arena). Mirrors the
+	# `range = -1` convention on HexTarget / ActorTarget. Pre-046 the BFS
+	# `for _step in radius` iterated 0 times for negative radius, so the
+	# zone collapsed to the single primary hex.
+	var ordered_hexes: Array[Vector2i] = []
+	if radius < 0:
+		ordered_hexes = grid.get_all_walkable_coords()
+		if not ordered_hexes.has(center):
+			ordered_hexes.append(center)
+	else:
+		# BFS — collect hexes layer by layer (nearest→farthest)
+		var visited: Dictionary = {center: true}
+		var frontier: Array[Vector2i] = [center]
+		ordered_hexes.append(center)
 
-	for _step in radius:
-		var next: Array[Vector2i] = []
-		for coord in frontier:
-			for nb in grid.get_walkable_neighbours(coord):
-				if not visited.has(nb):
-					visited[nb] = true
-					ordered_hexes.append(nb)
-					next.append(nb)
-		frontier = next
-		if frontier.is_empty():
-			break
+		for _step in radius:
+			var next: Array[Vector2i] = []
+			for coord in frontier:
+				for nb in grid.get_walkable_neighbours(coord):
+					if not visited.has(nb):
+						visited[nb] = true
+						ordered_hexes.append(nb)
+						next.append(nb)
+			frontier = next
+			if frontier.is_empty():
+				break
 
 	# Always return actors standing on those hexes.
 	# Effects that need a coord (CreateEffect) read ctx.target_coord directly.
@@ -57,6 +67,12 @@ func get_affected_hexes(caster_coord: Vector2i, primary: Variant, grid: HexGrid)
 	var center: Vector2i = _coord_of(primary, null, grid)
 	if center == Vector2i(-1, -1):
 		return []
+	# 046: radius < 0 = whole walkable arena (matches resolve()).
+	if radius < 0:
+		var all_walk: Array[Vector2i] = grid.get_all_walkable_coords()
+		if not all_walk.has(center):
+			all_walk.append(center)
+		return all_walk
 	var result: Array[Vector2i] = []
 	# Reuse grid's reachable_within for the overlay (ignore occupancy)
 	result.append(center)

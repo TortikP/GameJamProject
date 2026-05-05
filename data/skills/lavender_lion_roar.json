@@ -1,0 +1,36 @@
+{
+  "id": "lavender_lion_roar",
+  "name": "lavender_lion_roar_name",
+  "tooltip": "lavender_lion_roar_tooltip",
+  "desc": "lavender_lion_roar_desc",
+  "icon": "icons/skills/lavender_lion_roar.png",
+  "cooldown": 4,
+  "behaviour_tags": [
+    "buff"
+  ],
+  "mood": [
+    "ascended"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "lavender_lion_roar_buff_attack_around",
+      "sound_start": "lavender_lion_roar_buff_attack_around_sound_start",
+      "collision_effect": "buff_ascended",
+      "sound_end": "lavender_lion_roar_buff_attack_around_sound_end",
+      "animation": "cast_ascended",
+      "target": {
+        "kind": "self"
+      },
+      "area": {
+        "kind": "zone_circle",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "status_id": "strong(2,10,3)"
+        }
+      ]
+    }
+  ]
+}

@@ -16,10 +16,11 @@ var text: String
 var portrait: String        # path or "" (null from JSON becomes "")
 var image: String           # path or ""
 var text_fx: String         # reserved, no-op + warn if set
+var mood: StringName        # story mood used for this generated line, or &""
 
 ## Audio
-var audio_layer: String     # "sfx" | "ai_voice" | "human" | ""
-var audio_clip: String      # path or ""
+var audio_layer: String     # tag for AudioDirector routing; default "sfx", "" = inherit speaker
+var audio_clip: String      # path / voice filename or ""; JSON may use "audio_clip" or "sound"
 
 ## Selector metadata
 var tags: Array
@@ -53,8 +54,10 @@ static func from_dict(d: Dictionary) -> Object:
 	line.portrait        = str(d.get("portrait", "")) if d.get("portrait") != null else ""
 	line.image           = str(d.get("image", "")) if d.get("image") != null else ""
 	line.text_fx         = str(d.get("text_fx", "")) if d.get("text_fx") != null else ""
+	line.mood            = StringName(str(d.get("mood", ""))) if d.get("mood") != null else &""
 	line.audio_layer     = str(d.get("audio_layer", "")) if d.get("audio_layer") != null else ""
-	line.audio_clip      = str(d.get("audio_clip", "")) if d.get("audio_clip") != null else ""
+	var audio_value = d.get("audio_clip", d.get("sound", ""))
+	line.audio_clip      = str(audio_value) if audio_value != null else ""
 	line.priority        = int(d.get("priority", 0))
 	line.once_per_run    = bool(d.get("once_per_run", false))
 	line.once_per_session = bool(d.get("once_per_session", false))

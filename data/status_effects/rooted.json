@@ -1,0 +1,11 @@
+{
+  "id": "rooted",
+  "family": "control",
+  "icon": "",
+  "arity": 1,
+  "param_names": [
+    "duration"
+  ],
+  "loc_name": "status_rooted_name",
+  "loc_desc": "status_rooted_desc"
+}

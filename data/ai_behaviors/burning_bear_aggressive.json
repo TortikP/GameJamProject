@@ -1,0 +1,37 @@
+{
+  "id": "burning_bear_aggressive",
+  "rules": [
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 1
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "melee",
+        "damage"
+      ],
+      "min_skill_count": 1
+    },
+    {
+      "condition": {
+        "kind": "enemy_in_range",
+        "distance": 10
+      },
+      "target_selector": {
+        "kind": "nearest_enemy"
+      },
+      "tag_priority": [
+        "damage",
+        "ranged"
+      ],
+      "min_skill_count": 1
+    }
+  ],
+  "movement_policy": {
+    "kind": "approach_nearest_enemy_unclaimed"
+  },
+  "fallback_skill_id": "burning_bear_tire_throw"
+}

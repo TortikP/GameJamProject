@@ -1,0 +1,46 @@
+{
+  "_meta": {
+	"doc": "FxDirector cast-animation entries — drive ability.animation channel. Renders on caster.Body via flash.gdshader (flash_amount tween 0→peak→0). Mood drives the color palette: neutral=white, tranquility=cool cyan, ascended=warm gold, burnout=fiery red-orange.",
+	"kind": "cast",
+	"shader": "res://assets/shaders/flash.gdshader",
+	"uniforms": {
+	  "flash_color": "RGBA — caster body tint at the flash peak"
+	}
+  },
+
+  "cast_neutral": {
+	"shader": "res://assets/shaders/flash.gdshader",
+	"kind": "cast",
+	"duration_ms": 180,
+	"uniforms": {
+	  "flash_color": [1.0, 1.0, 1.0, 1.0]
+	}
+  },
+
+  "cast_tranquility": {
+	"shader": "res://assets/shaders/flash.gdshader",
+	"kind": "cast",
+	"duration_ms": 220,
+	"uniforms": {
+	  "flash_color": [0.5, 0.85, 1.0, 1.0]
+	}
+  },
+
+  "cast_ascended": {
+	"shader": "res://assets/shaders/flash.gdshader",
+	"kind": "cast",
+	"duration_ms": 200,
+	"uniforms": {
+	  "flash_color": [1.0, 0.92, 0.55, 1.0]
+	}
+  },
+
+  "cast_burnout": {
+	"shader": "res://assets/shaders/flash.gdshader",
+	"kind": "cast",
+	"duration_ms": 170,
+	"uniforms": {
+	  "flash_color": [1.0, 0.45, 0.25, 1.0]
+	}
+  }
+}

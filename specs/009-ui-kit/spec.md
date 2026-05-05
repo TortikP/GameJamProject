@@ -40,7 +40,7 @@
 ### Не в скоупе
 
 - **Asset production.** Иконки статусов, портреты, спрайты, фоны меню — не задача спеки. Везде placeholder Unicode-глиф или `[ART SLOT]` лейбл, артовое наполнение — отдельным проходом Кати.
-- **VFX, particles, screenshake.** Слот зарезервирован в C20 (tape-rewind), C11 (floats) — но реализация частиц / шейдеров — отдельная фича после кита.
+- **VFX, particles, screenshake.** Слот зарезервирован в C11 (floats) — но реализация частиц / шейдеров — отдельная фича после кита.
 - **Anim-полировка.** Tween на cooldown overlay, slot scale-pop, modal slide-in — minimal viable: `transition` на opacity/color через `Tween`. Полировка motion-design — после кита.
 - **Localization / i18n.** Английский (плюс русский на дев-надписях, как в существующем коде) единственные языки.
 - **Save/load UI.** Между ранами не сейвимся в джеме. C22 «Continue» кнопка — серая, disabled.
@@ -48,7 +48,6 @@
 - **Дев-инструменты C30 (spawn picker), C31 (tile-effect picker).** Они существуют в Godmode, но визуально не приведены к киту в этой фиче — подтянутся после Phase 3 при ревизии Godmode-сцены.
 - **Контент инспектора, зависящий от 007.** Skill tooltip с разбивкой modifier-стека (`10 → 22 (+5, ×1.5)`) — формат данных приедет из 007.
 - **AI intent display, зависящий от 008.** Стрелка движения и target-coord уже есть; полная семантика `cast_intent.skill_id + target_id + target_coord + tag` — приедет из 008.
-- **Реализация tape-rewind анимации.** В C20 — только лейбл `[TAPE REWIND VFX HERE]`. Реализация — отдельный VFX-таск после кита.
 
 ## Зависимости
 

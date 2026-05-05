@@ -1,87 +1,162 @@
-[gd_scene load_steps=3 format=3 uid="uid://main_menu_001"]
+[gd_scene format=3 uid="uid://sn5ccnfm8yvb"]
 
-[ext_resource type="Script" path="res://scripts/presentation/main_menu.gd" id="1_mm"]
+[ext_resource type="Script" uid="uid://swiyya1ue24i" path="res://scripts/presentation/main_menu.gd" id="1_mm"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_sp"]
+[ext_resource type="PackedScene" path="res://scenes/presentation/space_background.tscn" id="3_space"]
+[ext_resource type="Texture2D" uid="uid://b80rkjbentfjs" path="res://assets/sprites/main_menu_sky.png" id="4_sky"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=425598775]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource("1_mm")
-anchors_preset = 15
+
+[node name="SpaceBackground" parent="." unique_id=1300402446 instance=ExtResource("3_space")]
+
+[node name="SkyImage" type="TextureRect" parent="." unique_id=853682854]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("4_sky")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Background" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.047, 0.055, 0.071, 1)
-mouse_filter = 1
-
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1965336795]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -240.0
-offset_right = 160.0
-offset_bottom = 240.0
+offset_left = -280.0
+offset_top = -280.0
+offset_right = 280.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="VBox"]
+[node name="Title" type="Label" parent="VBox" unique_id=1753367747]
 layout_mode = 2
-text = "GameJamProject"
+text = "ui_main_menu_title_text"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="VBox"]
+[node name="Subtitle" type="Label" parent="VBox" unique_id=1739584152]
 layout_mode = 2
-text = "[ART SLOT] — title art"
+text = "ui_main_menu_subtitle_text"
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="VBox"]
+[node name="StartButton" type="Button" parent="VBox" unique_id=1017721551]
 layout_mode = 2
-text = "Start Run"
+text = "ui_main_menu_start_button_text"
 
-[node name="ContinueButton" type="Button" parent="VBox"]
+[node name="ContinueButton" type="Button" parent="VBox" unique_id=96365709]
 layout_mode = 2
-text = "Continue"
 disabled = true
+text = "ui_main_menu_continue_button_text"
 
-[node name="GodmodeButton" type="Button" parent="VBox"]
+[node name="GodmodeButton" type="Button" parent="VBox" unique_id=2058570593]
 layout_mode = 2
-text = "Godmode (dev)"
+text = "ui_main_menu_godmode_button_text"
 
-[node name="MapEditorButton" type="Button" parent="VBox"]
+[node name="MapEditorButton" type="Button" parent="VBox" unique_id=1896317596]
 layout_mode = 2
-text = "Map Editor [Ctrl+E]"
+text = "ui_main_menu_map_editor_button_text"
 
-[node name="LoadCustomLevelButton" type="Button" parent="VBox"]
+[node name="GameEditorButton" type="Button" parent="VBox" unique_id=1241180300]
 layout_mode = 2
-text = "Load Custom Level"
+text = "ui_main_menu_game_editor_button_text"
 
-[node name="SettingsButton" type="Button" parent="VBox"]
+[node name="LoadGameButton" type="Button" parent="VBox" unique_id=1943238625]
 layout_mode = 2
-text = "Settings"
+text = "ui_main_menu_load_game_button_text"
 
-[node name="CreditsButton" type="Button" parent="VBox"]
+[node name="LoadCustomLevelButton" type="Button" parent="VBox" unique_id=250015659]
 layout_mode = 2
-text = "Credits"
+text = "ui_main_menu_load_custom_level_button_text"
 
-[node name="QuitButton" type="Button" parent="VBox"]
+[node name="SettingsButton" type="Button" parent="VBox" unique_id=1020438414]
 layout_mode = 2
-text = "Quit"
+text = "ui_main_menu_settings_button_text"
 
-[node name="SettingsPanel" parent="." instance=ExtResource("2_sp")]
+[node name="CreditsButton" type="Button" parent="VBox" unique_id=672007365]
+layout_mode = 2
+text = "ui_main_menu_credits_button_text"
 
-[node name="LoadFileDialog" type="FileDialog" parent="."]
-title = "Open a Level"
+[node name="QuitButton" type="Button" parent="VBox" unique_id=1572392609]
+layout_mode = 2
+text = "ui_main_menu_quit_button_text"
+
+[node name="SettingsPanel" parent="." unique_id=1927933814 instance=ExtResource("2_sp")]
+
+[node name="RunModeDialog" type="CanvasLayer" parent="."]
+visible = false
+layer = 60
+
+[node name="Backdrop" type="ColorRect" parent="RunModeDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="RunModeDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="RunModeDialog/Center"]
+custom_minimum_size = Vector2(560, 0)
+
+[node name="Margin" type="MarginContainer" parent="RunModeDialog/Center/Panel"]
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="RunModeDialog/Center/Panel/Margin"]
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_title"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_body"
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TutorialButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_tutorial_button_text"
+
+[node name="StandardButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_standard_button_text"
+
+[node name="CancelButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_common_cancel"
+
+[node name="LoadFileDialog" type="FileDialog" parent="." unique_id=1700559758]
+title = "ui_main_menu_load_file_dialog_title"
 size = Vector2i(720, 480)
-ok_button_text = "Open"
+ok_button_text = "ui_main_menu_load_file_dialog_ok_button_text"
 file_mode = 0
-access = 0
-current_dir = "res://data/maps/"
 filters = PackedStringArray("*.json ; Map JSON files")
-use_native_dialog = false
+
+[node name="LoadGameFileDialog" type="FileDialog" parent="." unique_id=900161688]
+title = "ui_main_menu_load_game_file_dialog_title"
+size = Vector2i(720, 480)
+ok_button_text = "ui_main_menu_load_game_file_dialog_ok_button_text"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.game.json ; Game files")

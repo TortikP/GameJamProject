@@ -1,0 +1,39 @@
+{
+  "id": "stapler_staple_shot",
+  "name": "stapler_staple_shot_name",
+  "tooltip": "stapler_staple_shot_tooltip",
+  "desc": "stapler_staple_shot_desc",
+  "icon": "icons/skills/stapler_staple_shot.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "neutral"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "stapler_staple_shot_ranged_damage",
+      "sound_start": "stapler_staple_shot_ranged_damage_sound_start",
+      "collision_effect": "ranged_neutral",
+      "sound_end": "stapler_staple_shot_ranged_damage_sound_end",
+      "animation": "cast_neutral",
+      "target": {
+        "kind": "actor",
+        "range": 3
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 9,
+          "status_id": "slowed(2)"
+        }
+      ]
+    }
+  ]
+}

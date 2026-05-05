@@ -1,0 +1,16 @@
+{
+  "id": "angel",
+  "name": "angel_name",
+  "desc": "angel_desc",
+  "sprite": "assets/sprites/enemies/angel.png",
+  "max_hp": 25,
+  "team": "enemy",
+  "speed": 2,
+  "skills": [
+	"angel_divine_word",
+	"angel_sharp_feathers",
+    "angel_scorching_ray"
+  ],
+  "behavior_id": "default_ranged",
+  "fallback_skill_id": "angel_sharp_feathers"
+}

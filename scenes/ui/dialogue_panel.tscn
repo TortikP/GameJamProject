@@ -1,20 +1,18 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cijvb2beenif"]
 
-[ext_resource type="Script" path="res://scripts/presentation/dialogue_panel.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bxf4nlgit6b2m" path="res://scripts/presentation/dialogue_panel.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dn8okaupqkx36" path="res://assets/portraits/default_portrait.png" id="2_lcxno"]
 
-[sub_resource type="StyleBoxFlat" id="1_style"]
-bg_color = Color(0.08, 0.08, 0.12, 0.92)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-
-[node name="DialoguePanel" type="Control"]
+[node name="DialoguePanel" type="Control" unique_id=2026286010]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1594714095]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -23,54 +21,54 @@ anchor_bottom = 1.0
 offset_top = -280.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/panel = SubResource("1_style")
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=1563490814]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/margin_left = 16
-theme_override_constants/margin_right = 16
 theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer" unique_id=261353030]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Portrait" type="TextureRect" parent="Panel/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(160, 160)
+[node name="Portrait" type="TextureRect" parent="Panel/MarginContainer/HBoxContainer" unique_id=1297089323]
+clip_contents = true
+custom_minimum_size = Vector2(130, 180)
 layout_mode = 2
-expand_mode = 1
-stretch_mode = 6
+size_flags_vertical = 4
+texture = ExtResource("2_lcxno")
+stretch_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer/HBoxContainer" unique_id=1415162694]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Name" type="Label" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="Name" type="Label" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer" unique_id=1146170040]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = ""
 
-[node name="Text" type="RichTextLabel" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="Text" type="RichTextLabel" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer" unique_id=1281931913]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-scroll_active = false
 fit_content = true
-text = ""
+scroll_active = false
 
-[node name="Choices" type="HBoxContainer" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer"]
-layout_mode = 2
+[node name="Choices" type="HBoxContainer" parent="Panel/MarginContainer/HBoxContainer/VBoxContainer" unique_id=1854737274]
 visible = false
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Image" type="TextureRect" parent="Panel/MarginContainer/HBoxContainer"]
+[node name="Image" type="TextureRect" parent="Panel/MarginContainer/HBoxContainer" unique_id=861475759]
+visible = false
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
-visible = false
 expand_mode = 1
 stretch_mode = 6

@@ -1,0 +1,38 @@
+{
+  "id": "default_ranged",
+  "name": "default_ranged_name",
+  "tooltip": "default_ranged_tooltip",
+  "desc": "default_ranged_desc",
+  "icon": "icons/skills/default_ranged.png",
+  "cooldown": 2,
+  "behaviour_tags": [
+    "ranged",
+    "damage"
+  ],
+  "mood": [
+    "neutral"
+  ],
+  "level": 0,
+  "abilities": [
+    {
+      "id": "default_ranged_damage",
+      "sound_start": "default_ranged_damage_sound_start",
+      "collision_effect": "ranged_neutral",
+      "sound_end": "default_ranged_damage_sound_end",
+      "animation": "cast_neutral",
+      "target": {
+        "kind": "actor",
+        "range": 2
+      },
+      "area": {
+        "kind": "chain",
+        "max_chain_length": 1
+      },
+      "effects": [
+        {
+          "damage": 12
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ custom_minimum_size = Vector2(420, 0)
 theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/VBox"]
-text = "Confirm"
+text = "ui_confirm_modal_title_label_text"
 
 [node name="BodyLabel" type="Label" parent="Center/Panel/VBox"]
 text = ""
@@ -37,7 +37,7 @@ theme_override_constants/separation = 12
 alignment = 2
 
 [node name="CancelButton" type="Button" parent="Center/Panel/VBox/ButtonRow"]
-text = "Cancel"
+text = "ui_confirm_modal_cancel_button_text"
 
 [node name="ConfirmButton" type="Button" parent="Center/Panel/VBox/ButtonRow"]
-text = "OK"
+text = "ui_confirm_modal_confirm_button_text"

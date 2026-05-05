@@ -1,0 +1,90 @@
+[gd_scene load_steps=4 format=3 uid="uid://gameedit035"]
+
+[ext_resource type="Script" path="res://scripts/presentation/dev/game_editor_controller.gd" id="1_gec"]
+[ext_resource type="PackedScene" path="res://scenes/ui/confirm_modal.tscn" id="2_modal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/toast_layer.tscn" id="3_toast"]
+
+[node name="GameEditor" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_gec")
+
+[node name="Bg" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.047, 0.055, 0.071, 1)
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Margin/VBox/Header"]
+text = "ui_game_editor_title_text"
+
+[node name="NameInput" type="LineEdit" parent="Margin/VBox/Header"]
+custom_minimum_size = Vector2(280, 0)
+placeholder_text = "ui_game_editor_name_input_placeholder_text"
+
+[node name="Spacer" type="Control" parent="Margin/VBox/Header"]
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="Margin/VBox/Header"]
+text = "ui_game_editor_save_button_text"
+
+[node name="LoadButton" type="Button" parent="Margin/VBox/Header"]
+text = "ui_game_editor_load_button_text"
+
+[node name="PlaytestButton" type="Button" parent="Margin/VBox/Header"]
+text = "ui_game_editor_playtest_button_text"
+
+[node name="ExitButton" type="Button" parent="Margin/VBox/Header"]
+text = "ui_game_editor_exit_button_text"
+
+[node name="HelpLabel" type="Label" parent="Margin/VBox"]
+text = "ui_game_editor_help_label_text"
+autowrap_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
+size_flags_vertical = 3
+
+[node name="LevelList" type="VBoxContainer" parent="Margin/VBox/Scroll"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="AddLevelButton" type="Button" parent="Margin/VBox"]
+text = "ui_game_editor_add_level_button_text"
+
+[node name="ConfirmModal" parent="." instance=ExtResource("2_modal")]
+
+[node name="ToastLayer" parent="." instance=ExtResource("3_toast")]
+
+[node name="SaveFileDialog" type="FileDialog" parent="."]
+title = "ui_game_editor_save_file_dialog_title"
+ok_button_text = "ui_game_editor_save_file_dialog_ok_button_text"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.game.json ; Game files")
+size = Vector2i(800, 600)
+
+[node name="LoadFileDialog" type="FileDialog" parent="."]
+title = "ui_game_editor_load_file_dialog_title"
+ok_button_text = "ui_game_editor_load_file_dialog_ok_button_text"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.game.json ; Game files")
+size = Vector2i(800, 600)

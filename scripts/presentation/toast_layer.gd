@@ -28,17 +28,18 @@ func _ready() -> void:
 
 
 func _on_request(text: String, duration_sec: float, level: StringName) -> void:
+	var display_text := Localization.t(text, text)
 	# Dedup within window
 	var now: int = Time.get_ticks_msec()
-	if _last_text_time_ms.has(text):
-		var since: int = now - int(_last_text_time_ms[text])
+	if _last_text_time_ms.has(display_text):
+		var since: int = now - int(_last_text_time_ms[display_text])
 		if since < DEDUP_WINDOW_MS:
 			return
-	_last_text_time_ms[text] = now
+	_last_text_time_ms[display_text] = now
 
 	var default_dur: float = float(GameSpeed.get_value("ui", "toast_default_duration_sec", 2.5))
 	var entry := {
-		"text": text,
+		"text": display_text,
 		"duration": duration_sec if duration_sec > 0.0 else default_dur,
 		"level": level if level != &"" else &"info",
 	}
