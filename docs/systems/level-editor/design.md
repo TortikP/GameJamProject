@@ -238,7 +238,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 
 | # | Spec | Что внутри | Зависит от |
 |---|---|---|---|
-| **0** | `ui-panels`: универсальные окна интерфейса | Container + drag (existing mixin → промоушен) + collapse-в-плашку (свёрнутая = заголовок + `[+]`) + resize (D-вариант, 8 видимых handles, ≥10px зона захвата, cursor change только над handle, фикс 055-бага). Живёт в `docs/systems/ui-panels/`. Reusable, потенциально для in-game UI позже. | — |
+| **0** | `ui-panels`: универсальные окна интерфейса | Container + drag + collapse-в-плашку (`[−]` / `[+]`) + resize (D-вариант, 8 видимых handles, ≥10px зона захвата, фикс 055-бага) + замочек + persistence раскладки (per-screen/scene, узкое snapshot, `user://layouts.cfg`) + 5 правил защиты от потери интерфейса (clamps + min size). Закрытия панели нет совсем. Детали — в [`docs/systems/ui-panels/design.md`](../ui-panels/design.md). | — |
 | **1** | `level-editor`: architecture from scratch | Layer model, InputDispatcher, новый EditorController (~300 строк цель), тонкий вертикальный срез: палитра hexes → клик → тайл лежит в LevelData. Без объектов, без спаунеров, без валидаций, без волн. Старый `MapEditorController` параллельно живёт. | Spec 0 |
 | **2** | `level-editor`: layers + palettes (полная миграция) | Объекты и спаунеры подключаются. Q/W/E/Tab, 1-9, HELP modal, delete_flash. Удаление старого `MapEditorController` и `floor_palette_panel` / `object_palette_panel`. | Spec 1 |
 | **3** | `level-editor`: wave data + settings panel | Расширение `LevelData` (см. §7), wave settings UI с группами (level / wave / spawner / skill_offer / dialogue_triggers / music_config). dialogue_triggers cleanup (OQ-2). | Spec 1 (panel host) |
