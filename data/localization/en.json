@@ -822,7 +822,7 @@
     "ui_hotkey_save":  "save",
     "ui_hub_computer_back_button":  "Return",
     "ui_hub_computer_body":  "The dream is ready. Dive in or stay in the office.",
-    "ui_hub_computer_dive_button":  "Dive into Dream",
+    "ui_hub_computer_dive_button":  "RMB: Dive into Dream",
     "ui_hub_computer_hint":  "Move to the computer",
     "ui_hub_computer_title":  "Office Computer",
     "ui_hub_start_attempt_failed":  "Failed to enter the dream",

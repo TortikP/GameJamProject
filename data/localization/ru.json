@@ -822,7 +822,7 @@
     "ui_hotkey_save":  "сохранить",
     "ui_hub_computer_back_button":  "Вернуться",
     "ui_hub_computer_body":  "Сон готов. Можно погрузиться или остаться в офисе.",
-    "ui_hub_computer_dive_button":  "Погрузиться в сон",
+    "ui_hub_computer_dive_button":  "ПКМ: Погрузиться в сон",
     "ui_hub_computer_hint":  "Двигайтесь к компьютеру",
     "ui_hub_computer_title":  "Офисный компьютер",
     "ui_hub_start_attempt_failed":  "Не удалось погрузиться в сон",
