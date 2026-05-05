@@ -91,6 +91,61 @@ text = "ui_main_menu_quit_button_text"
 
 [node name="SettingsPanel" parent="." unique_id=1927933814 instance=ExtResource("2_sp")]
 
+[node name="RunModeDialog" type="CanvasLayer" parent="."]
+visible = false
+layer = 60
+
+[node name="Backdrop" type="ColorRect" parent="RunModeDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="RunModeDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="RunModeDialog/Center"]
+custom_minimum_size = Vector2(560, 0)
+
+[node name="Margin" type="MarginContainer" parent="RunModeDialog/Center/Panel"]
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="RunModeDialog/Center/Panel/Margin"]
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_title"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_body"
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TutorialButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_tutorial_button_text"
+
+[node name="StandardButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_main_menu_run_mode_standard_button_text"
+
+[node name="CancelButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+layout_mode = 2
+text = "ui_common_cancel"
+
 [node name="LoadFileDialog" type="FileDialog" parent="." unique_id=1700559758]
 title = "ui_main_menu_load_file_dialog_title"
 size = Vector2i(720, 480)
