@@ -4,9 +4,9 @@
 
 ## Code (Claude в impl-команде)
 
-- [ ] **T001.** `project.godot` `[display]` блок: `viewport_width` 1280 → 1920, `viewport_height` 720 → 1080. `stretch/mode="viewport"` оставить. Никаких новых `window_*_override`. (AC1)
-- [ ] **T002.** `scenes/dev/map_editor.tscn:54` — удалить строку `position = Vector2(640, 360)` у HexGrid node. Сохранить остальное в node block без изменений.
-- [ ] **T003.** `scripts/presentation/dev/map_editor_controller.gd._ready()` — после resolve блока (после `_dialogue_trigger_panel = _resolve(...)` на line 148, перед `grid.tile_map_layer.tile_set = HEX_TERRAIN` на line 156) добавить:
+- [x] **T001.** `project.godot` `[display]` блок: `viewport_width` 1280 → 1920, `viewport_height` 720 → 1080. `stretch/mode="viewport"` оставить. Никаких новых `window_*_override`. (AC1)
+- [x] **T002.** `scenes/dev/map_editor.tscn:54` — удалить строку `position = Vector2(640, 360)` у HexGrid node. Сохранить остальное в node block без изменений.
+- [x] **T003.** `scripts/presentation/dev/map_editor_controller.gd._ready()` — после resolve блока (после `_dialogue_trigger_panel = _resolve(...)` на line 148, перед `grid.tile_map_layer.tile_set = HEX_TERRAIN` на line 156) добавить:
 
   ```gdscript
   # Q-054-3 (spec 054): HexGrid position was hardcoded Vector2(640, 360) in

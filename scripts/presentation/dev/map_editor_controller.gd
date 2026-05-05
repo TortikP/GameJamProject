@@ -147,6 +147,12 @@ func _ready() -> void:
 	_wave_diff_overlay = _resolve(wave_diff_overlay_path, "HexGrid/WaveDiffOverlay") as Node2D
 	_dialogue_trigger_panel = _resolve(dialogue_trigger_panel_path, "HUD/DialogueTriggerPanel")
 
+	# Q-054-3 (spec 054): HexGrid position was hardcoded Vector2(640, 360) in
+	# map_editor.tscn — the centre of the legacy 1280×720 viewport. Resolution
+	# bump moved the centre to (960, 540); anchor it to viewport size at runtime
+	# so future resolution changes don't drift the editor origin.
+	grid.position = get_viewport_rect().size * 0.5
+
 	# 2. Paint a default 25?25 canvas centered at origin so the user has a
 	# starting surface. Map can grow anywhere up to ?MAP_HALF_LIMIT (500?500).
 	# Default canvas: hex_terrain.tres source 0 atlas (0,0) = grass tile
