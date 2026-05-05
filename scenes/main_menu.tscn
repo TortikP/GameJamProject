@@ -108,7 +108,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="Panel" type="PanelContainer" parent="RunModeDialog/Center"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(640, 0)
 
 [node name="Margin" type="MarginContainer" parent="RunModeDialog/Center/Panel"]
 theme_override_constants/margin_left = 20
@@ -129,20 +129,16 @@ layout_mode = 2
 text = "ui_main_menu_run_mode_body"
 autowrap_mode = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="RunModeDialog/Center/Panel/Margin/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="RunModeDialog/Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
-alignment = 1
+custom_minimum_size = Vector2(0, 220)
 
-[node name="TutorialButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+[node name="CampaignList" type="VBoxContainer" parent="RunModeDialog/Center/Panel/Margin/VBox/Scroll"]
 layout_mode = 2
-text = "ui_main_menu_run_mode_tutorial_button_text"
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
-[node name="StandardButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
-layout_mode = 2
-text = "ui_main_menu_run_mode_standard_button_text"
-
-[node name="CancelButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox/ButtonRow"]
+[node name="CancelButton" type="Button" parent="RunModeDialog/Center/Panel/Margin/VBox"]
 layout_mode = 2
 text = "ui_common_cancel"
 

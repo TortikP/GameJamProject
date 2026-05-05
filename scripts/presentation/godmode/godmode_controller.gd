@@ -29,6 +29,7 @@ var slot_bar: Node
 var overlay: Node        # MoveRangeOverlay
 var cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
 var tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
+var hub_controller: Node = null
 # 024-wave-editor: present iff a queued LevelData is loaded; null in
 # procedural godmode sandbox.
 var wave_controller: WaveController = null
