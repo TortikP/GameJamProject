@@ -1,0 +1,29 @@
+[
+  {
+    "id": "hub_entry_new_game",
+    "speaker": "heroine",
+    "text": "dialogues_hub_entry_new_game_text",
+    "next": "",
+    "tags": ["hub_entry"],
+    "priority": 100,
+    "once_per_run": false
+  },
+  {
+    "id": "hub_entry_after_death",
+    "speaker": "heroine",
+    "text": "dialogues_hub_entry_after_death_text",
+    "next": "",
+    "tags": ["hub_entry"],
+    "priority": 100,
+    "once_per_run": false
+  },
+  {
+    "id": "hub_entry_after_final_boss",
+    "speaker": "heroine",
+    "text": "dialogues_hub_entry_after_final_boss_text",
+    "next": "",
+    "tags": ["hub_entry"],
+    "priority": 100,
+    "once_per_run": false
+  }
+]

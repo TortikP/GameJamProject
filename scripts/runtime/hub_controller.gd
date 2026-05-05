@@ -24,6 +24,7 @@ func setup(ctrl: Node, level: LevelData) -> void:
 	_build_hint()
 	_build_modal()
 	set_process(true)
+	_play_entry_dialogue.call_deferred()
 
 
 func try_interact_at(coord: Vector2i) -> bool:
@@ -142,3 +143,12 @@ func _on_dive_pressed() -> void:
 		EventBus.ui_toast_requested.emit(Localization.t("ui_hub_start_attempt_failed", "Failed to enter the dream"), 3.0, &"error")
 		return
 	get_tree().change_scene_to_file(GODMODE_SCENE)
+
+
+func _play_entry_dialogue() -> void:
+	var dialogue_id: StringName = CampaignController.consume_hub_entry_dialogue_id()
+	if dialogue_id == &"":
+		return
+	GameSave.save_campaign_state("hub entry dialogue consumed")
+	if DialogueDB.has_line(dialogue_id):
+		DialogueManager.play(dialogue_id, true)

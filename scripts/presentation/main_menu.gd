@@ -200,8 +200,12 @@ func _first_run_choice_button() -> Button:
 func _start_game(game_path: String, error_key: String, start_in_hub: bool = false) -> void:
 	_close_run_mode_dialog()
 	EventBus.run_started_requested.emit()
+	if start_in_hub:
+		CampaignController.prepare_hub_entry(&"new_game")
 	var loaded: bool = ActiveGame.load_game_to_hub(game_path) if start_in_hub else ActiveGame.load_game(game_path)
 	if not loaded:
+		if start_in_hub:
+			CampaignController.prepare_hub_entry(&"")
 		EventBus.ui_toast_requested.emit(Localization.t(error_key, "Failed to start game (see log)"), 3.0, &"error")
 		return
 	get_tree().change_scene_to_file(RUN_SCENE)
