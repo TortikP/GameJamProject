@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://ui_catalog_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/ui_panels/ui_catalog.gd" id="1_uc"]
-[ext_resource type="PackedScene" uid="uid://base_panel_001" path="res://scenes/ui/panels/base_panel.tscn" id="2_bp"]
+[ext_resource type="PackedScene" uid="uid://52k1drd6uyfx" path="res://scenes/ui/panels/base_panel.tscn" id="2_bp"]
 
 [node name="UiCatalog" type="Control"]
 layout_mode = 3

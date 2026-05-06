@@ -1,19 +1,18 @@
-[gd_scene load_steps=6 format=3 uid="uid://base_panel_001"]
+[gd_scene format=3 uid="uid://52k1drd6uyfx"]
 
-[ext_resource type="Script" path="res://scripts/presentation/ui_panels/base_panel.gd" id="1_bp"]
-[ext_resource type="Texture2D" path="res://assets/icons/ui/lock_unlocked.png" id="2_lock_u"]
-[ext_resource type="Texture2D" path="res://assets/icons/ui/lock_locked.png" id="3_lock_l"]
-[ext_resource type="Texture2D" path="res://assets/icons/ui/collapse_minus.png" id="4_minus"]
-[ext_resource type="Texture2D" path="res://assets/icons/ui/expand_plus.png" id="5_plus"]
+[ext_resource type="Script" uid="uid://dpalavyty6mth" path="res://scripts/presentation/ui_panels/base_panel.gd" id="1_bp"]
+[ext_resource type="Texture2D" uid="uid://c6eejce4oqc00" path="res://assets/icons/ui/lock_unlocked.png" id="2_lock_u"]
+[ext_resource type="Texture2D" uid="uid://cuy1bjt7d1ow8" path="res://assets/icons/ui/collapse_minus.png" id="4_minus"]
 
-[node name="BasePanel" type="Control"]
+[node name="BasePanel" type="Control" unique_id=1442559026]
 custom_minimum_size = Vector2(120, 88)
+layout_mode = 3
+anchors_preset = 0
 offset_right = 300.0
 offset_bottom = 200.0
-mouse_filter = 0
 script = ExtResource("1_bp")
 
-[node name="ResizeFrame" type="Control" parent="."]
+[node name="ResizeFrame" type="Control" parent="." unique_id=1643682663]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,83 +21,112 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopLeft" type="ColorRect" parent="ResizeFrame"]
+[node name="TopLeft" type="ColorRect" parent="ResizeFrame" unique_id=1829539428]
 layout_mode = 1
-offset_right = 44.0
-offset_bottom = 44.0
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 38.0
+offset_bottom = 38.0
 mouse_default_cursor_shape = 12
 color = Color(1, 0, 1, 0.4)
 
-[node name="Top" type="ColorRect" parent="ResizeFrame"]
+[node name="Top" type="ColorRect" parent="ResizeFrame" unique_id=412499170]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
-offset_left = 44.0
-offset_right = -44.0
+offset_left = 38.0
+offset_top = -6.0
+offset_right = -39.0
 offset_bottom = 6.0
+grow_horizontal = 2
 mouse_default_cursor_shape = 9
 color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="TopRight" type="ColorRect" parent="ResizeFrame"]
+[node name="TopRight" type="ColorRect" parent="ResizeFrame" unique_id=866148434]
 layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -44.0
-offset_bottom = 44.0
+offset_left = -39.0
+offset_top = -6.0
+offset_right = 5.0
+offset_bottom = 38.0
+grow_horizontal = 0
 mouse_default_cursor_shape = 11
 color = Color(1, 0, 1, 0.4)
 
-[node name="Right" type="ColorRect" parent="ResizeFrame"]
+[node name="Right" type="ColorRect" parent="ResizeFrame" unique_id=135540739]
 layout_mode = 1
+anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -6.0
-offset_top = 44.0
-offset_bottom = -44.0
+offset_top = 38.0
+offset_right = 5.0
+offset_bottom = -39.0
+grow_horizontal = 0
+grow_vertical = 2
 mouse_default_cursor_shape = 10
 color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="BottomRight" type="ColorRect" parent="ResizeFrame"]
+[node name="BottomRight" type="ColorRect" parent="ResizeFrame" unique_id=2038412099]
 layout_mode = 1
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -44.0
-offset_top = -44.0
+offset_left = -39.0
+offset_top = -39.0
+offset_right = 5.0
+offset_bottom = 5.0
+grow_horizontal = 0
+grow_vertical = 0
 mouse_default_cursor_shape = 12
 color = Color(1, 0, 1, 0.4)
 
-[node name="Bottom" type="ColorRect" parent="ResizeFrame"]
+[node name="Bottom" type="ColorRect" parent="ResizeFrame" unique_id=452311974]
 layout_mode = 1
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 44.0
+offset_left = 38.0
 offset_top = -6.0
-offset_right = -44.0
+offset_right = -39.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_default_cursor_shape = 9
 color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="BottomLeft" type="ColorRect" parent="ResizeFrame"]
+[node name="BottomLeft" type="ColorRect" parent="ResizeFrame" unique_id=1042600251]
 layout_mode = 1
+anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -44.0
-offset_right = 44.0
+offset_left = -6.0
+offset_top = -39.0
+offset_right = 38.0
+offset_bottom = 5.0
+grow_vertical = 0
 mouse_default_cursor_shape = 11
 color = Color(1, 0, 1, 0.4)
 
-[node name="Left" type="ColorRect" parent="ResizeFrame"]
+[node name="Left" type="ColorRect" parent="ResizeFrame" unique_id=1646793690]
 layout_mode = 1
+anchors_preset = 9
 anchor_bottom = 1.0
-offset_top = 44.0
+offset_left = -6.0
+offset_top = 38.0
 offset_right = 6.0
-offset_bottom = -44.0
+offset_bottom = -39.0
+grow_vertical = 2
 mouse_default_cursor_shape = 10
 color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=94276260]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -112,34 +140,33 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="HeaderPanel" type="PanelContainer" parent="VBoxContainer"]
+[node name="HeaderPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1965743153]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 mouse_filter = 1
 mouse_default_cursor_shape = 13
 
-[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderPanel"]
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderPanel" unique_id=1183587423]
 layout_mode = 2
-mouse_filter = 2
 text = "Panel"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BodyPanel" type="PanelContainer" parent="VBoxContainer"]
+[node name="BodyPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1194033239]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
 
-[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer/BodyPanel"]
+[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer/BodyPanel" unique_id=36144282]
 layout_mode = 2
-mouse_filter = 1
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="DragDebug" type="ColorRect" parent="."]
+[node name="DragDebug" type="ColorRect" parent="." unique_id=336823402]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 6.0
 offset_top = 6.0
@@ -148,8 +175,9 @@ offset_bottom = 50.0
 mouse_filter = 2
 color = Color(1, 1, 0, 0.4)
 
-[node name="HeaderButtons" type="Control" parent="."]
+[node name="HeaderButtons" type="Control" parent="." unique_id=2037502362]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 6.0
 offset_top = 6.0
@@ -157,18 +185,17 @@ offset_right = -6.0
 offset_bottom = 50.0
 mouse_filter = 2
 
-[node name="LockButton" type="Button" parent="HeaderButtons"]
+[node name="LockButton" type="Button" parent="HeaderButtons" unique_id=727687063]
 layout_mode = 1
 offset_right = 44.0
 offset_bottom = 44.0
 icon = ExtResource("2_lock_u")
-expand_icon = false
 
-[node name="CollapseButton" type="Button" parent="HeaderButtons"]
+[node name="CollapseButton" type="Button" parent="HeaderButtons" unique_id=2046550791]
 layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -44.0
 offset_bottom = 44.0
 icon = ExtResource("4_minus")
-expand_icon = false
