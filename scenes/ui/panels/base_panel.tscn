@@ -33,7 +33,7 @@ mouse_filter = 2
 theme_override_constants/separation = 4
 
 [node name="LockButton" type="Button" parent="VBoxContainer/HeaderPanel/HBox"]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 icon = ExtResource("2_lock_u")
 expand_icon = false
@@ -44,9 +44,10 @@ size_flags_horizontal = 3
 mouse_filter = 2
 text = "Panel"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderPanel/HBox"]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 icon = ExtResource("4_minus")
 expand_icon = false

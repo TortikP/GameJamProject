@@ -334,8 +334,10 @@ static func make_nested_stylebox() -> StyleBoxFlat:
 ## (BG_PANEL_2 vs BG_PANEL), full 1px borders on left/top/right (these
 ## draw the actual top edge of the panel — outer is intentionally
 ## border-less, see make_panel_body_stylebox), and 2px bottom border
-## as the separator between header and body. No expand/content margin
-## tricks — header is a self-contained drawn region. Used by BasePanel.
+## as the separator between header and body. content_margin = 0 so
+## that header buttons fill the full header height/width (Win98 caption-
+## button style); padding between widgets is handled by HBoxContainer
+## separation in BasePanel.tscn. Used by BasePanel.
 static func make_header_stylebox() -> StyleBoxFlat:
 	var sb := make_panel_stylebox()
 	sb.bg_color = BG_PANEL_2
@@ -343,10 +345,10 @@ static func make_header_stylebox() -> StyleBoxFlat:
 	sb.border_width_right  = 1
 	sb.border_width_top    = 1
 	sb.border_width_bottom = 2
-	sb.content_margin_left   = SP_2
-	sb.content_margin_right  = SP_2
-	sb.content_margin_top    = SP_1
-	sb.content_margin_bottom = SP_1
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
 	return sb
 
 
