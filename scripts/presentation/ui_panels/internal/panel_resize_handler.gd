@@ -2,23 +2,23 @@
 ##
 ## Composition handler. Owned by BasePanel; not a public API.
 ##
-## Approach: real Control handle nodes positioned ENTIRELY OUTSIDE the
-## panel rect via anchors+negative-offsets in base_panel.tscn. Each
+## Connects to the 8 invisible Control handles inside ResizeFrame. Each
 ## handle is a regular Control with:
-##   - mouse_default_cursor_shape set to its direction's resize cursor
+##   - mouse_default_cursor_shape set per direction in tscn
 ##     (FDIAGSIZE / BDIAGSIZE / VSIZE / HSIZE) — Godot's native cursor
-##     hover handling, no DisplayServer tricks.
-##   - mouse_filter = STOP so it captures hovers and clicks reliably.
-##   - modulate.a = 0 (invisible, but interactive).
+##     handling on hover, no DisplayServer tricks.
+##   - mouse_filter = STOP captures clicks reliably.
+##   - modulate.a = 0 — invisible but interactive.
+##   - anchors+offsets in tscn place each rect at the correct corner /
+##     edge zone (see base_panel.gd geometry constants).
 ##
-## On click: gui_input fires with our connected callback, we capture
-## initial state, then listen to global _input for motion/release until
-## button-up. The set_anchors_preset(TOP_LEFT, true) call switches the
+## On click: gui_input fires with our connected callback (bound with
+## the handle's direction vector); we capture initial state and listen
+## to global _input for motion/release until button-up.
+##
+## set_anchors_preset(TOP_LEFT, true) at resize start switches the
 ## panel to absolute positioning so size/global_position writes during
 ## resize don't fight with parent container layout.
-##
-## On release: state cleared. Handles auto-track via anchors when the
-## panel resizes — no per-frame layout code.
 
 class_name PanelResizeHandler
 extends Node
@@ -27,14 +27,14 @@ extends Node
 ##   dx, dy ∈ {-1, 0, 1}: -1 → that edge follows cursor (origin shifts);
 ##   1 → that edge follows cursor outward (size grows); 0 → unaffected.
 const HANDLE_DIRS := {
-	&"ResizeHandle_TopLeft":     Vector2i(-1, -1),
-	&"ResizeHandle_Top":         Vector2i( 0, -1),
-	&"ResizeHandle_TopRight":    Vector2i( 1, -1),
-	&"ResizeHandle_Right":       Vector2i( 1,  0),
-	&"ResizeHandle_BottomRight": Vector2i( 1,  1),
-	&"ResizeHandle_Bottom":      Vector2i( 0,  1),
-	&"ResizeHandle_BottomLeft":  Vector2i(-1,  1),
-	&"ResizeHandle_Left":        Vector2i(-1,  0),
+	&"TopLeft":     Vector2i(-1, -1),
+	&"Top":         Vector2i( 0, -1),
+	&"TopRight":    Vector2i( 1, -1),
+	&"Right":       Vector2i( 1,  0),
+	&"BottomRight": Vector2i( 1,  1),
+	&"Bottom":      Vector2i( 0,  1),
+	&"BottomLeft":  Vector2i(-1,  1),
+	&"Left":        Vector2i(-1,  0),
 }
 
 var _base_panel: BasePanel
@@ -48,14 +48,15 @@ var _initial_pos: Vector2
 
 func setup(base_panel: BasePanel) -> void:
 	_base_panel = base_panel
-	# is_resizable() returns the EFFECTIVE flag — folds in lock state
-	# and header_visible cascade (Phases 4-5). When false, hide handles
-	# entirely so they don't trigger cursor changes on hover.
+	# is_resizable() returns the EFFECTIVE flag — Phases 4-5 fold in
+	# lock state and header_visible cascade. When resize is disabled,
+	# hide handles entirely so they don't trigger cursor changes.
 	var enabled := base_panel.is_resizable()
 	for handle_name in HANDLE_DIRS.keys():
-		var handle := base_panel.get_node_or_null(String(handle_name)) as Control
+		var path := "ResizeFrame/" + String(handle_name)
+		var handle := base_panel.get_node_or_null(path) as Control
 		if handle == null:
-			push_warning("[PanelResizeHandler] missing handle node: %s" % handle_name)
+			push_warning("[PanelResizeHandler] missing handle node: %s" % path)
 			continue
 		if not enabled:
 			handle.visible = false
@@ -81,8 +82,8 @@ func _begin_resize(dir: Vector2i, mouse_global: Vector2) -> void:
 	_initial_size = _base_panel.size
 	_initial_pos = _base_panel.global_position
 	# Switch to absolute positioning so size/global_position writes
-	# during resize are not perturbed by parent container layout or
-	# anchor recalc. keep_offsets=true preserves the visual rect.
+	# during resize are not perturbed by parent container layout.
+	# keep_offsets=true preserves the visual rect across the change.
 	_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT, true)
 
 
@@ -103,7 +104,7 @@ func _do_resize(mouse_global: Vector2) -> void:
 	var new_size := _initial_size + Vector2(delta.x * _active_dir.x, delta.y * _active_dir.y)
 
 	# C1 minimum size — never below export, and never below what the
-	# header content actually requires to render.
+	# header content actually requires.
 	var min_size := _effective_min_size()
 	new_size.x = max(new_size.x, min_size.x)
 	new_size.y = max(new_size.y, min_size.y)

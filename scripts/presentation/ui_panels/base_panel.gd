@@ -1,37 +1,42 @@
 ## BasePanel — universal interface window framework root.
 ##
 ## Inherited Scenes pattern: subclasses inherit from base_panel.tscn,
-## enable Editable Children, and place content into the Body
-## (MarginContainer) node. The HeaderPanel structure is part of
-## BasePanel's contract and must not be modified by heirs.
+## enable Editable Children, place content into BodyContainer.
 ##
 ## See:
 ##   - docs/systems/ui-panels/design.md  (system-level decisions)
 ##   - specs/055-ui-panels/spec.md       (this implementation)
 ##
-## Behaviors are split across composition handlers in internal/.
-## BasePanel itself only owns:
-##   - Identity exports (panel_id, title, description)
-##   - Feature toggles (draggable, resizable, ...)
-##   - Defaults (default_locked, default_collapsed)
-##   - Effective-flag computation (header_visible cascade)
-##   - Group membership (&"ui_panel" for discoverability)
-##   - Theme application (header + body styleboxes)
+## Layout (from spec 055 mockup):
+##   - 4 corner resize zones (CORNER_SIZE square, FDIAG/BDIAG cursors)
+##   - 4 edge resize strips between corners (EDGE_THICKNESS thick)
+##   - Header drag zone fills the top, between corners
+##   - Lock / Collapse buttons sit ON TOP of the corners (own layer in
+##     z-order so they always capture their clicks)
 ##
-## Root is a plain Control — NOT a PanelContainer. Earlier attempts to
-## use PanelContainer as the root forced fights between an "outer" panel
-## stylebox and the inner header/body strip styleboxes; visible insets
-## kept appearing no matter how content_margin / expand_margin were
-## tuned. With root = Control the panel composes its visible frame from
-## just two children (HeaderPanel + BodyPanel), each drawing its own
-## region with no overlap. Header sits truly flush to top/sides because
-## it draws those edges itself.
+## Children of BasePanel root, in tscn declaration (= back-to-front):
+##   1. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg)
+##   2. ResizeFrame      — 8 invisible Control handles at corners/edges
+##   3. HeaderButtons    — LockButton + CollapseButton on top of corners
 ##
-## All actual drag/resize/collapse/lock/persistence logic lives in
-## internal/ handlers, instantiated and wired in _ready().
+## Mouse routing:
+##   - HeaderButtons: IGNORE (children STOP)
+##   - ResizeFrame:   IGNORE (children STOP)
+##   - VBoxContainer: IGNORE (HeaderPanel PASS for drag, BodyPanel PASS)
+##   - BasePanel root: STOP (catch-all, C5)
+##
+## Composition handlers (created in _ready, owned as child nodes):
+##   - PanelDragHandler — listens to HeaderPanel.gui_input
+##   - PanelResizeHandler — connects to each of the 8 ResizeFrame handles
 
 class_name BasePanel
 extends Control
+
+# ── Geometry constants (mirrored in base_panel.tscn anchors/offsets) ──
+const CORNER_SIZE: int    = 44   # corner resize zone size, also header height
+const EDGE_THICKNESS: int = 6    # edge resize zone thickness
+const BUTTON_SIZE: int    = 32   # icon button size
+const BUTTON_INSET: int   = 6    # gap between button and corner edge
 
 # ── Icons (16×16 monochrome pixel art, UiTheme.TEXT color) ────────
 const ICON_LOCK_UNLOCKED  := preload("res://assets/icons/ui/lock_unlocked.png")
@@ -60,8 +65,10 @@ const ICON_EXPAND_PLUS    := preload("res://assets/icons/ui/expand_plus.png")
 # ── Persistence scope override (otherwise auto-detected) ───────────
 @export var persistence_scope_override: StringName = &""
 
-# ── Constraints ────────────────────────────────────────────────────
-@export var min_panel_size: Vector2 = Vector2(120, 32)
+# ── Constraints. With CORNER_SIZE=44, the panel needs at least 88×88
+##    just to fit non-overlapping corners. Default bumped from spec's
+##    suggested 120×32 to reflect real layout requirements. ─────────
+@export var min_panel_size: Vector2 = Vector2(120, 88)
 
 # ── Signals ────────────────────────────────────────────────────────
 signal locked_changed(is_locked: bool)
@@ -78,10 +85,12 @@ var _effective_lockable: bool = true
 # ── Node references (resolved in _ready) ────────────────────────────
 var _header_panel: PanelContainer
 var _title_label: Label
-var _lock_button: Button
-var _collapse_button: Button
 var _body_panel: PanelContainer
 var _body_container: MarginContainer
+var _resize_frame: Control
+var _header_buttons: Control
+var _lock_button: Button
+var _collapse_button: Button
 
 # ── Composition handlers (created in _ready, owned as child nodes) ────
 var _drag_handler: PanelDragHandler
@@ -90,7 +99,7 @@ var _resize_handler: PanelResizeHandler
 
 func _ready() -> void:
 	add_to_group(&"ui_panel")
-	mouse_filter = Control.MOUSE_FILTER_STOP  # C5: panel always interactive
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_resolve_nodes()
 	_compute_effective_flags()
@@ -102,35 +111,20 @@ func _ready() -> void:
 		EventBus.ui_theme_reloaded.connect(_apply_theme)
 
 
-func _setup_handlers() -> void:
-	if _effective_draggable and _header_panel != null:
-		_drag_handler = PanelDragHandler.new()
-		_drag_handler.name = "_DragHandler"
-		add_child(_drag_handler)
-		_drag_handler.setup(self, _header_panel)
-
-	# Always create the resize handler. Its setup() chooses what to do
-	# based on is_resizable() — when resize is disabled it hides the
-	# handle nodes so they don't trigger cursor changes on hover.
-	_resize_handler = PanelResizeHandler.new()
-	_resize_handler.name = "_ResizeHandler"
-	add_child(_resize_handler)
-	_resize_handler.setup(self)
-
-
 func _resolve_nodes() -> void:
 	_header_panel    = $VBoxContainer/HeaderPanel as PanelContainer
-	_title_label     = $VBoxContainer/HeaderPanel/HBox/TitleLabel  as Label
-	_lock_button     = $VBoxContainer/HeaderPanel/HBox/LockButton  as Button
-	_collapse_button = $VBoxContainer/HeaderPanel/HBox/CollapseButton as Button
-	_body_panel      = $VBoxContainer/BodyPanel    as PanelContainer
+	_title_label     = $VBoxContainer/HeaderPanel/TitleLabel as Label
+	_body_panel      = $VBoxContainer/BodyPanel as PanelContainer
 	_body_container  = $VBoxContainer/BodyPanel/BodyContainer as MarginContainer
+	_resize_frame    = $ResizeFrame as Control
+	_header_buttons  = $HeaderButtons as Control
+	_lock_button     = $HeaderButtons/LockButton as Button
+	_collapse_button = $HeaderButtons/CollapseButton as Button
 
 
 func _compute_effective_flags() -> void:
-	# Phase 1: header_visible cascade not yet enforced — heirs see plain
-	# export values until Phase 5 wires the cascade. Stub kept here so
-	# handler creation in _ready() can reference it now.
+	# Phase 1 stub — header_visible cascade and lock state will be
+	# folded in here in Phases 4-5.
 	_effective_draggable   = draggable
 	_effective_resizable   = resizable
 	_effective_collapsible = collapsible
@@ -164,7 +158,22 @@ func _apply_theme() -> void:
 		_collapse_button.text = ""
 
 
-# ── Public API stubs (implemented in later phases) ─────────────────
+func _setup_handlers() -> void:
+	if _effective_draggable and _header_panel != null:
+		_drag_handler = PanelDragHandler.new()
+		_drag_handler.name = "_DragHandler"
+		add_child(_drag_handler)
+		_drag_handler.setup(self, _header_panel)
+
+	# Always create resize handler — its setup chooses what to do based
+	# on is_resizable() (hides handles when disabled).
+	_resize_handler = PanelResizeHandler.new()
+	_resize_handler.name = "_ResizeHandler"
+	add_child(_resize_handler)
+	_resize_handler.setup(self)
+
+
+# ── Public API ─────────────────────────────────────────────────────
 
 func get_body_container() -> MarginContainer:
 	return _body_container

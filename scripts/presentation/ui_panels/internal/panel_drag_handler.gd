@@ -1,19 +1,23 @@
 ## PanelDragHandler — drag behavior for BasePanel.
 ##
-## Composition handler. Owned by BasePanel; not a public API. Listens
-## to gui_input on the drag handle (typically HeaderPanel) for press,
-## then to _input (global) for motion/release so the drag survives the
-## cursor leaving the handle's rect.
+## Composition handler. Owned by BasePanel; not a public API.
 ##
-## On begin: switches the panel's anchors to PRESET_TOP_LEFT with
-## keep_offsets=true. This preserves visual position but makes
-## subsequent global_position writes absolute (avoids container layout
-## or anchor-based recalc fighting the drag).
+## Listens to gui_input on the drag handle (HeaderPanel) for LMB-press,
+## then to global _input for motion/release so the drag survives the
+## cursor leaving the handle's rect (and even leaving the window briefly).
 ##
-## C2 (cant-lose-UI): the panel's HEADER is clamped to remain entirely
-## inside the viewport. The body may spill past the viewport edge
-## (useful for prying space at corners) but the header — which carries
-## the drag affordance — never leaves the screen.
+## Cursor is set on HeaderPanel itself via mouse_default_cursor_shape
+## (CURSOR_MOVE) in base_panel.tscn. Native Godot handling — no
+## DisplayServer.cursor_set_shape tricks.
+##
+## On begin: switches anchors to PRESET_TOP_LEFT (keep_offsets=true) so
+## the panel's global_position becomes absolute. Subsequent motion writes
+## to _base_panel.global_position then move it directly, with no
+## container layout fights.
+##
+## C2 (cant-lose-UI): the panel's HEADER must remain entirely inside
+## the viewport. Body may spill past edges — only the drag handle
+## (which is the only way to move the panel) is gated.
 
 class_name PanelDragHandler
 extends Node
@@ -33,9 +37,9 @@ func setup(base_panel: BasePanel, drag_handle: Control) -> void:
 
 
 func _on_handle_gui_input(event: InputEvent) -> void:
-	# is_draggable() returns the EFFECTIVE flag — in Phase 4 (lock) and
-	# Phase 5 (header_visible cascade) this will fold in additional gates.
-	# Handler stays passive when locked; no separate lock check needed here.
+	# is_draggable() returns the EFFECTIVE flag — Phases 4-5 fold in
+	# lock state and header_visible cascade. Handler stays passive
+	# automatically when locked or when header hidden.
 	if not _base_panel.is_draggable():
 		return
 	if event is InputEventMouseButton:
@@ -47,8 +51,6 @@ func _on_handle_gui_input(event: InputEvent) -> void:
 
 func _begin_drag(mouse_global: Vector2) -> void:
 	_is_dragging = true
-	# Switch to absolute positioning so global_position writes are stable.
-	# keep_offsets=true preserves visual position across the anchor change.
 	_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT, true)
 	_drag_offset = _base_panel.global_position - mouse_global
 
@@ -61,7 +63,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
-			_end_drag()
+			_is_dragging = false
 
 
 func _do_drag(mouse_global: Vector2) -> void:
@@ -72,16 +74,13 @@ func _do_drag(mouse_global: Vector2) -> void:
 
 
 func _clamp_header_to_viewport(pos: Vector2) -> Vector2:
-	# C2: header rect must stay entirely inside the viewport.
-	# Header sits at the top of the panel and spans its width, so:
-	#   header rect = (panel.x, panel.y) -> (panel.x + panel.size.x, panel.y + header.size.y)
+	# C2: header must stay entirely inside the viewport. Header rect at
+	# the top of the panel = (panel.x, panel.y) to (panel.x + panel_width,
+	# panel.y + header_height). header_height equals BasePanel.CORNER_SIZE
+	# (header strip and corner zones share the same height by design).
 	var viewport_size := _base_panel.get_viewport_rect().size
 	var panel_width := _base_panel.size.x
-	var header_height := _drag_handle.size.y
+	var header_height := float(BasePanel.CORNER_SIZE)
 	pos.x = clamp(pos.x, 0.0, max(0.0, viewport_size.x - panel_width))
 	pos.y = clamp(pos.y, 0.0, max(0.0, viewport_size.y - header_height))
 	return pos
-
-
-func _end_drag() -> void:
-	_is_dragging = false
