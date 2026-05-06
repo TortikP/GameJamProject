@@ -21,11 +21,20 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopLeft" type="ColorRect" parent="ResizeFrame" unique_id=1829539428]
+[node name="TopLeft_H" type="ColorRect" parent="ResizeFrame" unique_id=1829539428]
 layout_mode = 1
 offset_left = -6.0
 offset_top = -6.0
 offset_right = 38.0
+offset_bottom = 6.0
+mouse_default_cursor_shape = 12
+color = Color(1, 0, 1, 0.4)
+
+[node name="TopLeft_V" type="ColorRect" parent="ResizeFrame" unique_id=1829539429]
+layout_mode = 1
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 6.0
 offset_bottom = 38.0
 mouse_default_cursor_shape = 12
 color = Color(1, 0, 1, 0.4)
@@ -42,12 +51,25 @@ grow_horizontal = 2
 mouse_default_cursor_shape = 9
 color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="TopRight" type="ColorRect" parent="ResizeFrame" unique_id=866148434]
+[node name="TopRight_H" type="ColorRect" parent="ResizeFrame" unique_id=866148434]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -39.0
+offset_top = -6.0
+offset_right = 5.0
+offset_bottom = 6.0
+grow_horizontal = 0
+mouse_default_cursor_shape = 11
+color = Color(1, 0, 1, 0.4)
+
+[node name="TopRight_V" type="ColorRect" parent="ResizeFrame" unique_id=866148435]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -6.0
 offset_top = -6.0
 offset_right = 5.0
 offset_bottom = 38.0

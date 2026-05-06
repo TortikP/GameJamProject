@@ -26,10 +26,19 @@ extends Node
 ## Handle name → resize direction sign vector.
 ##   dx, dy ∈ {-1, 0, 1}: -1 → that edge follows cursor (origin shifts);
 ##   1 → that edge follows cursor outward (size grows); 0 → unaffected.
+##
+## Top corners are split into horizontal (_H) and vertical (_V) arms so
+## their hit zones form an L-shape outside the panel and don't overlap
+## with LockButton / CollapseButton (which sit at the same corners).
+## Bottom corners stay as single 44×44 ColorRects — no header buttons
+## there, no input contention. Both arms of a top corner emit the same
+## diagonal direction vector, so dragging either resizes diagonally.
 const HANDLE_DIRS := {
-	&"TopLeft":     Vector2i(-1, -1),
+	&"TopLeft_H":   Vector2i(-1, -1),
+	&"TopLeft_V":   Vector2i(-1, -1),
 	&"Top":         Vector2i( 0, -1),
-	&"TopRight":    Vector2i( 1, -1),
+	&"TopRight_H":  Vector2i( 1, -1),
+	&"TopRight_V":  Vector2i( 1, -1),
 	&"Right":       Vector2i( 1,  0),
 	&"BottomRight": Vector2i( 1,  1),
 	&"Bottom":      Vector2i( 0,  1),
