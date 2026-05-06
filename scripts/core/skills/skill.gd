@@ -49,11 +49,13 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 @export var tooltip: String = ""
 @export var desc: String = ""
 @export var icon: StringName = &""                   # 026: future IconDB lookup
+@export var type: StringName = &"active"             # "active" | "passive"
 @export var cooldown: int = 0
 @export var behaviour_tags: Array[StringName] = []   # was: tags (renamed in 021)
 @export var mood: Array[StringName] = []
 @export var level: int = 0
 @export var abilities: Array[Ability] = []
+@export var passive_effects: Array[Dictionary] = []
 
 var _cd_remaining: int = 0
 # 031 phase 4 — true between cast() and the very next tick_cooldown call,
@@ -66,25 +68,32 @@ func is_ready() -> bool:
 	return _cd_remaining <= 0
 
 
+func is_passive() -> bool:
+	return type == &"passive"
+
+
 ## Pre-check for UI slot greying. Castable iff (a) skill is off cooldown
 ## and (b) the first ability accepts the current ctx. Without the
 ## is_ready guard, slot bar wouldn't grey out on cooldown (and the
 ## set_castable early-return short-circuits cd label refreshes — see
 ## spec 031 phase 3). Spec 031 phase 3.
 func can_apply(caster: Actor, ctx: Dictionary) -> bool:
+	if is_passive():
+		return false
 	if abilities.is_empty():
 		return false
 	if not is_ready():
 		return false
-	return (abilities[0] as Ability).can_apply(caster, ctx)
+	return (abilities[0] as Ability).can_apply(caster, ctx, level, passive_mods_for(caster))
 
 
 ## Damage preview for hover UI. Sums predicted_damage_to across all abilities,
 ## passing this skill's level so previewed numbers match what the cast will deal.
 func predicted_damage_to(caster: Actor, target: Actor, ctx: Dictionary) -> int:
 	var total: int = 0
+	var passive_mods: Dictionary = passive_mods_for(caster)
 	for ab in abilities:
-		total += (ab as Ability).predicted_damage_to(caster, target, ctx, level)
+		total += (ab as Ability).predicted_damage_to(caster, target, ctx, level, passive_mods)
 	return total
 
 
@@ -97,6 +106,8 @@ func get_ability_ids() -> Array[StringName]:
 
 
 func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
+	if is_passive():
+		return false
 	if not is_ready():
 		GameLogger.info("Skill", "%s on cooldown (%d remaining)" % [id, _cd_remaining])
 		return false
@@ -114,6 +125,7 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 	# in practice every shipping skill carries exactly one tag (and 5 test
 	# skills carry zero — those fall through to "neutral" via the default).
 	var mood_for_fx: StringName = mood[0] if not mood.is_empty() else &"neutral"
+	var passive_mods: Dictionary = passive_mods_for(caster)
 
 	# 052b: capture caster_id eagerly. The await chain inside the loop
 	# (fx.play_cast / play_collisions) opens a window where the caster's
@@ -130,7 +142,7 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 		# damage. Empty plan → ability is pure no-op (e.g. target died after
 		# the previous ability in this skill killed it). Skill continues to
 		# the next ability instead of failing the whole cast.
-		var plan: Dictionary = ab.resolve(caster, ctxs[i], level)
+		var plan: Dictionary = ab.resolve(caster, ctxs[i], level, passive_mods)
 		if plan.is_empty():
 			continue
 
@@ -186,7 +198,7 @@ func cast(caster: Actor, ctxs: Array[Dictionary], fx: Object = null) -> bool:
 					all_target_ids.append(tid)
 
 	if any_resolved:
-		_cd_remaining = cooldown
+		_cd_remaining = maxi(0, cooldown - int(passive_mods.get("cooldown_reduction", 0)))
 		# 031 phase 4: world_turn_ended fires later in the same advance() that
 		# closes this turn → tick_cooldown lands inside the cast turn. Skip it
 		# once so 'cooldown=N' means N rounds of skip, not N-1.
@@ -241,3 +253,14 @@ func clone_for_owner() -> Skill:
 	copy._cd_remaining = 0
 	copy._skip_next_tick = false
 	return copy
+
+
+func passive_mods_for(caster: Actor) -> Dictionary:
+	if caster == null:
+		return {}
+	return {
+		"range_bonus": caster.passive_range_bonus(),
+		"cooldown_reduction": caster.passive_cooldown_reduction(),
+		"status_duration_bonus": caster.passive_status_duration_bonus(),
+		"ranged_push_distance": caster.passive_ranged_push_distance(),
+	}

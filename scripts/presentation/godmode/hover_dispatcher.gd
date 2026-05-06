@@ -253,7 +253,7 @@ func _build_hex_tooltip_rows(coord: Vector2i) -> Array:
 		var pskill: Skill = slot_bar.get_slot(active_idx) as Skill
 		if pskill != null and not pskill.abilities.is_empty():
 			var pab: Ability = pskill.abilities[0]
-			if _coord_in_ability_effect(player, pab, coord):
+			if _coord_in_ability_effect(player, pskill, pab, coord):
 				rows.append({
 					"actor_name": String(player.actor_id),
 					"skill": pskill,
@@ -296,7 +296,7 @@ func _build_hex_tooltip_rows(coord: Vector2i) -> Array:
 # Without step 2 the tooltip used to surface a player-preview row over
 # blocked / off-team hexes inside the ability's range circle (e.g. ranged
 # damage on an empty grass tile). 049b T036 adds the resolve gate.
-func _coord_in_ability_effect(caster: Actor, ability: Ability, coord: Vector2i) -> bool:
+func _coord_in_ability_effect(caster: Actor, skill: Skill, ability: Ability, coord: Vector2i) -> bool:
 	if ability == null or ability.target == null:
 		return false
 	var grid: HexGrid = _ctrl.grid
@@ -305,7 +305,9 @@ func _coord_in_ability_effect(caster: Actor, ability: Ability, coord: Vector2i) 
 	if caster_coord == Vector2i(-1, -1):
 		return false
 	# Step 1: range gate. Cursor must be on a hex the ability can reach.
-	var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, grid)
+	var passive_mods: Dictionary = skill.passive_mods_for(caster) if skill != null else {}
+	var level: int = skill.level if skill != null else 0
+	var range_hexes: Array[Vector2i] = ability.effective_range_hexes(caster, grid, level, passive_mods)
 	if not (coord in range_hexes):
 		return false
 	# Step 2: validity gate. Mirror CastRangeOverlay's per-hex resolve check
@@ -318,7 +320,7 @@ func _coord_in_ability_effect(caster: Actor, ability: Ability, coord: Vector2i) 
 		"target_id":    grid.get_actor_at(coord),
 		"target_coord": coord,
 	}
-	if ability.target.resolve(caster, ctx) == null:
+	if not ability.can_apply(caster, ctx, level, passive_mods):
 		return false
 	# Step 3: area expansion. Single-target / null-area abilities terminate
 	# at step 2 — coord is the anchor and it's valid.

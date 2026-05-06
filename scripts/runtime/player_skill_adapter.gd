@@ -28,6 +28,9 @@ class_name PlayerSkillAdapter
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const SLOT_COUNT: int = 4
+const PASSIVE_SLOT_COUNT: int = 2
+const SLOT_KIND_ACTIVE: StringName = &"active"
+const SLOT_KIND_PASSIVE: StringName = &"passive"
 
 # warn-once tracking
 static var _warned_no_controller: bool = false
@@ -51,6 +54,14 @@ static func _slot_bar(ctrl: Node) -> Node:
 	# Public field on godmode_controller.gd, populated by GodmodeSetup.
 	if "slot_bar" in ctrl:
 		return ctrl.slot_bar
+	return null
+
+
+static func _passive_slot_bar(ctrl: Node) -> Node:
+	if ctrl == null:
+		return null
+	if "passive_slot_bar" in ctrl:
+		return ctrl.passive_slot_bar
 	return null
 
 
@@ -79,6 +90,12 @@ static func owned_skills_array() -> Array:
 		var sk = bar.get_slot(i)
 		if sk != null and not out.has(sk):
 			out.append(sk)
+	var passive_bar: Node = _passive_slot_bar(ctrl)
+	if passive_bar != null and passive_bar.has_method("get_slot"):
+		for i in PASSIVE_SLOT_COUNT:
+			var passive_sk = passive_bar.get_slot(i)
+			if passive_sk != null and not out.has(passive_sk):
+				out.append(passive_sk)
 	return out
 
 
@@ -105,29 +122,29 @@ static func can_upgrade(id: StringName) -> bool:
 
 ## Returns slot indices 0..3 currently filled. Used by the replace-slot
 ## sub-screen to know which slots to offer.
-static func filled_slot_indices() -> Array:
+static func filled_slot_indices(kind: StringName = SLOT_KIND_ACTIVE) -> Array:
 	var out: Array = []
 	var ctrl: Node = _controller()
 	if ctrl == null:
 		return out
-	var bar: Node = _slot_bar(ctrl)
+	var bar: Node = _bar_for_kind(ctrl, kind)
 	if bar == null or not bar.has_method("get_slot"):
 		return out
-	for i in SLOT_COUNT:
+	for i in _slot_count_for_kind(kind):
 		if bar.get_slot(i) != null:
 			out.append(i)
 	return out
 
 
 ## Returns the first empty slot index, or -1 if all 4 are filled.
-static func first_empty_slot() -> int:
+static func first_empty_slot(kind: StringName = SLOT_KIND_ACTIVE) -> int:
 	var ctrl: Node = _controller()
 	if ctrl == null:
 		return -1
-	var bar: Node = _slot_bar(ctrl)
+	var bar: Node = _bar_for_kind(ctrl, kind)
 	if bar == null or not bar.has_method("get_slot"):
 		return -1
-	for i in SLOT_COUNT:
+	for i in _slot_count_for_kind(kind):
 		if bar.get_slot(i) == null:
 			return i
 	return -1
@@ -135,13 +152,13 @@ static func first_empty_slot() -> int:
 
 ## Returns the Skill currently in slot `idx` (0..3), or null. Used by the
 ## replace-slot sub-screen for "REPLACE Q (currently: ball_throw)" labels.
-static func peek_slot(idx: int):
-	if idx < 0 or idx >= SLOT_COUNT:
+static func peek_slot(idx: int, kind: StringName = SLOT_KIND_ACTIVE):
+	if idx < 0 or idx >= _slot_count_for_kind(kind):
 		return null
 	var ctrl: Node = _controller()
 	if ctrl == null:
 		return null
-	var bar: Node = _slot_bar(ctrl)
+	var bar: Node = _bar_for_kind(ctrl, kind)
 	if bar == null or not bar.has_method("get_slot"):
 		return null
 	return bar.get_slot(idx)
@@ -162,10 +179,23 @@ static func slots_snapshot() -> Array:
 		if sk == null or not ("id" in sk):
 			continue
 		out.append({
+			"kind": SLOT_KIND_ACTIVE,
 			"slot": i,
 			"id": sk.id,
 			"level": int(sk.level) if "level" in sk else 0,
 		})
+	var passive_bar: Node = _passive_slot_bar(ctrl)
+	if passive_bar != null and passive_bar.has_method("get_slot"):
+		for i in PASSIVE_SLOT_COUNT:
+			var passive_sk = passive_bar.get_slot(i)
+			if passive_sk == null or not ("id" in passive_sk):
+				continue
+			out.append({
+				"kind": SLOT_KIND_PASSIVE,
+				"slot": i,
+				"id": passive_sk.id,
+				"level": int(passive_sk.level) if "level" in passive_sk else 0,
+			})
 	return out
 
 
@@ -179,10 +209,11 @@ static func add_skill(id: StringName) -> bool:
 	if ctrl == null:
 		_warn_no_controller()
 		return false
-	var bar: Node = _slot_bar(ctrl)
+	var kind: StringName = slot_kind_for_skill_id(id)
+	var bar: Node = _bar_for_kind(ctrl, kind)
 	if bar == null or not bar.has_method("set_slot"):
 		return false
-	var slot: int = first_empty_slot()
+	var slot: int = first_empty_slot(kind)
 	if slot < 0:
 		GameLogger.warn("PlayerSkillAdapter", "add_skill('%s') — no empty slot" % id)
 		return false
@@ -220,14 +251,14 @@ static func upgrade_skill(id: StringName) -> bool:
 
 ## Replace the skill in `slot` with a fresh clone of `id`. Returns true on
 ## success. slot must be 0..3.
-static func replace_slot(slot: int, id: StringName) -> bool:
-	if slot < 0 or slot >= SLOT_COUNT:
+static func replace_slot(slot: int, id: StringName, kind: StringName = SLOT_KIND_ACTIVE) -> bool:
+	if slot < 0 or slot >= _slot_count_for_kind(kind):
 		return false
 	var ctrl: Node = _controller()
 	if ctrl == null:
 		_warn_no_controller()
 		return false
-	var bar: Node = _slot_bar(ctrl)
+	var bar: Node = _bar_for_kind(ctrl, kind)
 	if bar == null or not bar.has_method("set_slot"):
 		return false
 	var skill: Skill = SkillDatabase.get_skill(id)
@@ -250,14 +281,22 @@ static func apply_slots_snapshot(snapshot: Array) -> bool:
 	var bar: Node = _slot_bar(ctrl)
 	if bar == null or not bar.has_method("set_slot"):
 		return false
+	var passive_bar: Node = _passive_slot_bar(ctrl)
 	for i in SLOT_COUNT:
 		bar.set_slot(i, null)
+	if passive_bar != null and passive_bar.has_method("set_slot"):
+		for i in PASSIVE_SLOT_COUNT:
+			passive_bar.set_slot(i, null)
 	for entry_v in snapshot:
 		if not (entry_v is Dictionary):
 			continue
 		var entry: Dictionary = entry_v
+		var kind: StringName = StringName(str(entry.get("kind", SLOT_KIND_ACTIVE)))
 		var slot: int = int(entry.get("slot", -1))
-		if slot < 0 or slot >= SLOT_COUNT:
+		if slot < 0 or slot >= _slot_count_for_kind(kind):
+			continue
+		var target_bar: Node = _bar_for_kind(ctrl, kind)
+		if target_bar == null or not target_bar.has_method("set_slot"):
 			continue
 		var id: StringName = StringName(str(entry.get("id", "")))
 		var skill: Skill = SkillDatabase.get_skill(id)
@@ -266,7 +305,7 @@ static func apply_slots_snapshot(snapshot: Array) -> bool:
 			continue
 		var owned: Skill = skill.clone_for_owner()
 		owned.level = int(entry.get("level", owned.level))
-		bar.set_slot(slot, owned)
+		target_bar.set_slot(slot, owned)
 	_sync(ctrl)
 	GameLogger.info("PlayerSkillAdapter", "applied skill snapshot (%d entries)" % snapshot.size())
 	return true
@@ -288,6 +327,29 @@ static func _sync(ctrl: Node) -> void:
 	# changes (_on_ability_picker_selected) so we use it verbatim.
 	if ctrl != null and ctrl.has_method("sync_player_skills_from_slots"):
 		ctrl.sync_player_skills_from_slots()
+
+
+static func _bar_for_kind(ctrl: Node, kind: StringName) -> Node:
+	return _passive_slot_bar(ctrl) if kind == SLOT_KIND_PASSIVE else _slot_bar(ctrl)
+
+
+static func _slot_count_for_kind(kind: StringName) -> int:
+	return PASSIVE_SLOT_COUNT if kind == SLOT_KIND_PASSIVE else SLOT_COUNT
+
+
+static func slot_kind_for_skill_id(id: StringName) -> StringName:
+	var skill: Skill = SkillDatabase.get_skill(id)
+	if skill != null and skill.is_passive():
+		return SLOT_KIND_PASSIVE
+	return SLOT_KIND_ACTIVE
+
+
+static func offer_count_bonus() -> int:
+	var ctrl: Node = _controller()
+	var player: Actor = _player(ctrl) as Actor
+	if player == null:
+		return 0
+	return player.passive_offer_bonus()
 
 
 static func _warn_no_controller() -> void:

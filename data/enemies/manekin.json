@@ -9,6 +9,9 @@
   "skills": [
     "paper_jam"
   ],
+  "passive_skills": [
+    "passive_cellular_regen"
+  ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "paper_jam"
 }

@@ -231,6 +231,8 @@ func _target_in_skill_range(actor: Actor, skill: Skill, target: Variant, ctx: Di
 	var max_range: int = -1
 	if "range" in ab.target:
 		max_range = int(ab.target.range)
+		if max_range > 0:
+			max_range += actor.passive_range_bonus()
 	if max_range < 0:
 		return true
 	var caster_coord: Vector2i = grid.get_coord(actor.actor_id)

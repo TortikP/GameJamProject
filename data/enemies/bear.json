@@ -11,6 +11,9 @@
 	"bear_paw_suck",
     "bear_hallo"
   ],
+  "passive_skills": [
+    "passive_chitin_guard"
+  ],
   "behavior_id": "default_ranged",
   "fallback_skill_id": "bear_ball_throw"
 }

@@ -183,7 +183,8 @@ func show_for(actor: Actor, registry: Node, ability_items: Array) -> void:
 			ability = AbilityDatabase.get_ability(StringName(str(item)))
 		if ability == null or ability.target == null:
 			continue
-		for c in ability.target.get_range_hexes(actor_coord, _grid):
+		for c in ability.effective_range_hexes(actor, _grid, 0,
+				{"range_bonus": actor.passive_range_bonus()}):
 			attack_set[c] = true
 	_attack_coords = []
 	for c in attack_set.keys():

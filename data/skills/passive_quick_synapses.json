@@ -1,0 +1,13 @@
+{
+  "id": "passive_quick_synapses",
+  "type": "passive",
+  "name": "passive_quick_synapses_name",
+  "tooltip": "passive_quick_synapses_tooltip",
+  "desc": "passive_quick_synapses_desc",
+  "icon": "icons/skills/passive_quick_synapses.png",
+  "mood": ["neutral"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "cooldown_reduction", "amount": 1}
+  ]
+}

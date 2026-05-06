@@ -186,6 +186,7 @@ func _seed_campaign_skill_loadout() -> void:
 	_campaign_skill_loadout.clear()
 	for i in STARTER_SKILLS.size():
 		_campaign_skill_loadout.append({
+			"kind": PlayerSkillAdapterScript.SLOT_KIND_ACTIVE,
 			"slot": i,
 			"id": STARTER_SKILLS[i],
 			"level": 0,

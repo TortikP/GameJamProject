@@ -53,17 +53,19 @@ var last_target_ids: Array = []
 
 
 ## Cheap pre-check for UI (grey-out un-castable slots). Doesn't run area/effects.
-func can_apply(caster: Actor, ctx: Dictionary) -> bool:
+func can_apply(caster: Actor, ctx: Dictionary, level: int = 0, passive_mods: Dictionary = {}) -> bool:
 	if target == null or area == null or effects.is_empty():
 		return false
-	return target.can_apply(caster, ctx)
+	var target_dup: AbilityTarget = _effective_target(level, passive_mods)
+	return target_dup != null and target_dup.can_apply(caster, ctx)
 
 
 ## Damage preview for hover UI. Sums all DamageEffect.damage values + caster bonus,
 ## after applying skill-level scaling AND add/mul modifiers (in that order).
 ## Returns 0 for non-damage-only abilities.
 ## KEEP IN SYNC with DamageEffect.apply + the cast lifecycle order.
-func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level: int = 0) -> int:
+func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level: int = 0,
+		passive_mods: Dictionary = {}) -> int:
 	var total: int = 0
 	# 027: damage_amplifier sums strong/weak status modifiers (signed).
 	var bonus: int = 0
@@ -75,6 +77,7 @@ func predicted_damage_to(caster: Actor, _target: Actor, _ctx: Dictionary, level:
 		var eff_dup: AbilityEffect = base_eff.duplicate()
 		eff_dup.apply_level(level)
 		_apply_param_modifiers(eff_dup, modifiers)
+		_apply_passive_modifiers(eff_dup, passive_mods)
 		total += maxi(0, (eff_dup as DamageEffect).damage + bonus)
 	return total
 
@@ -107,14 +110,15 @@ func cast(caster: Actor, ctx: Dictionary, level: int = 0) -> bool:
 ##   "has_create":   bool               — at least one CreateEffect in this ability
 ##   "create_hexes": Array[Vector2i]    — affected hexes for hex-pass (only if has_create)
 ##   "level":        int                — captured for apply_resolved consistency
-func resolve(caster: Actor, ctx: Dictionary, level: int = 0) -> Dictionary:
+func resolve(caster: Actor, ctx: Dictionary, level: int = 0, passive_mods: Dictionary = {}) -> Dictionary:
 	if target == null or area == null or effects.is_empty():
 		GameLogger.error("Ability", "%s: target / area / effects misconfigured" % id)
 		return {}
 
 	# Duplicate target so apply_level mutates a copy, not the shared resource.
-	var target_dup: AbilityTarget = target.duplicate()
-	target_dup.apply_level(level)
+	var target_dup: AbilityTarget = _effective_target(level, passive_mods)
+	if target_dup == null:
+		return {}
 
 	var primary: Variant = target_dup.resolve(caster, ctx)
 	if primary == null:
@@ -187,6 +191,7 @@ func resolve(caster: Actor, ctx: Dictionary, level: int = 0) -> Dictionary:
 		"has_create":   has_create,
 		"create_hexes": create_hexes,
 		"level":        level,
+		"passive_mods": passive_mods,
 	}
 
 
@@ -220,6 +225,7 @@ func apply_resolved(plan: Dictionary, caster: Actor, ctx: Dictionary) -> bool:
 				var eff_dup_c: AbilityEffect = base_eff.duplicate()
 				eff_dup_c.apply_level(level)
 				_apply_param_modifiers(eff_dup_c, modifiers)
+				_apply_passive_modifiers(eff_dup_c, plan.get("passive_mods", {}))
 				eff_dup_c.apply(caster, null, per_hex_ctx)
 
 	for victim in victims:
@@ -235,9 +241,11 @@ func apply_resolved(plan: Dictionary, caster: Actor, ctx: Dictionary) -> bool:
 			var eff_dup: AbilityEffect = base_eff.duplicate()
 			eff_dup.apply_level(level)              # 021: level FIRST
 			_apply_param_modifiers(eff_dup, modifiers)  # then modifiers ON TOP
+			_apply_passive_modifiers(eff_dup, plan.get("passive_mods", {}))
 			if eff_dup.requires_alive_target and _is_dead(victim):
 				continue
 			eff_dup.apply(caster, victim, ctx)
+		_apply_passive_ranged_push(caster, victim, ctx, plan.get("passive_mods", {}))
 		if victim is Actor:
 			target_ids.append((victim as Actor).actor_id)
 
@@ -247,6 +255,72 @@ func apply_resolved(plan: Dictionary, caster: Actor, ctx: Dictionary) -> bool:
 
 
 # ── Internals ────────────────────────────────────────────────────────────────
+
+func effective_range_hexes(caster: Actor, grid: HexGrid, level: int = 0,
+		passive_mods: Dictionary = {}) -> Array[Vector2i]:
+	if caster == null or grid == null:
+		return []
+	var caster_coord: Vector2i = grid.get_coord(caster.actor_id)
+	if caster_coord == Vector2i(-1, -1):
+		return []
+	var target_dup: AbilityTarget = _effective_target(level, passive_mods)
+	if target_dup == null:
+		return []
+	return target_dup.get_range_hexes(caster_coord, grid)
+
+
+func _effective_target(level: int, passive_mods: Dictionary) -> AbilityTarget:
+	if target == null:
+		return null
+	var target_dup: AbilityTarget = target.duplicate()
+	target_dup.apply_level(level)
+	_apply_passive_modifiers(target_dup, passive_mods)
+	return target_dup
+
+
+func _apply_passive_modifiers(obj: Object, passive_mods: Dictionary) -> void:
+	if obj == null or passive_mods.is_empty():
+		return
+	var range_bonus: int = int(passive_mods.get("range_bonus", 0))
+	if range_bonus != 0 and "range" in obj:
+		var current_range: int = int(obj.get("range"))
+		if current_range > 0:
+			obj.set("range", current_range + range_bonus)
+	var status_duration_bonus: int = int(passive_mods.get("status_duration_bonus", 0))
+	if status_duration_bonus != 0 and obj is StatusEffect:
+		var se: StatusEffect = obj as StatusEffect
+		if not se.args.is_empty() and se.args[0] > 0:
+			se.args = se.args.duplicate()
+			se.args[0] += status_duration_bonus
+
+
+func _apply_passive_ranged_push(caster: Actor, victim: Variant, ctx: Dictionary,
+		passive_mods: Dictionary) -> void:
+	var distance: int = int(passive_mods.get("ranged_push_distance", 0))
+	if distance <= 0 or not _is_ranged_damage_ability():
+		return
+	var actor := victim as Actor
+	if caster == null or actor == null or actor == caster or not actor.is_alive():
+		return
+	if caster.team != &"" and actor.team == caster.team:
+		return
+	var push := MoveEffect.new()
+	push.move_type = &"push"
+	push.move_distance = distance
+	push.apply(caster, actor, ctx)
+
+
+func _is_ranged_damage_ability() -> bool:
+	var is_ranged: bool = false
+	if target != null and "range" in target:
+		is_ranged = int(target.get("range")) > 1
+	if not is_ranged:
+		return false
+	for eff in effects:
+		if eff is DamageEffect:
+			return true
+	return false
+
 
 ## Mutates obj's numeric properties in-place per modifier list.
 ## Formula per param p: final = (base + Σ adds_p) × Π muls_p
