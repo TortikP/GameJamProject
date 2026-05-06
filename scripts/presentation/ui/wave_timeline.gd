@@ -308,10 +308,14 @@ func _propagate_mouse_filter_ignore(n: Node) -> void:
 func _add_wave_index_label(wave_idx: int, x: float) -> void:
 	var lbl := Label.new()
 	lbl.text = "W%d" % wave_idx
-	lbl.position = Vector2(x - 14, BAR_Y + UiThemeScript.WAVE_ANCHOR_RADIUS * 1.4)
-	lbl.size = Vector2(28, 14)
+	lbl.position = Vector2(x - 18, BAR_Y + UiThemeScript.WAVE_ANCHOR_RADIUS * 1.4)
+	lbl.size = Vector2(36, 24)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 11)
+	# 056: was font_size=11 / size=Vector2(28,14). Migrated to FS_SMALL=22
+	# (post-056 bump). Label box widened to 36×24 to fit the bigger glyphs.
+	# Position x-offset adjusted from -14 to -18 to keep label centred over
+	# its anchor at the wider box.
+	lbl.add_theme_font_size_override("font_size", UiThemeScript.FS_SMALL)
 	# Active wave's index label gets the focus accent for parity with the
 	# anchor outline. Other waves stay muted.
 	var col: Color = UiThemeScript.WAVE_ANCHOR_CURRENT \

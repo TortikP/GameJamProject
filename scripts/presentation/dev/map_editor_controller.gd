@@ -1467,7 +1467,7 @@ func _open_spawner_timer_editor(coord: Vector2i) -> void:
 		_timer_editor.context_menu_enabled = false
 		_timer_editor.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_timer_editor.custom_minimum_size = Vector2(48, 28)
-		_timer_editor.add_theme_font_size_override("font_size", 18)
+		_timer_editor.add_theme_font_size_override("font_size", UiTheme.FS_HEADER)
 		_timer_editor.text_submitted.connect(_on_timer_editor_submitted)
 		_timer_editor.focus_exited.connect(_on_timer_editor_focus_exited)
 		_timer_editor.gui_input.connect(_on_timer_editor_gui_input)
