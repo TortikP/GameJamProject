@@ -49,6 +49,16 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
+[node name="DragDebug" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 44.0
+offset_top = 6.0
+offset_right = -44.0
+offset_bottom = 44.0
+mouse_filter = 2
+color = Color(1, 1, 0, 0.4)
+
 [node name="ResizeFrame" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -58,32 +68,32 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopLeft" type="Control" parent="ResizeFrame"]
+[node name="TopLeft" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 offset_right = 44.0
 offset_bottom = 44.0
 mouse_default_cursor_shape = 12
-modulate = Color(1, 1, 1, 0)
+color = Color(1, 0, 1, 0.4)
 
-[node name="Top" type="Control" parent="ResizeFrame"]
+[node name="Top" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_right = 1.0
 offset_left = 44.0
 offset_right = -44.0
 offset_bottom = 6.0
 mouse_default_cursor_shape = 9
-modulate = Color(1, 1, 1, 0)
+color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="TopRight" type="Control" parent="ResizeFrame"]
+[node name="TopRight" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -44.0
 offset_bottom = 44.0
 mouse_default_cursor_shape = 11
-modulate = Color(1, 1, 1, 0)
+color = Color(1, 0, 1, 0.4)
 
-[node name="Right" type="Control" parent="ResizeFrame"]
+[node name="Right" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -92,9 +102,9 @@ offset_left = -6.0
 offset_top = 44.0
 offset_bottom = -44.0
 mouse_default_cursor_shape = 10
-modulate = Color(1, 1, 1, 0)
+color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="BottomRight" type="Control" parent="ResizeFrame"]
+[node name="BottomRight" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_left = 1.0
 anchor_top = 1.0
@@ -103,9 +113,9 @@ anchor_bottom = 1.0
 offset_left = -44.0
 offset_top = -44.0
 mouse_default_cursor_shape = 12
-modulate = Color(1, 1, 1, 0)
+color = Color(1, 0, 1, 0.4)
 
-[node name="Bottom" type="Control" parent="ResizeFrame"]
+[node name="Bottom" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
@@ -114,25 +124,25 @@ offset_left = 44.0
 offset_top = -6.0
 offset_right = -44.0
 mouse_default_cursor_shape = 9
-modulate = Color(1, 1, 1, 0)
+color = Color(0.5, 1, 0.5, 0.4)
 
-[node name="BottomLeft" type="Control" parent="ResizeFrame"]
+[node name="BottomLeft" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_top = -44.0
 offset_right = 44.0
 mouse_default_cursor_shape = 11
-modulate = Color(1, 1, 1, 0)
+color = Color(1, 0, 1, 0.4)
 
-[node name="Left" type="Control" parent="ResizeFrame"]
+[node name="Left" type="ColorRect" parent="ResizeFrame"]
 layout_mode = 1
 anchor_bottom = 1.0
 offset_top = 44.0
 offset_right = 6.0
 offset_bottom = -44.0
 mouse_default_cursor_shape = 10
-modulate = Color(1, 1, 1, 0)
+color = Color(0.5, 1, 0.5, 0.4)
 
 [node name="HeaderButtons" type="Control" parent="."]
 layout_mode = 1
