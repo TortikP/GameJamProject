@@ -173,11 +173,6 @@ layout_mode = 2
 mouse_filter = 1
 theme_override_constants/separation = 0
 
-[node name="LockButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=727687063]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-icon = ExtResource("2_lock_u")
-
 [node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=1183587423]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -186,10 +181,20 @@ text = "Panel"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="LockButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=727687063]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+icon = ExtResource("2_lock_u")
+
 [node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=2046550791]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 icon = ExtResource("4_minus")
+
+[node name="RightSpacer" type="Control" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=441290022]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+mouse_filter = 2
 
 [node name="BodyPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1194033239]
 layout_mode = 2

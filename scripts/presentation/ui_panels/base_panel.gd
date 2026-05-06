@@ -15,10 +15,13 @@
 ##   - The visible header+body frame (VBoxContainer) is inset from the
 ##     root by EDGE_THICKNESS on all four sides — that 6px gap is where
 ##     the edge resize strips live.
-##   - HeaderPanel contains a single HeaderRow (HBoxContainer): Lock /
-##     TitleLabel / Collapse. Container layout sets exact button rects;
-##     no manual offsets, no overlap with resize handles outside the
-##     frame.
+##   - HeaderPanel contains a single HeaderRow (HBoxContainer):
+##     TitleLabel (expand) / Lock / Collapse / RightSpacer (22px, IGNORE).
+##     Buttons cluster on the right, offset CORNER_SIZE/2 from the
+##     panel's right edge so they don't abut the Right resize handle
+##     (1px gap → 23px gap, prevents hit-test bleed). Spacer is
+##     mouse-IGNORE so drag still fires on its area via PASS chain.
+##     Container layout sets exact button rects; no manual offsets.
 ##
 ## Children of BasePanel root, in tscn declaration (= back-to-front):
 ##   1. ResizeFrame   — 10 Control handles at root corners/edges
