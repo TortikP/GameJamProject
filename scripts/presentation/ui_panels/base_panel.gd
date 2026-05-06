@@ -2,8 +2,8 @@
 ##
 ## Inherited Scenes pattern: subclasses inherit from base_panel.tscn,
 ## enable Editable Children, and place content into the Body
-## (MarginContainer) node. The HeaderBar and ResizeHandles structures
-## are part of BasePanel's contract and must not be modified by heirs.
+## (MarginContainer) node. The HeaderPanel structure is part of
+## BasePanel's contract and must not be modified by heirs.
 ##
 ## See:
 ##   - docs/systems/ui-panels/design.md  (system-level decisions)
@@ -82,7 +82,6 @@ var _lock_button: Button
 var _collapse_button: Button
 var _body_panel: PanelContainer
 var _body_container: MarginContainer
-var _resize_handles: Control
 
 # ── Composition handlers (created in _ready, owned as child nodes) ────
 var _drag_handler: PanelDragHandler
@@ -110,16 +109,11 @@ func _setup_handlers() -> void:
 		add_child(_drag_handler)
 		_drag_handler.setup(self, _header_panel)
 
-	if _effective_resizable and _resize_handles != null:
+	if _effective_resizable:
 		_resize_handler = PanelResizeHandler.new()
 		_resize_handler.name = "_ResizeHandler"
 		add_child(_resize_handler)
-		_resize_handler.setup(self, _resize_handles)
-	else:
-		# Resize disabled — hide the handles overlay entirely so it doesn't
-		# intercept mouse events for nothing. Ignore alpha; visibility wins.
-		if _resize_handles != null:
-			_resize_handles.visible = false
+		_resize_handler.setup(self)
 
 
 func _resolve_nodes() -> void:
@@ -129,7 +123,6 @@ func _resolve_nodes() -> void:
 	_collapse_button = $VBoxContainer/HeaderPanel/HBox/CollapseButton as Button
 	_body_panel      = $VBoxContainer/BodyPanel    as PanelContainer
 	_body_container  = $VBoxContainer/BodyPanel/BodyContainer as MarginContainer
-	_resize_handles  = $ResizeHandles as Control
 
 
 func _compute_effective_flags() -> void:

@@ -26,6 +26,7 @@ theme_override_constants/separation = 0
 [node name="HeaderPanel" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 mouse_filter = 1
+mouse_default_cursor_shape = 13
 
 [node name="HBox" type="HBoxContainer" parent="VBoxContainer/HeaderPanel"]
 layout_mode = 2
@@ -64,94 +65,3 @@ theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
-
-[node name="ResizeHandles" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="TopLeft" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_right = 10.0
-offset_bottom = 10.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="Top" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_left = 10.0
-offset_right = -10.0
-offset_bottom = 10.0
-anchor_right = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="TopRight" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_left = -10.0
-offset_right = 0.0
-offset_bottom = 10.0
-anchor_left = 1.0
-anchor_right = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="Right" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_left = -10.0
-offset_top = 10.0
-offset_right = 0.0
-offset_bottom = -10.0
-anchor_left = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="BottomRight" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 0.0
-offset_bottom = 0.0
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="Bottom" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = -10.0
-offset_right = -10.0
-offset_bottom = 0.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="BottomLeft" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_top = -10.0
-offset_right = 10.0
-offset_bottom = 0.0
-anchor_top = 1.0
-anchor_bottom = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
-
-[node name="Left" type="Control" parent="ResizeHandles"]
-layout_mode = 0
-offset_top = 10.0
-offset_right = 10.0
-offset_bottom = -10.0
-anchor_bottom = 1.0
-mouse_filter = 0
-modulate = Color(1, 1, 1, 0)
