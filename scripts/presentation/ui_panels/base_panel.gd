@@ -23,11 +23,19 @@
 ##     z-order so they always capture their clicks)
 ##
 ## Children of BasePanel root, in tscn declaration (= back-to-front):
-##   1. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg),
-##                         inset by EDGE_THICKNESS from root edges
-##   2. ResizeFrame      — 8 invisible Control handles at corners/edges
-##                         (root-anchored, NOT inset)
-##   3. HeaderButtons    — LockButton + CollapseButton on top of corners
+##   1. ResizeFrame      — 8 Control handles at root corners/edges, drawn
+##                         FIRST so VBoxContainer covers the inner overlap
+##                         and only the outer parts (sticking past VBox)
+##                         remain visible. Click hit area follows visibility:
+##                         resize via the L-shape outside the panel + the
+##                         6px edge strips.
+##   2. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg),
+##                         inset by EDGE_THICKNESS from root edges. Drawn
+##                         on top of ResizeFrame, hides handler overlap.
+##   3. DragDebug        — yellow rect flush with HeaderPanel rect; gets
+##                         T-shape visibility after HeaderButtons cover it.
+##   4. HeaderButtons    — LockButton + CollapseButton, each CORNER_SIZE
+##                         square, pinned to top-left and top-right of root.
 ##
 ## Mouse routing:
 ##   - HeaderButtons: IGNORE (children STOP)
@@ -43,10 +51,8 @@ class_name BasePanel
 extends Control
 
 # ── Geometry constants (mirrored in base_panel.tscn anchors/offsets) ──
-const CORNER_SIZE: int    = 44   # corner resize zone size, also header height
-const EDGE_THICKNESS: int = 6    # edge resize zone thickness
-const BUTTON_SIZE: int    = 32   # icon button size
-const BUTTON_INSET: int   = 6    # gap between button and corner edge
+const CORNER_SIZE: int    = 44   # corner resize zone size = header height = lock/collapse button size
+const EDGE_THICKNESS: int = 6    # edge resize zone thickness = VBox inset from root
 
 # ── Icons (16×16 monochrome pixel art, UiTheme.TEXT color) ────────
 const ICON_LOCK_UNLOCKED  := preload("res://assets/icons/ui/lock_unlocked.png")
