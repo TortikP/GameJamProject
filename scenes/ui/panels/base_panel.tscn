@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://base_panel_001"]
+[gd_scene load_steps=6 format=3 uid="uid://base_panel_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/ui_panels/base_panel.gd" id="1_bp"]
+[ext_resource type="Texture2D" path="res://assets/icons/ui/lock_unlocked.png" id="2_lock_u"]
+[ext_resource type="Texture2D" path="res://assets/icons/ui/lock_locked.png" id="3_lock_l"]
+[ext_resource type="Texture2D" path="res://assets/icons/ui/collapse_minus.png" id="4_minus"]
+[ext_resource type="Texture2D" path="res://assets/icons/ui/expand_plus.png" id="5_plus"]
 
 [node name="BasePanel" type="PanelContainer"]
 custom_minimum_size = Vector2(120, 32)
@@ -12,6 +16,7 @@ script = ExtResource("1_bp")
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 0
 
 [node name="HeaderBar" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -20,10 +25,13 @@ mouse_filter = 1
 [node name="HBox" type="HBoxContainer" parent="VBoxContainer/HeaderBar"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 4
 
 [node name="LockButton" type="Button" parent="VBoxContainer/HeaderBar/HBox"]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-text = "🔓"
+icon = ExtResource("2_lock_u")
+expand_icon = false
 
 [node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderBar/HBox"]
 layout_mode = 2
@@ -33,15 +41,17 @@ text = "Panel"
 horizontal_alignment = 1
 
 [node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderBar/HBox"]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-text = "−"
+icon = ExtResource("4_minus")
+expand_icon = false
 
 [node name="BodyContainer" type="MarginContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
 theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 

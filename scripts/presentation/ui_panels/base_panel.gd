@@ -24,6 +24,12 @@
 class_name BasePanel
 extends PanelContainer
 
+# ── Icons (16×16 monochrome pixel art, UiTheme.TEXT color) ────────
+const ICON_LOCK_UNLOCKED  := preload("res://assets/icons/ui/lock_unlocked.png")
+const ICON_LOCK_LOCKED    := preload("res://assets/icons/ui/lock_locked.png")
+const ICON_COLLAPSE_MINUS := preload("res://assets/icons/ui/collapse_minus.png")
+const ICON_EXPAND_PLUS    := preload("res://assets/icons/ui/expand_plus.png")
+
 # ── Identity ───────────────────────────────────────────────────────
 @export var panel_id: StringName = &""
 @export var panel_title_key: StringName = &""
@@ -115,7 +121,18 @@ func _apply_title() -> void:
 
 
 func _apply_theme() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
+	# BasePanel root stylebox: standard panel look but flush — content margins
+	# zeroed so the header strip sits hard against the top and side borders
+	# (classic Win98 window). Body padding is provided separately by the
+	# inner BodyContainer (MarginContainer). Mutating this freshly-created
+	# stylebox is safe — make_panel_stylebox() returns a new instance.
+	var sb := UiTheme.make_panel_stylebox()
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
+	add_theme_stylebox_override("panel", sb)
+
 	if _header_bar != null:
 		_header_bar.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
 	if _title_label != null:
@@ -125,8 +142,14 @@ func _apply_theme() -> void:
 		_title_label.add_theme_font_size_override("font_size", UiTheme.FS_HEADER + 2)
 	if _lock_button != null:
 		UiTheme.apply_button_styling(_lock_button)
+		# Default icon — handlers in Phase 4 swap to ICON_LOCK_LOCKED on toggle.
+		_lock_button.icon = ICON_LOCK_UNLOCKED
+		_lock_button.text = ""
 	if _collapse_button != null:
 		UiTheme.apply_button_styling(_collapse_button)
+		# Default icon — handlers in Phase 4 swap to ICON_EXPAND_PLUS on collapse.
+		_collapse_button.icon = ICON_COLLAPSE_MINUS
+		_collapse_button.text = ""
 
 
 # ── Public API stubs (implemented in later phases) ─────────────────
