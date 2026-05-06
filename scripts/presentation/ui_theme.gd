@@ -333,10 +333,18 @@ static func make_nested_stylebox() -> StyleBoxFlat:
 ## Builds a header-strip stylebox for ui-panels (Spec 055). Slightly lighter
 ## background than the panel body (BG_PANEL_2 vs BG_PANEL) and a single
 ## bottom border that serves as the divider between header strip and body.
-## Left/right/top borders are zeroed because the OUTER panel's borders
-## already provide the visual edge there — duplicating creates a visible
-## inset around the header strip. Standard Godot nested-PanelContainer
-## window-header pattern. Used by BasePanel.
+##
+## expand_margin_left/right/top = 1 makes the header stylebox bleed 1px
+## outside its control rect on three sides. This visually overlaps the
+## OUTER PanelContainer's 1px borders on those sides, achieving a true
+## flush-to-edge look for the header strip without restructuring the
+## scene tree. The outer panel's borders remain visible on the body
+## portion (left/right/bottom). Standard Godot StyleBox feature designed
+## for exactly this layered-panels case (see StyleBoxFlat docs:
+## expand_margin "useful in combination with border_width to draw a
+## border outside the control rect").
+##
+## Used by BasePanel.
 static func make_header_stylebox() -> StyleBoxFlat:
 	var sb := make_panel_stylebox()
 	sb.bg_color = BG_PANEL_2
@@ -344,6 +352,9 @@ static func make_header_stylebox() -> StyleBoxFlat:
 	sb.border_width_right  = 0
 	sb.border_width_top    = 0
 	sb.border_width_bottom = 2
+	sb.expand_margin_left  = 1
+	sb.expand_margin_right = 1
+	sb.expand_margin_top   = 1
 	sb.content_margin_left   = SP_2
 	sb.content_margin_right  = SP_2
 	sb.content_margin_top    = SP_1
