@@ -42,11 +42,11 @@
 ```
 scenes/ui/panels/
   base_panel.tscn                       # Inherited-from база
-  ui_panels_test.tscn                   # Standalone test-сцена (4 демо)
+  ui_catalog.tscn                       # Сцена «Каталог Интерфейсов» (5 демо-панелей)
 
 scripts/presentation/ui_panels/
   base_panel.gd                         # class_name BasePanel
-  base_panel_test_controller.gd         # script для test-сцены, минимальный
+  ui_catalog.gd                         # script для сцены каталога
 
   internal/
     panel_drag_handler.gd               # внутренняя логика drag (composition)
@@ -55,6 +55,9 @@ scripts/presentation/ui_panels/
     panel_lock_handler.gd               # внутренняя логика lock
     panel_persistence.gd                # save/load через ConfigFile
     panel_clamps.gd                     # C1-C5 utility функции
+
+scenes/main_menu.tscn                   # +UiCatalogButton между Credits и Quit
+scripts/presentation/main_menu.gd       # +_on_ui_catalog хендлер
 
 user://layouts.cfg                      # создаётся в runtime, не в репо
 ```
@@ -95,6 +98,7 @@ extends PanelContainer
 @export_multiline var panel_description: String = ""  # для будущего UI Catalog
 
 # ── Feature toggles ────────────────────────────────────────────────
+@export var header_visible: bool = true        # см. §5.4: false ⇒ auto-disable drag/resize/collapse/lock
 @export var draggable: bool = true
 @export var resizable: bool = true
 @export var collapsible: bool = true
@@ -159,13 +163,28 @@ func reset_to_defaults() -> void              # сбрасывает к defaults
 - На toggle: emit `collapsed_changed`, persistence debounce.
 - Если `collapsible = false` → CollapseButton скрыт.
 
-### 5.4. Lock
+### 5.4. Lock и header_visible
 
+**Lock:**
 - Триггер: LMB-click на `LockButton`.
-- Иконка/текст кнопки: 🔓 unlocked, 🔒 locked. Точное представление — temp emoji-text, может стать TextureButton'ом позже (UP issue, не блокер).
+- Иконка/текст кнопки: 🔓 unlocked, 🔒 locked. Точное представление — temp emoji-text, может стать TextureButton'ом позже (OI-2).
 - При locked: drag и resize отключены. Collapse работает. LockButton — единственный способ разлочить (клик).
 - На toggle: emit `locked_changed`, persistence debounce.
-- Если `lockable = false` → LockButton скрыт. Поведение «всегда locked» достигается через `lockable=false` + `default_locked=true` (no, это не имеет смысла — тогда нет способа разлочить). Скорее так: для гвоздями-прибитой панели разработчик ставит `draggable=false, resizable=false, lockable=false`. Lock-toggle не нужен, потому что и так нельзя двигать.
+- Если `lockable = false` → LockButton скрыт.
+
+**Header visibility (`header_visible: bool`):**
+- Если `header_visible = false` → `HeaderBar` (HBoxContainer с lock/title/collapse) полностью скрыт (`visible = false`). Тело панели рендерится без верхней полосы.
+- При `header_visible = false` следующие features **автоматически принудительно выключаются**, независимо от значения соответствующих экспортов:
+  - `draggable` → false (нет handle для drag)
+  - `resizable` → false (без header нет визуального anchor для resize handles, плюс по дизайну такие панели «прибиты гвоздями»)
+  - `collapsible` → false (нечего сворачивать — header и есть свёрнутое состояние)
+  - `lockable` → false (нечего лочить, всё уже неинтерактивно)
+- Persistence продолжает работать если `persistable = true`: `position` и `size` сохраняются (разработчик может выставить их вручную в .tscn ИЛИ панель когда-то была интерактивной и юзер её передвинул, потом разработчик скрыл header).
+- В runtime эти auto-disabled значения **read-only** наблюдаются через геттеры (логика в `BasePanel._ready()`: при `header_visible=false` устанавливаются `_effective_draggable=false` и т.д., публичные `draggable`/`resizable`/`...` методы отдают `_effective_*`). Это даёт предсказуемость: код не может «думать что drag работает» когда header скрыт.
+
+**Конфигурация «гвоздями прибитой панели» (для in-game UI):**
+- `header_visible = false` — это и есть основной механизм. Один экспорт-флаг даёт «полностью неинтерактивный фрейм для контента».
+- Эквивалентная развёрнутая конфигурация: `header_visible = true, draggable = false, resizable = false, lockable = false, collapsible = false`. Доступна если хочется header (с заголовком) но без интерактива.
 
 ### 5.5. Persistence
 
@@ -202,19 +221,32 @@ func reset_to_defaults() -> void              # сбрасывает к defaults
 - Не вводим новых StyleBox'ов в `UiTheme` без необходимости. Если variation `"UiPanel"` пустой → fallback на дефолтный PanelContainer стиль, который уже определён в global theme.
 - Не делаем кастомную тему только для ui-panels.
 
-## 7. Test-сцена `scenes/ui/panels/ui_panels_test.tscn`
+## 7. UI Catalog screen (`scenes/ui/panels/ui_catalog.tscn`)
 
-Standalone сцена для smoke и для будущего входа в UI Catalog.
+Standalone сцена-каталог. Доступна всем игрокам через главное меню. Это **placeholder для Spec 060** (полноценный UI Catalog с навигацией, описаниями, поиском) — но имя кнопки и точка входа выбираются финальными сейчас, чтобы потом не переименовывать.
 
 **Состав:**
-- Root: `Control` (full-rect), background dim color чтобы видеть границы.
-- 4 наследника `BasePanel`:
-  1. **`FullPanel`** — все features включены, default unlocked, expanded. Body содержит несколько Label'ов с lorem-ipsum чтобы было видно min_size enforcement.
-  2. **`NoResizePanel`** — `resizable=false`. Body содержит одну фиксированную Label. Демонстрирует «панель без ручек ресайза».
-  3. **`AlwaysCollapsedPanel`** — `default_collapsed=true`. Демонстрирует initial state.
-  4. **`PinnedPanel`** — `draggable=false, resizable=false, lockable=false`. «Гвоздями прибитая». Body содержит inline message «I cannot be moved».
-- Минимальный controller-script `base_panel_test_controller.gd` — только для дебаг-вывода в `_ready()` («Test scene loaded with N panels in group ui_panel»).
-- Доступ к сцене: добавить кнопку «UI Panels Test» в существующее dev-меню (если есть) ИЛИ добавить временно в главное меню под флагом `OS.is_debug_build()`. Скорее второе, но проверить какая dev-инфраструктура уже есть в Plan-фазе.
+- Root: `Control` (full-rect), фон с `UiTheme` background color.
+- Заголовок «Каталог Интерфейсов» сверху (через Localization key `ui_catalog_title`).
+- Кнопка «← В меню» в углу — возвращает на главное меню.
+- 5 наследников `BasePanel`, расположены равномерно на экране:
+  1. **`FullPanel`** — все features включены (`header_visible=true`, all toggles=true), default unlocked, expanded. Body: несколько Label'ов с lorem-ipsum чтобы было видно min_size enforcement.
+  2. **`NoResizePanel`** — `resizable=false`. Body: одна фиксированная Label. Демонстрирует «панель без ручек ресайза».
+  3. **`AlwaysCollapsedPanel`** — `default_collapsed=true`. Демонстрирует initial state из persistence/defaults.
+  4. **`PinnedPanel`** — `header_visible=false`. «Гвоздями прибитая, без верхней полосы». Body содержит inline message «In-game HUD style: no chrome, no interaction». Демонстрирует целевую конфигурацию для будущей миграции in-game панелей.
+  5. **`LockedByDefaultPanel`** — `default_locked=true`. Все features включены, но стартует locked. Юзер должен явно разлочить.
+- Минимальный controller-script `ui_catalog.gd` — обработка кнопки «В меню», debug-вывод в `_ready()` («Catalog loaded with N panels in group ui_panel»).
+
+**Точка входа:**
+- Кнопка `UiCatalogButton` в `scenes/main_menu.tscn`, между `CreditsButton` и `QuitButton`.
+- Текст кнопки через Localization: `ui_main_menu_catalog`, fallback «Каталог Интерфейсов» / EN: «UI Catalog».
+- Хендлер `_on_ui_catalog()` в `scripts/presentation/main_menu.gd` — `get_tree().change_scene_to_file("res://scenes/ui/panels/ui_catalog.tscn")`.
+- Обратный путь: кнопка «← В меню» в каталоге → `change_scene_to_file("res://scenes/main_menu.tscn")`.
+- Никаких debug-flag'ов. Доступно всем игрокам всегда.
+
+**Долгосрочно (Spec 060):**
+- Эта сцена эволюционирует в полноценный каталог: список panel-types в боковой панели, область preview справа, описания (`panel_description`), поиск. Сейчас — простая страница с 5 демо.
+- Кнопка в главном меню не меняется. Меняется содержимое сцены `ui_catalog.tscn`.
 
 ## 8. Что удаляется
 
@@ -224,11 +256,11 @@ Standalone сцена для smoke и для будущего входа в UI C
 
 ## 9. Acceptance criteria (smoke checklist)
 
-Манульный smoke на `scenes/ui/panels/ui_panels_test.tscn` после имплементации:
+Манульный smoke на `scenes/ui/panels/ui_catalog.tscn` после имплементации:
 
 | ID | Сценарий | Ожидание |
 |---|---|---|
-| S001 | Открыть test-сцену | 4 панели на экране в дефолтных позициях, AlwaysCollapsedPanel свёрнута. |
+| S001 | Открыть главное меню → клик «Каталог Интерфейсов» | Сцена каталога открывается. 5 панелей на экране в дефолтных позициях. AlwaysCollapsedPanel свёрнута. LockedByDefaultPanel locked. |
 | S002 | Drag FullPanel за header | Панель следует за курсором, header не выходит за границы viewport. |
 | S003 | Drag FullPanel за body | Не двигается (только header — drag handle). |
 | S004 | Resize FullPanel за нижне-правый угол | Размер меняется, видно курсор FDIAGSIZE при наведении на handle. |
@@ -238,23 +270,26 @@ Standalone сцена для smoke и для будущего входа в UI C
 | S008 | Click `+` на свёрнутой FullPanel | Разворачивается обратно к pre-collapse размеру. |
 | S009 | Click 🔓 на FullPanel | Иконка меняется на 🔒. Drag не работает. Resize handles не появляются на hover. Collapse работает. |
 | S010 | NoResizePanel — попытка resize | Handles не появляются (`resizable=false`). Drag, collapse, lock работают. |
-| S011 | PinnedPanel — попытка drag | Курсор не меняется на drag. Панель не двигается. Lock-кнопка не показана. |
-| S012 | Подвинуть FullPanel, закрыть и открыть test-сцену снова | Позиция восстановлена. |
-| S013 | Свернуть AlwaysCollapsedPanel-в-развёрнутую, закрыть и открыть сцену | Запомнено как expanded (override default). |
-| S014 | Драгать FullPanel в правый-нижний угол viewport | Header останавливается у края, не вылезает. |
-| S015 | Изменить размер окна Godot пока сцена открыта | Все панели clamp'ятся, остаются доступны. |
-| S016 | Удалить `user://layouts.cfg` вручную, открыть сцену | Все панели в дефолтных позициях из .tscn. |
-| S017 | Проверить `get_tree().get_nodes_in_group("ui_panel").size() == 4` в debug-output | Все 4 панели в группе. |
+| S011 | PinnedPanel (header_visible=false) — визуально | Нет header'а вообще. Видно только body с message. |
+| S012 | PinnedPanel — попытка drag за body | Не двигается. Курсор не меняется. |
+| S013 | PinnedPanel — попытка resize | Handles не появляются (auto-disabled). |
+| S014 | LockedByDefaultPanel — стартовое состояние | Locked при первом открытии каталога. Иконка 🔒. Drag/resize не работают. |
+| S015 | Подвинуть FullPanel, вернуться в меню, снова открыть каталог | Позиция восстановлена. |
+| S016 | Свернуть AlwaysCollapsedPanel-в-развёрнутую, вернуться в меню, снова открыть каталог | Запомнено как expanded (override default). |
+| S017 | Драгать FullPanel в правый-нижний угол viewport | Header останавливается у края, не вылезает (C2). |
+| S018 | Изменить размер окна Godot пока каталог открыт | Все панели clamp'ятся, остаются доступны (C3). |
+| S019 | Удалить `user://layouts.cfg` вручную, открыть каталог | Все панели в дефолтных позициях из .tscn. AlwaysCollapsedPanel снова collapsed, LockedByDefaultPanel снова locked. |
+| S020 | Кнопка «← В меню» в каталоге | Возврат на главное меню. |
+| S021 | Проверить `get_tree().get_nodes_in_group("ui_panel").size() == 5` в `_ready` каталога | Все 5 панелей в группе (включая PinnedPanel — header нет, но в группе она). |
 
-S001-S017 — все обязательны для merge Spec 055 в integration-ветку.
+S001-S021 — все обязательны для merge Spec 055 в integration-ветку.
 
 ## 10. Open issues (на разрешение в Plan/Tasks или позже)
 
-- **OI-1 (резолвится в Plan):** где находится dev-меню для test-сцены, и как в него добавить кнопку. Если dev-меню нет — добавить в главное меню под `OS.is_debug_build()`.
-- **OI-2 (резолвится в Tasks):** конкретные иконки/текст для LockButton (🔓/🔒) и CollapseButton (`−`/`+`) — emoji-текст или TextureButton с asset'ами. Решение: в Spec 055 emoji-текст (proof-of-concept), TextureButton можно заменить позже без API-breakage.
-- **OI-3 (deferred from Spec 055 → Spec 057):** Z-order persistence. Не сохраняется в Spec 055 (одна панель видимо на тестовой сцене редко overlap'ится с другой). Будет реализовано в Spec 057, когда у нас 5+ панелей в редакторе на одном экране. Обновить design.md §3 с пометкой.
-- **OI-4 (после Spec 055):** UP-1 (видимые-всегда vs hover-only handles) — оценить на прототипе. Пока hover-only.
-- **OI-5 (вне Spec 055):** UP-3 (lock persists через сессии) — реализовано как «да, persists» в этом спеке. Если по итогам плейтестов всплывёт раздражение — переоткрыть.
+- **OI-1 (резолвится в Tasks):** конкретные иконки/текст для LockButton (🔓/🔒) и CollapseButton (`−`/`+`) — emoji-текст или TextureButton с asset'ами. Решение: в Spec 055 emoji-текст (proof-of-concept), TextureButton можно заменить позже без API-breakage.
+- **OI-2 (deferred from Spec 055 → Spec 057):** Z-order persistence. Не сохраняется в Spec 055 (5 панелей в каталоге размещены без overlap). Будет реализовано в Spec 057, когда у нас 5+ панелей в редакторе на одном экране и они реально перекрываются. Обновить design.md §3 с пометкой.
+- **OI-3 (после Spec 055):** UP-1 из design.md (видимые-всегда vs hover-only handles) — оценить на прототипе. Пока hover-only.
+- **OI-4 (вне Spec 055):** UP-3 из design.md (lock persists через сессии) — реализовано как «да, persists» в этом спеке. Если по итогам плейтестов всплывёт раздражение — переоткрыть.
 
 ## 11. Размер
 
@@ -274,5 +309,5 @@ S001-S017 — все обязательны для merge Spec 055 в integration
 
 - Spec 056 (level-editor architecture from scratch) разблокирован.
 - Map editor лежит до конца Spec 057.
-- Test-сцена `ui_panels_test.tscn` остаётся в репо как long-lived demo и базис для Spec 060 (UI Catalog).
+- Сцена `ui_catalog.tscn` остаётся в репо как long-lived placeholder для Spec 060 (UI Catalog). 5 демо-панелей доступны игрокам через главное меню сразу.
 - DECISIONS запись: ссылка на этот спек как foundation rehaul'а.
