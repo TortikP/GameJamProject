@@ -33,7 +33,23 @@
     "stapler_under_desk_jump",
     "teapot_low_possibility",
     "teapot_spill_the_t",
-    "teapot_tea_gathering"
+    "teapot_tea_gathering",
+    "passive_swift_steps",
+    "passive_cellular_regen",
+    "passive_static_discharge",
+    "passive_chitin_guard",
+    "passive_cruel_focus",
+    "passive_long_reach",
+    "passive_quick_synapses",
+    "passive_persistent_venom",
+    "passive_extra_choice",
+    "passive_chilling_aura",
+    "passive_intimidating_aura",
+    "passive_ranged_shove",
+    "passive_wide_pulse",
+    "passive_iron_vitality",
+    "passive_thorned_echo",
+    "passive_bloodletting"
   ],
   "tags": ["campaign", "defeated_enemies_whitelist"]
 }

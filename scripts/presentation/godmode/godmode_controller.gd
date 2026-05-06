@@ -26,6 +26,7 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 # Shared scene-tree refs — public so sibling modules can read them via _ctrl.X.
 # Resolved by GodmodeSetup.run() in _ready.
 var slot_bar: Node
+var passive_slot_bar: Node
 var overlay: Node        # MoveRangeOverlay
 var cast_overlay: Node   # CastRangeOverlay (026 — promoted from _ready local)
 var tile_object_resolver: TileObjectResolver  # 019 — runtime tile object triggers
@@ -185,6 +186,20 @@ func _on_slot_unhovered(_idx: int) -> void:
 		psp.set_hover_spell(null)
 
 
+func _on_passive_hovered(idx: int) -> void:
+	var psp: Node = _get_player_status_panel()
+	if psp == null or not psp.has_method("set_hover_spell"):
+		return
+	var sk: Skill = null if passive_slot_bar == null else passive_slot_bar.get_slot(idx) as Skill
+	psp.set_hover_spell(sk)
+
+
+func _on_passive_unhovered(_idx: int) -> void:
+	var psp: Node = _get_player_status_panel()
+	if psp != null and psp.has_method("set_hover_spell"):
+		psp.set_hover_spell(null)
+
+
 # ── Ability picker (RMB on slot) ───────────────────────────────────────────
 
 ## Builds a PopupMenu with all SkillDatabase IDs. Called once via call_deferred
@@ -196,9 +211,14 @@ func _build_ability_picker() -> void:
 	add_child(_ability_picker)
 	var ids: Array = SkillDatabase.all_ids()
 	ids.sort()
-	for i in ids.size():
-		_ability_picker.add_item(str(ids[i]), i)
-	_ability_picker.id_pressed.connect(_on_ability_picker_selected.bind(ids))
+	var active_ids: Array = []
+	for id_v in ids:
+		var skill: Skill = SkillDatabase.get_skill(StringName(str(id_v)))
+		if skill != null and not skill.is_passive():
+			active_ids.append(id_v)
+	for i in active_ids.size():
+		_ability_picker.add_item(str(active_ids[i]), i)
+	_ability_picker.id_pressed.connect(_on_ability_picker_selected.bind(active_ids))
 
 
 func _on_slot_right_clicked(slot_index: int) -> void:
@@ -257,6 +277,13 @@ func sync_player_skills_from_slots() -> void:
 		if sk != null and not skills.has(sk):
 			skills.append(sk)
 	player.set_skills(skills)
+	var passive_skills: Array = []
+	if passive_slot_bar != null:
+		for i in 2:
+			var psk: Skill = passive_slot_bar.get_slot(i) as Skill
+			if psk != null and not passive_skills.has(psk):
+				passive_skills.append(psk)
+	player.set_passive_skills(passive_skills)
 	MoodTracker.recompute_from_skills(skills)
 
 

@@ -11,6 +11,9 @@
 	"bee_honey_cold",
     "bee_summon_bee"
   ],
+  "passive_skills": [
+    "passive_swift_steps"
+  ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "bee_sting"
 }

@@ -125,7 +125,8 @@ func handle_lmb() -> void:
 	if coord == Vector2i(-1, -1):
 		return  # off-grid click — stay on step
 	var from_coord: Vector2i = grid.get_coord(player.actor_id)
-	var valid_hexes: Array[Vector2i] = ab.target.get_range_hexes(from_coord, grid)
+	var valid_hexes: Array[Vector2i] = ab.effective_range_hexes(player, grid,
+			_skill.level, _skill.passive_mods_for(player))
 	if coord in valid_hexes:
 		commit_step(coord, grid.get_actor_at(coord))
 	# else: invalid range click — neither commit nor cancel; stay on step
@@ -171,7 +172,8 @@ func _begin_step() -> void:
 			cast_overlay.show_self_confirm(caster_coord)
 	else:
 		if cast_overlay.has_method("show_range_for_ability"):
-			cast_overlay.show_range_for_ability(_ctrl.player, ab)
+			cast_overlay.show_range_for_ability(_ctrl.player, ab, _skill.level,
+					_skill.passive_mods_for(_ctrl.player))
 
 
 func _commit_cast() -> void:

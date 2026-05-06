@@ -1,0 +1,13 @@
+{
+  "id": "passive_intimidating_aura",
+  "type": "passive",
+  "name": "passive_intimidating_aura_name",
+  "tooltip": "passive_intimidating_aura_tooltip",
+  "desc": "passive_intimidating_aura_desc",
+  "icon": "icons/skills/passive_intimidating_aura.png",
+  "mood": ["burnout"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "status_aura", "status_id": "feared", "duration": 1, "radius": 1}
+  ]
+}

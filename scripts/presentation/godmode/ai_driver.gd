@@ -69,6 +69,7 @@ func _on_world_turn_ended(_turn: int) -> void:
 	# 027 / AC-CT1: tick statuses for ALL actors before AI runs. DoT damage
 	# may kill some — they're skipped naturally in subsequent loops.
 	_tick_all_statuses()
+	_tick_all_passives()
 	# 031: tick skill cooldowns for ALL actors. Must run before the stun-skip
 	# branch below, otherwise a stunned actor's cooldowns freeze for the
 	# stun's duration. See specs/031-skill-system-fixes.
@@ -116,6 +117,19 @@ func _tick_all_skills() -> void:
 		var actor: Actor = actor_v
 		if actor.is_alive():
 			actor.tick_skills(1)
+
+
+func _tick_all_passives() -> void:
+	var registry: ActorRegistry = _ctrl.registry
+	if registry == null:
+		return
+	var ctx: Dictionary = world_ctx()
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor.is_alive():
+			actor.tick_passives_with_ctx(ctx)
 
 
 func _run_enemy_turn() -> void:

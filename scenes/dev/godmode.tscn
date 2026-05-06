@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://godmode_001"]
+[gd_scene load_steps=33 format=3 uid="uid://godmode_001"]
 
 [ext_resource type="PackedScene" uid="uid://hex_grid_001" path="res://scenes/arena/hex_grid.tscn" id="1_hexgrid"]
 [ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_controller.gd" id="2_controller"]
@@ -32,6 +32,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_details_panel.tscn" id="31_eds"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hex_tooltip.tscn" id="32_ht"]
 [ext_resource type="PackedScene" path="res://scenes/ui/help_dropdown.tscn" id="33_hd"]
+[ext_resource type="Script" path="res://scripts/presentation/passive_slot_bar.gd" id="34_passives"]
 
 [node name="Godmode" type="Node2D"]
 
@@ -71,7 +72,7 @@ script = ExtResource("3_registry")
 script = ExtResource("2_controller")
 grid = NodePath("../HexGrid")
 registry = NodePath("../ActorRegistry")
-slot_bar_path = NodePath("../HUD/SlotBar")
+slot_bar_path = NodePath("../HUD/SkillBars/SlotBar")
 overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 player_status_panel_path = NodePath("../HUD/PlayerStatusPanel")
 
@@ -112,20 +113,26 @@ text = "ui_godmode_help_label_text"
 theme_override_font_sizes/font_size = 14
 modulate = Color(1, 1, 1, 0.6)
 
-[node name="SlotBar" type="HBoxContainer" parent="HUD"]
-script = ExtResource("5_slotbar")
+[node name="SkillBars" type="HBoxContainer" parent="HUD"]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -160.0
+offset_left = -256.0
 offset_top = -96.0
-offset_right = 160.0
+offset_right = 256.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
+theme_override_constants/separation = 12
+
+[node name="SlotBar" type="HBoxContainer" parent="HUD/SkillBars"]
+script = ExtResource("5_slotbar")
+
+[node name="PassiveSlotBar" type="HBoxContainer" parent="HUD/SkillBars"]
+script = ExtResource("34_passives")
 
 [node name="PlayerStatusPanel" parent="HUD" instance=ExtResource("10_psp")]
 

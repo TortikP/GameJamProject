@@ -63,6 +63,8 @@ func run() -> void:
 	if _ctrl.slot_bar == null:
 		GameLogger.warn("Godmode", "SlotBar not found — abilities won't be visible")
 
+	_ctrl.passive_slot_bar = _ctrl.get_tree().root.find_child("PassiveSlotBar", true, false)
+
 	# 2. Paint, 3. Initialize, 4. Place
 	# Single tileset post-032 — hex_terrain.tres (HEXAGON shape, 128×80 cells).
 	#
@@ -104,6 +106,10 @@ func run() -> void:
 		_ctrl.slot_bar.slot_hovered.connect(_ctrl._on_slot_hovered)
 	if _ctrl.slot_bar != null and _ctrl.slot_bar.has_signal("slot_unhovered"):
 		_ctrl.slot_bar.slot_unhovered.connect(_ctrl._on_slot_unhovered)
+	if _ctrl.passive_slot_bar != null and _ctrl.passive_slot_bar.has_signal("passive_hovered"):
+		_ctrl.passive_slot_bar.passive_hovered.connect(_ctrl._on_passive_hovered)
+	if _ctrl.passive_slot_bar != null and _ctrl.passive_slot_bar.has_signal("passive_unhovered"):
+		_ctrl.passive_slot_bar.passive_unhovered.connect(_ctrl._on_passive_unhovered)
 	_ctrl._build_ability_picker.call_deferred()
 
 	# 049 / T024 + AC-3: ActorInspector resolution removed. EnemyDetailsPanel

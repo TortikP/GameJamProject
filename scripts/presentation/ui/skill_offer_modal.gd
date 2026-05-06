@@ -207,6 +207,24 @@ func _refresh_current_loadout_row() -> void:
 		pip.text = pip_text
 		UiThemeScript.apply_button_styling(pip)
 		_current_loadout_row.add_child(pip)
+	var passive_labels: Array = ["P1", "P2"]
+	for i in 2:
+		var passive_pip := Button.new()
+		passive_pip.custom_minimum_size = Vector2(88, 56)
+		passive_pip.focus_mode = Control.FOCUS_NONE
+		passive_pip.disabled = true
+		var existing_passive = PlayerSkillAdapterScript.peek_slot(i, PlayerSkillAdapterScript.SLOT_KIND_PASSIVE)
+		var pip_text: String = passive_labels[i]
+		if existing_passive != null and "id" in existing_passive:
+			var passive_ex_key: String = String(existing_passive.name) if "name" in existing_passive else ""
+			var passive_ex_disp: String = Localization.t(passive_ex_key, str(existing_passive.id)) if passive_ex_key != "" else str(existing_passive.id)
+			pip_text += "\n%s" % passive_ex_disp
+			passive_pip.tooltip_text = SkillFormatter.format_skill_human(existing_passive)
+		else:
+			pip_text += "\n-"
+		passive_pip.text = pip_text
+		UiThemeScript.apply_button_styling(passive_pip)
+		_current_loadout_row.add_child(passive_pip)
 
 
 func _clear_cards_row() -> void:
@@ -256,6 +274,7 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	picker.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	var skill = card_data.get("skill", null)
+	var slot_kind: StringName = StringName(str(card_data.get("slot_kind", PlayerSkillAdapterScript.SLOT_KIND_ACTIVE)))
 	var name_key: String = String(skill.name) if skill != null and "name" in skill else ""
 	var sid: String = str(card_data.get("skill_id", ""))
 	var display_name: String = Localization.t(name_key, sid) if name_key != "" else sid
@@ -314,12 +333,12 @@ func _show_slot_picker(card_data: Dictionary) -> void:
 	slots_row.add_theme_constant_override("separation", UiThemeScript.SP_2)
 	picker.add_child(slots_row)
 
-	var labels: Array = ["Q", "W", "E", "R"]
-	for i in 4:
+	var labels: Array = ["P1", "P2"] if slot_kind == PlayerSkillAdapterScript.SLOT_KIND_PASSIVE else ["Q", "W", "E", "R"]
+	for i in labels.size():
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(96, 96)
 		var slot_text: String = labels[i]
-		var existing = _peek_slot(i)
+		var existing = _peek_slot(i, slot_kind)
 		if existing != null and "id" in existing:
 			var ex_key: String = String(existing.name) if "name" in existing else ""
 			var ex_disp: String = Localization.t(ex_key, str(existing.id)) if ex_key != "" else str(existing.id)
@@ -410,7 +429,8 @@ func _make_replace_incoming_stylebox() -> StyleBoxFlat:
 func _on_replace_slot_hover(slot_index: int) -> void:
 	if _replace_outgoing_label == null:
 		return
-	var existing = _peek_slot(slot_index)
+	var slot_kind: StringName = StringName(str(_slot_picker_pinned_card.get("slot_kind", PlayerSkillAdapterScript.SLOT_KIND_ACTIVE)))
+	var existing = _peek_slot(slot_index, slot_kind)
 	if existing == null:
 		_replace_outgoing_label.text = "[s]%s[/s]" % Localization.t(
 				"skill_offer.replace.empty_slot", "(empty)")
@@ -434,8 +454,8 @@ func _on_replace_slot_unhover() -> void:
 	pass
 
 
-func _peek_slot(idx: int):
-	return PlayerSkillAdapterScript.peek_slot(idx)
+func _peek_slot(idx: int, kind: StringName = PlayerSkillAdapterScript.SLOT_KIND_ACTIVE):
+	return PlayerSkillAdapterScript.peek_slot(idx, kind)
 
 
 func _on_slot_picked(slot_index: int) -> void:

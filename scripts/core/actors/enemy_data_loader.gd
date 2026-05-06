@@ -76,6 +76,20 @@ static func apply_to_actor(actor: Actor, enemy_id: StringName) -> Dictionary:
 				GameLogger.warn("EnemyDataLoader", "%s: unknown skill_id '%s' — skipped" % [enemy_id, sid])
 		actor.set_skills(skills)
 
+	var passive_ids: Variant = data.get("passive_skills", [])
+	if typeof(passive_ids) == TYPE_ARRAY:
+		var passives: Array = []
+		for sid_v in passive_ids:
+			var sid: StringName = StringName(sid_v)
+			var src: Skill = SkillDatabase.get_skill(sid)
+			if src != null and src.is_passive():
+				passives.append(src.clone_for_owner())
+			elif src != null:
+				GameLogger.warn("EnemyDataLoader", "%s: skill_id '%s' is not passive — skipped" % [enemy_id, sid])
+			else:
+				GameLogger.warn("EnemyDataLoader", "%s: unknown passive skill_id '%s' — skipped" % [enemy_id, sid])
+		actor.set_passive_skills(passives)
+
 	# 051b: optional starting_hp — forwarded to view as a hint (NOT applied
 	# here). Actor._ready does `hp = max_hp` unconditionally, so any pre-
 	# super assignment would be clobbered. The view applies hp AFTER
