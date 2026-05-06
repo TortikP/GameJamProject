@@ -7,45 +7,40 @@
 ##   - docs/systems/ui-panels/design.md  (system-level decisions)
 ##   - specs/055-ui-panels/spec.md       (this implementation)
 ##
-## Layout (from spec 055 mockup):
-##   - 4 corner resize zones (CORNER_SIZE square, FDIAG/BDIAG cursors)
-##     anchored to the panel ROOT corners.
-##   - 4 edge resize strips between corners (EDGE_THICKNESS thick),
-##     anchored to the panel ROOT edges.
+## Layout:
+##   - 10 resize handles inside ResizeFrame:
+##       Top corners (TopLeft, TopRight) split into _H + _V arms
+##       (L-shape outside the visible frame; bottom corners stay 44×44).
+##     EDGE_THICKNESS-thick strips on each edge between corners.
 ##   - The visible header+body frame (VBoxContainer) is inset from the
-##     root by EDGE_THICKNESS on all four sides. This is what makes the
-##     corner zones visibly stick out past the frame on the two outward-
-##     facing sides of each corner, while overlapping the frame on the
-##     two inward-facing sides (where lock/collapse buttons sit on top).
-##     The 6px gap on each side is exactly where the edge strips live.
-##   - Header drag zone fills the top of the header, between corners.
-##   - Lock / Collapse buttons sit ON TOP of the corners (own layer in
-##     z-order so they always capture their clicks)
+##     root by EDGE_THICKNESS on all four sides — that 6px gap is where
+##     the edge resize strips live.
+##   - HeaderPanel contains a single HeaderRow (HBoxContainer): Lock /
+##     TitleLabel / Collapse. Container layout sets exact button rects;
+##     no manual offsets, no overlap with resize handles outside the
+##     frame.
 ##
 ## Children of BasePanel root, in tscn declaration (= back-to-front):
-##   1. ResizeFrame      — 8 Control handles at root corners/edges, drawn
-##                         FIRST so VBoxContainer covers the inner overlap
-##                         and only the outer parts (sticking past VBox)
-##                         remain visible. Click hit area follows visibility:
-##                         resize via the L-shape outside the panel + the
-##                         6px edge strips.
-##   2. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg),
-##                         inset by EDGE_THICKNESS from root edges. Drawn
-##                         on top of ResizeFrame, hides handler overlap.
-##   3. DragDebug        — yellow rect flush with HeaderPanel rect; gets
-##                         T-shape visibility after HeaderButtons cover it.
-##   4. HeaderButtons    — LockButton + CollapseButton, each CORNER_SIZE
-##                         square, pinned to top-left and top-right of root.
+##   1. ResizeFrame   — 10 Control handles at root corners/edges
+##   2. VBoxContainer — HeaderPanel (with HeaderRow) + BodyPanel,
+##                      inset 6px from root edges
+##   3. DragDebug     — yellow debug overlay flush with HeaderPanel rect
 ##
 ## Mouse routing:
-##   - HeaderButtons: IGNORE (children STOP)
-##   - ResizeFrame:   IGNORE (children STOP)
-##   - VBoxContainer: IGNORE (HeaderPanel PASS for drag, BodyPanel PASS)
+##   - ResizeFrame:    IGNORE (children STOP)
+##   - VBoxContainer:  IGNORE
+##   - HeaderPanel:    PASS (so drag handler's gui_input fires)
+##   - HeaderRow:      PASS (lets clicks fall through to HeaderPanel
+##                     for drag, while children Buttons STOP for clicks)
+##   - LockButton/CollapseButton: STOP (default for Button)
+##   - TitleLabel:     IGNORE (default for Label)
+##   - BodyPanel:      PASS
+##   - DragDebug:      IGNORE
 ##   - BasePanel root: STOP (catch-all, C5)
 ##
 ## Composition handlers (created in _ready, owned as child nodes):
 ##   - PanelDragHandler     — listens to HeaderPanel.gui_input
-##   - PanelResizeHandler   — connects to each of the 8 ResizeFrame handles
+##   - PanelResizeHandler   — connects to each of the 10 ResizeFrame handles
 ##   - PanelCollapseHandler — toggle CollapseButton; hides BodyPanel and
 ##                            ResizeFrame; shrinks panel to header-only height
 ##   - PanelLockHandler     — toggle LockButton; gates drag and resize at
@@ -104,11 +99,11 @@ var _effective_lockable: bool = true
 
 # ── Node references (resolved in _ready) ────────────────────────────
 var _header_panel: PanelContainer
+var _header_row: HBoxContainer
 var _title_label: Label
 var _body_panel: PanelContainer
 var _body_container: MarginContainer
 var _resize_frame: Control
-var _header_buttons: Control
 var _lock_button: Button
 var _collapse_button: Button
 
@@ -139,11 +134,12 @@ func _ready() -> void:
 		EventBus.ui_theme_reloaded.connect(_apply_theme)
 
 
-## When header_visible == false, hide every chrome layer (HeaderPanel, the
-## external HeaderButtons layer, the DragDebug overlay, and ResizeFrame
-## entirely). A "pinned" panel is just body — no header bar, no resize
-## handles, no drag affordance. Cascade in _compute_effective_flags then
-## ensures no handlers are created in _setup_handlers either.
+## When header_visible == false, hide every chrome layer (HeaderPanel
+## with its row of lock/title/collapse, the DragDebug overlay, and the
+## entire ResizeFrame). A "pinned" panel is just body — no header bar,
+## no resize handles, no drag affordance. Cascade in
+## _compute_effective_flags then ensures no handlers are created in
+## _setup_handlers either.
 ##
 ## Body stylebox: pinned panels swap from make_panel_body_stylebox()
 ## (no top border — assumes HeaderPanel sits above) to make_panel_stylebox()
@@ -153,8 +149,6 @@ func _apply_chrome_visibility() -> void:
 		return
 	if _header_panel != null:
 		_header_panel.visible = false
-	if _header_buttons != null:
-		_header_buttons.visible = false
 	if _resize_frame != null:
 		_resize_frame.visible = false
 	# DragDebug is a debug-only overlay (Phase 1-3 zone visualisation).
@@ -170,13 +164,13 @@ func _apply_chrome_visibility() -> void:
 
 func _resolve_nodes() -> void:
 	_header_panel    = $VBoxContainer/HeaderPanel as PanelContainer
-	_title_label     = $VBoxContainer/HeaderPanel/TitleLabel as Label
+	_header_row      = $VBoxContainer/HeaderPanel/HeaderRow as HBoxContainer
+	_title_label     = $VBoxContainer/HeaderPanel/HeaderRow/TitleLabel as Label
 	_body_panel      = $VBoxContainer/BodyPanel as PanelContainer
 	_body_container  = $VBoxContainer/BodyPanel/BodyContainer as MarginContainer
 	_resize_frame    = $ResizeFrame as Control
-	_header_buttons  = $HeaderButtons as Control
-	_lock_button     = $HeaderButtons/LockButton as Button
-	_collapse_button = $HeaderButtons/CollapseButton as Button
+	_lock_button     = $VBoxContainer/HeaderPanel/HeaderRow/LockButton as Button
+	_collapse_button = $VBoxContainer/HeaderPanel/HeaderRow/CollapseButton as Button
 
 
 func _compute_effective_flags() -> void:
@@ -258,8 +252,8 @@ func _setup_handlers() -> void:
 	elif _collapse_button != null and header_visible:
 		# Header still visible (just collapsible disabled by export) →
 		# explicitly hide the collapse button. When header_visible=false
-		# the whole HeaderButtons layer is already hidden by
-		# _apply_chrome_visibility.
+		# the whole HeaderPanel is already hidden by
+		# _apply_chrome_visibility, so this branch isn't reached.
 		_collapse_button.visible = false
 
 	if _effective_lockable and _lock_button != null:
