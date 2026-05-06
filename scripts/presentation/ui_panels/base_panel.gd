@@ -9,14 +9,24 @@
 ##
 ## Layout (from spec 055 mockup):
 ##   - 4 corner resize zones (CORNER_SIZE square, FDIAG/BDIAG cursors)
-##   - 4 edge resize strips between corners (EDGE_THICKNESS thick)
-##   - Header drag zone fills the top, between corners
+##     anchored to the panel ROOT corners.
+##   - 4 edge resize strips between corners (EDGE_THICKNESS thick),
+##     anchored to the panel ROOT edges.
+##   - The visible header+body frame (VBoxContainer) is inset from the
+##     root by EDGE_THICKNESS on all four sides. This is what makes the
+##     corner zones visibly stick out past the frame on the two outward-
+##     facing sides of each corner, while overlapping the frame on the
+##     two inward-facing sides (where lock/collapse buttons sit on top).
+##     The 6px gap on each side is exactly where the edge strips live.
+##   - Header drag zone fills the top of the header, between corners.
 ##   - Lock / Collapse buttons sit ON TOP of the corners (own layer in
 ##     z-order so they always capture their clicks)
 ##
 ## Children of BasePanel root, in tscn declaration (= back-to-front):
-##   1. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg)
+##   1. VBoxContainer    — HeaderPanel (drag bg) + BodyPanel (body bg),
+##                         inset by EDGE_THICKNESS from root edges
 ##   2. ResizeFrame      — 8 invisible Control handles at corners/edges
+##                         (root-anchored, NOT inset)
 ##   3. HeaderButtons    — LockButton + CollapseButton on top of corners
 ##
 ## Mouse routing:
