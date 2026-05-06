@@ -330,6 +330,21 @@ static func make_nested_stylebox() -> StyleBoxFlat:
 	return sb
 
 
+## Builds a header-strip stylebox for ui-panels (Spec 055). Slightly lighter
+## background than the panel body (BG_PANEL_2 vs BG_PANEL) and a stronger
+## bottom border so the header reads as a distinct strip above the body
+## without needing color contrast tweaks per panel. Used by BasePanel.
+static func make_header_stylebox() -> StyleBoxFlat:
+	var sb := make_panel_stylebox()
+	sb.bg_color = BG_PANEL_2
+	sb.border_width_bottom = 2
+	sb.content_margin_left   = SP_2
+	sb.content_margin_right  = SP_2
+	sb.content_margin_top    = SP_1
+	sb.content_margin_bottom = SP_1
+	return sb
+
+
 ## Builds a modal-surface stylebox (elevated bg, stronger border, larger margins).
 static func make_modal_stylebox() -> StyleBoxFlat:
 	var sb := make_panel_stylebox(true)

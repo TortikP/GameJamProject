@@ -13,22 +13,26 @@ script = ExtResource("1_bp")
 layout_mode = 2
 mouse_filter = 2
 
-[node name="HeaderBar" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HeaderBar" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 mouse_filter = 1
 
-[node name="LockButton" type="Button" parent="VBoxContainer/HeaderBar"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/HeaderBar"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LockButton" type="Button" parent="VBoxContainer/HeaderBar/HBox"]
 layout_mode = 2
 text = "🔓"
 
-[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderBar"]
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 text = "Panel"
 horizontal_alignment = 1
 
-[node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderBar"]
+[node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderBar/HBox"]
 layout_mode = 2
 text = "−"
 

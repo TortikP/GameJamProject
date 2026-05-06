@@ -61,7 +61,7 @@ var _effective_collapsible: bool = true
 var _effective_lockable: bool = true
 
 # ── Node references (resolved in _ready) ────────────────────────────
-var _header_bar: HBoxContainer
+var _header_bar: PanelContainer
 var _title_label: Label
 var _lock_button: Button
 var _collapse_button: Button
@@ -87,10 +87,10 @@ func _ready() -> void:
 
 
 func _resolve_nodes() -> void:
-	_header_bar      = $VBoxContainer/HeaderBar      as HBoxContainer
-	_title_label     = $VBoxContainer/HeaderBar/TitleLabel  as Label
-	_lock_button     = $VBoxContainer/HeaderBar/LockButton  as Button
-	_collapse_button = $VBoxContainer/HeaderBar/CollapseButton as Button
+	_header_bar      = $VBoxContainer/HeaderBar      as PanelContainer
+	_title_label     = $VBoxContainer/HeaderBar/HBox/TitleLabel  as Label
+	_lock_button     = $VBoxContainer/HeaderBar/HBox/LockButton  as Button
+	_collapse_button = $VBoxContainer/HeaderBar/HBox/CollapseButton as Button
 	_body_container  = $VBoxContainer/BodyContainer  as MarginContainer
 	_resize_handles  = $ResizeHandles                as Control
 
@@ -116,8 +116,13 @@ func _apply_title() -> void:
 
 func _apply_theme() -> void:
 	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
+	if _header_bar != null:
+		_header_bar.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
 	if _title_label != null:
 		UiTheme.apply_label_kind(_title_label, "header")
+		# Title sits a tick larger than the standard "header" label kind
+		# so the panel name reads clearly above the +2-px-thick separator.
+		_title_label.add_theme_font_size_override("font_size", UiTheme.FS_HEADER + 2)
 	if _lock_button != null:
 		UiTheme.apply_button_styling(_lock_button)
 	if _collapse_button != null:
