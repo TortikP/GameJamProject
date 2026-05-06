@@ -84,6 +84,10 @@ var _body_panel: PanelContainer
 var _body_container: MarginContainer
 var _resize_handles: Control
 
+# ── Composition handlers (created in _ready, owned as child nodes) ────
+var _drag_handler: PanelDragHandler
+var _resize_handler: PanelResizeHandler
+
 
 func _ready() -> void:
 	add_to_group(&"ui_panel")
@@ -93,9 +97,29 @@ func _ready() -> void:
 	_compute_effective_flags()
 	_apply_title()
 	_apply_theme()
+	_setup_handlers()
 
 	if not EventBus.ui_theme_reloaded.is_connected(_apply_theme):
 		EventBus.ui_theme_reloaded.connect(_apply_theme)
+
+
+func _setup_handlers() -> void:
+	if _effective_draggable and _header_panel != null:
+		_drag_handler = PanelDragHandler.new()
+		_drag_handler.name = "_DragHandler"
+		add_child(_drag_handler)
+		_drag_handler.setup(self, _header_panel)
+
+	if _effective_resizable and _resize_handles != null:
+		_resize_handler = PanelResizeHandler.new()
+		_resize_handler.name = "_ResizeHandler"
+		add_child(_resize_handler)
+		_resize_handler.setup(self, _resize_handles)
+	else:
+		# Resize disabled — hide the handles overlay entirely so it doesn't
+		# intercept mouse events for nothing. Ignore alpha; visibility wins.
+		if _resize_handles != null:
+			_resize_handles.visible = false
 
 
 func _resolve_nodes() -> void:
