@@ -118,6 +118,11 @@ var _resize_handler: PanelResizeHandler
 var _collapse_handler: PanelCollapseHandler
 var _lock_handler: PanelLockHandler
 
+# Set by _apply_chrome_visibility; consumed by _apply_theme. When true,
+# BodyPanel uses make_panel_stylebox() (full 4-side border) instead of
+# make_panel_body_stylebox() (no top border).
+var _pinned_body_style: bool = false
+
 
 func _ready() -> void:
 	add_to_group(&"ui_panel")
@@ -139,6 +144,10 @@ func _ready() -> void:
 ## entirely). A "pinned" panel is just body — no header bar, no resize
 ## handles, no drag affordance. Cascade in _compute_effective_flags then
 ## ensures no handlers are created in _setup_handlers either.
+##
+## Body stylebox: pinned panels swap from make_panel_body_stylebox()
+## (no top border — assumes HeaderPanel sits above) to make_panel_stylebox()
+## (full 4-side border) so the body has a visible top edge.
 func _apply_chrome_visibility() -> void:
 	if header_visible:
 		return
@@ -153,6 +162,9 @@ func _apply_chrome_visibility() -> void:
 	var drag_debug := get_node_or_null("DragDebug") as Control
 	if drag_debug != null:
 		drag_debug.visible = false
+	# Mark the panel so _apply_theme uses the full-border stylebox on
+	# (re)apply. _apply_theme runs after this.
+	_pinned_body_style = true
 	print("[BasePanel] header_visible=false on '%s' — chrome hidden, all interactions disabled" % String(panel_id))
 
 
@@ -196,7 +208,15 @@ func _apply_theme() -> void:
 	if _header_panel != null:
 		_header_panel.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
 	if _body_panel != null:
-		_body_panel.add_theme_stylebox_override("panel", UiTheme.make_panel_body_stylebox())
+		# Pinned (no header) → full 4-side border so the body isn't open
+		# at the top. Otherwise the standard body stylebox (no top border)
+		# is correct because HeaderPanel provides the top edge above it.
+		var body_sb: StyleBoxFlat
+		if _pinned_body_style:
+			body_sb = UiTheme.make_panel_stylebox()
+		else:
+			body_sb = UiTheme.make_panel_body_stylebox()
+		_body_panel.add_theme_stylebox_override("panel", body_sb)
 	if _title_label != null:
 		UiTheme.apply_label_kind(_title_label, "header")
 		_title_label.add_theme_font_size_override("font_size", UiTheme.FS_HEADER + 2)
