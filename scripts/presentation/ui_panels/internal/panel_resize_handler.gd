@@ -63,6 +63,9 @@ func setup(base_panel: BasePanel) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# is_resizable() returns the EFFECTIVE flag — in Phase 4 (lock) and
+	# Phase 5 (header_visible cascade) this will fold in additional gates.
+	# Handler stays passive when locked; no separate lock check needed here.
 	if not _base_panel.is_resizable():
 		return
 	if event is InputEventMouseMotion:
@@ -124,6 +127,16 @@ func _on_mouse_button(event: InputEventMouseButton) -> void:
 
 func _hovered_handle() -> int:
 	var mouse_pos := _base_panel.get_global_mouse_position()
+
+	# Defensive: header buttons (lock, collapse) are always interactive
+	# in their own right. They must NEVER resolve to a resize handle,
+	# even if a future layout change moves them onto the panel border.
+	# Today the geometry already prevents this (buttons are inside, resize
+	# zones are outside) but the cost of an explicit check is one rect
+	# test and saves a class of regressions.
+	if _is_over_header_button(mouse_pos):
+		return HANDLE.NONE
+
 	var pp := _base_panel.global_position
 	var ps := _base_panel.size
 
@@ -160,6 +173,16 @@ func _hovered_handle() -> int:
 	if near_right:  return HANDLE.RIGHT
 
 	return HANDLE.NONE
+
+
+func _is_over_header_button(mouse_pos: Vector2) -> bool:
+	var lock_btn := _base_panel._lock_button
+	if lock_btn != null and lock_btn.get_global_rect().has_point(mouse_pos):
+		return true
+	var collapse_btn := _base_panel._collapse_button
+	if collapse_btn != null and collapse_btn.get_global_rect().has_point(mouse_pos):
+		return true
+	return false
 
 
 func _apply_resize() -> void:

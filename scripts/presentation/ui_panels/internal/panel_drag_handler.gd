@@ -33,6 +33,9 @@ func setup(base_panel: BasePanel, drag_handle: Control) -> void:
 
 
 func _on_handle_gui_input(event: InputEvent) -> void:
+	# is_draggable() returns the EFFECTIVE flag — in Phase 4 (lock) and
+	# Phase 5 (header_visible cascade) this will fold in additional gates.
+	# Handler stays passive when locked; no separate lock check needed here.
 	if not _base_panel.is_draggable():
 		return
 	if event is InputEventMouseButton:
