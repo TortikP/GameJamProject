@@ -127,14 +127,14 @@ func _hovered_handle() -> int:
 	var pp := _base_panel.global_position
 	var ps := _base_panel.size
 
-	var near_top    := abs(mouse_pos.y - pp.y) <= BORDER_WIDTH
-	var near_bottom := abs(mouse_pos.y - (pp.y + ps.y)) <= BORDER_WIDTH
-	var near_left   := abs(mouse_pos.x - pp.x) <= BORDER_WIDTH
-	var near_right  := abs(mouse_pos.x - (pp.x + ps.x)) <= BORDER_WIDTH
+	var near_top: bool    = absf(mouse_pos.y - pp.y) <= BORDER_WIDTH
+	var near_bottom: bool = absf(mouse_pos.y - (pp.y + ps.y)) <= BORDER_WIDTH
+	var near_left: bool   = absf(mouse_pos.x - pp.x) <= BORDER_WIDTH
+	var near_right: bool  = absf(mouse_pos.x - (pp.x + ps.x)) <= BORDER_WIDTH
 
 	# Mouse must be roughly within the panel's bounds (allowing
 	# BORDER_WIDTH outside on each side so corners read at the very edge).
-	var within := mouse_pos.x >= pp.x - BORDER_WIDTH \
+	var within: bool = mouse_pos.x >= pp.x - BORDER_WIDTH \
 			and mouse_pos.x <= pp.x + ps.x + BORDER_WIDTH \
 			and mouse_pos.y >= pp.y - BORDER_WIDTH \
 			and mouse_pos.y <= pp.y + ps.y + BORDER_WIDTH
