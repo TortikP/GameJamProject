@@ -46,9 +46,13 @@ layout_mode = 2
 icon = ExtResource("4_minus")
 expand_icon = false
 
-[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer"]
+[node name="BodyPanel" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer/BodyPanel"]
+layout_mode = 2
 mouse_filter = 1
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8

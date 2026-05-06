@@ -71,6 +71,7 @@ var _header_bar: PanelContainer
 var _title_label: Label
 var _lock_button: Button
 var _collapse_button: Button
+var _body_panel: PanelContainer
 var _body_container: MarginContainer
 var _resize_handles: Control
 
@@ -97,7 +98,8 @@ func _resolve_nodes() -> void:
 	_title_label     = $VBoxContainer/HeaderBar/HBox/TitleLabel  as Label
 	_lock_button     = $VBoxContainer/HeaderBar/HBox/LockButton  as Button
 	_collapse_button = $VBoxContainer/HeaderBar/HBox/CollapseButton as Button
-	_body_container  = $VBoxContainer/BodyContainer  as MarginContainer
+	_body_panel      = $VBoxContainer/BodyPanel      as PanelContainer
+	_body_container  = $VBoxContainer/BodyPanel/BodyContainer  as MarginContainer
 	_resize_handles  = $ResizeHandles                as Control
 
 
@@ -121,20 +123,21 @@ func _apply_title() -> void:
 
 
 func _apply_theme() -> void:
-	# BasePanel root stylebox: standard panel look but flush — content margins
-	# zeroed so the header strip sits hard against the top and side borders
-	# (classic Win98 window). Body padding is provided separately by the
-	# inner BodyContainer (MarginContainer). Mutating this freshly-created
-	# stylebox is safe — make_panel_stylebox() returns a new instance.
-	var sb := UiTheme.make_panel_stylebox()
-	sb.content_margin_left   = 0
-	sb.content_margin_right  = 0
-	sb.content_margin_top    = 0
-	sb.content_margin_bottom = 0
-	add_theme_stylebox_override("panel", sb)
+	# Outer PanelContainer is intentionally TRANSPARENT — it acts as a
+	# layout host only. The window frame is composed from two visible
+	# regions, each drawn by its own child PanelContainer:
+	#   - HeaderBar: top edge + left/right edges of header strip + 2px
+	#     bottom border serving as the header→body separator
+	#   - BodyPanel: bottom edge + left/right edges of body region
+	# This avoids the nested-bordered-PanelContainers margin gymnastics
+	# of earlier attempts. Each region's stylebox draws at its own
+	# control rect — no expand_margin, no content_margin tweaks.
+	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 	if _header_bar != null:
 		_header_bar.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
+	if _body_panel != null:
+		_body_panel.add_theme_stylebox_override("panel", UiTheme.make_panel_body_stylebox())
 	if _title_label != null:
 		UiTheme.apply_label_kind(_title_label, "header")
 		# Title sits a tick larger than the standard "header" label kind
