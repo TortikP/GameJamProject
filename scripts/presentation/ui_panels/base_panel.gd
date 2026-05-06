@@ -16,13 +16,22 @@
 ##   - Defaults (default_locked, default_collapsed)
 ##   - Effective-flag computation (header_visible cascade)
 ##   - Group membership (&"ui_panel" for discoverability)
-##   - Theme application
+##   - Theme application (header + body styleboxes)
+##
+## Root is a plain Control — NOT a PanelContainer. Earlier attempts to
+## use PanelContainer as the root forced fights between an "outer" panel
+## stylebox and the inner header/body strip styleboxes; visible insets
+## kept appearing no matter how content_margin / expand_margin were
+## tuned. With root = Control the panel composes its visible frame from
+## just two children (HeaderPanel + BodyPanel), each drawing its own
+## region with no overlap. Header sits truly flush to top/sides because
+## it draws those edges itself.
 ##
 ## All actual drag/resize/collapse/lock/persistence logic lives in
 ## internal/ handlers, instantiated and wired in _ready().
 
 class_name BasePanel
-extends PanelContainer
+extends Control
 
 # ── Icons (16×16 monochrome pixel art, UiTheme.TEXT color) ────────
 const ICON_LOCK_UNLOCKED  := preload("res://assets/icons/ui/lock_unlocked.png")
@@ -67,7 +76,7 @@ var _effective_collapsible: bool = true
 var _effective_lockable: bool = true
 
 # ── Node references (resolved in _ready) ────────────────────────────
-var _header_bar: PanelContainer
+var _header_panel: PanelContainer
 var _title_label: Label
 var _lock_button: Button
 var _collapse_button: Button
@@ -78,29 +87,25 @@ var _resize_handles: Control
 
 func _ready() -> void:
 	add_to_group(&"ui_panel")
-	# C5 — never let a heir or a tweak silently make the panel
-	# non-interactive. STOP enforced; a follow-up notification check
-	# will be added if cases of override-by-mistake appear.
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_STOP  # C5: panel always interactive
 
 	_resolve_nodes()
 	_compute_effective_flags()
 	_apply_title()
 	_apply_theme()
 
-	if EventBus.ui_theme_reloaded.is_connected(_apply_theme):
-		return
-	EventBus.ui_theme_reloaded.connect(_apply_theme)
+	if not EventBus.ui_theme_reloaded.is_connected(_apply_theme):
+		EventBus.ui_theme_reloaded.connect(_apply_theme)
 
 
 func _resolve_nodes() -> void:
-	_header_bar      = $VBoxContainer/HeaderBar      as PanelContainer
-	_title_label     = $VBoxContainer/HeaderBar/HBox/TitleLabel  as Label
-	_lock_button     = $VBoxContainer/HeaderBar/HBox/LockButton  as Button
-	_collapse_button = $VBoxContainer/HeaderBar/HBox/CollapseButton as Button
-	_body_panel      = $VBoxContainer/BodyPanel      as PanelContainer
-	_body_container  = $VBoxContainer/BodyPanel/BodyContainer  as MarginContainer
-	_resize_handles  = $ResizeHandles                as Control
+	_header_panel    = $VBoxContainer/HeaderPanel as PanelContainer
+	_title_label     = $VBoxContainer/HeaderPanel/HBox/TitleLabel  as Label
+	_lock_button     = $VBoxContainer/HeaderPanel/HBox/LockButton  as Button
+	_collapse_button = $VBoxContainer/HeaderPanel/HBox/CollapseButton as Button
+	_body_panel      = $VBoxContainer/BodyPanel    as PanelContainer
+	_body_container  = $VBoxContainer/BodyPanel/BodyContainer as MarginContainer
+	_resize_handles  = $ResizeHandles as Control
 
 
 func _compute_effective_flags() -> void:
@@ -123,34 +128,19 @@ func _apply_title() -> void:
 
 
 func _apply_theme() -> void:
-	# Outer PanelContainer is intentionally TRANSPARENT — it acts as a
-	# layout host only. The window frame is composed from two visible
-	# regions, each drawn by its own child PanelContainer:
-	#   - HeaderBar: top edge + left/right edges of header strip + 2px
-	#     bottom border serving as the header→body separator
-	#   - BodyPanel: bottom edge + left/right edges of body region
-	# This avoids the nested-bordered-PanelContainers margin gymnastics
-	# of earlier attempts. Each region's stylebox draws at its own
-	# control rect — no expand_margin, no content_margin tweaks.
-	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-
-	if _header_bar != null:
-		_header_bar.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
+	if _header_panel != null:
+		_header_panel.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
 	if _body_panel != null:
 		_body_panel.add_theme_stylebox_override("panel", UiTheme.make_panel_body_stylebox())
 	if _title_label != null:
 		UiTheme.apply_label_kind(_title_label, "header")
-		# Title sits a tick larger than the standard "header" label kind
-		# so the panel name reads clearly above the +2-px-thick separator.
 		_title_label.add_theme_font_size_override("font_size", UiTheme.FS_HEADER + 2)
 	if _lock_button != null:
 		UiTheme.apply_button_styling(_lock_button)
-		# Default icon — handlers in Phase 4 swap to ICON_LOCK_LOCKED on toggle.
 		_lock_button.icon = ICON_LOCK_UNLOCKED
 		_lock_button.text = ""
 	if _collapse_button != null:
 		UiTheme.apply_button_styling(_collapse_button)
-		# Default icon — handlers in Phase 4 swap to ICON_EXPAND_PLUS on collapse.
 		_collapse_button.icon = ICON_COLLAPSE_MINUS
 		_collapse_button.text = ""
 

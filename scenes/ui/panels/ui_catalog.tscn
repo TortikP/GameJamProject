@@ -52,20 +52,22 @@ panel_description = "Демонстрация полностью включён�
 
 [node name="VBoxContainer" parent="FullPanel" index="0"]
 
-[node name="BodyContainer" parent="FullPanel/VBoxContainer" index="1"]
+[node name="BodyPanel" parent="FullPanel/VBoxContainer" index="1"]
 
-[node name="ContentVBox" type="VBoxContainer" parent="FullPanel/VBoxContainer/BodyContainer"]
+[node name="BodyContainer" parent="FullPanel/VBoxContainer/BodyPanel" index="0"]
+
+[node name="ContentVBox" type="VBoxContainer" parent="FullPanel/VBoxContainer/BodyPanel/BodyContainer"]
 layout_mode = 2
 
-[node name="Line1" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+[node name="Line1" type="Label" parent="FullPanel/VBoxContainer/BodyPanel/BodyContainer/ContentVBox"]
 layout_mode = 2
 text = "Lorem ipsum dolor sit amet"
 
-[node name="Line2" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+[node name="Line2" type="Label" parent="FullPanel/VBoxContainer/BodyPanel/BodyContainer/ContentVBox"]
 layout_mode = 2
 text = "consectetur adipiscing elit"
 
-[node name="Line3" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+[node name="Line3" type="Label" parent="FullPanel/VBoxContainer/BodyPanel/BodyContainer/ContentVBox"]
 layout_mode = 2
 text = "sed do eiusmod tempor"
 
