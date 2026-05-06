@@ -1,0 +1,130 @@
+[gd_scene load_steps=2 format=3 uid="uid://base_panel_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/ui_panels/base_panel.gd" id="1_bp"]
+
+[node name="BasePanel" type="PanelContainer"]
+custom_minimum_size = Vector2(120, 32)
+offset_right = 300.0
+offset_bottom = 200.0
+mouse_filter = 0
+script = ExtResource("1_bp")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HeaderBar" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="LockButton" type="Button" parent="VBoxContainer/HeaderBar"]
+layout_mode = 2
+text = "🔓"
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "Panel"
+horizontal_alignment = 1
+
+[node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderBar"]
+layout_mode = 2
+text = "−"
+
+[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ResizeHandles" type="Control" parent="."]
+layout_mode = 2
+mouse_filter = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TopLeft" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="Top" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_left = 10.0
+offset_right = -10.0
+offset_bottom = 10.0
+anchor_right = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="TopRight" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_left = -10.0
+offset_right = 0.0
+offset_bottom = 10.0
+anchor_left = 1.0
+anchor_right = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="Right" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_left = -10.0
+offset_top = 10.0
+offset_right = 0.0
+offset_bottom = -10.0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="BottomRight" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 0.0
+offset_bottom = 0.0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="Bottom" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = -10.0
+offset_right = -10.0
+offset_bottom = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="BottomLeft" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 0.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)
+
+[node name="Left" type="Control" parent="ResizeHandles"]
+layout_mode = 0
+offset_top = 10.0
+offset_right = 10.0
+offset_bottom = -10.0
+anchor_bottom = 1.0
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0)

@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3 uid="uid://ui_catalog_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/ui_panels/ui_catalog.gd" id="1_uc"]
+[ext_resource type="PackedScene" uid="uid://base_panel_001" path="res://scenes/ui/panels/base_panel.tscn" id="2_bp"]
+
+[node name="UiCatalog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_uc")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.000392157, 0.101961, 0.113725, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 24.0
+offset_right = 200.0
+offset_bottom = 64.0
+grow_horizontal = 2
+text = "Каталог Интерфейсов"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 144.0
+offset_bottom = 64.0
+text = "← В меню"
+
+[node name="FullPanel" parent="." instance=ExtResource("2_bp")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 200.0
+offset_top = 150.0
+offset_right = 500.0
+offset_bottom = 350.0
+panel_id = &"full_demo"
+panel_title_fallback = "Full demo"
+panel_description = "Демонстрация полностью включённой BasePanel: drag, resize, collapse, lock, persistence — все features активны. Это эталонная конфигурация."
+
+[node name="VBoxContainer" parent="FullPanel" index="0"]
+
+[node name="BodyContainer" parent="FullPanel/VBoxContainer" index="1"]
+
+[node name="ContentVBox" type="VBoxContainer" parent="FullPanel/VBoxContainer/BodyContainer"]
+layout_mode = 2
+
+[node name="Line1" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+layout_mode = 2
+text = "Lorem ipsum dolor sit amet"
+
+[node name="Line2" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+layout_mode = 2
+text = "consectetur adipiscing elit"
+
+[node name="Line3" type="Label" parent="FullPanel/VBoxContainer/BodyContainer/ContentVBox"]
+layout_mode = 2
+text = "sed do eiusmod tempor"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]
