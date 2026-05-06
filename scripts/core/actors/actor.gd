@@ -36,6 +36,7 @@ signal passives_changed(actor_id: StringName)
 
 var hp: int = 0
 var _dead: bool = false
+var _base_max_hp: int = -1
 var _ability_ids: Array[StringName] = []
 var _skills: Array = []   # Array[Skill] — plain Array to avoid typed-array Variant edge cases (CLAUDE.md trap)
 var _passive_skills: Array = []
@@ -82,6 +83,7 @@ func get_passive_skills() -> Array:
 
 func set_passive_skills(skills: Array) -> void:
 	_passive_skills = skills
+	_recompute_passive_derived_stats()
 	passives_changed.emit(actor_id)
 
 
@@ -141,6 +143,22 @@ func passive_offer_bonus() -> int:
 	return _passive_int_sum(&"offer_count_bonus")
 
 
+func passive_max_hp_bonus() -> int:
+	return _passive_int_sum(&"max_hp_bonus")
+
+
+func passive_reflect_percent() -> int:
+	return _passive_int_sum(&"reflect_percent")
+
+
+func passive_lifesteal_percent() -> int:
+	return _passive_int_sum(&"lifesteal_percent")
+
+
+func passive_area_radius_bonus() -> int:
+	return _passive_int_sum(&"area_radius_bonus")
+
+
 func passive_ranged_push_distance() -> int:
 	return _passive_int_sum(&"ranged_push")
 
@@ -158,6 +176,7 @@ func _passive_int_sum(kind: StringName) -> int:
 
 
 func _ready() -> void:
+	_recompute_passive_derived_stats()
 	hp = max_hp
 	if actor_id == &"":
 		GameLogger.warn("Actor", "spawned with empty actor_id — abilities can't target it")
@@ -174,7 +193,7 @@ func _ready() -> void:
 
 # ── Damage / heal ───────────────────────────────────────────────────────────
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, source: Actor = null) -> void:
 	if _dead or amount <= 0:
 		return
 	# 027: shielded (and any future damage_reduction status) absorbs first.
@@ -191,6 +210,12 @@ func take_damage(amount: int) -> void:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d) [absorbed %d]" % [actor_id, reduced, hp, max_hp, amount - reduced])
 	else:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, reduced, hp, max_hp])
+	if reduced > 0 and source != null and is_instance_valid(source):
+		var reflect_percent: int = passive_reflect_percent()
+		if reflect_percent > 0 and source != self and source.is_alive():
+			var reflected: int = int(floor(float(reduced) * float(reflect_percent) / 100.0))
+			if reflected > 0:
+				source.take_damage(reflected, null)
 	if hp == 0:
 		_dead = true
 		_emit_death_events()
@@ -263,6 +288,13 @@ func heal_to_full() -> void:
 	# repaints. Amount=0, hp_left=hp — semantic 'state changed, redraw'.
 	damaged.emit(actor_id, 0, hp)
 	GameLogger.info("Actor", "%s healed to full (%d/%d)" % [actor_id, hp, max_hp])
+
+
+func _recompute_passive_derived_stats() -> void:
+	if _base_max_hp < 0:
+		_base_max_hp = max_hp
+	max_hp = maxi(1, _base_max_hp + passive_max_hp_bonus())
+	hp = mini(hp, max_hp)
 
 
 # ── 027: Statuses ───────────────────────────────────────────────────────────

@@ -260,6 +260,7 @@ func passive_mods_for(caster: Actor) -> Dictionary:
 		return {}
 	return {
 		"range_bonus": caster.passive_range_bonus(),
+		"area_radius_bonus": caster.passive_area_radius_bonus(),
 		"cooldown_reduction": caster.passive_cooldown_reduction(),
 		"status_duration_bonus": caster.passive_status_duration_bonus(),
 		"ranged_push_distance": caster.passive_ranged_push_distance(),

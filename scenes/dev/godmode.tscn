@@ -72,7 +72,7 @@ script = ExtResource("3_registry")
 script = ExtResource("2_controller")
 grid = NodePath("../HexGrid")
 registry = NodePath("../ActorRegistry")
-slot_bar_path = NodePath("../HUD/SlotBar")
+slot_bar_path = NodePath("../HUD/SkillBars/SlotBar")
 overlay_path = NodePath("../HexGrid/MoveRangeOverlay")
 player_status_panel_path = NodePath("../HUD/PlayerStatusPanel")
 
@@ -113,35 +113,26 @@ text = "ui_godmode_help_label_text"
 theme_override_font_sizes/font_size = 14
 modulate = Color(1, 1, 1, 0.6)
 
-[node name="SlotBar" type="HBoxContainer" parent="HUD"]
-script = ExtResource("5_slotbar")
+[node name="SkillBars" type="HBoxContainer" parent="HUD"]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -160.0
+offset_left = -256.0
 offset_top = -96.0
-offset_right = 160.0
+offset_right = 256.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
+theme_override_constants/separation = 12
 
-[node name="PassiveSlotBar" type="HBoxContainer" parent="HUD"]
+[node name="SlotBar" type="HBoxContainer" parent="HUD/SkillBars"]
+script = ExtResource("5_slotbar")
+
+[node name="PassiveSlotBar" type="HBoxContainer" parent="HUD/SkillBars"]
 script = ExtResource("34_passives")
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = 176.0
-offset_top = -80.0
-offset_right = 368.0
-offset_bottom = -16.0
-grow_horizontal = 2
-grow_vertical = 0
-alignment = 1
 
 [node name="PlayerStatusPanel" parent="HUD" instance=ExtResource("10_psp")]
 

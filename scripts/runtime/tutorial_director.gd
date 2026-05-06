@@ -19,7 +19,8 @@ const CHECKLIST_ITEMS := [
 	{"id": &"self_effect", "key": "ui_tutorial_checklist_self_effect"},
 	{"id": &"left_threat", "key": "ui_tutorial_checklist_left_threat"},
 	{"id": &"kill", "key": "ui_tutorial_checklist_kill"},
-	{"id": &"skill", "key": "ui_tutorial_checklist_skill"},
+	{"id": &"skill", "key": "ui_tutorial_checklist_active_skill"},
+	{"id": &"passive_skill", "key": "ui_tutorial_checklist_passive_skill"},
 ]
 
 const WAVE_SPAWN_HINTS := [
@@ -937,7 +938,11 @@ func _on_skill_offer_about_to_open(_wave_index: int, _count: int, _pool_id: Stri
 func _on_skill_offer_closed(_wave_index: int, _picked_skill_id: StringName, _mode: StringName) -> void:
 	_in_skill_offer = false
 	if _picked_skill_id != &"":
-		_complete_check(&"skill")
+		var picked: Skill = SkillDatabase.get_skill(_picked_skill_id)
+		if picked != null and picked.is_passive():
+			_complete_check(&"passive_skill")
+		else:
+			_complete_check(&"skill")
 	_evaluate_guidance.call_deferred()
 
 

@@ -129,6 +129,7 @@ func resolve(caster: Actor, ctx: Dictionary, level: int = 0, passive_mods: Dicti
 	var eff_area: AbilityArea = area.duplicate()
 	eff_area.apply_level(level)
 	_apply_param_modifiers(eff_area, modifiers)
+	_apply_passive_modifiers(eff_area, passive_mods)
 
 	# 041: CreateEffect operates per-hex (via ctx["target_coord"]) and doesn't
 	# need a victim. Detect upfront so empty-area on a hex-targeted ability
@@ -292,6 +293,11 @@ func _apply_passive_modifiers(obj: Object, passive_mods: Dictionary) -> void:
 		if not se.args.is_empty() and se.args[0] > 0:
 			se.args = se.args.duplicate()
 			se.args[0] += status_duration_bonus
+	var area_radius_bonus: int = int(passive_mods.get("area_radius_bonus", 0))
+	if area_radius_bonus != 0 and "radius" in obj:
+		var current_radius: int = int(obj.get("radius"))
+		if current_radius > 0:
+			obj.set("radius", current_radius + area_radius_bonus)
 
 
 func _apply_passive_ranged_push(caster: Actor, victim: Variant, ctx: Dictionary,

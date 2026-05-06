@@ -17,7 +17,18 @@ func apply(caster: Actor, target: Variant, _ctx: Dictionary) -> void:
 	var bonus: int = 0
 	if caster != null:
 		bonus = caster.damage_bonus + caster.damage_amplifier()
-	actor.take_damage(maxi(0, damage + bonus))
+	var dealt_raw: int = maxi(0, damage + bonus)
+	if dealt_raw <= 0:
+		return
+	var hp_before: int = actor.hp
+	actor.take_damage(dealt_raw, caster)
+	var dealt_actual: int = maxi(0, hp_before - actor.hp)
+	if caster != null and dealt_actual > 0:
+		var lifesteal_percent: int = caster.passive_lifesteal_percent()
+		if lifesteal_percent > 0:
+			var heal_amount: int = int(floor(float(dealt_actual) * float(lifesteal_percent) / 100.0))
+			if heal_amount > 0:
+				caster.heal(heal_amount)
 
 
 ## 021 scaling: damage * (1 + 0.2 * level) → floor.

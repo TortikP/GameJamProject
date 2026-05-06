@@ -45,7 +45,11 @@
     "passive_extra_choice",
     "passive_chilling_aura",
     "passive_intimidating_aura",
-    "passive_ranged_shove"
+    "passive_ranged_shove",
+    "passive_wide_pulse",
+    "passive_iron_vitality",
+    "passive_thorned_echo",
+    "passive_bloodletting"
   ],
   "tags": ["campaign", "defeated_enemies_whitelist"]
 }

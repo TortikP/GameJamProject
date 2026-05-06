@@ -15,11 +15,12 @@ func _ready() -> void:
 	add_theme_constant_override("separation", UiTheme.SP_2)
 	for i in SLOT_COUNT:
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(88, 56)
+		btn.custom_minimum_size = Vector2(64, 56)
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_entered.connect(_on_mouse_entered.bind(i))
 		btn.mouse_exited.connect(_on_mouse_exited.bind(i))
 		UiTheme.apply_button_styling(btn)
+		btn.add_theme_font_size_override("font_size", UiTheme.FS_SMALL)
 		add_child(btn)
 		_buttons.append(btn)
 	EventBus.ui_theme_reloaded.connect(_on_theme_reloaded)
