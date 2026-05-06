@@ -140,4 +140,27 @@ layout_mode = 2
 text = "I can be dragged, collapsed, locked — but not resized."
 autowrap_mode = 3
 
+[node name="PinnedPanel" parent="." instance=ExtResource("2_bp")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 900.0
+offset_top = 150.0
+offset_right = 1150.0
+offset_bottom = 300.0
+panel_id = &"pinned_demo"
+panel_title_fallback = ""
+panel_description = "header_visible = false. In-game HUD style: нет chrome, нет интеракций. Все 4 effective флага каскадно false."
+header_visible = false
+
+[node name="VBoxContainer" parent="PinnedPanel" index="0"]
+
+[node name="BodyPanel" parent="PinnedPanel/VBoxContainer" index="1"]
+
+[node name="BodyContainer" parent="PinnedPanel/VBoxContainer/BodyPanel" index="0"]
+
+[node name="Message" type="Label" parent="PinnedPanel/VBoxContainer/BodyPanel/BodyContainer"]
+layout_mode = 2
+text = "In-game HUD style: no chrome, no interaction."
+autowrap_mode = 3
+
 [connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

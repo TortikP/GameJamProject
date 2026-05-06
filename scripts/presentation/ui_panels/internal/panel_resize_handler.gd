@@ -50,25 +50,23 @@ var _initial_pos: Vector2
 func setup(base_panel: BasePanel) -> void:
 	_base_panel = base_panel
 	_resize_frame = base_panel.get_node_or_null("ResizeFrame") as Control
-	# is_resizable() returns the EFFECTIVE flag — Phase 5 folds in
-	# header_visible cascade. Lock state is checked separately at input
-	# time AND via locked_changed signal here — when locked, hide the
-	# whole ResizeFrame so handles don't change cursor on hover.
-	var enabled := base_panel.is_resizable()
+	# This setup is only called when base_panel.is_resizable() is true
+	# (gated by BasePanel._setup_handlers). When resize is disabled the
+	# whole handler isn't created and BasePanel hides ResizeFrame itself.
+	# Lock state is checked separately at input time AND via
+	# locked_changed signal here — when locked, hide the whole
+	# ResizeFrame so handles don't change cursor on hover.
 	for handle_name in HANDLE_DIRS.keys():
 		var path := "ResizeFrame/" + String(handle_name)
 		var handle := base_panel.get_node_or_null(path) as Control
 		if handle == null:
 			push_warning("[PanelResizeHandler] missing handle node: %s" % path)
 			continue
-		if not enabled:
-			handle.visible = false
-			continue
 		handle.mouse_filter = Control.MOUSE_FILTER_STOP
 		var dir: Vector2i = HANDLE_DIRS[handle_name]
 		handle.gui_input.connect(_on_handle_gui_input.bind(dir))
 
-	if enabled and not base_panel.locked_changed.is_connected(_on_locked_changed):
+	if not base_panel.locked_changed.is_connected(_on_locked_changed):
 		base_panel.locked_changed.connect(_on_locked_changed)
 
 
