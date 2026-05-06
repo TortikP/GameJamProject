@@ -38,6 +38,7 @@ const HANDLE_DIRS := {
 }
 
 var _base_panel: BasePanel
+var _resize_frame: Control
 
 var _is_resizing: bool = false
 var _active_dir: Vector2i = Vector2i.ZERO
@@ -48,9 +49,11 @@ var _initial_pos: Vector2
 
 func setup(base_panel: BasePanel) -> void:
 	_base_panel = base_panel
-	# is_resizable() returns the EFFECTIVE flag — Phases 4-5 fold in
-	# lock state and header_visible cascade. When resize is disabled,
-	# hide handles entirely so they don't trigger cursor changes.
+	_resize_frame = base_panel.get_node_or_null("ResizeFrame") as Control
+	# is_resizable() returns the EFFECTIVE flag — Phase 5 folds in
+	# header_visible cascade. Lock state is checked separately at input
+	# time AND via locked_changed signal here — when locked, hide the
+	# whole ResizeFrame so handles don't change cursor on hover.
 	var enabled := base_panel.is_resizable()
 	for handle_name in HANDLE_DIRS.keys():
 		var path := "ResizeFrame/" + String(handle_name)
@@ -65,9 +68,26 @@ func setup(base_panel: BasePanel) -> void:
 		var dir: Vector2i = HANDLE_DIRS[handle_name]
 		handle.gui_input.connect(_on_handle_gui_input.bind(dir))
 
+	if enabled and not base_panel.locked_changed.is_connected(_on_locked_changed):
+		base_panel.locked_changed.connect(_on_locked_changed)
+
+
+func _on_locked_changed(locked: bool) -> void:
+	# Hide entire ResizeFrame on lock so cursor doesn't change on hover.
+	# Collapse handler also hides ResizeFrame independently — when both
+	# trigger simultaneously, last write wins, but both want
+	# ResizeFrame.visible = false, so no conflict.
+	if _resize_frame == null:
+		return
+	if locked:
+		_resize_frame.visible = false
+	else:
+		# Don't blindly re-show — collapsed panels keep ResizeFrame hidden.
+		_resize_frame.visible = not _base_panel.is_collapsed()
+
 
 func _on_handle_gui_input(event: InputEvent, dir: Vector2i) -> void:
-	if not _base_panel.is_resizable():
+	if not _base_panel.is_resizable() or _base_panel.is_locked():
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton

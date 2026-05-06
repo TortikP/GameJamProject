@@ -71,4 +71,73 @@ text = "consectetur adipiscing elit"
 layout_mode = 2
 text = "sed do eiusmod tempor"
 
+[node name="LockedByDefaultPanel" parent="." instance=ExtResource("2_bp")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 550.0
+offset_top = 150.0
+offset_right = 850.0
+offset_bottom = 350.0
+panel_id = &"locked_default_demo"
+panel_title_fallback = "Locked by default"
+panel_description = "Стартует locked. Демонстрирует default_locked = true. Drag и resize заблокированы до клика по 🔒."
+default_locked = true
+
+[node name="VBoxContainer" parent="LockedByDefaultPanel" index="0"]
+
+[node name="BodyPanel" parent="LockedByDefaultPanel/VBoxContainer" index="1"]
+
+[node name="BodyContainer" parent="LockedByDefaultPanel/VBoxContainer/BodyPanel" index="0"]
+
+[node name="Message" type="Label" parent="LockedByDefaultPanel/VBoxContainer/BodyPanel/BodyContainer"]
+layout_mode = 2
+text = "I start locked. Click 🔒 to unlock."
+autowrap_mode = 3
+
+[node name="AlwaysCollapsedPanel" parent="." instance=ExtResource("2_bp")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 200.0
+offset_top = 400.0
+offset_right = 500.0
+offset_bottom = 600.0
+panel_id = &"collapsed_default_demo"
+panel_title_fallback = "Starts collapsed"
+panel_description = "Стартует свёрнутой. Демонстрирует default_collapsed = true. Click + для разворота."
+default_collapsed = true
+
+[node name="VBoxContainer" parent="AlwaysCollapsedPanel" index="0"]
+
+[node name="BodyPanel" parent="AlwaysCollapsedPanel/VBoxContainer" index="1"]
+
+[node name="BodyContainer" parent="AlwaysCollapsedPanel/VBoxContainer/BodyPanel" index="0"]
+
+[node name="Message" type="Label" parent="AlwaysCollapsedPanel/VBoxContainer/BodyPanel/BodyContainer"]
+layout_mode = 2
+text = "Click + to expand me."
+autowrap_mode = 3
+
+[node name="NoResizePanel" parent="." instance=ExtResource("2_bp")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 550.0
+offset_top = 400.0
+offset_right = 850.0
+offset_bottom = 600.0
+panel_id = &"no_resize_demo"
+panel_title_fallback = "No resize"
+panel_description = "resizable = false. Drag, collapse, lock работают; resize handles не появляются."
+resizable = false
+
+[node name="VBoxContainer" parent="NoResizePanel" index="0"]
+
+[node name="BodyPanel" parent="NoResizePanel/VBoxContainer" index="1"]
+
+[node name="BodyContainer" parent="NoResizePanel/VBoxContainer/BodyPanel" index="0"]
+
+[node name="Message" type="Label" parent="NoResizePanel/VBoxContainer/BodyPanel/BodyContainer"]
+layout_mode = 2
+text = "I can be dragged, collapsed, locked — but not resized."
+autowrap_mode = 3
+
 [connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

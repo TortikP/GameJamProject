@@ -44,8 +44,12 @@
 ##   - BasePanel root: STOP (catch-all, C5)
 ##
 ## Composition handlers (created in _ready, owned as child nodes):
-##   - PanelDragHandler — listens to HeaderPanel.gui_input
-##   - PanelResizeHandler — connects to each of the 8 ResizeFrame handles
+##   - PanelDragHandler     — listens to HeaderPanel.gui_input
+##   - PanelResizeHandler   — connects to each of the 8 ResizeFrame handles
+##   - PanelCollapseHandler — toggle CollapseButton; hides BodyPanel and
+##                            ResizeFrame; shrinks panel to header-only height
+##   - PanelLockHandler     — toggle LockButton; gates drag and resize at
+##                            their input handlers via is_locked() checks
 
 class_name BasePanel
 extends Control
@@ -111,6 +115,8 @@ var _collapse_button: Button
 # ── Composition handlers (created in _ready, owned as child nodes) ────
 var _drag_handler: PanelDragHandler
 var _resize_handler: PanelResizeHandler
+var _collapse_handler: PanelCollapseHandler
+var _lock_handler: PanelLockHandler
 
 
 func _ready() -> void:
@@ -139,8 +145,12 @@ func _resolve_nodes() -> void:
 
 
 func _compute_effective_flags() -> void:
-	# Phase 1 stub — header_visible cascade and lock state will be
-	# folded in here in Phases 4-5.
+	# Static effective flags from exports. The header_visible cascade
+	# is folded in by Phase 5. Lock state is intentionally NOT folded
+	# in here — it's runtime-dynamic, checked separately via
+	# is_locked() at handler input gates (see panel_drag_handler,
+	# panel_resize_handler). Recomputing on every lock toggle would
+	# add complexity for no behavioural gain.
 	_effective_draggable   = draggable
 	_effective_resizable   = resizable
 	_effective_collapsible = collapsible
@@ -188,6 +198,31 @@ func _setup_handlers() -> void:
 	add_child(_resize_handler)
 	_resize_handler.setup(self)
 
+	if _effective_collapsible and _collapse_button != null:
+		_collapse_handler = PanelCollapseHandler.new()
+		_collapse_handler.name = "_CollapseHandler"
+		add_child(_collapse_handler)
+		_collapse_handler.setup(self, _collapse_button, _body_panel, _resize_frame)
+	elif _collapse_button != null:
+		_collapse_button.visible = false
+
+	if _effective_lockable and _lock_button != null:
+		_lock_handler = PanelLockHandler.new()
+		_lock_handler.name = "_LockHandler"
+		add_child(_lock_handler)
+		_lock_handler.setup(self, _lock_button)
+	elif _lock_button != null:
+		_lock_button.visible = false
+
+	# Apply defaults. Signals are emitted so visual side-effects (e.g.
+	# resize_handler hides ResizeFrame on locked_changed(true)) happen.
+	# Persistence in Phase 6 will subscribe AFTER defaults are applied,
+	# so these emits won't trigger spurious autosaves.
+	if default_locked and _lock_handler != null:
+		_lock_handler.set_locked(true)
+	if default_collapsed and _collapse_handler != null:
+		_collapse_handler.set_collapsed(true)
+
 
 # ── Public API ─────────────────────────────────────────────────────
 
@@ -211,14 +246,22 @@ func is_lockable() -> bool:
 	return _effective_lockable
 
 
+func is_locked() -> bool:
+	return _lock_handler != null and _lock_handler.is_locked()
+
+
+func is_collapsed() -> bool:
+	return _collapse_handler != null and _collapse_handler.is_collapsed()
+
+
 func toggle_lock() -> void:
-	# Phase 4 — implemented when PanelLockHandler is wired.
-	pass
+	if _lock_handler != null:
+		_lock_handler.toggle()
 
 
 func toggle_collapse() -> void:
-	# Phase 4 — implemented when PanelCollapseHandler is wired.
-	pass
+	if _collapse_handler != null:
+		_collapse_handler.toggle()
 
 
 func reset_to_defaults() -> void:

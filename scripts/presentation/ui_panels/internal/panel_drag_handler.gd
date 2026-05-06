@@ -37,10 +37,12 @@ func setup(base_panel: BasePanel, drag_handle: Control) -> void:
 
 
 func _on_handle_gui_input(event: InputEvent) -> void:
-	# is_draggable() returns the EFFECTIVE flag — Phases 4-5 fold in
-	# lock state and header_visible cascade. Handler stays passive
-	# automatically when locked or when header hidden.
-	if not _base_panel.is_draggable():
+	# is_draggable() returns the EFFECTIVE flag — Phase 5 folds in
+	# header_visible cascade. is_locked() is checked separately because
+	# lock is runtime-dynamic (see base_panel._compute_effective_flags
+	# comment for rationale). Handler stays passive automatically when
+	# the panel is locked or drag is disabled.
+	if not _base_panel.is_draggable() or _base_panel.is_locked():
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
