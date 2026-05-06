@@ -94,14 +94,17 @@ func _ready() -> void:
 func _apply_theme() -> void:
 	UiTheme.apply_label_kind(_title, "display")
 	# Title-specific bump for menu pop: oversized + thick black outline.
-	# 80 = FS_BODY × 5, multiple of 16 so Pixellari stays crisp.
-	_title.add_theme_font_size_override("font_size", 80)
+	# `FS_BODY × 5` keeps the original 047 hierarchy (was 80 = 16 × 5);
+	# after 056 = 24 × 5 = 120 on the 1080p canvas. Not a multiple of 16
+	# in this iteration — Pixellari rendering at 120 is acceptable for a
+	# once-per-session screen. Bumps with FS_BODY automatically.
+	_title.add_theme_font_size_override("font_size", UiTheme.FS_BODY * 5)
 	_title.add_theme_constant_override("outline_size", 8)
 	_title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
 	# Subtitle: small tagline under the title, with its own outline.
-	# 32 = FS_DISPLAY (pixel-perfect for Pixellari, visibly subordinate to 80).
+	# = FS_DISPLAY (visibly subordinate to title); after 056 = 48.
 	UiTheme.apply_label_kind(_subtitle, "body")
-	_subtitle.add_theme_font_size_override("font_size", 32)
+	_subtitle.add_theme_font_size_override("font_size", UiTheme.FS_DISPLAY)
 	_subtitle.add_theme_constant_override("outline_size", 4)
 	_subtitle.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
 	for btn in [_start_btn, _continue_btn, _godmode_btn, _map_editor_btn,
