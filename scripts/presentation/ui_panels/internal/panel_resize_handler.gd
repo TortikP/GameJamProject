@@ -127,16 +127,23 @@ func _hovered_handle() -> int:
 	var pp := _base_panel.global_position
 	var ps := _base_panel.size
 
-	var near_top: bool    = absf(mouse_pos.y - pp.y) <= BORDER_WIDTH
-	var near_bottom: bool = absf(mouse_pos.y - (pp.y + ps.y)) <= BORDER_WIDTH
-	var near_left: bool   = absf(mouse_pos.x - pp.x) <= BORDER_WIDTH
-	var near_right: bool  = absf(mouse_pos.x - (pp.x + ps.x)) <= BORDER_WIDTH
+	# Resize zones live ENTIRELY OUTSIDE the panel rect, in a BORDER_WIDTH-px
+	# frame around it. The panel's edge pixel itself is included as the
+	# inner boundary so the zone is grabbable right where the panel ends.
+	# This way resize never overlaps with header buttons / body content
+	# inside the panel — a click on a button is unambiguously a button
+	# click; you have to move the cursor past the panel border to enter
+	# the resize zone.
+	var near_top: bool    = pp.y - BORDER_WIDTH <= mouse_pos.y and mouse_pos.y <= pp.y
+	var near_bottom: bool = pp.y + ps.y <= mouse_pos.y and mouse_pos.y <= pp.y + ps.y + BORDER_WIDTH
+	var near_left: bool   = pp.x - BORDER_WIDTH <= mouse_pos.x and mouse_pos.x <= pp.x
+	var near_right: bool  = pp.x + ps.x <= mouse_pos.x and mouse_pos.x <= pp.x + ps.x + BORDER_WIDTH
 
-	# Mouse must be roughly within the panel's bounds (allowing
-	# BORDER_WIDTH outside on each side so corners read at the very edge).
-	var within: bool = mouse_pos.x >= pp.x - BORDER_WIDTH \
+	# Bail early if mouse is far from the panel's expanded rect — saves
+	# the corner/edge fallthroughs.
+	var within: bool = pp.x - BORDER_WIDTH <= mouse_pos.x \
 			and mouse_pos.x <= pp.x + ps.x + BORDER_WIDTH \
-			and mouse_pos.y >= pp.y - BORDER_WIDTH \
+			and pp.y - BORDER_WIDTH <= mouse_pos.y \
 			and mouse_pos.y <= pp.y + ps.y + BORDER_WIDTH
 	if not within:
 		return HANDLE.NONE
