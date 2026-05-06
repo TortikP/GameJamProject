@@ -109,11 +109,13 @@ func _setup_handlers() -> void:
 		add_child(_drag_handler)
 		_drag_handler.setup(self, _header_panel)
 
-	if _effective_resizable:
-		_resize_handler = PanelResizeHandler.new()
-		_resize_handler.name = "_ResizeHandler"
-		add_child(_resize_handler)
-		_resize_handler.setup(self)
+	# Always create the resize handler. Its setup() chooses what to do
+	# based on is_resizable() — when resize is disabled it hides the
+	# handle nodes so they don't trigger cursor changes on hover.
+	_resize_handler = PanelResizeHandler.new()
+	_resize_handler.name = "_ResizeHandler"
+	add_child(_resize_handler)
+	_resize_handler.setup(self)
 
 
 func _resolve_nodes() -> void:

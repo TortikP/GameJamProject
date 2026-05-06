@@ -65,3 +65,74 @@ theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
+
+[node name="ResizeHandle_TopLeft" type="Control" parent="."]
+layout_mode = 1
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_default_cursor_shape = 12
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_Top" type="Control" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_top = -6.0
+offset_bottom = 0.0
+mouse_default_cursor_shape = 9
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_TopRight" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_top = -6.0
+offset_right = 6.0
+mouse_default_cursor_shape = 11
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_Right" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 6.0
+mouse_default_cursor_shape = 10
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_BottomRight" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 6.0
+offset_bottom = 6.0
+mouse_default_cursor_shape = 12
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_Bottom" type="Control" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 6.0
+mouse_default_cursor_shape = 9
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_BottomLeft" type="Control" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_bottom = 6.0
+mouse_default_cursor_shape = 11
+modulate = Color(1, 1, 1, 0)
+
+[node name="ResizeHandle_Left" type="Control" parent="."]
+layout_mode = 1
+anchor_bottom = 1.0
+offset_left = -6.0
+mouse_default_cursor_shape = 10
+modulate = Color(1, 1, 1, 0)
