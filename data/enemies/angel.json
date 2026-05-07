@@ -12,7 +12,8 @@
     "angel_scorching_ray"
   ],
   "passive_skills": [
-    "passive_long_reach"
+    "passive_long_reach",
+    "passive_cellular_regen"
   ],
   "behavior_id": "default_ranged",
   "fallback_skill_id": "angel_sharp_feathers"
