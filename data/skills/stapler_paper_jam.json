@@ -26,10 +26,11 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 3
       },
       "effects": [
         {
+          "damage": 2,
           "status_id": "rooted(1)"
         }
       ]
