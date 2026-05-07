@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://map_editor_001"]
+[gd_scene load_steps=21 format=3 uid="uid://map_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/map_editor_controller.gd" id="1_mec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hexgrid"]
@@ -19,6 +19,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_panel.gd" id="17_wp"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/wave_diff_overlay.gd" id="18_wdo"]
 [ext_resource type="Script" path="res://scripts/presentation/dev/dialogue_trigger_panel.gd" id="19_dtp"]
+[ext_resource type="PackedScene" uid="uid://52k1drd6uyfx" path="res://scenes/ui/panels/base_panel.tscn" id="20_bp"]
 
 [node name="MapEditor" type="Node2D"]
 script = ExtResource("1_mec")
@@ -111,7 +112,7 @@ custom_minimum_size = Vector2(120, 32)
 
 [node name="Timeline" parent="HUD/WavePanel/VBox/TimelineRow" instance=ExtResource("16_wt")]
 
-[node name="LevelMetaPanel" type="PanelContainer" parent="HUD"]
+[node name="LevelMetaPanel" parent="HUD" instance=ExtResource("20_bp")]
 script = ExtResource("12_mp")
 anchors_preset = 1
 anchor_left = 1.0
@@ -119,9 +120,14 @@ anchor_right = 1.0
 offset_left = -360.0
 offset_top = 16.0
 offset_right = -16.0
+offset_bottom = 124.0
 grow_horizontal = 0
+panel_id = &"level_meta"
+panel_title_key = &"ui_level_meta_title"
+panel_title_fallback = "Уровень"
+min_panel_size = Vector2(280, 100)
 
-[node name="FloorPalettePanel" type="PanelContainer" parent="HUD"]
+[node name="FloorPalettePanel" parent="HUD" instance=ExtResource("20_bp")]
 script = ExtResource("10_fp")
 anchors_preset = 7
 anchor_left = 0.5
@@ -134,8 +140,12 @@ offset_right = 260.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
+panel_id = &"floor_palette"
+panel_title_key = &"ui_floor_palette_title"
+panel_title_fallback = "Пол"
+min_panel_size = Vector2(360, 180)
 
-[node name="ObjectPalettePanel" type="PanelContainer" parent="HUD"]
+[node name="ObjectPalettePanel" parent="HUD" instance=ExtResource("20_bp")]
 script = ExtResource("11_op")
 anchors_preset = 11
 anchor_left = 1.0
@@ -147,8 +157,12 @@ offset_top = 160.0
 offset_right = -16.0
 offset_bottom = -240.0
 grow_horizontal = 0
+panel_id = &"object_palette"
+panel_title_key = &"ui_object_palette_title"
+panel_title_fallback = "Объекты"
+min_panel_size = Vector2(280, 240)
 
-[node name="ToolPanel" type="PanelContainer" parent="HUD"]
+[node name="ToolPanel" parent="HUD" instance=ExtResource("20_bp")]
 script = ExtResource("14_tp")
 anchors_preset = 4
 anchor_top = 0.5
@@ -158,12 +172,16 @@ offset_top = -120.0
 offset_right = 220.0
 offset_bottom = 120.0
 grow_vertical = 2
+panel_id = &"tool"
+panel_title_key = &"ui_tool_panel_title"
+panel_title_fallback = "Инструменты"
+min_panel_size = Vector2(180, 200)
 
 [node name="ToastLayer" parent="HUD" instance=ExtResource("8_toast")]
 
 [node name="ConfirmModal" parent="HUD" instance=ExtResource("9_modal")]
 
-[node name="DialogueTriggerPanel" type="PanelContainer" parent="HUD"]
+[node name="DialogueTriggerPanel" parent="HUD" instance=ExtResource("20_bp")]
 script = ExtResource("19_dtp")
 anchors_preset = 6
 anchor_top = 1.0
@@ -173,6 +191,10 @@ offset_top = -230.0
 offset_right = 246.0
 offset_bottom = -8.0
 grow_vertical = 0
+panel_id = &"dialogue_trigger"
+panel_title_key = &"ui_dialogue_trigger_title"
+panel_title_fallback = "Триггеры диалогов"
+min_panel_size = Vector2(220, 200)
 
 [node name="HotkeyOverlay" type="Control" parent="HUD"]
 script = ExtResource("13_hk")
