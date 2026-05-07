@@ -24,6 +24,22 @@
     "trigger": "story_forest_arrive",
     "mode": "random",
     "moods": {
+      "neutral": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
       "tranquility": {
         "options": [
           {
