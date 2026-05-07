@@ -2,13 +2,15 @@
 ##
 ## Composition handler. Owned by BasePanel; not a public API.
 ##
-## Connects to the 8 invisible Control handles inside ResizeFrame. Each
-## handle is a regular Control with:
+## Connects to the 10 Control handles inside ResizeFrame (8 logical
+## edges/corners; top corners are split into _H + _V arms — see
+## HANDLE_DIRS docstring below). Each handle is a Control with:
 ##   - mouse_default_cursor_shape set per direction in tscn
 ##     (FDIAGSIZE / BDIAGSIZE / VSIZE / HSIZE) — Godot's native cursor
 ##     handling on hover, no DisplayServer tricks.
 ##   - mouse_filter = STOP captures clicks reliably.
-##   - modulate.a = 0 — invisible but interactive.
+##   - No drawing — Control has no body, only a hit rect; nothing
+##     visible to the user (cursor change on hover is the only feedback).
 ##   - anchors+offsets in tscn place each rect at the correct corner /
 ##     edge zone (see base_panel.gd geometry constants).
 ##
@@ -30,7 +32,7 @@ extends Node
 ## Top corners are split into horizontal (_H) and vertical (_V) arms so
 ## their hit zones form an L-shape outside the panel and don't overlap
 ## with LockButton / CollapseButton (which sit at the same corners).
-## Bottom corners stay as single 44×44 ColorRects — no header buttons
+## Bottom corners stay as single 44×44 Control rects — no header buttons
 ## there, no input contention. Both arms of a top corner emit the same
 ## diagonal direction vector, so dragging either resizes diagonally.
 const HANDLE_DIRS := {

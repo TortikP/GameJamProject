@@ -27,7 +27,6 @@
 ##   1. ResizeFrame   — 10 Control handles at root corners/edges
 ##   2. VBoxContainer — HeaderPanel (with HeaderRow) + BodyPanel,
 ##                      inset 6px from root edges
-##   3. DragDebug     — yellow debug overlay flush with HeaderPanel rect
 ##
 ## Mouse routing:
 ##   - ResizeFrame:    IGNORE (children STOP)
@@ -38,7 +37,6 @@
 ##   - LockButton/CollapseButton: STOP (default for Button)
 ##   - TitleLabel:     IGNORE (default for Label)
 ##   - BodyPanel:      PASS
-##   - DragDebug:      IGNORE
 ##   - BasePanel root: STOP (catch-all, C5)
 ##
 ## Composition handlers (created in _ready, owned as child nodes):
@@ -146,11 +144,10 @@ func _ready() -> void:
 
 
 ## When header_visible == false, hide every chrome layer (HeaderPanel
-## with its row of lock/title/collapse, the DragDebug overlay, and the
-## entire ResizeFrame). A "pinned" panel is just body — no header bar,
-## no resize handles, no drag affordance. Cascade in
-## _compute_effective_flags then ensures no handlers are created in
-## _setup_handlers either.
+## with its row of lock/title/collapse and the entire ResizeFrame).
+## A "pinned" panel is just body — no header bar, no resize handles,
+## no drag affordance. Cascade in _compute_effective_flags then ensures
+## no handlers are created in _setup_handlers either.
 ##
 ## Body stylebox: pinned panels swap from make_panel_body_stylebox()
 ## (no top border — assumes HeaderPanel sits above) to make_panel_stylebox()
@@ -162,11 +159,6 @@ func _apply_chrome_visibility() -> void:
 		_header_panel.visible = false
 	if _resize_frame != null:
 		_resize_frame.visible = false
-	# DragDebug is a debug-only overlay (Phase 1-3 zone visualisation).
-	# Hide it on pinned panels too.
-	var drag_debug := get_node_or_null("DragDebug") as Control
-	if drag_debug != null:
-		drag_debug.visible = false
 	# Mark the panel so _apply_theme uses the full-border stylebox on
 	# (re)apply. _apply_theme runs after this.
 	_pinned_body_style = true
