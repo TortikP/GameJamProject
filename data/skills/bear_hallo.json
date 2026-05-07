@@ -27,7 +27,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(2,8,3)"
+          "status_id": "strong(2,10,3)"
         }
       ]
     },
@@ -42,7 +42,7 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 2
       },
       "effects": [
         {
