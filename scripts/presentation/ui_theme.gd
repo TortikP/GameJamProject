@@ -347,6 +347,48 @@ static func make_nested_stylebox() -> StyleBoxFlat:
 	return sb
 
 
+## Header-strip stylebox for ui-panels (Spec 055). Lighter background
+## (BG_PANEL_2 vs BG_PANEL), full 1px borders on left/top/right (these
+## draw the actual top edge of the panel — outer is intentionally
+## border-less, see make_panel_body_stylebox), and 2px bottom border
+## as the separator between header and body. content_margin = 0 so
+## that header buttons fill the full header height/width (Win98 caption-
+## button style); padding between widgets is handled by HBoxContainer
+## separation in BasePanel.tscn. Used by BasePanel.
+static func make_header_stylebox() -> StyleBoxFlat:
+	var sb := make_panel_stylebox()
+	sb.bg_color = BG_PANEL_2
+	sb.border_width_left   = 1
+	sb.border_width_right  = 1
+	sb.border_width_top    = 1
+	sb.border_width_bottom = 2
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
+	return sb
+
+
+## Body stylebox for ui-panels (Spec 055). Same bg as panels everywhere
+## (BG_PANEL), full 1px borders on left/right/bottom — top is 0 because
+## the header strip's 2px bottom border already serves as the
+## header-body divider. Together with make_header_stylebox this composes
+## a complete window frame WITHOUT requiring an outer bordered panel.
+## Used by BasePanel.
+static func make_panel_body_stylebox() -> StyleBoxFlat:
+	var sb := make_panel_stylebox()
+	sb.bg_color = BG_PANEL
+	sb.border_width_left   = 1
+	sb.border_width_right  = 1
+	sb.border_width_top    = 0
+	sb.border_width_bottom = 1
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
+	return sb
+
+
 ## Builds a modal-surface stylebox (elevated bg, stronger border, larger margins).
 static func make_modal_stylebox() -> StyleBoxFlat:
 	var sb := make_panel_stylebox(true)

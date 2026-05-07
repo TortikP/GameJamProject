@@ -1,6 +1,6 @@
 # Polyabsorb
 
-> **YOU ARE WHAT YOU EAT** — turn-based magical arena with spell-craft via modifiers, hex grid, roguelike loop. 72-hour game jam project. Godot 4.6.2 + GDScript.
+> **YOU ARE WHAT YOU EAT** — turn-based hex tactics with story-driven roguelike loop and meta-progression. Aspect-based identity system: kill enemies, absorb their skills, become what you eat. Godot 4.6.2 + GDScript.
 
 ## Quick start
 
@@ -31,7 +31,7 @@ Full discussion in `THEME_PLAN.md` §1.5 and `CLAUDE.md`. PRs that violate these
 
 - `CLAUDE.md` — project conventions / constitution. **Read this first.**
 - `HANDOFF.md` — full operational context, timeline, scope rules, fallbacks.
-- `jam-concept-pitch.md` — game concept and theme analysis.
+- `docs/design/` — current game concept: `VISION.md`, `PILLARS.md`, `aspects.md`, `DECISIONS.md`, `REFERENCES.md`, `OPEN-QUESTIONS.md`, `GLOSSARY.md`. Replaces the old `jam-concept-pitch.md` (deleted 2026-05-07; that was a pre-theme pitch, much of which never materialized).
 - `THEME_PLAN.md` — narrative + design plan tied to jam theme.
 - `PROJECT_INSTRUCTIONS.md` — template for `claude.ai → Project → Instructions` (per-user, with personal token).
 - `specs/NNN-feature-name/` — `spec.md` / `plan.md` / `tasks.md` per feature. See `HANDOFF.md` §19. **54 numbered folders total: 41 real specs (features / systems / refactors), 11 minor fixes & cleanup, 2 reserved drafts (025, 029 — never implemented, subsumed by 039 / scattered polish).** Minor-fix folders: `013-refactor-wave-1`, `015-refactor-wave-2`, `016-cleanup-wave`, `017-doc-fixes`, `031-skill-system-fixes`, `036-level-builder-bugfix`, `037-player-stun-immunity`, `046-skill-bug-fix`, `051-ability-sfx-resolver`, `052-ability-sfx-fix`, `053-pck-audio-portrait-fix`.
