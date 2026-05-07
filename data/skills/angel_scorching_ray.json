@@ -22,15 +22,16 @@
       "animation": "cast_ascended",
       "target": {
         "kind": "actor",
-        "range": 4
+        "range": 5
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 2
+        "max_chain_length": 1
       },
       "effects": [
         {
-          "status_id": "burning(2,6,3)"
+          "damage": 26,
+          "status_id": "burning(2,5,3)"
         }
       ]
     }
