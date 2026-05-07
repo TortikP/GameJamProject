@@ -22,7 +22,7 @@
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
-        "range": 4
+        "range": 6
       },
       "area": {
         "kind": "chain",
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 8
+          "damage": 5
         }
       ]
     }
