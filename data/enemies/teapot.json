@@ -12,7 +12,8 @@
     "teapot_tea_gathering"
   ],
   "passive_skills": [
-    "passive_extra_choice"
+    "passive_extra_choice",
+    "passive_wide_pulse"
   ],
   "behavior_id": "default_caster",
   "fallback_skill_id": "teapot_low_possibility"
