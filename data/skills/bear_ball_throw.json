@@ -23,7 +23,7 @@
       "animation": "cast_tranquility",
       "target": {
         "kind": "actor",
-        "range": 4
+        "range": 5
       },
       "area": {
         "kind": "chain",
@@ -31,7 +31,7 @@
       },
       "effects": [
         {
-          "damage": 14,
+          "damage": 28,
           "status_id": "stunned(1)"
         }
       ]
