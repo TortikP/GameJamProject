@@ -26,11 +26,11 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 2
+        "radius": 4
       },
       "effects": [
         {
-          "damage": 8
+          "damage": 5
         }
       ]
     }
