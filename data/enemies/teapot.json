@@ -3,12 +3,12 @@
   "name": "teapot_name",
   "desc": "teapot_desc",
   "sprite": "assets/sprites/enemies/teapot.png",
-  "max_hp": 20,
+  "max_hp": 16,
   "team": "enemy",
-  "speed": 1,
+  "speed": 2,
   "skills": [
-	"teapot_low_possibility",
-	"teapot_spill_the_t",
+    "teapot_low_possibility",
+    "teapot_spill_the_t",
     "teapot_tea_gathering"
   ],
   "passive_skills": [
