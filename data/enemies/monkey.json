@@ -3,11 +3,11 @@
   "name": "monkey_name",
   "desc": "monkey_desc",
   "sprite": "assets/sprites/enemies/monkey.png",
-  "max_hp": 25,
+  "max_hp": 14,
   "team": "enemy",
-  "speed": 4,
+  "speed": 5,
   "skills": [
-	"monkey_time",
+    "monkey_time",
     "monkey_business"
   ],
   "passive_skills": [
