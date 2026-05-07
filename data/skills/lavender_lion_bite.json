@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 16
+          "damage": 28
         }
       ]
     },
@@ -48,7 +48,7 @@
       },
       "effects": [
         {
-          "heal": 6
+          "heal": 8
         }
       ]
     }
