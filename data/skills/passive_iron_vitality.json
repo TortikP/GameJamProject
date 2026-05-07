@@ -5,9 +5,14 @@
   "tooltip": "passive_iron_vitality_tooltip",
   "desc": "passive_iron_vitality_desc",
   "icon": "icons/skills/passive_iron_vitality.png",
-  "mood": ["tranquility"],
+  "mood": [
+    "tranquility"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "max_hp_bonus", "amount": 15}
+    {
+      "kind": "max_hp_bonus",
+      "amount": 20
+    }
   ]
 }
