@@ -5,9 +5,14 @@
   "tooltip": "passive_persistent_venom_tooltip",
   "desc": "passive_persistent_venom_desc",
   "icon": "icons/skills/passive_persistent_venom.png",
-  "mood": ["burnout"],
+  "mood": [
+    "burnout"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "status_duration_bonus", "amount": 1}
+    {
+      "kind": "status_duration_bonus",
+      "amount": 1
+    }
   ]
 }
