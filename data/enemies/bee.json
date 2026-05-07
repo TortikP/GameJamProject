@@ -3,12 +3,12 @@
   "name": "bee_name",
   "desc": "bee_desc",
   "sprite": "assets/sprites/enemies/bee.png",
-  "max_hp": 10,
+  "max_hp": 8,
   "team": "enemy",
-  "speed": 3,
+  "speed": 5,
   "skills": [
-	"bee_sting",
-	"bee_honey_cold",
+    "bee_sting",
+    "bee_honey_cold",
     "bee_summon_bee"
   ],
   "passive_skills": [
