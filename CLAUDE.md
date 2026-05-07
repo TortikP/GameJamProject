@@ -20,10 +20,11 @@
 > `PROJECT_INSTRUCTIONS.md` в корне репо тоже архивный — не использовать.
 
 ## Context
-Game jam project. 72 hours from Thursday 19:00. Team of 7 (6 in repo, +Katya outside).
-Theme will be announced Thursday 19:00 from a list of 15.
-Default concept: turn-based magical arena with spell-crafting via modifiers,
-hex grid, roguelike loop. See jam-concept-pitch.md for details.
+Post-jam extended development. Theme («Метаморфозы») announced; concept settled — see [`docs/design/`](docs/design/) (`VISION.md`, `PILLARS.md`, `aspects.md`, `DECISIONS.md`). Team of 7 (6 in repo, +Katya outside).
+
+**Current concept** (1-line): turn-based hex tactics, story-driven roguelike with meta-progression. Heroine is an escapist who jumps into fantasy worlds; killing enemies absorbs their **aspects** — a meta-resource of identity that gates dialogue branches, builds, and endings. Aspect progress hidden by default (Pillars-style). Builds are thematic (office / meme / fantasy / psycho / detective), not mechanical (damage / shield / AOE).
+
+**Authoritative state:** [`docs/design/DECISIONS.md`](docs/design/DECISIONS.md) (ratified decisions), [`docs/FEATURES.md`](docs/FEATURES.md) (lazy-backfill registry of what actually works). The pre-theme `jam-concept-pitch.md` was deleted 2026-05-07 (DECISIONS) — much of it never materialized; do not pull facts from old commits of that file.
 
 ## Stack
 - Godot 4.6.2 (patch versions must match across team)

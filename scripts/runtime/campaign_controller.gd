@@ -59,6 +59,7 @@ var _current_wave_index: int = -1
 var _current_level_wave_count: int = 0
 var _defeat_in_progress: bool = false
 var _campaign_skill_loadout: Array = []
+var _pending_hub_entry_context: StringName = &""
 
 
 func _ready() -> void:
@@ -82,22 +83,29 @@ func _on_main_menu_entered() -> void:
 	_callback_fired = true  # latch any in-flight upgrade/cutscene awaits
 	_defeat_in_progress = false
 	_campaign_skill_loadout.clear()
+	_pending_hub_entry_context = &""
 
 
 func _on_campaign_level_started(index: int, _map_path: String) -> void:
 	# Fresh campaign → reset cumulative score. ActiveGame.load_game always
 	# emits with index=0 first; subsequent levels of the same campaign
 	# emit with index>0 (no reset).
-	if index == 0:
+	if index < 0:
+		_defeat_in_progress = false
+		if _campaign_skill_loadout.is_empty():
+			_seed_campaign_skill_loadout()
+	elif index == 0 and not ActiveGame.is_starting_attempt_from_hub():
 		_running_total = 0
 		last_campaign_total = 0
 		last_defeat_final_boss = false
 		last_defeat_map_index = -1
 		last_defeat_wave_index = -1
 		_defeat_in_progress = false
+		_pending_hub_entry_context = &""
 		_seed_campaign_skill_loadout()
 	_current_wave_index = -1
 	_current_level_wave_count = 0
+	GameSave.save_campaign_state("campaign level started")
 
 
 func _on_level_loaded(level: LevelData) -> void:
@@ -123,6 +131,46 @@ func apply_campaign_skill_loadout() -> void:
 	PlayerSkillAdapterScript.apply_slots_snapshot(_campaign_skill_loadout)
 
 
+func get_campaign_skill_loadout() -> Array:
+	return _campaign_skill_loadout.duplicate(true)
+
+
+func restore_campaign_skill_loadout(snapshot: Variant) -> void:
+	_campaign_skill_loadout.clear()
+	if snapshot is Array:
+		for entry in snapshot:
+			if entry is Dictionary:
+				_campaign_skill_loadout.append(entry.duplicate(true))
+	if _campaign_skill_loadout.is_empty():
+		_seed_campaign_skill_loadout()
+
+
+func prepare_hub_entry(context: StringName) -> void:
+	_pending_hub_entry_context = context
+
+
+func pending_hub_entry_context() -> StringName:
+	return _pending_hub_entry_context
+
+
+func restore_hub_entry_context(context: Variant) -> void:
+	_pending_hub_entry_context = StringName(str(context))
+
+
+func consume_hub_entry_dialogue_id() -> StringName:
+	var context: StringName = _pending_hub_entry_context
+	_pending_hub_entry_context = &""
+	match context:
+		&"new_game":
+			return &"hub_entry_new_game"
+		&"after_death":
+			return &"hub_entry_after_death"
+		&"after_final_boss":
+			return &"hub_entry_after_final_boss"
+		_:
+			return &""
+
+
 func capture_current_skill_loadout() -> void:
 	if not ActiveGame.has_active_game():
 		return
@@ -131,12 +179,14 @@ func capture_current_skill_loadout() -> void:
 		return
 	_campaign_skill_loadout = snapshot.duplicate(true)
 	GameLogger.info("CampaignController", "captured campaign skill loadout (%d slots)" % _campaign_skill_loadout.size())
+	GameSave.save_campaign_state("skill loadout captured")
 
 
 func _seed_campaign_skill_loadout() -> void:
 	_campaign_skill_loadout.clear()
 	for i in STARTER_SKILLS.size():
 		_campaign_skill_loadout.append({
+			"kind": PlayerSkillAdapterScript.SLOT_KIND_ACTIVE,
 			"slot": i,
 			"id": STARTER_SKILLS[i],
 			"level": 0,
@@ -202,8 +252,17 @@ func _run_post_level_flow(total_score: int) -> void:
 		last_campaign_total = _running_total
 		GameLogger.info("CampaignController", "last level → campaign_finished(score=%d) → campaign_end" % last_campaign_total)
 		EventBus.campaign_finished.emit(last_campaign_total)
-		ActiveGame.clear()
-		get_tree().change_scene_to_file(CAMPAIGN_END_SCENE)
+		if ActiveGame.uses_hub():
+			prepare_hub_entry(&"after_final_boss")
+			if ActiveGame.return_to_hub():
+				_pending_fade_in = true
+				get_tree().change_scene_to_file(GODMODE_SCENE)
+			else:
+				ActiveGame.clear()
+				get_tree().change_scene_to_file(CAMPAIGN_END_SCENE)
+		else:
+			ActiveGame.clear()
+			get_tree().change_scene_to_file(CAMPAIGN_END_SCENE)
 	else:
 		ActiveGame.advance()
 		_pending_fade_in = true
@@ -260,6 +319,7 @@ func _begin_defeat_flow() -> void:
 	])
 	EventBus.campaign_defeated.emit(ActiveGame.current_index, _current_wave_index, is_final_boss_wave)
 	EventBus.battle_ended.emit(false)
+	capture_current_skill_loadout()
 	call_deferred("_run_defeat_flow", is_final_boss_wave)
 
 
@@ -271,10 +331,19 @@ func _run_defeat_flow(is_final_boss_wave: bool) -> void:
 			await _await_dialogue_finished(dialogue_id)
 	DialogueManager.clear_queue()
 	await get_tree().process_frame
-	ActiveGame.clear()
-	ActiveLevel.clear()
 	_pending_fade_in = false
 	get_tree().paused = false
+	if ActiveGame.uses_hub():
+		GameLogger.info("CampaignController", "defeat dialogue done -> hub")
+		prepare_hub_entry(&"after_death")
+		if ActiveGame.return_to_hub():
+			_pending_fade_in = true
+			var hub_err := get_tree().change_scene_to_file(GODMODE_SCENE)
+			if hub_err != OK:
+				GameLogger.error("CampaignController", "failed to change to hub: %s" % str(hub_err))
+			return
+	ActiveGame.clear()
+	ActiveLevel.clear()
 	GameLogger.info("CampaignController", "defeat dialogue done -> campaign_defeat")
 	var err := get_tree().change_scene_to_file(CAMPAIGN_DEFEAT_SCENE)
 	if err != OK:

@@ -103,14 +103,15 @@ func show_range(caster: Actor, skill_or_id) -> void:
 ## validity check (only CreateEffect's apply path uses them, and we run only
 ## resolve, not cast). Skipping them keeps overlay decoupled from godmode
 ## sub-tree shape.
-func show_range_for_ability(caster: Actor, ability: Ability) -> void:
+func show_range_for_ability(caster: Actor, ability: Ability, level: int = 0,
+		passive_mods: Dictionary = {}) -> void:
 	hide_range()
 	if _grid == null or caster == null or ability == null or ability.target == null:
 		return
 	var caster_coord: Vector2i = _grid.get_coord(caster.actor_id)
 	if caster_coord == Vector2i(-1, -1):
 		return
-	var range_hexes: Array[Vector2i] = ability.target.get_range_hexes(caster_coord, _grid)
+	var range_hexes: Array[Vector2i] = ability.effective_range_hexes(caster, _grid, level, passive_mods)
 	for c in range_hexes:
 		var ctx: Dictionary = {
 			"registry": _registry,
@@ -118,7 +119,7 @@ func show_range_for_ability(caster: Actor, ability: Ability) -> void:
 			"target_id": _grid.get_actor_at(c),
 			"target_coord": c,
 		}
-		if ability.target.resolve(caster, ctx) != null:
+		if ability.can_apply(caster, ctx, level, passive_mods):
 			_coords_valid.append(c)
 		else:
 			_coords_invalid.append(c)

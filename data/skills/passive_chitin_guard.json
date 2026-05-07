@@ -1,0 +1,13 @@
+{
+  "id": "passive_chitin_guard",
+  "type": "passive",
+  "name": "passive_chitin_guard_name",
+  "tooltip": "passive_chitin_guard_tooltip",
+  "desc": "passive_chitin_guard_desc",
+  "icon": "icons/skills/passive_chitin_guard.png",
+  "mood": ["tranquility"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "damage_reduction", "amount": 2}
+  ]
+}

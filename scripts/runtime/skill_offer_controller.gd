@@ -258,7 +258,7 @@ func _build_cards(pool: Dictionary, offer: Dictionary) -> Array:
 	var allow_upgrade: bool = bool(offer.get("allow_upgrade", true))
 	var allow_replace: bool = bool(offer.get("allow_replace", true))
 	var force_replace: bool = bool(offer.get("force_replace", false))
-	var count: int = int(offer.get("count", 3))
+	var count: int = int(offer.get("count", 3)) + PlayerSkillAdapterScript.offer_count_bonus()
 
 	var owned: Dictionary = PlayerSkillAdapterScript.owned_skills_dict()
 
@@ -298,6 +298,7 @@ func _make_card_for(id: StringName, owned: Dictionary,
 	if skill == null:
 		return {}
 	if not owned.has(id):
+		var slot_kind: StringName = PlayerSkillAdapterScript.slot_kind_for_skill_id(id)
 		# 049b / T043: empty-slot check wins over force_replace. Story maps
 		# (story_map_0[1-4].json) set force_replace=true on every wave to
 		# encourage build evolution, but the prior order also forced REPLACE
@@ -306,20 +307,22 @@ func _make_card_for(id: StringName, owned: Dictionary,
 		# New rule: if any slot is empty, the new skill is always ADD,
 		# regardless of force_replace. force_replace only kicks in once the
 		# bar is fully populated.
-		if PlayerSkillAdapterScript.first_empty_slot() >= 0:
-			return {"skill_id": id, "skill": skill, "mode": &"add"}
+		if PlayerSkillAdapterScript.first_empty_slot(slot_kind) >= 0:
+			return {"skill_id": id, "skill": skill, "mode": &"add", "slot_kind": slot_kind}
 		# Bar full — replace path. force_replace just guarantees we don't
 		# silently drop the card when allow_repl is also true.
 		if allow_repl:
-			return {"skill_id": id, "skill": skill, "mode": &"replace"}
+			return {"skill_id": id, "skill": skill, "mode": &"replace", "slot_kind": slot_kind}
 		return {}
 	# Owned — try upgrade first.
 	if allow_up and PlayerSkillAdapterScript.can_upgrade(id):
 		var owned_skill = owned[id]
 		var next_level: int = (int(owned_skill.level) if "level" in owned_skill else 0) + 1
-		return {"skill_id": id, "skill": skill, "mode": &"upgrade", "next_level": next_level}
+		return {"skill_id": id, "skill": skill, "mode": &"upgrade", "next_level": next_level,
+				"slot_kind": PlayerSkillAdapterScript.slot_kind_for_skill_id(id)}
 	if allow_repl:
-		return {"skill_id": id, "skill": skill, "mode": &"replace"}
+		return {"skill_id": id, "skill": skill, "mode": &"replace",
+				"slot_kind": PlayerSkillAdapterScript.slot_kind_for_skill_id(id)}
 	return {}
 
 
@@ -366,7 +369,9 @@ func _apply_pick(picked: Dictionary) -> void:
 				GameLogger.warn("SkillOfferController",
 					"_apply_pick replace mode but slot_index=%d — drop" % slot)
 				return
-			PlayerSkillAdapterScript.replace_slot(slot, sid)
+			var kind: StringName = StringName(str(picked.get("slot_kind",
+					PlayerSkillAdapterScript.slot_kind_for_skill_id(sid))))
+			PlayerSkillAdapterScript.replace_slot(slot, sid, kind)
 
 
 # ── Modal lifecycle ─────────────────────────────────────────────────────────

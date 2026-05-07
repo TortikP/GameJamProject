@@ -12,6 +12,9 @@
 	"bush_berry_throw",
     "bush_nice_smell"
   ],
+  "passive_skills": [
+    "passive_chilling_aura"
+  ],
   "behavior_id": "default_caster",
   "fallback_skill_id": "bush_berry_throw"
 }

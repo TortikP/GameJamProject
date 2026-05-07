@@ -157,6 +157,10 @@ func _request_move() -> void:
 	var coord := grid.coord_under_mouse()
 	if coord == Vector2i(-1, -1):
 		return
+	if ActiveGame.is_in_hub() and _ctrl.hub_controller != null \
+			and _ctrl.hub_controller.has_method("try_interact_at") \
+			and _ctrl.hub_controller.try_interact_at(coord):
+		return
 	if not grid.is_walkable(coord):
 		GameLogger.info("Godmode", "unreachable: %s" % str(coord))
 		return

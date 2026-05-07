@@ -169,11 +169,25 @@ static func _skill_var_values(skill) -> Dictionary:
 			_apply_modifiers(eff, ab.modifiers)
 			eff.apply_level(int(skill.level))
 			_collect_effect_vars(values, totals, eff, int(skill.level))
+	for eff in skill.passive_effects:
+		_collect_passive_vars(values, eff)
 
 	for key in totals.keys():
 		if int(totals[key]) > 0:
 			_set_var(values, key, totals[key])
 	return values
+
+
+static func _collect_passive_vars(values: Dictionary, eff: Dictionary) -> void:
+	for key in eff.keys():
+		var sn: StringName = StringName(str(key))
+		var value: Variant = eff[key]
+		if typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_STRING:
+			_set_var(values, sn, value, false)
+	var kind: StringName = StringName(str(eff.get("kind", "")))
+	if eff.has("amount"):
+		_set_var(values, &"amount", eff.get("amount"), false)
+		_set_var(values, StringName("%s_amount" % String(kind)), eff.get("amount"), false)
 
 
 static func _collect_target_vars(values: Dictionary, target: AbilityTarget, level: int) -> void:
@@ -340,6 +354,8 @@ static func format_consequence(skill) -> String:
 ## matches what the string actually says (no risk of "+15 HP" coming back
 ## red because the next effect is damage).
 static func consequence_color(skill) -> Color:
+	if skill != null and "type" in skill and skill.type == &"passive":
+		return UiTheme.SEM_BUFF
 	if skill == null or skill.abilities.is_empty():
 		return UiTheme.TEXT
 	var ab = skill.abilities[0]

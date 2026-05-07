@@ -19,6 +19,7 @@ signal damaged(id: StringName, amount: int, hp_left: int)
 signal died(id: StringName)
 # 027: emitted whenever _statuses changes — UI subscribes to rebuild pill strip.
 signal statuses_changed(actor_id: StringName)
+signal passives_changed(actor_id: StringName)
 
 @export var actor_id: StringName = &""
 @export var max_hp: int = 100
@@ -35,8 +36,10 @@ signal statuses_changed(actor_id: StringName)
 
 var hp: int = 0
 var _dead: bool = false
+var _base_max_hp: int = -1
 var _ability_ids: Array[StringName] = []
 var _skills: Array = []   # Array[Skill] — plain Array to avoid typed-array Variant edge cases (CLAUDE.md trap)
+var _passive_skills: Array = []
 # 008: AI-planned (or player-issued) cast for the next resolve tick. null = no cast this turn.
 # Type intentionally untyped (Variant) — CastIntent class is loaded lazily; keeping this as a
 # concrete type would force every Actor consumer to preload it. Read via `actor.cast_intent`.
@@ -74,6 +77,27 @@ func set_skills(skills: Array) -> void:
 	_skills = skills
 
 
+func get_passive_skills() -> Array:
+	return _passive_skills
+
+
+func set_passive_skills(skills: Array) -> void:
+	_passive_skills = skills
+	_recompute_passive_derived_stats()
+	passives_changed.emit(actor_id)
+
+
+func get_loot_skills() -> Array:
+	var out: Array = []
+	for skill in _skills:
+		if skill != null and not out.has(skill):
+			out.append(skill)
+	for skill in _passive_skills:
+		if skill != null and not out.has(skill):
+			out.append(skill)
+	return out
+
+
 ## 034: lookup an actor's per-instance Skill by id. AI cast resolution
 ## (and player cast paths) must read cooldown state from the *actor's*
 ## skill copy, not from the SkillDatabase shared instance — see spec 034.
@@ -91,7 +115,68 @@ func tick_skills(by: int = 1) -> void:
 		s.tick_cooldown(by)
 
 
+func passive_move_speed_bonus() -> int:
+	return _passive_int_sum(&"move_speed")
+
+
+func passive_damage_bonus() -> int:
+	return _passive_int_sum(&"damage_bonus")
+
+
+func passive_damage_reduction() -> int:
+	return _passive_int_sum(&"damage_reduction")
+
+
+func passive_range_bonus() -> int:
+	return _passive_int_sum(&"range_bonus")
+
+
+func passive_cooldown_reduction() -> int:
+	return _passive_int_sum(&"cooldown_reduction")
+
+
+func passive_status_duration_bonus() -> int:
+	return _passive_int_sum(&"status_duration_bonus")
+
+
+func passive_offer_bonus() -> int:
+	return _passive_int_sum(&"offer_count_bonus")
+
+
+func passive_max_hp_bonus() -> int:
+	return _passive_int_sum(&"max_hp_bonus")
+
+
+func passive_reflect_percent() -> int:
+	return _passive_int_sum(&"reflect_percent")
+
+
+func passive_lifesteal_percent() -> int:
+	return _passive_int_sum(&"lifesteal_percent")
+
+
+func passive_area_radius_bonus() -> int:
+	return _passive_int_sum(&"area_radius_bonus")
+
+
+func passive_ranged_push_distance() -> int:
+	return _passive_int_sum(&"ranged_push")
+
+
+func _passive_int_sum(kind: StringName) -> int:
+	var sum: int = 0
+	for skill_v in _passive_skills:
+		var skill: Skill = skill_v as Skill
+		if skill == null:
+			continue
+		for eff in skill.passive_effects:
+			if StringName(str(eff.get("kind", ""))) == kind:
+				sum += int(eff.get("amount", 0))
+	return sum
+
+
 func _ready() -> void:
+	_recompute_passive_derived_stats()
 	hp = max_hp
 	if actor_id == &"":
 		GameLogger.warn("Actor", "spawned with empty actor_id — abilities can't target it")
@@ -108,7 +193,7 @@ func _ready() -> void:
 
 # ── Damage / heal ───────────────────────────────────────────────────────────
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, source: Actor = null) -> void:
 	if _dead or amount <= 0:
 		return
 	# 027: shielded (and any future damage_reduction status) absorbs first.
@@ -125,6 +210,12 @@ func take_damage(amount: int) -> void:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d) [absorbed %d]" % [actor_id, reduced, hp, max_hp, amount - reduced])
 	else:
 		GameLogger.info("Actor", "%s -%d hp (%d/%d)" % [actor_id, reduced, hp, max_hp])
+	if reduced > 0 and source != null and is_instance_valid(source):
+		var reflect_percent: int = passive_reflect_percent()
+		if reflect_percent > 0 and source != self and source.is_alive():
+			var reflected: int = int(floor(float(reduced) * float(reflect_percent) / 100.0))
+			if reflected > 0:
+				source.take_damage(reflected, null)
 	if hp == 0:
 		_dead = true
 		_emit_death_events()
@@ -178,7 +269,7 @@ func _emit_death_events() -> void:
 
 func _death_skill_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
-	for skill_v in _skills:
+	for skill_v in get_loot_skills():
 		var skill: Skill = skill_v as Skill
 		if skill == null or skill.id == &"":
 			continue
@@ -197,6 +288,13 @@ func heal_to_full() -> void:
 	# repaints. Amount=0, hp_left=hp — semantic 'state changed, redraw'.
 	damaged.emit(actor_id, 0, hp)
 	GameLogger.info("Actor", "%s healed to full (%d/%d)" % [actor_id, hp, max_hp])
+
+
+func _recompute_passive_derived_stats() -> void:
+	if _base_max_hp < 0:
+		_base_max_hp = max_hp
+	max_hp = maxi(1, _base_max_hp + passive_max_hp_bonus())
+	hp = mini(hp, max_hp)
 
 
 # ── 027: Statuses ───────────────────────────────────────────────────────────
@@ -274,7 +372,7 @@ func is_stunned() -> bool:
 ## modify_speed. Order: base → each runtime in dictionary insertion order.
 ## rooted clamps to 0 (rooted_runtime returns 0). slowed halves.
 func effective_speed() -> int:
-	var s: int = speed
+	var s: int = speed + passive_move_speed_bonus()
 	for inst_v in _statuses.values():
 		var inst := inst_v as StatusInstance
 		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
@@ -286,7 +384,7 @@ func effective_speed() -> int:
 ## Sum of damage_reduction across active statuses. Currently only shielded
 ## contributes; multi-shield stack would sum here (out of scope).
 func damage_reduction() -> int:
-	var sum: int = 0
+	var sum: int = passive_damage_reduction()
 	for inst_v in _statuses.values():
 		var inst := inst_v as StatusInstance
 		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
@@ -300,13 +398,96 @@ func damage_reduction() -> int:
 ## Used by DamageEffect / predicted_damage_to: outgoing damage += this value.
 ## Final damage is clamped to 0 minimum at apply-site.
 func damage_amplifier() -> int:
-	var sum: int = 0
+	var sum: int = passive_damage_bonus()
 	for inst_v in _statuses.values():
 		var inst := inst_v as StatusInstance
 		var rt: GDScript = StatusRegistry.runtime_for(inst.status_id)
 		if rt != null:
 			sum += rt.damage_amplifier(inst)
 	return sum
+
+
+func tick_passives_with_ctx(ctx: Dictionary) -> void:
+	if _dead or _passive_skills.is_empty():
+		return
+	for skill_v in _passive_skills:
+		var skill: Skill = skill_v as Skill
+		if skill == null:
+			continue
+		for eff in skill.passive_effects:
+			_apply_passive_turn_effect(skill, eff, ctx)
+
+
+func _apply_passive_turn_effect(skill: Skill, eff: Dictionary, ctx: Dictionary) -> void:
+	var kind: StringName = StringName(str(eff.get("kind", "")))
+	match kind:
+		&"regen":
+			heal(int(eff.get("amount", 0)))
+		&"damage_aura":
+			_apply_passive_damage_aura(eff, ctx)
+		&"status_aura":
+			_apply_passive_status_aura(skill, eff, ctx)
+
+
+func _apply_passive_damage_aura(eff: Dictionary, ctx: Dictionary) -> void:
+	var amount: int = int(eff.get("amount", 0))
+	if amount <= 0:
+		return
+	for actor in _actors_in_passive_radius(eff, ctx):
+		(actor as Actor).take_damage(amount)
+
+
+func _apply_passive_status_aura(skill: Skill, eff: Dictionary, ctx: Dictionary) -> void:
+	var status_id: StringName = StringName(str(eff.get("status_id", "")))
+	var duration: int = int(eff.get("duration", 0))
+	if status_id == &"" or duration <= 0:
+		return
+	var rt: GDScript = StatusRegistry.runtime_for(status_id)
+	if rt == null:
+		return
+	var raw_args: Variant = eff.get("args", [])
+	var args: Array[int] = [duration]
+	if raw_args is Array:
+		for arg in raw_args:
+			args.append(int(arg))
+	if StatusRegistry.arity_of(status_id) != args.size():
+		return
+	for actor in _actors_in_passive_radius(eff, ctx):
+		var inst: StatusInstance = StatusInstance.new()
+		inst.status_id = status_id
+		inst.duration = duration
+		inst.args = args.duplicate()
+		inst.source_id = actor_id
+		inst.snapshot_value = rt.compute_snapshot(args, skill.level)
+		(actor as Actor).add_status(inst)
+
+
+func _actors_in_passive_radius(eff: Dictionary, ctx: Dictionary) -> Array:
+	var out: Array = []
+	var radius: int = int(eff.get("radius", 1))
+	var grid: HexGrid = ctx.get("grid")
+	var registry: ActorRegistry = ctx.get("registry")
+	if grid == null or registry == null:
+		return out
+	var center: Vector2i = grid.get_coord(actor_id)
+	if center == Vector2i(-1, -1):
+		return out
+	var coords: Array[Vector2i] = [center]
+	coords.append_array(grid.reachable_within(center, radius, []))
+	var coord_set: Dictionary = {}
+	for coord in coords:
+		coord_set[coord] = true
+	for actor_v in registry.all():
+		if not (actor_v is Actor):
+			continue
+		var actor: Actor = actor_v
+		if actor == self or not actor.is_alive():
+			continue
+		if actor.team == team:
+			continue
+		if coord_set.has(grid.get_coord(actor.actor_id)):
+			out.append(actor)
+	return out
 
 
 ## Tick all statuses one turn. Called by godmode_controller from

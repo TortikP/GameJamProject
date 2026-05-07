@@ -1,0 +1,13 @@
+{
+  "id": "passive_long_reach",
+  "type": "passive",
+  "name": "passive_long_reach_name",
+  "tooltip": "passive_long_reach_tooltip",
+  "desc": "passive_long_reach_desc",
+  "icon": "icons/skills/passive_long_reach.png",
+  "mood": ["ascended"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "range_bonus", "amount": 1}
+  ]
+}

@@ -30,8 +30,8 @@
         { "coord": [4, 1], "kind": "enemy", "ref": "monkey", "timer": 1 }
       ],
       "skill_offer": {
-        "pool": "basic",
-        "source": "pool",
+        "pool": "campaign_enemy_skills",
+        "source": "defeated_enemies",
         "count": 3,
         "allow_upgrade": true,
         "allow_replace": true,
@@ -91,8 +91,8 @@
         { "coord": [3, 2], "kind": "enemy", "ref": "monkey", "timer": 1 }
       ],
       "skill_offer": {
-        "pool": "basic",
-        "source": "pool",
+        "pool": "campaign_enemy_skills",
+        "source": "defeated_enemies",
         "count": 3,
         "allow_upgrade": true,
         "allow_replace": true,

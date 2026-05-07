@@ -11,6 +11,9 @@
 	"stapler_paper_jam",
     "stapler_under_desk_jump"
   ],
+  "passive_skills": [
+    "passive_ranged_shove"
+  ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "stapler_staple_shot"
 }

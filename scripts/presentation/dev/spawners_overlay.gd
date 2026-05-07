@@ -41,7 +41,10 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName, timer: int 
 
 	var glyph_label := Label.new()
 	glyph_label.text = glyph
-	glyph_label.add_theme_font_size_override("font_size", 48)
+	# 056: migrated 48 → UiTheme.FS_DIALOGUE_NAME (same tier as speaker name —
+	# crisp single character, semantically the largest "label" we render).
+	# After 056 bump = 72; bumps with UiTheme automatically.
+	glyph_label.add_theme_font_size_override("font_size", UiTheme.FS_DIALOGUE_NAME)
 	glyph_label.add_theme_color_override("font_color", color)
 	glyph_label.add_theme_constant_override("outline_size", 4)
 	glyph_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)
@@ -51,7 +54,9 @@ func set_spawner(coord: Vector2i, kind: StringName, ref: StringName, timer: int 
 
 	var tag_label := Label.new()
 	tag_label.text = label_text
-	tag_label.add_theme_font_size_override("font_size", 14)
+	# 056: migrated 14 → UiTheme.FS_SMALL (= 22 after 056 bump). Bumps with
+	# UiTheme automatically.
+	tag_label.add_theme_font_size_override("font_size", UiTheme.FS_SMALL)
 	tag_label.add_theme_color_override("font_color", UiTheme.TEXT if "TEXT" in UiTheme else Color.WHITE)
 	tag_label.add_theme_constant_override("outline_size", 3)
 	tag_label.add_theme_color_override("font_outline_color", UiTheme.WORLD_TEXT_OUTLINE_COLOR)

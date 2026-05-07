@@ -142,26 +142,38 @@ const SP_6 := 32
 # matching FS_SMALL so numeric and textual "small" sit at the same
 # height. Per Visibility doctrine in CLAUDE.md, when a font is illegible
 # at a size, the size goes up — never the font down.
-const FS_DISPLAY    := 32
-const FS_HEADER     := 20
-const FS_BODY       := 16
-const FS_SMALL      := 14
-const FS_NUM_LARGE  := 24
-const FS_NUM_SMALL  := 14
+#
+# 056: viewport bumped 1280×720 → 1920×1080 (spec 054), so all font
+# constants scale ×1.5 (mixed). Large sizes (DISPLAY, NUM_HUGE,
+# DIALOGUE_NAME/TEXT, BAR_OVERHEAD) snap to nearest multiple of 16
+# for Pixellari pixel-perfect rendering — that's why NUM_HUGE and
+# DIALOGUE_TEXT effectively move ×1.6 (40→64), DISPLAY ×1.5 (32→48),
+# BAR_OVERHEAD ×1.45 (22→32). Mid-range (BODY, SMALL, NUM_LARGE,
+# WAVE_NUMBER) kept strict ×1.5 — hierarchy proportionality wins over
+# pixel-perfect on these (16→24, 14→22, 24→36, 18→28). Same compromise
+# the team accepted in 047 for the original 22/18 fractional sizes.
+const FS_DISPLAY    := 48
+const FS_HEADER     := 30
+const FS_BODY       := 24
+const FS_SMALL      := 22
+const FS_NUM_LARGE  := 36
+const FS_NUM_SMALL  := 22
 # `num_huge` is for in-world combat text crits — has to read from across the
 # screen at a glance. See `Visibility doctrine` in CLAUDE.md.
-const FS_NUM_HUGE   := 40
+const FS_NUM_HUGE   := 64
 
-# ── Dialogue-specific (047 polish) ───────────────────────────
+# ── Dialogue-specific (047 polish, 056 bump) ─────────────────
 # Dialogue text/name need to be much larger than UI body — they are the
 # focal point during a story beat, not chrome. User direction: speaker
 # name ≥ ×2 of FS_HEADER, line text ×2.5 of FS_BODY. Picked exact
 # multiples of Pixellari's 16px bitmap source for crispness:
-#   FS_DIALOGUE_NAME = 48 = FS_BODY × 3  (just above the ×2 minimum,
+#   FS_DIALOGUE_NAME = 72 = FS_BODY × 3  (just above the ×2 minimum,
 #                                          gives clear hierarchy over text)
-#   FS_DIALOGUE_TEXT = 40 = FS_BODY × 2.5
-const FS_DIALOGUE_NAME := 48
-const FS_DIALOGUE_TEXT := 40
+#   FS_DIALOGUE_TEXT = 64 = FS_BODY × 2.66 (snapped to multiple of 16
+#                                            for pixel-perfect rendering;
+#                                            was FS_BODY × 2.5 in 047)
+const FS_DIALOGUE_NAME := 72
+const FS_DIALOGUE_TEXT := 64
 
 # ── Overhead actor UI (HP bar above sprite) ──────────────────
 # Visibility doctrine: world UI must read at default zoom without leaning in.
@@ -171,9 +183,13 @@ const FS_DIALOGUE_TEXT := 40
 # than OpenSans, and HP digits sit on top of grass/fire/blood — extra pixels
 # per glyph win the contrast fight (Visibility doctrine: bump size, never
 # the font).
+# 056: BAR_FONT_SIZE_OVERHEAD bumped 22→32 for the 1080p viewport. Snapped
+# to multiple of 16 (Pixellari pixel-perfect). BAR_WIDTH/HEIGHT NOT bumped
+# in this pass — surfaced as F-056-3 if 32-px digit (e.g. "9999") doesn't
+# fit in 64×10 during smoke. Point-fix in same branch if so.
 const BAR_WIDTH_OVERHEAD     := 64.0
 const BAR_HEIGHT_OVERHEAD    := 10.0
-const BAR_FONT_SIZE_OVERHEAD := 22
+const BAR_FONT_SIZE_OVERHEAD := 32
 
 # ── Outline / shadow for in-world text ───────────────────────
 # Combat text and HP digits sit on top of arbitrary backgrounds (grass, fire,
@@ -206,7 +222,8 @@ const WAVE_ANCHOR_CURRENT           := Color("00ffff")  # active wave (= FOCUS b
 const WAVE_ANCHOR_OUTLINE           := Color("001a1d")  # 1px ring around every disc (= BG_SCREEN)
 const WAVE_ANCHOR_RADIUS            := 10.0             # px radius for normal anchor
 const WAVE_ANCHOR_SPECIAL_RADIUS_MULT := 1.6            # special wave is bigger
-const WAVE_NUMBER_FONT_SIZE         := 18
+# 056: bumped 18 → 28 (×1.55, round-to-even ≈ FS_SMALL+6) for 1080p viewport.
+const WAVE_NUMBER_FONT_SIZE         := 28
 const WAVE_NUMBER_COLOR             := Color("d8f0f0")  # turns_to_next digit (= TEXT)
 const WAVE_CURSOR_COLOR             := Color("00ffff")  # runtime "now" pointer (= FOCUS)
 const WAVE_CURSOR_HEIGHT            := 22.0             # px tall
@@ -327,6 +344,48 @@ static func make_panel_stylebox(elevated: bool = false) -> StyleBoxFlat:
 static func make_nested_stylebox() -> StyleBoxFlat:
 	var sb := make_panel_stylebox()
 	sb.bg_color = BG_PANEL_2
+	return sb
+
+
+## Header-strip stylebox for ui-panels (Spec 055). Lighter background
+## (BG_PANEL_2 vs BG_PANEL), full 1px borders on left/top/right (these
+## draw the actual top edge of the panel — outer is intentionally
+## border-less, see make_panel_body_stylebox), and 2px bottom border
+## as the separator between header and body. content_margin = 0 so
+## that header buttons fill the full header height/width (Win98 caption-
+## button style); padding between widgets is handled by HBoxContainer
+## separation in BasePanel.tscn. Used by BasePanel.
+static func make_header_stylebox() -> StyleBoxFlat:
+	var sb := make_panel_stylebox()
+	sb.bg_color = BG_PANEL_2
+	sb.border_width_left   = 1
+	sb.border_width_right  = 1
+	sb.border_width_top    = 1
+	sb.border_width_bottom = 2
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
+	return sb
+
+
+## Body stylebox for ui-panels (Spec 055). Same bg as panels everywhere
+## (BG_PANEL), full 1px borders on left/right/bottom — top is 0 because
+## the header strip's 2px bottom border already serves as the
+## header-body divider. Together with make_header_stylebox this composes
+## a complete window frame WITHOUT requiring an outer bordered panel.
+## Used by BasePanel.
+static func make_panel_body_stylebox() -> StyleBoxFlat:
+	var sb := make_panel_stylebox()
+	sb.bg_color = BG_PANEL
+	sb.border_width_left   = 1
+	sb.border_width_right  = 1
+	sb.border_width_top    = 0
+	sb.border_width_bottom = 1
+	sb.content_margin_left   = 0
+	sb.content_margin_right  = 0
+	sb.content_margin_top    = 0
+	sb.content_margin_bottom = 0
 	return sb
 
 
