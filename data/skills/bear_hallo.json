@@ -10,7 +10,9 @@
     "self",
     "debuff"
   ],
-  "mood": [],
+  "mood": [
+    "tranquility"
+  ],
   "level": 0,
   "abilities": [
     {
@@ -27,7 +29,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(2,10,3)"
+          "status_id": "strong(3,10,3)"
         }
       ]
     },
@@ -46,7 +48,7 @@
       },
       "effects": [
         {
-          "status_id": "feared(1)"
+          "status_id": "feared(3)"
         }
       ]
     }
