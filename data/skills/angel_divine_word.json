@@ -30,6 +30,7 @@
       },
       "effects": [
         {
+          "heal": 10,
           "status_id": "shielded(2,5,2)"
         }
       ]
