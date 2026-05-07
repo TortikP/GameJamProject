@@ -4,7 +4,7 @@
   "tooltip": "teapot_tea_gathering_tooltip",
   "desc": "teapot_tea_gathering_desc",
   "icon": "icons/skills/teapot_tea_gathering.png",
-  "cooldown": 4,
+  "cooldown": 3,
   "behaviour_tags": [
     "move",
     "ranged"
@@ -30,6 +30,7 @@
       },
       "effects": [
         {
+          "damage": 3,
           "move_type": "pull"
         }
       ]
