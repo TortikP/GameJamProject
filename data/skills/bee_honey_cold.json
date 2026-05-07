@@ -31,7 +31,7 @@
       "effects": [
         {
           "heal": 12,
-          "status_id": "slowed(1)"
+          "status_id": "slowed(5)"
         }
       ]
     }
