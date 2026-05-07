@@ -159,3 +159,101 @@ user collapses panel → user re-expands → form is **still open**.
 Connect to `BasePanel.collapsed_changed(is_collapsed)` from inside DTP and
 mirror the form-close logic. ~5 lines. Add as a chore: commit if Niikta or
 Andrey reports the new behavior is annoying after using it.
+
+---
+
+## F-057-IMPL-4 — `set_anchors_preset(..., keep_offsets=true)` framework bug surfaced
+
+**Discovered in:** post-implementation smoke (Andrey reported "first click on
+panel jumps it up-left").
+**Severity:** blocked AC3 (drag/resize work). **Fixed in this branch.**
+**Origin:** Spec 055 (BasePanel framework) — pre-existing, exposed by 057.
+
+### The bug
+
+`PanelDragHandler._begin_drag()`, `PanelResizeHandler._begin_resize()`, and
+`PanelPersistence._restore()` each called
+`_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT, true)` on entry —
+intended to convert anchored panels to absolute positioning so subsequent
+`global_position` / `size` writes go where expected.
+
+`keep_offsets=true` is supposed to recompute offsets so the visual rect is
+preserved across the anchor change. **It works when `grow_horizontal`/
+`grow_vertical` are at default (END/END = 1/1).** It does **not** reliably
+preserve the rect when grow_direction is non-default — the panel visually
+"jumps" on the first interaction.
+
+### Why 055 didn't catch it
+
+`ui_catalog.tscn` (the only existing BasePanel consumer pre-057) places its
+demo panels with `anchors_preset = -1` (i.e., already TOP_LEFT-anchored
+absolute placement) and default grow_direction (END/END). The
+`set_anchors_preset(TOP_LEFT, true)` is effectively a no-op there → no bug
+to observe.
+
+### Why 057 surfaced it
+
+`map_editor.tscn` panels use anchors_preset 1 / 4 / 6 / 7 / 11 with
+non-default grow:
+- `FloorPalettePanel`: preset 7 + `grow_horizontal=2` (centered)
+- `LevelMetaPanel`:  preset 1 + `grow_horizontal=0` (right-anchored)
+- `ObjectPalettePanel`: preset 11 + `grow_horizontal=0`
+- `ToolPanel`: preset 4 + `grow_vertical=2` (centered)
+- `DialogueTriggerPanel`: preset 6 + `grow_vertical=0`
+
+All five panels triggered the bug on first drag.
+
+### The fix
+
+Single source of truth in `BasePanel._normalize_anchors_to_top_left()`:
+called once at `_ready()` time, AFTER `_resolve_nodes()` and BEFORE
+`_setup_handlers()` / `_setup_persistence()`. The method:
+
+1. Snapshots `global_position` and `size` (the absolute visual rect).
+2. Sets `set_anchors_preset(PRESET_TOP_LEFT)` WITHOUT `keep_offsets`.
+3. Resets `grow_horizontal = grow_vertical = GROW_DIRECTION_END`.
+4. Writes `global_position = snapshot_pos` and `size = snapshot_size`
+   to restore the visual rect via the now-trivial anchor system.
+
+After this, the panel root is in TOP_LEFT-anchored absolute mode for the
+rest of its lifetime. Drag / resize / persistence handlers no longer call
+`set_anchors_preset` — they assume TOP_LEFT and just write
+`global_position` / `size` / `position`. Single conversion, single
+correctness argument.
+
+### Files touched
+
+- `scripts/presentation/ui_panels/base_panel.gd`: added
+  `_normalize_anchors_to_top_left()` method, hook in `_ready()`.
+- `scripts/presentation/ui_panels/internal/panel_drag_handler.gd`:
+  removed `set_anchors_preset` from `_begin_drag()`, doc updated.
+- `scripts/presentation/ui_panels/internal/panel_resize_handler.gd`:
+  removed `set_anchors_preset` from `_begin_resize()`, doc updated.
+- `scripts/presentation/ui_panels/internal/panel_persistence.gd`:
+  removed `set_anchors_preset` from `_restore()`, comment updated.
+
+### What Andrey needs to do after pull
+
+The buggy first-drags before this fix corrupted `user://layouts.cfg` —
+panels saved their post-jump (broken) positions there. Simplest reset:
+
+**Linux:** `rm ~/.local/share/godot/app_userdata/GameJamProject/layouts.cfg`
+**macOS:** `rm ~/Library/Application\ Support/Godot/app_userdata/GameJamProject/layouts.cfg`
+**Windows:** delete `%APPDATA%\Godot\app_userdata\GameJamProject\layouts.cfg`
+
+Or open the file and delete just the `[scenes/dev/map_editor.tscn::*]`
+sections (other panels' persistence outside map_editor is unaffected).
+
+After this — first launch of map_editor uses the .tscn defaults, drag
+works correctly from click 1, and persistence saves the correct position.
+
+### Lesson for the framework
+
+Anchor manipulation in nontrivial layouts is brittle. Centralizing the
+conversion in one well-tested place (BasePanel._ready()) instead of
+spreading it across handlers is also a cleaner architecture independent
+of the bug — fewer places to get the invariant wrong.
+
+The 055 design.md should probably gain a note: "BasePanel root is always
+TOP_LEFT-anchored at runtime; consuming scenes can use any anchors_preset
+in .tscn for placement, but framework code assumes TOP_LEFT post-_ready()".
