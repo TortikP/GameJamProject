@@ -4,7 +4,7 @@
   "tooltip": "fire_slime_firey_touch_tooltip",
   "desc": "fire_slime_firey_touch_desc",
   "icon": "icons/skills/fire_slime_firey_touch.png",
-  "cooldown": 1,
+  "cooldown": 2,
   "behaviour_tags": [
     "melee",
     "damage",
@@ -32,7 +32,7 @@
       "effects": [
         {
           "damage": 20,
-          "status_id": "burning(2,3,3)"
+          "status_id": "burning(3,3,3)"
         }
       ]
     }
