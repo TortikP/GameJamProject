@@ -11,7 +11,8 @@
     "monkey_business"
   ],
   "passive_skills": [
-    "passive_quick_synapses"
+    "passive_quick_synapses",
+    "passive_extra_choice"
   ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "monkey_business"
