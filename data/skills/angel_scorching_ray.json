@@ -26,12 +26,12 @@
       },
       "area": {
         "kind": "chain",
-        "max_chain_length": 1
+        "max_chain_length": 3
       },
       "effects": [
         {
-          "damage": 26,
-          "status_id": "burning(2,5,3)"
+          "damage": 12,
+          "status_id": "burning(3,5,3)"
         }
       ]
     }
