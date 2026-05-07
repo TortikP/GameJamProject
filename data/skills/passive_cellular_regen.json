@@ -5,9 +5,14 @@
   "tooltip": "passive_cellular_regen_tooltip",
   "desc": "passive_cellular_regen_desc",
   "icon": "icons/skills/passive_cellular_regen.png",
-  "mood": ["tranquility"],
+  "mood": [
+    "tranquility"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "regen", "amount": 2}
+    {
+      "kind": "regen",
+      "amount": 2
+    }
   ]
 }
