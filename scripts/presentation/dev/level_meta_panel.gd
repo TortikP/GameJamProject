@@ -1,4 +1,4 @@
-extends PanelContainer
+extends BasePanel
 ## LevelMetaPanel — top-right panel: level name input + 4 action buttons
 ## (Save / Load / Playtest / Exit).
 ##
@@ -6,6 +6,10 @@ extends PanelContainer
 ## comes back through the load_requested signal. Save / Playtest / Exit are
 ## just notify-the-controller signals — the controller handles validation,
 ## sanitization, autosave, scene-change.
+##
+## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
+## extends BasePanel. Body content lives in get_body_container(); header,
+## drag, resize, collapse, lock, persistence are handled by BasePanel.
 ##
 ## Signals (consumed by MapEditorController):
 ##   save_requested()
@@ -15,7 +19,6 @@ extends PanelContainer
 ##   name_changed(new_name: String)
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
-const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const MAPS_DIR: String = "res://data/maps/"
 
@@ -37,9 +40,11 @@ var _file_dialog: FileDialog
 
 
 func _ready() -> void:
-	_apply_theme()
-	EventBus.ui_theme_reloaded.connect(_apply_theme)
-	_build_ui()
+	# In Godot 4, parent _ready() is NOT auto-called when subclass overrides.
+	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
+	# drag/resize/collapse/lock/persistence handlers. Then build our body.
+	super._ready()
+	_build_body()
 
 
 func setup(controller: Node) -> void:
@@ -59,20 +64,15 @@ func set_dirty(dirty: bool) -> void:
 		_dirty_marker.visible = dirty
 
 
-func _apply_theme() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
-
-
-func _build_ui() -> void:
+func _build_body() -> void:
+	var body := get_body_container()
+	if body == null:
+		push_error("[LevelMetaPanel] body container not available")
+		return
 	var vbox := VBoxContainer.new()
+	vbox.name = "ContentVBox"
 	vbox.add_theme_constant_override("separation", 6)
-	add_child(vbox)
-
-	var header := Label.new()
-	header.text = Localization.t("ui_level_meta_title", "Level")
-	UiTheme.apply_label_kind(header, "header")
-	vbox.add_child(header)
-	_install_drag(header)
+	body.add_child(vbox)
 
 	# Name input
 	var name_row := HBoxContainer.new()
@@ -107,7 +107,9 @@ func _build_ui() -> void:
 	btn_row.add_child(_exit_btn)
 	vbox.add_child(btn_row)
 
-	# File dialog (hidden until used)
+	# File dialog (hidden until used). Stays parented to self (the panel root)
+	# rather than the body container — it's a popup, not part of the body
+	# layout flow.
 	_file_dialog = FileDialog.new()
 	_file_dialog.access = FileDialog.ACCESS_RESOURCES
 	_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -151,9 +153,3 @@ func _on_playtest() -> void:
 
 func _on_exit() -> void:
 	exit_requested.emit()
-
-
-func _install_drag(handle: Control) -> void:
-	var dragger := DraggablePanel.new()
-	add_child(dragger)
-	dragger.setup(self, handle)

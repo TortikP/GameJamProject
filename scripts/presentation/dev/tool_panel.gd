@@ -1,4 +1,4 @@
-extends PanelContainer
+extends BasePanel
 ## ToolPanel — paint-tool picker. Lives at the left edge of the editor; sister
 ## to FloorPalettePanel/ObjectPalettePanel on the right.
 ##
@@ -10,12 +10,15 @@ extends PanelContainer
 ##                     Press at A, release at B; all cells with coord in
 ##                     [min(A,B)..max(A,B)] are painted in one undo transaction.
 ##
+## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
+## extends BasePanel. Body content lives in get_body_container(); header,
+## drag, resize, collapse, lock, persistence are handled by BasePanel.
+##
 ## Signals (consumed by MapEditorController):
 ##   tool_changed(tool: int)              — TOOL_BRUSH / TOOL_RECT
 ##   brush_size_changed(size: int)        — 1..9, only meaningful for brush
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
-const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TOOL_BRUSH: int = 0
 const TOOL_RECT: int = 1
@@ -38,29 +41,26 @@ var _current_tool: int = TOOL_BRUSH
 
 
 func _ready() -> void:
-	_apply_theme()
-	EventBus.ui_theme_reloaded.connect(_apply_theme)
-	_build_ui()
+	# In Godot 4, parent _ready() is NOT auto-called when subclass overrides.
+	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
+	# drag/resize/collapse/lock/persistence handlers. Then build our body.
+	super._ready()
+	_build_body()
 
 
 func setup(controller: Node) -> void:
 	_controller = controller
 
 
-func _apply_theme() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
-
-
-func _build_ui() -> void:
+func _build_body() -> void:
+	var body := get_body_container()
+	if body == null:
+		push_error("[ToolPanel] body container not available")
+		return
 	var vbox := VBoxContainer.new()
+	vbox.name = "ContentVBox"
 	vbox.add_theme_constant_override("separation", UiTheme.SP_2)
-	add_child(vbox)
-
-	var header := Label.new()
-	header.text = Localization.t("ui_tool_panel_title", "Tools")
-	UiTheme.apply_label_kind(header, "header")
-	vbox.add_child(header)
-	_install_drag(header)
+	body.add_child(vbox)
 
 	# Mode toggle row
 	var mode_row := HBoxContainer.new()
@@ -145,9 +145,3 @@ func _update_hint() -> void:
 			_hint.text = Localization.t("ui_tool_panel_brush_hint", "LMB drag to paint. Size 2 = 7 hexes, size 3 = 19, etc.")
 		TOOL_RECT:
 			_hint.text = Localization.t("ui_tool_panel_rect_hint", "Press LMB at corner A, release at corner B. Fills axis-aligned rect.")
-
-
-func _install_drag(handle: Control) -> void:
-	var dragger := DraggablePanel.new()
-	add_child(dragger)
-	dragger.setup(self, handle)

@@ -1,24 +1,29 @@
-extends PanelContainer
+extends BasePanel
 ## DialogueTriggerPanel -- editor sidebar for 039-dialogue-triggers.
 ##
 ## CRUD for LevelData.dialogue_triggers[]. Emits signals consumed by
 ## map_editor_controller which owns _level and _mark_dirty().
 ##
-## Layout (built in _ready from code, no separate .tscn children besides
-## the root PanelContainer):
-##   VBox
-##     Header: Label "Dialogue triggers" + count + collapse button
+## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
+## extends BasePanel. Header (title + lock + collapse) is now BasePanel-
+## managed; body content lives in get_body_container().
+##
+## Layout (built in _ready from code; .tscn is just an Inherited Scene from
+## base_panel.tscn with this script attached and exports set):
+##   BasePanel header: title "Dialogue Triggers" + lock + collapse-toggle
+##   Body (get_body_container())
+##     CountRow (Label "(N items)")
 ##     ItemList (trigger list)
 ##     ButtonRow: Add . Edit . Duplicate . Delete
 ##     EditForm (collapsible VBox) -- Add/Edit only
 ##       IdRow, EventRow, DialogueRow, PlayModeRow, ConditionsSection
 ##       FormButtons: Save . Cancel
+##     ErrorLabel
 ##
 ## Owner: Andrey / 039-dialogue-triggers.
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
-const DraggablePanelScript = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 ## Emitted after CRUD -- controller updates _level.dialogue_triggers + _mark_dirty.
 signal trigger_created(trigger_dict: Dictionary)
@@ -43,12 +48,10 @@ var _level: LevelData = null
 var _selected_idx: int = -1   # index in _level.dialogue_triggers[]
 var _editing: bool = false    # true = form is open (add or edit)
 var _editing_new: bool = false
-var _collapsed: bool = false
 
-# UI references (built in _ready).
+# UI references (built in _ready). Note 057: _title_label, _collapse_btn,
+# and _collapsed dropped — BasePanel header owns title + collapse semantics.
 var _count_label: Label
-var _collapse_btn: Button
-var _title_label: Label   # drag handle
 var _btn_row: Control     # Add/Edit/Dupe/Delete row
 var _list: ItemList
 var _btn_edit: Button
@@ -69,15 +72,13 @@ var _form_error_label: Label
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
-	_build_ui()
+	# In Godot 4, parent _ready() is NOT auto-called when subclass overrides.
+	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
+	# drag/resize/collapse/lock/persistence handlers. Then build our body.
+	super._ready()
+	_build_body()
 	_refresh_list()
 	_update_button_states()
-	# Make the panel draggable via its title label as handle.
-	var dragger := DraggablePanelScript.new()
-	add_child(dragger)
-	if _title_label != null:
-		dragger.setup(self, _title_label)
 
 
 ## Bind a LevelData. Called on level load + any CRUD from controller side.
@@ -103,31 +104,26 @@ func select_trigger(id: StringName) -> void:
 
 # -- UI construction ---------------------------------------------------------
 
-func _build_ui() -> void:
+func _build_body() -> void:
+	var body := get_body_container()
+	if body == null:
+		push_error("[DialogueTriggerPanel] body container not available")
+		return
 	var vbox := VBoxContainer.new()
+	vbox.name = "ContentVBox"
 	vbox.add_theme_constant_override("separation", 4)
-	add_child(vbox)
+	body.add_child(vbox)
 
-	# Header
-	var header := HBoxContainer.new()
-	vbox.add_child(header)
-	var title := Label.new()
-	UiTheme.apply_label_kind(title, "header")
-	title.text = Localization.t("ui_dialogue_trigger_title", "Dialogue Triggers")
-	header.add_child(title)
-	_title_label = title
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(spacer)
+	# Count row — was previously next to title in panel header. Per 057
+	# Q-057-5 (unified header), context info moves to body.
+	var count_row := HBoxContainer.new()
+	vbox.add_child(count_row)
+	var count_spacer := Control.new()
+	count_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	count_row.add_child(count_spacer)
 	_count_label = Label.new()
 	UiTheme.apply_label_kind(_count_label, "dim")
-	header.add_child(_count_label)
-	_collapse_btn = Button.new()
-	UiTheme.apply_button_styling(_collapse_btn)
-	_collapse_btn.text = "v"
-	_collapse_btn.flat = true
-	_collapse_btn.pressed.connect(_on_collapse_toggled)
-	header.add_child(_collapse_btn)
+	count_row.add_child(_count_label)
 
 	# List
 	_list = ItemList.new()
@@ -415,16 +411,6 @@ func _validate_form(d: Dictionary) -> String:
 
 
 # -- Signals -----------------------------------------------------------------
-
-func _on_collapse_toggled() -> void:
-	_collapsed = not _collapsed
-	_list.visible = not _collapsed
-	if _btn_row != null:
-		_btn_row.visible = not _collapsed
-	_form_container.visible = false  # always close form on collapse
-	_form_error_label.visible = false
-	_collapse_btn.text = "v" if not _collapsed else ">"
-
 
 func _on_list_item_selected(idx: int) -> void:
 	_selected_idx = idx
