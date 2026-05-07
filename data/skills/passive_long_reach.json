@@ -5,9 +5,14 @@
   "tooltip": "passive_long_reach_tooltip",
   "desc": "passive_long_reach_desc",
   "icon": "icons/skills/passive_long_reach.png",
-  "mood": ["ascended"],
+  "mood": [
+    "ascended"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "range_bonus", "amount": 1}
+    {
+      "kind": "range_bonus",
+      "amount": 1
+    }
   ]
 }
