@@ -4,7 +4,7 @@
   "tooltip": "mushroom_boar_tusk_attack_tooltip",
   "desc": "mushroom_boar_tusk_attack_desc",
   "icon": "icons/skills/mushroom_boar_tusk_attack.png",
-  "cooldown": 1,
+  "cooldown": 2,
   "behaviour_tags": [
     "melee",
     "damage"
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 22
+          "damage": 20
         }
       ]
     }
