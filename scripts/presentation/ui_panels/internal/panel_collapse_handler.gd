@@ -48,6 +48,14 @@ func is_collapsed() -> bool:
 	return _is_collapsed
 
 
+## Used by PanelPersistence._expanded_size to read the would-be-restored
+## size while the panel is collapsed (base_panel.size is the header strip
+## in that state, which is not what we want to persist). Returns
+## Vector2.ZERO until the first collapse captures a size.
+func get_pre_collapse_size() -> Vector2:
+	return _pre_collapse_size
+
+
 func toggle() -> void:
 	set_collapsed(not _is_collapsed, true)
 

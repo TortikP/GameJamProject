@@ -115,6 +115,7 @@ var _drag_handler: PanelDragHandler
 var _resize_handler: PanelResizeHandler
 var _collapse_handler: PanelCollapseHandler
 var _lock_handler: PanelLockHandler
+var _persistence: PanelPersistence
 
 # Set by _apply_chrome_visibility; consumed by _apply_theme. When true,
 # BodyPanel uses make_panel_stylebox() (full 4-side border) instead of
@@ -132,9 +133,16 @@ func _ready() -> void:
 	_apply_title()
 	_apply_theme()
 	_setup_handlers()
+	_setup_persistence()
 
 	if not EventBus.ui_theme_reloaded.is_connected(_apply_theme):
 		EventBus.ui_theme_reloaded.connect(_apply_theme)
+
+	# C3: clamp on viewport resize. Connected for ALL panels (not only
+	# persistable ones) so even ad-hoc panels can't be lost off-screen
+	# when the window shrinks. Persistable panels additionally autosave
+	# the clamped state via the panel_moved/panel_resized emits below.
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 
 ## When header_visible == false, hide every chrome layer (HeaderPanel
@@ -321,3 +329,62 @@ func reset_to_defaults() -> void:
 	# Phase 6 — restores position/size from .tscn defaults, then applies
 	# default_locked / default_collapsed. Used by future UI Catalog preview.
 	pass
+
+
+# ── Phase 6: Persistence + viewport clamps ────────────────────────
+
+## Create the persistence handler and load any saved state for this
+## panel_id. Runs after _setup_handlers, so default_locked /
+## default_collapsed have already been applied. If layouts.cfg has a
+## record, it silently overrides those defaults (emit=false on the
+## handler setters → no autosave loop). If not, defaults stay and
+## nothing is written until the user touches the panel.
+##
+## Skipped when persistable=false or panel_id is empty (without a
+## stable id we have no key to save under).
+func _setup_persistence() -> void:
+	if not persistable or panel_id.is_empty():
+		return
+	_persistence = PanelPersistence.new()
+	_persistence.name = "_Persistence"
+	add_child(_persistence)
+	_persistence.setup(self)
+
+
+## C3: clamp the panel into the new viewport on window resize.
+##
+## await process_frame lets Godot settle after a resize batch (Viewport
+## can fire size_changed multiple times during a single drag of the
+## window edge). Direct property writes plus explicit emits — the
+## emits drive the persistence debounce so the clamped state is saved.
+##
+## Collapsed panels: clamp position only. Their size is the header strip
+## (set by PanelCollapseHandler), not user-driven, so we leave it alone.
+## The pre_collapse_size is left as-is too — when the user expands, the
+## standard expand path runs and that may itself land off-screen, but
+## that's a different problem (panel was unusable already at that size).
+func _on_viewport_size_changed() -> void:
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return  # Panel was freed during the await window.
+	var vp := get_viewport_rect()
+	var header_h: float = float(CORNER_SIZE)
+
+	if is_collapsed():
+		var new_pos: Vector2 = PanelClamps.clamp_position_to_viewport(
+			position, size, header_h, vp.size)
+		if new_pos != position:
+			position = new_pos
+			panel_moved.emit(new_pos)
+		return
+
+	var clamped: Dictionary = PanelClamps.clamp_rect_to_viewport(
+		position, size, header_h, min_panel_size, vp.size)
+	var new_pos2: Vector2 = clamped["position"]
+	var new_size: Vector2 = clamped["size"]
+	if new_pos2 != position:
+		position = new_pos2
+		panel_moved.emit(new_pos2)
+	if new_size != size:
+		size = new_size
+		panel_resized.emit(new_size)
