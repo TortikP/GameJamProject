@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "damage": 9,
-          "status_id": "slowed(2)"
+          "damage": 5,
+          "status_id": "rooted(1)"
         }
       ]
     }
