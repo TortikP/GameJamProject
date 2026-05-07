@@ -24,11 +24,12 @@
         "range": 5
       },
       "area": {
-        "kind": "chain",
-        "max_chain_length": 1
+        "kind": "zone_circle",
+        "radius": 3
       },
       "effects": [
         {
+          "damage": 3,
           "entity_id": "lava_pool"
         }
       ]
