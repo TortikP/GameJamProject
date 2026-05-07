@@ -13,8 +13,8 @@
     {
       "kind": "status_aura",
       "status_id": "slowed",
-      "duration": 1,
-      "radius": 2
+      "duration": 2,
+      "radius": 4
     }
   ]
 }
