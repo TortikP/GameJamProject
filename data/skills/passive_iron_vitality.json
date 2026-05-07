@@ -12,7 +12,7 @@
   "passive_effects": [
     {
       "kind": "max_hp_bonus",
-      "amount": 20
+      "amount": 50
     }
   ]
 }
