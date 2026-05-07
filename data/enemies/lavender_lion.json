@@ -12,7 +12,8 @@
     "lavender_lion_scare"
   ],
   "passive_skills": [
-    "passive_intimidating_aura"
+    "passive_chilling_aura",
+    "passive_bloodletting"
   ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "lavender_lion_bite"
