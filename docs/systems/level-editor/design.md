@@ -38,7 +38,7 @@ Map Editor сейчас живёт на джем-фундаменте: один 
 **Не-цели (явные):**
 - Полноценный music editor. Здесь только raw поля `music_config` в LevelData для пробрасывания в файл; редактор — отдельная фича когда соберёмся.
 - Layout presets, save/restore раскладок панелей.
-- Tab/dock system как в Godot editor. Overkill.
+- Полноценный Godot-style dock system (множественные dock-зоны, split-pane, resize-сепараторы между доками) — overkill. Но **tab-bar в шапке `LayersPanel` с tear-off** (вытащить таб → отдельная панель, вернуть на tab-bar → присоединение обратно) **— цель Spec 1**, см. §8. Это узкий feature на одной панели, не общий dock framework.
 - Миграция in-game UI-панелей (skill HUD, character info) на `ui-panels` фреймворк. Потенциальная side-польза, отдельное решение, не сейчас.
 - Layer model для сущностей, которых в `LevelData` сейчас нет (события, нод-граф сетки-карты, итд). Эти концепты появятся отдельными спеками; layer model расширяется добавлением слоя, а не переделкой.
 - Keyboard navigation между волнами (отложено по джем-обсуждению).
@@ -239,7 +239,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 | # | Spec | Что внутри | Зависит от |
 |---|---|---|---|
 | **0** | `ui-panels`: универсальные окна интерфейса | Container + drag + collapse-в-плашку (`[−]` / `[+]`) + resize (D-вариант, 8 видимых handles, ≥10px зона захвата, фикс 055-бага) + замочек + persistence раскладки (per-screen/scene, узкое snapshot, `user://layouts.cfg`) + 5 правил защиты от потери интерфейса (clamps + min size). Закрытия панели нет совсем. Детали — в [`docs/systems/ui-panels/design.md`](../ui-panels/design.md). | — |
-| **1** | `level-editor`: architecture from scratch | Layer model, InputDispatcher, новый EditorController (~300 строк цель), тонкий вертикальный срез: палитра hexes → клик → тайл лежит в LevelData. Без объектов, без спаунеров, без валидаций, без волн. Старый `MapEditorController` параллельно живёт. | Spec 0 |
+| **1** | `level-editor`: architecture from scratch | Layer model, InputDispatcher, новый EditorController (~300 строк цель), тонкий вертикальный срез: палитра hexes → клик → тайл лежит в LevelData. Без объектов, без спаунеров, без валидаций, без волн. Старый `MapEditorController` параллельно живёт. **Также в скоупе:** tab-bar в шапке `LayersPanel` (3 таба: hexes / spawners / objects) с **tear-off** — drag таба за пределы tab-bar отрывает его в отдельную `BasePanel`, drag standalone-панели обратно на tab-bar присоединяет назад. Это требует расширения `ui-panels` фреймворка (`BasePanel` сейчас не имеет концепта табов). См. OQ-7 — решить до старта Spec 1, делать ли это внутри спека или экстрагировать как Spec 0.5 в `docs/systems/ui-panels/`. | Spec 0 |
 | **2** | `level-editor`: layers + palettes (полная миграция) | Объекты и спаунеры подключаются. Q/W/E/Tab, 1-9, HELP modal, delete_flash. Удаление старого `MapEditorController` и `floor_palette_panel` / `object_palette_panel`. | Spec 1 |
 | **3** | `level-editor`: wave data + settings panel | Расширение `LevelData` (см. §7), wave settings UI с группами (level / wave / spawner / skill_offer / dialogue_triggers / music_config). dialogue_triggers cleanup (OQ-2). | Spec 1 (panel host) |
 | **4** | `level-editor`: validation pipeline | `LevelValidator`, REJECT/WARN модель, авто-проверки (§6), UI подсветка. | Spec 3 (data model должна быть стабильна) |
@@ -277,6 +277,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 - **OQ-4 (Spec 3): `waves.timer` (Никитин) vs `waves.turns_to_next` (текущий).** Никита подразумевает `timer` как опциональный bool «есть ли таймер до следующей волны вообще»; если `false` — `turns_to_next` игнорируется. Если `true` — текущая семантика. Это новое поле или семантика `turns_to_next == 0` уже это покрывает на non-final волне? Уточнить с Алексеем (owner `WaveController`).
 - **OQ-5 (после Spec 4): когда переcмотреть «layer state в presentation».** Если runtime AI/balancing/save-system захочет читать layer info. Сейчас не блокер, фиксируем как trigger-condition.
 - **OQ-6 (вне рехауля): миграция in-game UI на ui-panels.** Skill HUD, character info, поп-апы выбора скилла — потенциально мигрируют после Spec 0. Отдельное решение, не сейчас.
+- **OQ-7 (до старта Spec 1): tabs + tear-off — внутри Spec 1 или Spec 0.5 на `ui-panels`?** Tab-bar в шапке `BasePanel` и tear-off (drag таба → отдельная панель, drag-back → reattach) — это generic feature фреймворка, не editor-specific. Будут полезны в редакторах диалогов/скиллов/аспектов. Развилка: (a) сделать внутри Spec 1, потом ретроактивно вытащить в `ui-panels` — рискуем editor-specific shortcuts; (b) ввести Spec 0.5 на `ui-panels` (`BasePanel` extension: tabs + tear-off + persistence для tab order), Spec 1 уже использует. Аргумент за (b): персистенс табов и detached-панелей — нетривиальная штука, лучше отделить от editor logic. Аргумент за (a): меньше overhead, не нужен ещё один review-cycle. Решает Андрей до старта Spec 1.
 
 ---
 
@@ -286,7 +287,7 @@ SCHEMA_VERSION bump 2 → 3. Forward-only migration на `from_dict()`.
 
 - Layout presets, save/restore раскладок панелей — отложено до запроса.
 - Music editor — отдельная фича. Здесь только raw `music_config` поле в `LevelData`.
-- Tab/dock system как в Godot editor — overkill для нашего масштаба.
+- Полноценный Godot-style dock system (множественные dock-зоны, split-pane, resize-сепараторы между доками) — overkill. **Tab-bar + tear-off на одной панели — в скоупе Spec 1**, см. §2 и §8.
 - Keyboard navigation между волнами — отложено по джем-обсуждению.
 - Layer model для будущих сущностей (события, нод-граф сетки-карты) — расширение, не текущий scope.
 - Миграция in-game UI на ui-panels — потенциальная side-польза, отдельное решение после Spec 0.
