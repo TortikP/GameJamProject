@@ -25,11 +25,11 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 3
+        "radius": 4
       },
       "effects": [
         {
-          "status_id": "slowed(2)",
+          "status_id": "slowed(1)",
           "move_type": "pull"
         }
       ]
