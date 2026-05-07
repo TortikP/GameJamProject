@@ -3,12 +3,12 @@
   "name": "angel_name",
   "desc": "angel_desc",
   "sprite": "assets/sprites/enemies/angel.png",
-  "max_hp": 25,
+  "max_hp": 38,
   "team": "enemy",
   "speed": 2,
   "skills": [
-	"angel_divine_word",
-	"angel_sharp_feathers",
+    "angel_divine_word",
+    "angel_sharp_feathers",
     "angel_scorching_ray"
   ],
   "passive_skills": [
