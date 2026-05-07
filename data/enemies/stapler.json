@@ -3,12 +3,12 @@
   "name": "stapler_name",
   "desc": "stapler_desc",
   "sprite": "assets/sprites/enemies/stapler.png",
-  "max_hp": 35,
+  "max_hp": 12,
   "team": "enemy",
   "speed": 3,
   "skills": [
-	"stapler_staple_shot",
-	"stapler_paper_jam",
+    "stapler_staple_shot",
+    "stapler_paper_jam",
     "stapler_under_desk_jump"
   ],
   "passive_skills": [
