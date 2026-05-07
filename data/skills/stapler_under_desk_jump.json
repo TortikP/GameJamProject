@@ -4,7 +4,7 @@
   "tooltip": "stapler_under_desk_jump_tooltip",
   "desc": "stapler_under_desk_jump_desc",
   "icon": "icons/skills/stapler_under_desk_jump.png",
-  "cooldown": 3,
+  "cooldown": 2,
   "behaviour_tags": [
     "melee",
     "move"
