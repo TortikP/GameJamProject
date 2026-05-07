@@ -5,9 +5,14 @@
   "tooltip": "passive_cruel_focus_tooltip",
   "desc": "passive_cruel_focus_desc",
   "icon": "icons/skills/passive_cruel_focus.png",
-  "mood": ["burnout"],
+  "mood": [
+    "burnout"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "damage_bonus", "amount": 2}
+    {
+      "kind": "damage_bonus",
+      "amount": 3
+    }
   ]
 }
