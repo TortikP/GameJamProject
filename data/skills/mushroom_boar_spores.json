@@ -26,11 +26,11 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 3
       },
       "effects": [
         {
-          "status_id": "stunned(1)"
+          "status_id": "poisoned(2,3,2)"
         }
       ]
     }
