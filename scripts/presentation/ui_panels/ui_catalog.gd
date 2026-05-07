@@ -11,8 +11,19 @@
 
 extends Control
 
+@onready var _title: Label = $Title
+@onready var _back_button: Button = $BackButton
+
 
 func _ready() -> void:
+	# T805: explicit Localization.t with fallbacks. The .tscn keeps the
+	# Russian fallback strings so editor preview stays readable even
+	# if Localization autoload hasn't run yet.
+	if _title != null:
+		_title.text = Localization.t("ui_catalog_title", "Каталог Интерфейсов")
+	if _back_button != null:
+		_back_button.text = Localization.t("ui_catalog_back", "← В меню")
+
 	var panels: int = get_tree().get_nodes_in_group(&"ui_panel").size()
 	print("[ui_catalog] loaded with %d panels in group" % panels)
 

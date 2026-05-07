@@ -49,6 +49,7 @@ const RUN_CHOICES: Array[Dictionary] = [
 @onready var _load_custom_btn: Button = $VBox/LoadCustomLevelButton
 @onready var _settings_btn: Button = $VBox/SettingsButton
 @onready var _credits_btn: Button = $VBox/CreditsButton
+@onready var _ui_catalog_btn: Button = $VBox/UiCatalogButton
 @onready var _quit_btn: Button = $VBox/QuitButton
 @onready var _settings: Node = $SettingsPanel
 @onready var _file_dialog: FileDialog = $LoadFileDialog
@@ -81,6 +82,7 @@ func _ready() -> void:
 	_load_custom_btn.pressed.connect(_on_load_custom)
 	_settings_btn.pressed.connect(_on_settings)
 	_credits_btn.pressed.connect(_on_credits)
+	_ui_catalog_btn.pressed.connect(_on_ui_catalog)
 	_quit_btn.pressed.connect(_on_quit)
 	_run_mode_cancel_btn.pressed.connect(_close_run_mode_dialog)
 	_file_dialog.file_selected.connect(_on_custom_level_selected)
@@ -106,7 +108,8 @@ func _apply_theme() -> void:
 	_subtitle.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
 	for btn in [_start_btn, _continue_btn, _godmode_btn, _map_editor_btn,
 				_game_editor_btn, _load_game_btn,
-				_load_custom_btn, _settings_btn, _credits_btn, _quit_btn]:
+				_load_custom_btn, _settings_btn, _credits_btn,
+				_ui_catalog_btn, _quit_btn]:
 		UiTheme.apply_button_styling(btn)
 	if _run_mode_panel != null:
 		_run_mode_panel.add_theme_stylebox_override("panel", UiTheme.make_modal_stylebox())
@@ -255,6 +258,10 @@ func _on_settings() -> void:
 
 func _on_credits() -> void:
 	EventBus.ui_toast_requested.emit(Localization.t("ui_main_menu_credits_later", "Credits scene coming later."), 2.0, &"info")
+
+
+func _on_ui_catalog() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/panels/ui_catalog.tscn")
 
 
 func _on_quit() -> void:

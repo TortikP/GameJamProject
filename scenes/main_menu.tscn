@@ -85,6 +85,10 @@ text = "ui_main_menu_settings_button_text"
 layout_mode = 2
 text = "ui_main_menu_credits_button_text"
 
+[node name="UiCatalogButton" type="Button" parent="VBox" unique_id=1834510277]
+layout_mode = 2
+text = "ui_main_menu_catalog"
+
 [node name="QuitButton" type="Button" parent="VBox" unique_id=1572392609]
 layout_mode = 2
 text = "ui_main_menu_quit_button_text"
