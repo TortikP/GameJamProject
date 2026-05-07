@@ -12,7 +12,7 @@
   "passive_effects": [
     {
       "kind": "lifesteal_percent",
-      "amount": 20
+      "amount": 40
     }
   ]
 }
