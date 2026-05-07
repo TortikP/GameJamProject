@@ -3,12 +3,12 @@
   "name": "lavender_lion_name",
   "desc": "lavender_lion_desc",
   "sprite": "assets/sprites/enemies/lavender_lion.png",
-  "max_hp": 65,
+  "max_hp": 130,
   "team": "enemy",
   "speed": 4,
   "skills": [
-	"lavender_lion_roar",
-	"lavender_lion_bite",
+    "lavender_lion_roar",
+    "lavender_lion_bite",
     "lavender_lion_scare"
   ],
   "passive_skills": [
