@@ -4,7 +4,7 @@
   "tooltip": "bush_nice_smell_tooltip",
   "desc": "bush_nice_smell_desc",
   "icon": "icons/skills/bush_nice_smell.png",
-  "cooldown": 4,
+  "cooldown": 6,
   "behaviour_tags": [
     "move",
     "debuff"
@@ -29,7 +29,7 @@
       },
       "effects": [
         {
-          "status_id": "slowed(1)",
+          "status_id": "weak(6,8,3)",
           "move_type": "pull"
         }
       ]
