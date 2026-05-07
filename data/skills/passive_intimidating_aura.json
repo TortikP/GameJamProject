@@ -13,7 +13,7 @@
     {
       "kind": "status_aura",
       "status_id": "feared",
-      "duration": 1,
+      "duration": 2,
       "radius": 2
     }
   ]
