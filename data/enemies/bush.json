@@ -3,14 +3,14 @@
   "name": "bush_name",
   "desc": "bush_desc",
   "sprite": "assets/sprites/enemies/bush.png",
-  "max_hp": 11,
-  "starting_hp": 9,
+  "max_hp": 24,
+  "starting_hp": 20,
   "team": "enemy",
   "speed": 0,
   "skills": [
-	"bush_curse",
-	"bush_berry_throw",
-    "bush_nice_smell"
+    "bush_berry_throw",
+    "bush_nice_smell",
+    "bee_summon_bee"
   ],
   "passive_skills": [
     "passive_chilling_aura"
