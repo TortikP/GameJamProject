@@ -12,7 +12,7 @@
   "passive_effects": [
     {
       "kind": "damage_reduction",
-      "amount": 2
+      "amount": 3
     }
   ]
 }
