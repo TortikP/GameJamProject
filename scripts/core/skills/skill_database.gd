@@ -74,6 +74,7 @@ func _build_skill(data: Dictionary) -> Skill:
 
 	var skill: Skill = SKILL_SCRIPT.new()
 	skill.id = StringName(sid)
+	skill.type = StringName(str(data.get("type", "active")))
 	skill.cooldown = int(data.get("cooldown", 0))
 
 	# 021: localization keys (raw strings; resolution out of scope).
@@ -113,8 +114,22 @@ func _build_skill(data: Dictionary) -> Skill:
 			skill.abilities.append(ab)
 			AbilityDatabase.register_ability(ab)  # visible to overlay / inspector
 
-	if skill.abilities.is_empty():
+	if skill.type != &"passive" and skill.abilities.is_empty():
 		GameLogger.warn("SkillDatabase", "%s: no valid abilities — skipping skill" % sid)
+		return null
+
+	var passive_raw: Variant = data.get("passive_effects", [])
+	if typeof(passive_raw) != TYPE_ARRAY:
+		GameLogger.warn("SkillDatabase", "%s: 'passive_effects' must be array, got %s — using []" % [sid, type_string(typeof(passive_raw))])
+		passive_raw = []
+	for eff_v in passive_raw:
+		if eff_v is Dictionary:
+			skill.passive_effects.append((eff_v as Dictionary).duplicate(true))
+		else:
+			GameLogger.warn("SkillDatabase", "%s: passive effect must be dict, got %s — skipped" % [sid, type_string(typeof(eff_v))])
+
+	if skill.type == &"passive" and skill.passive_effects.is_empty():
+		GameLogger.warn("SkillDatabase", "%s: passive skill has no valid passive_effects — skipping skill" % sid)
 		return null
 
 	return skill

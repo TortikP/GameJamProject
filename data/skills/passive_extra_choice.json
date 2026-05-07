@@ -1,0 +1,13 @@
+{
+  "id": "passive_extra_choice",
+  "type": "passive",
+  "name": "passive_extra_choice_name",
+  "tooltip": "passive_extra_choice_tooltip",
+  "desc": "passive_extra_choice_desc",
+  "icon": "icons/skills/passive_extra_choice.png",
+  "mood": ["ascended"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "offer_count_bonus", "amount": 1}
+  ]
+}

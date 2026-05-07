@@ -39,6 +39,70 @@
             "speaker": "heroine"
           }
         ]
+      },
+      "tranquility": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_tranquility_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_tranquility_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_tranquility_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "burnout": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_burnout_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_burnout_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_burnout_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_ascended_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_ascended_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_ascended_text_03",
+            "speaker": "heroine"
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "def": "forest_enter_heroine_chimera_text_01",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_chimera_text_02",
+            "speaker": "heroine"
+          },
+          {
+            "def": "forest_enter_heroine_chimera_text_03",
+            "speaker": "heroine"
+          }
+        ]
       }
     },
     "moodFallback": "neutral"
@@ -85,6 +149,178 @@
               },
               {
                 "def": "forest_first_wave_heroine_intro03_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "tranquility": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro01_tranquility_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro01_tranquility_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro01_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro02_tranquility_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro02_tranquility_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro02_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro03_tranquility_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro03_tranquility_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro03_tranquility_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "burnout": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro01_burnout_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro01_burnout_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro01_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro02_burnout_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro02_burnout_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro02_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro03_burnout_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro03_burnout_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro03_burnout_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "ascended": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro01_ascended_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro01_ascended_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro01_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro02_ascended_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro02_ascended_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro02_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro03_ascended_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro03_ascended_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro03_ascended_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          }
+        ]
+      },
+      "chimera": {
+        "options": [
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro01_chimera_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro01_chimera_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro01_chimera_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro02_chimera_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro02_chimera_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro02_chimera_text_01",
+                "speaker": "heroine"
+              }
+            ]
+          },
+          {
+            "lines": [
+              {
+                "def": "forest_first_wave_intro03_chimera_text_01",
+                "speaker": "narrator",
+                "sound": "forest_first_wave_intro03_chimera_text_01.wav"
+              },
+              {
+                "def": "forest_first_wave_heroine_intro03_chimera_text_01",
                 "speaker": "heroine"
               }
             ]

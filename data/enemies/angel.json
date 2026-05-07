@@ -11,6 +11,9 @@
 	"angel_sharp_feathers",
     "angel_scorching_ray"
   ],
+  "passive_skills": [
+    "passive_long_reach"
+  ],
   "behavior_id": "default_ranged",
   "fallback_skill_id": "angel_sharp_feathers"
 }

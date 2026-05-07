@@ -1,8 +1,0 @@
-{
-  "id": "respawn_first",
-  "speaker": "narrator",
-  "text": "dialogues_respawn_first_text",
-  "tags": ["respawn"],
-  "priority": 10,
-  "once_per_session": true
-}

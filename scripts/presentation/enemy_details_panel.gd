@@ -149,7 +149,7 @@ func _rebuild_abilities() -> void:
 		child.queue_free()
 	if _actor == null:
 		return
-	var skills: Array = _actor.get_skills()
+	var skills: Array = _actor.get_loot_skills()
 	if skills.is_empty():
 		var none := Label.new()
 		none.text = "—"

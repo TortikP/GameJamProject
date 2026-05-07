@@ -1,0 +1,13 @@
+{
+  "id": "passive_ranged_shove",
+  "type": "passive",
+  "name": "passive_ranged_shove_name",
+  "tooltip": "passive_ranged_shove_tooltip",
+  "desc": "passive_ranged_shove_desc",
+  "icon": "icons/skills/passive_ranged_shove.png",
+  "mood": ["neutral"],
+  "level": 0,
+  "passive_effects": [
+    {"kind": "ranged_push", "amount": 1}
+  ]
+}
