@@ -5,9 +5,14 @@
   "tooltip": "passive_quick_synapses_tooltip",
   "desc": "passive_quick_synapses_desc",
   "icon": "icons/skills/passive_quick_synapses.png",
-  "mood": ["neutral"],
+  "mood": [
+    "neutral"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "cooldown_reduction", "amount": 1}
+    {
+      "kind": "cooldown_reduction",
+      "amount": 1
+    }
   ]
 }
