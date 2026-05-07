@@ -28,7 +28,7 @@
       },
       "effects": [
         {
-          "status_id": "strong(2,6,2); shielded(2,1,2)"
+          "status_id": "strong(4,6,2); shielded(4,2,2)"
         }
       ]
     }
