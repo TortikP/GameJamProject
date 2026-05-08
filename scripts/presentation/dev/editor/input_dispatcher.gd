@@ -2,35 +2,44 @@ class_name InputDispatcher
 extends RefCounted
 
 ## Centralized input pipeline for the level editor. Receives InputEvents
-## from EditorController._unhandled_input, decides if the event triggers
-## a paint/erase action, and dispatches via the controller's narrow API
-## (paint_floor / erase_floor).
+## from EditorController._unhandled_input and dispatches via the
+## controller's narrow API.
 ##
-## ## Drag semantics
+## ## Layered dispatch (060)
 ##
-## LMB-down → start PAINTING, paint at coord_under_mouse.
-## LMB-drag → paint at every NEW coord the cursor enters (anti-dup).
-## LMB-up   → end drag.
-## RMB → mirror, but ERASING.
+## LMB / RMB on a hex routes through _act_at, which branches on
+## _layers.active_layer (hexes / spawners / objects) into the matching
+## paint_X / erase_X controller method. RMB erases the entity on the
+## active layer (no priority chain). Shift+RMB is a separate gesture:
+## cascade — wipes all entities on the hex regardless of active layer
+## (AC11 / spec.md §3.B). When the active hexes selection is the erase
+## sentinel, LMB also erases (059 convenience kept).
 ##
-## When active selection is the erase sentinel, LMB-paint becomes erase
-## too — selecting Erase + clicking is the convenient erase shortcut.
+## ## Drag + anti-dup
 ##
-## ## Anti-dup
+## LMB / RMB down → start PAINTING / ERASING; first action at coord.
+## Drag → action at every NEW coord (anti-dup via _last_painted_coord).
+## Up → end drag. Shift+RMB is no-drag (one-shot).
 ##
-## Held cursor over a single hex during a drag must not re-trigger the
-## action every motion event. We track _last_painted_coord; if the
-## resolved coord equals it, the motion is dropped. NO_COORD is the
-## sentinel for "no coord painted yet in this drag".
+## ## Keyboard
+##
+## Q / W / E         direct layer pick (hexes / spawners / objects).
+## Tab               cycle forward through LayersModel.LAYER_ORDER.
+## 1..9              quick-select N-th button in active palette.
+## Esc               cancel any active drag.
+## F1 / ?            open HELP modal.
+##
+## All keyboard handlers no-op when focus is on a text input — checked
+## via _controller.is_text_focused() so dispatcher needs no scene-tree
+## access.
 ##
 ## ## DI
 ##
-## RefCounted with constructor injection — no Node lifecycle, no signals,
-## no _input wiring at all (controller calls handle() explicitly). The
-## controller field is intentionally untyped to avoid a circular
-## class_name reference (controller has no class_name on purpose).
+## RefCounted with constructor injection. Controller is intentionally
+## untyped to avoid a circular class_name reference.
 
 const NO_COORD := Vector2i(-99999, -99999)
+const NO_HEX := Vector2i(-1, -1)  # HexGrid.coord_under_mouse_raw sentinel
 
 enum DragState { NONE, PAINTING, ERASING }
 
@@ -56,13 +65,11 @@ func handle(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion and _drag_state != DragState.NONE:
 		return _handle_mouse_drag(event)
 	if event is InputEventKey and event.pressed:
-		var ke: InputEventKey = event as InputEventKey
-		if ke.keycode == KEY_ESCAPE:
-			_drag_state = DragState.NONE
-			_last_painted_coord = NO_COORD
-			return true
+		return _handle_key(event as InputEventKey)
 	return false
 
+
+# ── Mouse ─────────────────────────────────────────────────────────
 
 func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
 	if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -75,6 +82,14 @@ func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
 		return true
 	if mb.button_index == MOUSE_BUTTON_RIGHT:
 		if mb.pressed:
+			# Shift+RMB → immediate cascade, distinct gesture from drag-erase.
+			# AC11 / Q-060-6: no undo, no confirmation, single flash.
+			if mb.shift_pressed:
+				var coord := _grid.coord_under_mouse_raw()
+				if coord != NO_HEX:
+					if _controller.cascade_at(coord):
+						_spawn_flash(coord)
+				return true
 			_drag_state = DragState.ERASING
 			_act_at(_grid.coord_under_mouse_raw(), true)
 		else:
@@ -92,32 +107,110 @@ func _handle_mouse_drag(_mm: InputEventMouseMotion) -> bool:
 	return true
 
 
-## Single dispatch point: erase if explicitly requested (RMB) or if
-## the active selection is the erase sentinel (LMB+Erase shortcut);
-## otherwise paint with the current Dictionary selection.
-##
-## Always updates _last_painted_coord — even on no-op exits, so that
-## holding RMB over a coord that has nothing to erase doesn't re-trigger
-## the controller call every motion event in the same hex.
-##
-## Skips entirely on the (-1, -1) sentinel — coord_under_mouse_raw returns
-## that when the cursor is over the HUD canvas layer (no Node2D-space
-## position resolves) or beyond MAP_HALF_LIMIT. We don't want to paint
-## a phantom hex at (-1, -1) on the very edge of the world.
+# ── Keyboard ──────────────────────────────────────────────────────
+
+func _handle_key(ke: InputEventKey) -> bool:
+	# Let LineEdit / TextEdit / SpinBox eat the event first — Q in the
+	# level-name input must type 'q', not switch the active layer.
+	if _controller.is_text_focused():
+		return false
+	match ke.keycode:
+		KEY_ESCAPE:
+			_drag_state = DragState.NONE
+			_last_painted_coord = NO_COORD
+			return true
+		KEY_Q:
+			_set_layer(LayersModel.LAYER_HEXES)
+			return true
+		KEY_W:
+			_set_layer(LayersModel.LAYER_SPAWNERS)
+			return true
+		KEY_E:
+			_set_layer(LayersModel.LAYER_OBJECTS)
+			return true
+		KEY_TAB:
+			var next: StringName = _layers.cycle_active_forward()
+			_controller.notify_active_layer_changed(next)
+			return true
+		KEY_F1, KEY_QUESTION:
+			_controller.show_help()
+			return true
+	if ke.keycode >= KEY_1 and ke.keycode <= KEY_9:
+		var n := ke.keycode - KEY_0
+		_controller.quick_select_in_active_palette(n)
+		return true
+	return false
+
+
+func _set_layer(layer_id: StringName) -> void:
+	_layers.active_layer = layer_id
+	_controller.notify_active_layer_changed(layer_id)
+
+
+# ── Per-layer dispatch ────────────────────────────────────────────
+
+## Single dispatch point. Branches on active layer; each branch decides
+## paint vs erase from `erase` (RMB) ∪ LayersModel.is_erase() (hexes-only
+## LMB+Erase shortcut). Always updates _last_painted_coord at the end —
+## even on no-op exits — so holding LMB/RMB over a coord doesn't re-fire
+## the action every motion event. Returns early on the (-1, -1) sentinel
+## (cursor over HUD or beyond MAP_HALF_LIMIT).
 func _act_at(coord: Vector2i, erase: bool) -> void:
-	if coord == Vector2i(-1, -1):
+	if coord == NO_HEX:
 		return
+	match _layers.active_layer:
+		LayersModel.LAYER_HEXES:
+			_act_hexes(coord, erase)
+		LayersModel.LAYER_SPAWNERS:
+			_act_spawners(coord, erase)
+		LayersModel.LAYER_OBJECTS:
+			_act_objects(coord, erase)
+	_last_painted_coord = coord
+
+
+func _act_hexes(coord: Vector2i, erase: bool) -> void:
 	if erase or _layers.is_erase():
-		_controller.erase_floor(coord)
-		_last_painted_coord = coord
+		if _controller.erase_floor(coord):
+			_spawn_flash(coord)
 		return
 	var sel: Variant = _layers.get_active_selection()
 	if typeof(sel) != TYPE_DICTIONARY:
-		# No tile selected (initial state). Don't paint, but still
-		# record the coord so we don't spam this branch every motion.
-		_last_painted_coord = coord
+		return  # No tile selected; silently no-op.
+	var d: Dictionary = sel as Dictionary
+	_controller.paint_floor(coord, int(d["source_id"]), d["atlas_coord"])
+
+
+func _act_spawners(coord: Vector2i, erase: bool) -> void:
+	if erase:
+		if _controller.erase_spawner(coord):
+			_spawn_flash(coord)
+		return
+	var sel: Variant = _layers.get_active_selection()
+	if typeof(sel) != TYPE_DICTIONARY:
 		return
 	var d: Dictionary = sel as Dictionary
-	var atlas: Vector2i = d["atlas_coord"]
-	_controller.paint_floor(coord, int(d["source_id"]), atlas)
-	_last_painted_coord = coord
+	_controller.paint_spawner(coord, d["kind"], d["ref"])
+
+
+func _act_objects(coord: Vector2i, erase: bool) -> void:
+	if erase:
+		if _controller.erase_object(coord):
+			_spawn_flash(coord)
+		return
+	var sel: Variant = _layers.get_active_selection()
+	if typeof(sel) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = sel as Dictionary
+	_controller.paint_object(coord, d["object_id"])
+
+
+# ── Flash ─────────────────────────────────────────────────────────
+
+## Spawn a delete-flash on a coord. Stub in Φ-5 — DeleteFlash class
+## lands in Φ-7.a and this body becomes
+## `DeleteFlash.spawn_at(_grid, coord, _grid)`. The Φ-5 stub keeps the
+## phase committable in isolation; the wrappers above already call
+## _spawn_flash on every successful erase, so Φ-7 becomes a single-line
+## body change.
+func _spawn_flash(_coord: Vector2i) -> void:
+	pass

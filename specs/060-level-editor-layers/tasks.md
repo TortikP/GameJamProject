@@ -61,12 +61,12 @@
 
 ## Φ-5. InputDispatcher: per-layer + keyboard + cascade
 
-- [ ] **T-060-26.** Расширить `input_dispatcher.gd._act_at`: `match _layers.active_layer:` → ветви на три helper'а `_act_hexes`, `_act_spawners`, `_act_objects` (см. plan §Φ-5.a code). Hexes — поведение 059, как было. Spawners/objects — вызывают новый controller API (`paint_spawner`, `erase_spawner`, etc., будут реализованы в Φ-6). **[Φ-5] [≤50 строк net]**
-- [ ] **T-060-27.** Изменить `_act_hexes` так, чтобы flash спавнился из dispatcher а не controller. Controller `erase_floor` теперь возвращает `bool`. Dispatcher на success делает `_spawn_flash(coord)`. **[Φ-5] [≤10 строк]**
-- [ ] **T-060-28.** Реализовать `_handle_key(ke)` (см. plan §Φ-5.b code): Esc/Q/W/E/Tab/F1/?/1-9. Focus check через `_controller.is_text_focused()`. **[Φ-5] [≤50 строк]**
-- [ ] **T-060-29.** Расширить `_handle_mouse_button` для Shift+RMB cascade (см. plan §Φ-5.c). Один flash после успешного cascade. **[Φ-5] [≤15 строк net]**
-- [ ] **T-060-30.** Добавить helper `_spawn_flash(coord)` — обёртка `DeleteFlash.spawn_at`. **[Φ-5] [≤5 строк] (требует Φ-7.a)**
-- [ ] **T-060-31.** В `editor_controller.gd` добавить `is_text_focused() -> bool` (см. plan §Φ-5.b risk anchor). **[Φ-5] [≤5 строк]**
+- [x] **T-060-26.** Расширить `input_dispatcher.gd._act_at`: `match _layers.active_layer:` → ветви на три helper'а `_act_hexes`, `_act_spawners`, `_act_objects` (см. plan §Φ-5.a code). Hexes — поведение 059, как было. Spawners/objects — вызывают новый controller API (`paint_spawner`, `erase_spawner`, etc., будут реализованы в Φ-6). **[Φ-5] [≤50 строк net]**
+- [x] **T-060-27.** Изменить `_act_hexes` так, чтобы flash спавнился из dispatcher а не controller. Controller `erase_floor` теперь возвращает `bool`. Dispatcher на success делает `_spawn_flash(coord)`. **[Φ-5] [≤10 строк]** *(dispatcher ready; controller erase_floor → bool change in Φ-6)*
+- [x] **T-060-28.** Реализовать `_handle_key(ke)` (см. plan §Φ-5.b code): Esc/Q/W/E/Tab/F1/?/1-9. Focus check через `_controller.is_text_focused()`. **[Φ-5] [≤50 строк]**
+- [x] **T-060-29.** Расширить `_handle_mouse_button` для Shift+RMB cascade (см. plan §Φ-5.c). Один flash после успешного cascade. **[Φ-5] [≤15 строк net]**
+- [x] **T-060-30.** Добавить helper `_spawn_flash(coord)` — обёртка `DeleteFlash.spawn_at`. **[Φ-5] [≤5 строк] (требует Φ-7.a)** *(stub no-op; body filled in Φ-7.a)*
+- [x] **T-060-31.** В `editor_controller.gd` добавить `is_text_focused() -> bool` (см. plan §Φ-5.b risk anchor). **[Φ-5] [≤5 строк]**
 - [ ] **T-060-32.** Smoke: Q/W/E переключают табы. Tab циклит. 1-9 выбирают первые 9 buttons активной палитры. F1 → controller вызывает `show_help()` (пока stub). Esc сбрасывает drag. Shift+RMB — cascade. Click в LineEdit (имя уровня) → Q НЕ переключает таб, вводится 'q'. **[Φ-5] [smoke]**
 
 → Commit: `feat(060): InputDispatcher per-layer + keyboard + cascade`.

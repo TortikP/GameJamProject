@@ -104,6 +104,19 @@ func erase_floor(coord: Vector2i) -> void:
 	_remove_floor_cell(coord)
 
 
+## True if a text-input Control owns the keyboard focus. Used by
+## InputDispatcher to skip Q/W/E/Tab/1-9 when the user is typing in a
+## level-name LineEdit or similar — the focused control eats the event
+## first via Godot's standard focus traversal, so this check is a
+## safety net rather than the primary guard. Lives in controller (not
+## dispatcher) because only Node has get_viewport().
+func is_text_focused() -> bool:
+	var owner_ctl: Control = get_viewport().gui_get_focus_owner()
+	if owner_ctl == null:
+		return false
+	return owner_ctl is LineEdit or owner_ctl is TextEdit or owner_ctl is SpinBox
+
+
 # ── Wiring ────────────────────────────────────────────────────────
 
 func _resolve_nodes() -> void:
