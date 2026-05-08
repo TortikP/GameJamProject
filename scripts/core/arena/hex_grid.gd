@@ -17,9 +17,15 @@ signal grid_built
 signal actor_step_started(actor_id: StringName, from: Vector2i, to: Vector2i)
 signal actor_step_finished(actor_id: StringName, coord: Vector2i)
 
-# ── Exported scene refs ──────────────────────────────────────────────────────
-@export var tile_map_layer: TileMapLayer
-@export var vfx_overlay: TileMapLayer          # visual only, logic never reads this
+# ── Scene refs (auto-resolved children) ──────────────────────────────────────
+# 060 / Φ-9.a: switched from @export NodePath to @onready $Path. The
+# @export form didn't auto-resolve when hex_grid.tscn was instanced into
+# level_editor.tscn (F-059-IMPL-4) — Godot 4 ignored the NodePath value
+# inside the .tscn, leaving the typed fields null. @onready resolves
+# the child by literal scene-tree path on _ready, which works in every
+# instancing context.
+@onready var tile_map_layer: TileMapLayer = $Terrain
+@onready var vfx_overlay: TileMapLayer = $VFXOverlay  # visual only, logic never reads this
 
 # ── Runtime state ────────────────────────────────────────────────────────────
 var _tiles: Dictionary = {}           # Vector2i -> HexTile

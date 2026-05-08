@@ -77,7 +77,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if ActiveLevel.can_return_to_editor():
 			ActiveLevel.queue(ActiveLevel.get_playtest_origin())
 		get_viewport().set_input_as_handled()
-		get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
+		get_tree().change_scene_to_file("res://scenes/dev/level_editor.tscn")
 		return
 	if event.is_action_pressed("wait_turn"):
 		_wait_turn()

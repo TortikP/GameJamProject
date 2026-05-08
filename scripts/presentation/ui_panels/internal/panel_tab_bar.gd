@@ -73,6 +73,19 @@ var _press_global_pos: Vector2 = Vector2.ZERO
 var _floating_panels: Array[BasePanel] = []
 
 
+# ── Signals ───────────────────────────────────────────────────────
+
+## Emitted when the active tab changes due to a genuine user click on a
+## tab button. Programmatic / system-driven activations (initial setup,
+## persistence restore, detach/reattach side-effects, unregister
+## fallthrough) do NOT emit — consumers wire layer-state to user intent,
+## not to side-effects of unrelated gestures (see findings F-060-IMPL-1).
+##
+## Re-emitted by TabbedBasePanel under the same name as a public-facing
+## signal; subscribe to the panel, not directly to the tab bar.
+signal active_tab_changed(tab_id: StringName)
+
+
 # ── Setup ─────────────────────────────────────────────────────────
 
 ## Single entry-point. Called by TabbedBasePanel after super._ready().
@@ -156,8 +169,20 @@ func _make_tab_button(tab_id: StringName, title_key: StringName, title_fallback:
 
 # ── Active-tab management ─────────────────────────────────────────
 
-func _set_active(tab_id: StringName) -> void:
+func _set_active(tab_id: StringName, by_user: bool = false) -> void:
 	_active_tab_id = tab_id
+	# If the target is detached, the request can't be visually expressed
+	# in this strip — its content lives in a floating panel, not in our
+	# body. Toggling the visibility loop below would just hide whatever
+	# attached tab is currently visible (and reveal nothing), leaving an
+	# empty body. _active_tab_id is already updated above (logical active
+	# for keyboard semantics + correct initial state on a future
+	# reattach), so we can safely bail.
+	for record in _tabs:
+		if record["tab_id"] == tab_id and bool(record["detached"]):
+			if by_user:
+				active_tab_changed.emit(tab_id)
+			return
 	for record in _tabs:
 		var is_active: bool = (record["tab_id"] == tab_id) and not record["detached"]
 		var content := record["content"] as Control
@@ -166,6 +191,17 @@ func _set_active(tab_id: StringName) -> void:
 			content.visible = is_active
 		if button != null and is_instance_valid(button):
 			button.button_pressed = is_active
+	if by_user:
+		active_tab_changed.emit(tab_id)
+
+
+## Public delegate for programmatic tab activation, mainly for keyboard
+## shortcuts wired through the TabbedBasePanel.set_active_tab facade.
+## by_user defaults false — pass true only from genuine user gestures
+## that aren't the click site (which already routes through _set_active
+## directly). See active_tab_changed for the policy.
+func set_active(tab_id: StringName, by_user: bool = false) -> void:
+	_set_active(tab_id, by_user)
 
 
 func _first_attached_tab_id() -> StringName:
@@ -173,6 +209,38 @@ func _first_attached_tab_id() -> StringName:
 		if not record["detached"]:
 			return record["tab_id"]
 	return &""
+
+
+## Count of tabs whose content is currently inside this strip's body
+## (not torn off into a floating panel). Used by _detach_tab_active_drag
+## to refuse the last detach and by callers that want to know if the
+## strip has any visible tabs at all.
+func _attached_tab_count() -> int:
+	var n := 0
+	for record in _tabs:
+		if not bool(record["detached"]):
+			n += 1
+	return n
+
+
+## Public read-only view of currently-floating panels (one per
+## detached tab). Returns a copy. Used by consumers that need to
+## affect floating panels uniformly — e.g. LayersPanel's active-layer
+## highlight in spec 060. Pair with the META_ORIGIN_TAB_ID metadata
+## on each panel to identify which tab it hosts.
+func get_floating_panels() -> Array[BasePanel]:
+	return _floating_panels.duplicate()
+
+
+## Returns true if the tab's content currently lives in this strip's
+## body (attached). False if torn off into a floating panel, or if
+## tab_id is unknown. Used by LayersPanel to decide whether the main
+## or the floating panel hosts a given layer.
+func is_tab_attached(tab_id: StringName) -> bool:
+	for record in _tabs:
+		if record["tab_id"] == tab_id:
+			return not bool(record["detached"])
+	return false
 
 
 func _count_attached() -> int:
@@ -239,7 +307,7 @@ func _input(event: InputEvent) -> void:
 				return
 			var button := record["button"] as Button
 			if button != null and button.get_global_rect().has_point(mb.global_position):
-				_set_active(record["tab_id"])
+				_set_active(record["tab_id"], true)
 
 
 # ── Tear-off ──────────────────────────────────────────────────────
@@ -248,6 +316,11 @@ func _input(event: InputEvent) -> void:
 ## meta+persistence, and hand off the drag gesture so it continues
 ## without an LMB release.
 func _detach_tab_active_drag(tab_id: StringName, mouse_global: Vector2) -> void:
+	# Block detach of the last attached tab — leaving the parent panel
+	# empty creates 1+ floating panels with one shell, which is just
+	# clutter. User can drag the tabbed panel itself instead.
+	if _attached_tab_count() <= 1:
+		return
 	var detached := _spawn_detached(tab_id)
 	if detached == null:
 		return
@@ -285,8 +358,12 @@ func _spawn_detached(tab_id: StringName) -> BasePanel:
 	detached.panel_id = _synthetic_panel_id(tab_id)
 	detached.panel_title_key = record["title_key"]
 	detached.panel_title_fallback = record["title_fallback"]
-	# Reasonable default — consumers can resize. Inherit from tabbed parent if set.
-	detached.min_panel_size = Vector2(180, 120)
+	# 280×360 accommodates the 72×72 icon palettes (~3 columns × 4 rows
+	# of 72 + chrome). The previous 180×120 default was too small for
+	# the icon-mode palettes — content overflowed past panel bounds and
+	# the resize handles at the right/bottom edges were covered by body
+	# content, making the floating panel feel unresizable.
+	detached.min_panel_size = Vector2(280, 360)
 	detached.set_meta(META_ORIGIN_PANEL_ID, _tabbed_panel.panel_id)
 	detached.set_meta(META_ORIGIN_TAB_ID, tab_id)
 
@@ -299,6 +376,13 @@ func _spawn_detached(tab_id: StringName) -> BasePanel:
 	host.add_child(detached)
 	# detached._ready has now run: anchors normalized, persistence loaded
 	# (which may have set position/size from a saved synthetic section).
+	# A persisted size from before this commit's min bump (or the tscn
+	# 300×200 default if no persistence) might leave size below the new
+	# min — force up so resize handles aren't covered by overflow.
+	if detached.size.x < detached.min_panel_size.x:
+		detached.size.x = detached.min_panel_size.x
+	if detached.size.y < detached.min_panel_size.y:
+		detached.size.y = detached.min_panel_size.y
 
 	# Reparent the tab content into the detached panel's body.
 	var body := _tabbed_panel.get_body_container()
@@ -373,14 +457,16 @@ func _reattach(panel: BasePanel) -> void:
 		button.visible = true
 	record["detached"] = false
 
-	# CRITICAL ORDER (R4 in spec 058 plan.md, refined): PanelPersistence
-	# is connected to panel.tree_exiting and will _flush_save() the
-	# synthetic section synchronously when the panel leaves the tree.
-	# tree_exited fires AFTER tree_exiting; erasing there guarantees we
-	# remove what _flush_save just wrote.
-	var section_key := _layout_section_key(panel.panel_id)
-	panel.tree_exited.connect(_erase_layout_section.bind(section_key), CONNECT_ONE_SHOT)
-
+	# DESIGN OVERRIDE (was R4 in spec 058 plan.md, deliberately reversed
+	# in spec 060): PanelPersistence._flush_save on tree_exiting writes
+	# the synthetic section's size/position to user://layouts.cfg. We
+	# used to erase it on tree_exited so detached state was ephemeral
+	# across cycles. Andrey reported: "size doesn't survive
+	# detach→reattach→detach", which IS the intended cross-cycle
+	# behavior — keep the section so the next detach loads it back via
+	# normal PanelPersistence.load_layout. Cost: stale sections
+	# accumulate across renamed/removed tabs, but that's a non-issue
+	# for the editor's small fixed tab set.
 	_floating_panels.erase(panel)
 	panel.queue_free()
 
@@ -466,8 +552,8 @@ func unregister_tab(tab_id: StringName) -> void:
 	if record["detached"]:
 		for panel in _floating_panels.duplicate():
 			if StringName(panel.get_meta(META_ORIGIN_TAB_ID, &"")) == tab_id:
-				var section_key := _layout_section_key(panel.panel_id)
-				panel.tree_exited.connect(_erase_layout_section.bind(section_key), CONNECT_ONE_SHOT)
+				# Synthetic layout section is preserved across unregister
+				# (same design override as _reattach — see comment there).
 				_floating_panels.erase(panel)
 				panel.queue_free()
 				break

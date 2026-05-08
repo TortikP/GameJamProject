@@ -19,6 +19,8 @@
 ## - add_tab(content, tab_id, title_key=&"", title_fallback="")
 ## - remove_tab(tab_id)
 ## - get_active_tab_id() -> StringName
+## - set_active_tab(tab_id) — programmatic switch (no signal)
+## - signal active_tab_changed(tab_id) — user click only
 ##
 ## ## Persistence
 ##
@@ -32,6 +34,12 @@ extends BasePanel
 const PANEL_TAB_BAR_SCRIPT := preload("res://scripts/presentation/ui_panels/internal/panel_tab_bar.gd")
 
 var _tab_bar: PanelTabBar
+
+## Re-emit of PanelTabBar.active_tab_changed. Fires only for genuine
+## user clicks on a tab button (see PanelTabBar comment for what is
+## intentionally excluded). Subscribe here, not on _tab_bar directly —
+## _tab_bar is internal and may be replaced.
+signal active_tab_changed(tab_id: StringName)
 
 
 func _ready() -> void:
@@ -57,6 +65,9 @@ func _setup_tab_bar() -> void:
 	# RightSpacer]. Move TabBar to position 0 so it expands at the left.
 	_header_row.move_child(_tab_bar, 0)
 	_tab_bar.setup(self)
+	# Re-emit user-driven tab changes as the panel's own signal so
+	# consumers don't need to know about the internal tab bar.
+	_tab_bar.active_tab_changed.connect(func(tab_id: StringName) -> void: active_tab_changed.emit(tab_id))
 
 
 # ── Public runtime API ────────────────────────────────────────────
@@ -85,3 +96,32 @@ func get_active_tab_id() -> StringName:
 	if _tab_bar == null:
 		return &""
 	return _tab_bar.get_active_tab_id()
+
+
+## Programmatic active-tab switch (e.g. keyboard shortcuts in
+## EditorController). Does NOT emit active_tab_changed — that signal is
+## reserved for genuine user clicks. Callers that drive layer state via
+## both UI and keyboard should call notify_active_layer_changed (or
+## equivalent) themselves.
+func set_active_tab(tab_id: StringName) -> void:
+	if _tab_bar != null:
+		_tab_bar.set_active(tab_id, false)
+
+
+## Read-only view of currently-floating panels (one per detached tab).
+## Used by consumers that need to affect floating panels uniformly —
+## e.g. LayersPanel's active-layer highlight (spec 060). Each panel
+## has metadata at PanelTabBar.META_ORIGIN_TAB_ID identifying its tab.
+func get_floating_panels() -> Array[BasePanel]:
+	if _tab_bar == null:
+		return []
+	return _tab_bar.get_floating_panels()
+
+
+## True iff tab's content is hosted inside THIS panel's body (vs torn
+## off into a floating panel). Used to decide which panel header gets
+## the active-layer highlight.
+func is_tab_attached(tab_id: StringName) -> bool:
+	if _tab_bar == null:
+		return false
+	return _tab_bar.is_tab_attached(tab_id)

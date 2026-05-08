@@ -12,6 +12,67 @@ offset_right = 300.0
 offset_bottom = 200.0
 script = ExtResource("1_bp")
 
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=94276260]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1965743153]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+mouse_filter = 1
+mouse_default_cursor_shape = 13
+
+[node name="HeaderRow" type="HBoxContainer" parent="VBoxContainer/HeaderPanel" unique_id=823412001]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 0
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=1183587423]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Panel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LockButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=727687063]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+icon = ExtResource("2_lock_u")
+
+[node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=2046550791]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+icon = ExtResource("4_minus")
+
+[node name="RightSpacer" type="Control" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=441290022]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="BodyPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1194033239]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer/BodyPanel" unique_id=36144282]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+
 [node name="ResizeFrame" type="Control" parent="." unique_id=1643682663]
 layout_mode = 1
 anchors_preset = 15
@@ -137,64 +198,3 @@ offset_right = 5.0
 offset_bottom = -39.0
 grow_vertical = 2
 mouse_default_cursor_shape = 10
-
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=94276260]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = -6.0
-offset_bottom = -6.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="HeaderPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1965743153]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-mouse_filter = 1
-mouse_default_cursor_shape = 13
-
-[node name="HeaderRow" type="HBoxContainer" parent="VBoxContainer/HeaderPanel" unique_id=823412001]
-layout_mode = 2
-mouse_filter = 1
-theme_override_constants/separation = 0
-
-[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=1183587423]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 1
-text = "Panel"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="LockButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=727687063]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-icon = ExtResource("2_lock_u")
-
-[node name="CollapseButton" type="Button" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=2046550791]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-icon = ExtResource("4_minus")
-
-[node name="RightSpacer" type="Control" parent="VBoxContainer/HeaderPanel/HeaderRow" unique_id=441290022]
-custom_minimum_size = Vector2(22, 0)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="BodyPanel" type="PanelContainer" parent="VBoxContainer" unique_id=1194033239]
-layout_mode = 2
-size_flags_vertical = 3
-mouse_filter = 1
-
-[node name="BodyContainer" type="MarginContainer" parent="VBoxContainer/BodyPanel" unique_id=36144282]
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-

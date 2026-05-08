@@ -5,7 +5,7 @@ extends VBoxContainer
 ## hex_terrain.tres atlas sources, renders one Button per (source_id,
 ## atlas_coord), plus an Erase button at the end. Single ButtonGroup
 ## across all buttons gives radio-mode out of the box — no manual
-## set_pressed_no_signal cycles like in the legacy floor_palette_panel.
+## set_pressed_no_signal cycles like in the legacy floor palette.
 ##
 ## Emits `selection_changed(value: Variant)`:
 ##   - Tile picked:  Dictionary {"source_id": int, "atlas_coord": Vector2i}
@@ -17,12 +17,13 @@ extends VBoxContainer
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 
 const TILESET_PATH := "res://scenes/arena/tilesets/hex_terrain.tres"
-const ICON_SIZE := Vector2(48, 48)
+# ICON_SIZE moved to PaletteHelpers — uniform across all three palettes.
 
 signal selection_changed(value: Variant)
 
 var _button_group: ButtonGroup
 var _grid: HFlowContainer
+var _quick_select_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -33,6 +34,7 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("v_separation", 4)
 	add_child(_grid)
 	_build_buttons()
+	PaletteHelpers.decorate_quick_select_badges(_quick_select_buttons)
 
 
 func _build_buttons() -> void:
@@ -47,8 +49,12 @@ func _build_buttons() -> void:
 			continue
 		for tile_idx in src.get_tiles_count():
 			var atlas_coord := src.get_tile_id(tile_idx)
-			_grid.add_child(_make_tile_button(src, source_id, atlas_coord))
-	_grid.add_child(_make_erase_button())
+			var btn := _make_tile_button(src, source_id, atlas_coord)
+			_grid.add_child(btn)
+			_quick_select_buttons.append(btn)
+	var erase_btn := _make_erase_button()
+	_grid.add_child(erase_btn)
+	_quick_select_buttons.append(erase_btn)
 
 
 func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
@@ -56,11 +62,11 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 	var btn := Button.new()
 	btn.toggle_mode = true
 	btn.button_group = _button_group
-	btn.custom_minimum_size = ICON_SIZE
+	btn.custom_minimum_size = PaletteHelpers.ICON_SIZE
 	btn.text = ""
 
 	# Icon: cropped texture from the atlas — same region the
-	# TileMapLayer renders. Pattern from floor_palette_panel.gd:148-158.
+	# TileMapLayer renders. Atlas-region pattern, well-known idiom.
 	var tile_texture: Texture2D = atlas.texture
 	if tile_texture != null:
 		var region_size: Vector2i = atlas.texture_region_size
@@ -88,12 +94,7 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 
 
 func _make_erase_button() -> Button:
-	var btn := Button.new()
-	btn.toggle_mode = true
-	btn.button_group = _button_group
-	btn.custom_minimum_size = ICON_SIZE
-	btn.text = Localization.t("ui_floor_palette_erase", "Erase")
-	UiTheme.apply_button_styling(btn)
+	var btn := PaletteHelpers.make_erase_button(_button_group)
 	btn.pressed.connect(_on_erase_pressed)
 	return btn
 
@@ -104,3 +105,37 @@ func _on_tile_pressed(source_id: int, atlas_coord: Vector2i) -> void:
 
 func _on_erase_pressed() -> void:
 	selection_changed.emit(&"erase")
+
+
+## Programmatic activation by KEY_1..9 — see SpawnerPalette.quick_select
+## for the Godot toggle/ButtonGroup quirk that requires explicit emit.
+func quick_select(n: int) -> void:
+	if n < 1 or n > _quick_select_buttons.size():
+		return
+	var btn := _quick_select_buttons[n - 1]
+	btn.button_pressed = true
+	btn.pressed.emit()
+
+
+## Restore a stored selection visually without emitting selection_changed.
+## Caller (EditorController._restore_palette_selections) updates the
+## LayersModel separately. Returns true if a matching button was found.
+func select_value(value: Variant) -> bool:
+	if typeof(value) == TYPE_STRING_NAME and StringName(value) == &"erase":
+		for btn in _quick_select_buttons:
+			if btn != null and btn.has_meta("is_erase"):
+				btn.button_pressed = true
+				return true
+		return false
+	if typeof(value) == TYPE_DICTIONARY:
+		var d: Dictionary = value
+		var target_src: int = int(d.get("source_id", -1))
+		var target_atlas: Vector2i = d.get("atlas_coord", Vector2i.ZERO)
+		for btn in _quick_select_buttons:
+			if btn == null or not btn.has_meta("source_id"):
+				continue
+			if int(btn.get_meta("source_id")) == target_src \
+					and Vector2i(btn.get_meta("atlas_coord")) == target_atlas:
+				btn.button_pressed = true
+				return true
+	return false

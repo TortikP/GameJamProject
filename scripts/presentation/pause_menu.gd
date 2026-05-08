@@ -138,7 +138,7 @@ func _on_back_to_editor() -> void:
 		return
 	ActiveLevel.queue(ActiveLevel.get_playtest_origin())
 	close()
-	get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
+	get_tree().change_scene_to_file("res://scenes/dev/level_editor.tscn")
 
 
 func _on_quit() -> void:
