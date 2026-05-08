@@ -7,14 +7,24 @@ extends RefCounted
 ## to live in the scene tree (no _ready, no _process, no input).
 ##
 ## Selection schema (per layer):
-##   - Hex tile:  Dictionary {"source_id": int, "atlas_coord": Vector2i}
-##   - Erase:     StringName &"erase"
-##   - Empty:     null  (default — happens before user touches the palette)
+##   - LAYER_HEXES:    Dictionary {"source_id": int, "atlas_coord": Vector2i}
+##                     OR StringName &"erase"
+##                     OR null  (initial — no palette pick yet)
+##   - LAYER_SPAWNERS: Dictionary {"kind": StringName, "ref": StringName}
+##                     kind ∈ {&"player", &"enemy"}; for player ref=&"".
+##                     OR null  (initial)
+##   - LAYER_OBJECTS:  Dictionary {"object_id": StringName}
+##                     OR null  (initial)
 ##
-## In Spec 060 this gains LAYER_SPAWNERS, LAYER_OBJECTS plus methods to
-## switch active_layer when LayersPanel becomes a TabbedBasePanel.
+## See spec.md §5.4 for the full schema.
 
 const LAYER_HEXES := &"hexes"
+const LAYER_SPAWNERS := &"spawners"
+const LAYER_OBJECTS := &"objects"
+
+## Canonical iteration order for Q/W/E quick-select and Tab cycling.
+## Matches the order LayersPanel adds tabs in.
+const LAYER_ORDER: Array[StringName] = [LAYER_HEXES, LAYER_SPAWNERS, LAYER_OBJECTS]
 
 var active_layer: StringName = LAYER_HEXES
 
@@ -36,6 +46,27 @@ func set_selection(layer: StringName, value: Variant) -> void:
 
 ## True when active layer's selection is the erase sentinel.
 ## Convenience for InputDispatcher._act_at to decide paint vs erase.
+## Returns false for non-hexes layers (erase sentinel only exists in
+## the hexes palette schema).
 func is_erase() -> bool:
 	var sel: Variant = get_active_selection()
 	return typeof(sel) == TYPE_STRING_NAME and StringName(sel) == &"erase"
+
+
+## True when active layer has any non-null selection. Used by Φ-5
+## InputDispatcher to short-circuit paint when there's nothing to paint.
+func has_selection() -> bool:
+	return get_active_selection() != null
+
+
+## Tab handler: advance active_layer to the next entry in LAYER_ORDER,
+## wrapping at the end. Returns the new active_layer for caller chaining
+## (e.g. controller emits a UI sync signal). Forward-only by design —
+## see spec.md AC13 / Q-060-5 for the rationale (Shift+Tab not implemented).
+func cycle_active_forward() -> StringName:
+	var idx := LAYER_ORDER.find(active_layer)
+	if idx < 0:
+		active_layer = LAYER_HEXES
+	else:
+		active_layer = LAYER_ORDER[(idx + 1) % LAYER_ORDER.size()]
+	return active_layer

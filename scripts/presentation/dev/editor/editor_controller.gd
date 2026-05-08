@@ -122,7 +122,8 @@ func _resolve_nodes() -> void:
 
 func _wire_panels() -> void:
 	if _layers_panel != null:
-		_layers_panel.hex_palette_selection_changed.connect(_on_palette_selection)
+		_layers_panel.layer_selection_changed.connect(_on_layer_selection_changed)
+		_layers_panel.active_tab_changed.connect(_on_active_tab_changed)
 	if _meta_panel != null:
 		if _meta_panel.has_signal("save_requested"):
 			_meta_panel.save_requested.connect(_on_save)
@@ -143,8 +144,16 @@ func _wire_panels() -> void:
 
 # ── Slot handlers ─────────────────────────────────────────────────
 
-func _on_palette_selection(value: Variant) -> void:
-	_layers.set_selection(LayersModel.LAYER_HEXES, value)
+func _on_layer_selection_changed(layer_id: StringName, value: Variant) -> void:
+	_layers.set_selection(layer_id, value)
+
+
+func _on_active_tab_changed(tab_id: StringName) -> void:
+	# Fires only on user click (TabbedBasePanel policy). Keyboard
+	# shortcuts (Q/W/E/Tab) sync UI via set_active_tab and do NOT
+	# come through here — they update _layers directly via Φ-5
+	# notify_active_layer_changed.
+	_layers.active_layer = tab_id
 
 
 func _on_save() -> void:
