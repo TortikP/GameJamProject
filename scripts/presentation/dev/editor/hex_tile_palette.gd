@@ -5,7 +5,7 @@ extends VBoxContainer
 ## hex_terrain.tres atlas sources, renders one Button per (source_id,
 ## atlas_coord), plus an Erase button at the end. Single ButtonGroup
 ## across all buttons gives radio-mode out of the box — no manual
-## set_pressed_no_signal cycles like in the legacy floor_palette_panel.
+## set_pressed_no_signal cycles like in the legacy floor palette.
 ##
 ## Emits `selection_changed(value: Variant)`:
 ##   - Tile picked:  Dictionary {"source_id": int, "atlas_coord": Vector2i}
@@ -66,7 +66,7 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 	btn.text = ""
 
 	# Icon: cropped texture from the atlas — same region the
-	# TileMapLayer renders. Pattern from floor_palette_panel.gd:148-158.
+	# TileMapLayer renders. Atlas-region pattern, well-known idiom.
 	var tile_texture: Texture2D = atlas.texture
 	if tile_texture != null:
 		var region_size: Vector2i = atlas.texture_region_size

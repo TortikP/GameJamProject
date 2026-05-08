@@ -61,13 +61,9 @@ text = "ui_main_menu_continue_button_text"
 layout_mode = 2
 text = "ui_main_menu_godmode_button_text"
 
-[node name="MapEditorButton" type="Button" parent="VBox" unique_id=1896317596]
+[node name="LevelEditorButton" type="Button" parent="VBox" unique_id=2059059059]
 layout_mode = 2
-text = "ui_main_menu_map_editor_button_text"
-
-[node name="LevelEditorNewButton" type="Button" parent="VBox" unique_id=2059059059]
-layout_mode = 2
-text = "ui_main_menu_level_editor_new_button_text"
+text = "ui_main_menu_level_editor_button_text"
 
 [node name="GameEditorButton" type="Button" parent="VBox" unique_id=1241180300]
 layout_mode = 2

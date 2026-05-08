@@ -39,13 +39,7 @@ var _io: EditorIO
 
 func _ready() -> void:
 	_resolve_nodes()
-	# Workaround: hex_grid.tscn typed @export refs don't auto-resolve in
-	# this scene context. Removed in Φ-9 once .tscn is re-saved (F-059-IMPL-4).
 	if _grid != null:
-		if _grid.tile_map_layer == null:
-			_grid.tile_map_layer = _grid.get_node_or_null("Terrain") as TileMapLayer
-		if _grid.vfx_overlay == null:
-			_grid.vfx_overlay = _grid.get_node_or_null("VFXOverlay") as TileMapLayer
 		_grid.initialize()
 	_level = LevelData.new()
 	_layers = LayersModel.new()
@@ -236,7 +230,7 @@ func _on_load(path: String) -> void:
 
 func _on_playtest() -> void:
 	if not _io.write_playtest_snapshot(_level):
-		_toast(Localization.t("ui_map_editor_playtest_write_failed",
+		_toast(Localization.t("ui_level_editor_playtest_write_failed",
 			"Failed to write playtest"), &"error")
 		return
 	ActiveLevel.mark_playtest(EditorIO.PLAYTEST_PATH)

@@ -117,9 +117,9 @@
 
 ### Φ-9.a. hex_grid.tscn fix
 
-- [ ] **T-060-52.** В `hex_grid.gd` заменить `@export var tile_map_layer/vfx_overlay: TileMapLayer` на `@onready var ... = $Terrain/$VFXOverlay`. **[Φ-9] [≤5 строк]**
-- [ ] **T-060-53.** В `hex_grid.tscn` удалить строки 8-9 (`tile_map_layer = NodePath("Terrain")`, `vfx_overlay = NodePath("VFXOverlay")`). **[Φ-9] [≤2 строки]**
-- [ ] **T-060-54.** В `editor_controller.gd._ready` удалить workaround (6 строк, см. plan §Φ-9.a). Оставить только `_grid.initialize()`. **[Φ-9] [≤5 строк net]**
+- [x] **T-060-52.** В `hex_grid.gd` заменить `@export var tile_map_layer/vfx_overlay: TileMapLayer` на `@onready var ... = $Terrain/$VFXOverlay`. **[Φ-9] [≤5 строк]**
+- [x] **T-060-53.** В `hex_grid.tscn` удалить строки 8-9 (`tile_map_layer = NodePath("Terrain")`, `vfx_overlay = NodePath("VFXOverlay")`). **[Φ-9] [≤2 строки]**
+- [x] **T-060-54.** В `editor_controller.gd._ready` удалить workaround (6 строк, см. plan §Φ-9.a). Оставить только `_grid.initialize()`. **[Φ-9] [≤5 строк net]**
 - [ ] **T-060-55.** Smoke: открыть `level_editor.tscn` — нет error логов про `tile_map_layer is null`. Открыть `godmode.tscn` — то же самое. **[Φ-9] [smoke]**
 
 ### Φ-9.b. level_editor.tscn updates
@@ -138,8 +138,8 @@
 
 ## Φ-10. Удаление legacy + main_menu cross-refs
 
-- [ ] **T-060-58.** Pre-flight grep: для каждого из 12 файлов на удаление сделать grep по `*.gd` и `*.tscn`. Все matches должны быть либо в файлах которые тоже удаляются, либо в `.git/`. Спорные — обсудить перед удалением. **[Φ-10] [check]**
-- [ ] **T-060-59.** `git rm` 12 файлов:
+- [x] **T-060-58.** Pre-flight grep: для каждого из 12 файлов на удаление сделать grep по `*.gd` и `*.tscn`. Все matches должны быть либо в файлах которые тоже удаляются, либо в `.git/`. Спорные — обсудить перед удалением. **[Φ-10] [check]**
+- [x] **T-060-59.** `git rm` 12 файлов:
   - `scenes/dev/map_editor.tscn`
   - `scripts/presentation/dev/map_editor_controller.gd`
   - `scripts/presentation/dev/floor_palette_panel.gd`
@@ -152,8 +152,8 @@
   - `scripts/presentation/dev/hotkey_overlay.gd`
   - `scripts/presentation/dev/delete_highlight.gd`
   - `scripts/presentation/dev/level_history.gd`. **[Φ-10] [git rm]**
-- [ ] **T-060-60.** В `main_menu.gd` удалить `_map_editor_btn` field, `_on_map_editor` handler, и .connect(). Переименовать `_level_editor_new_btn` → `_level_editor_btn` (3 места). Переименовать `_on_level_editor_new` → `_on_level_editor`. Убрать упоминания `_map_editor_btn` в array reference на line 114-115. **[Φ-10] [≤15 строк net]**
-- [ ] **T-060-61.** В `main_menu.tscn` удалить node `MapEditorButton`. Переименовать `LevelEditorNewButton` → `LevelEditorButton`. Обновить text key на `ui_main_menu_level_editor_button_text`. **[Φ-10] [.tscn правки]**
+- [x] **T-060-60.** В `main_menu.gd` удалить `_map_editor_btn` field, `_on_map_editor` handler, и .connect(). Переименовать `_level_editor_new_btn` → `_level_editor_btn` (3 места). Переименовать `_on_level_editor_new` → `_on_level_editor`. Убрать упоминания `_map_editor_btn` в array reference на line 114-115. **[Φ-10] [≤15 строк net]**
+- [x] **T-060-61.** В `main_menu.tscn` удалить node `MapEditorButton`. Переименовать `LevelEditorNewButton` → `LevelEditorButton`. Обновить text key на `ui_main_menu_level_editor_button_text`. **[Φ-10] [.tscn правки]**
 - [ ] **T-060-62.** Smoke: `grep -rln "map_editor" --include="*.gd" --include="*.tscn" .` — должно вернуть пусто (вне docs/specs/). Открыть main_menu — единственная кнопка «Level Editor». Проект компилируется. **[Φ-10] [smoke]**
 
 → Commit: `chore(060): delete legacy MapEditor + cross-refs cleanup` (atomically, single commit per AC25).

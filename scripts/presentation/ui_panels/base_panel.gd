@@ -182,7 +182,7 @@ func _resolve_nodes() -> void:
 ## clamp) operate in absolute viewport coords.
 ##
 ## Why this exists: BasePanel.tscn defaults to PRESET_TOP_LEFT, but
-## consuming scenes (map_editor.tscn etc.) routinely override anchors_preset
+## consuming scenes (level_editor.tscn etc.) routinely override anchors_preset
 ## to 1/7/11 with non-default `grow_horizontal/vertical` to position panels
 ## by edge/corner. With those overrides, set_anchors_preset(TOP_LEFT, true)
 ## inside drag/resize/persistence handlers — even with keep_offsets=true —
