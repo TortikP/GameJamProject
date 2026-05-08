@@ -2075,10 +2075,22 @@
     "ui_keybind_toggle_overlay":  null,
     "ui_keybind_wait_turn":  null,
     "ui_keybind_zoom":  null,
+    "ui_layers_panel_title":  {
+                                  "source":  "scenes/dev/editor/layers_panel.tscn",
+                                  "note":  "panel_title_key on LayersPanel (spec 059)"
+                              },
+    "ui_level_editor_playtest_disabled_toast":  {
+                                                    "source":  "scripts/presentation/dev/editor/editor_controller.gd",
+                                                    "note":  "toast shown when user clicks Playtest in new editor — wired in spec 060 (spec 059)"
+                                                },
     "ui_level_meta_name_label":  {
                                      "source":  "scripts/presentation/dev/level_meta_panel.gd:80",
                                      "note":  "explicit Localization.t fallback"
                                  },
+    "ui_level_meta_panel_title":  {
+                                      "source":  "scenes/dev/level_editor.tscn",
+                                      "note":  "panel_title_key on LevelMetaPanel instance in new editor (spec 059)"
+                                  },
     "ui_level_meta_playtest":  {
                                    "source":  "scripts/presentation/dev/level_meta_panel.gd:102",
                                    "note":  "explicit Localization.t fallback"
@@ -2119,6 +2131,10 @@
                                              "source":  "scenes/main_menu.tscn:62",
                                              "note":  "existing localization key in scene property"
                                          },
+    "ui_main_menu_level_editor_new_button_text":  {
+                                                      "source":  "scenes/main_menu.tscn",
+                                                      "note":  "Level Editor (new) button — Map Editor sibling (spec 059)"
+                                                  },
     "ui_main_menu_load_custom_level_button_text":  {
                                                        "source":  "scenes/main_menu.tscn:78",
                                                        "note":  "existing localization key in scene property"
