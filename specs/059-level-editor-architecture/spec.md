@@ -6,7 +6,7 @@
 
 ## 1. Что строим (one-paragraph summary)
 
-Новая сцена `scenes/dev/level_editor.tscn`, новый `editor_controller.gd` с тремя композиционными модулями (`LayersModel`, `InputDispatcher`, новый `LayersPanel` на `TabbedBasePanel` с одним табом «Hexes»), переиспользование существующего `level_meta_panel.gd` (на `BasePanel` после 057) для кнопок Save/Load/Exit. Новая кнопка «Level Editor (new)» в главном меню без feature-флагов. Жёсткий thin slice — только hex-painting через LMB/RMB drag/single-click, save/load через `LevelSerializer`. Архитектура заложена так, чтобы Spec 060 добавил `spawners` и `objects` слои через **add_tab()** на ту же `LayersPanel` без рефакторинга.
+Новая сцена `scenes/dev/level_editor.tscn`, новый `editor_controller.gd` с тремя композиционными модулями (`LayersModel`, `InputDispatcher`, новый `LayersPanel` на `BasePanel` с палитрой тайлов в body), переиспользование существующего `level_meta_panel.gd` (на `BasePanel` после 057) для кнопок Save/Load/Exit. Новая кнопка «Level Editor (new)» в главном меню без feature-флагов. Жёсткий thin slice — только hex-painting через LMB/RMB drag/single-click, save/load через `LevelSerializer`. Архитектура заложена так, чтобы Spec 060 при добавлении `spawners` и `objects` слоёв мигрировал `LayersPanel` на `TabbedBasePanel` точечно (~1-2 часа работы) — `HexTilePalette` уже отделена и просто переедет в первый таб через `add_tab()`.
 
 ## 2. Проблема
 
@@ -17,7 +17,7 @@ Spec 055 пробовал инкрементную миграцию — пров
 ## 3. Цель
 
 - **AC1.** Новая сцена `scenes/dev/level_editor.tscn` открывается из main menu по кнопке «Level Editor (new)», рендерится без parser/runtime errors.
-- **AC2.** В HUD виден `LayersPanel` (на `TabbedBasePanel`) с одним табом «Hexes». В body таба — палитра тайлов с `Erase`-item в конце.
+- **AC2.** В HUD виден `LayersPanel` (на `BasePanel`) с палитрой тайлов в body. В палитре — кнопка на каждый source/atlas из `hex_terrain.tres` + `Erase`-item в конце.
 - **AC3.** Click по tile-кнопке палитры → выбор тайла (radio-group, single-active, визуальный highlight на активной кнопке).
 - **AC4.** LMB-click на гексе с выбранным non-erase tile → тайл рисуется на сетке. LMB на уже залитом гексе → перерисовывается на новый.
 - **AC5.** RMB-click на гексе с тайлом → тайл стирается. RMB на пустом гексе → silent no-op (без toast).
@@ -48,7 +48,7 @@ Spec 055 пробовал инкрементную миграцию — пров
 - **Tile object placement, spawner placement, brush size > 1.** Кисть всегда 1 гекс.
 - **Migration старого `__autosave__.json` или интеграция с любыми autosave'ами старого редактора.** Новый editor имеет свой autosave (см. §5.2 для F-059-? или Q ниже — TBD).
 - **Удаление старого `MapEditorController` и `floor_palette_panel`.** Это работа 060.
-- **Tear-off для одного-таба `LayersPanel`.** Технически работает (фреймворк 058 поддерживает), но в 1-tab случае это не имеет UX смысла. Не блокируем — просто не часть AC. На smoke не проверяем.
+- **Миграция `LayersPanel` на `TabbedBasePanel`.** Сейчас плоский BasePanel + палитра в body. Миграция произойдёт в 060 при добавлении spawners/objects табов.
 
 ## 5. Структура изменений
 
@@ -58,9 +58,9 @@ Spec 055 пробовал инкрементную миграцию — пров
 - `scripts/presentation/dev/editor/editor_controller.gd` — новый главный контроллер. ≤300 строк (AC13). Owns `LevelData`, `LayersModel`, `InputDispatcher`, проводки сигналов от panels.
 - `scripts/presentation/dev/editor/layers_model.gd` — `class_name LayersModel extends RefCounted`. Pure state holder: `active_layer: StringName`, `_selections: Dictionary[StringName, Variant]`. Методы `get_active_selection()`, `set_selection(layer, value)`, `is_erase()`. ~80-100 строк.
 - `scripts/presentation/dev/editor/input_dispatcher.gd` — `class_name InputDispatcher extends RefCounted`. Принимает `EditorController + HexGrid + LayersModel` в конструкторе. Метод `handle(event) -> bool` — централизованный input pipeline. Внутри `DragState { NONE, PAINTING, ERASING }`, anti-dup `_last_painted_coord`. ~120-150 строк.
-- `scripts/presentation/dev/editor/layers_panel.gd` — `class_name LayersPanel extends TabbedBasePanel`. Owns `HexTilePalette` (внутренний Control) для `hexes` таба. В 060 расширяется через `add_tab()` для `spawners` / `objects`. ~80 строк.
-- `scenes/dev/editor/layers_panel.tscn` — Control composition вокруг `tabbed_base_panel.tscn` с прикреплённым `layers_panel.gd` script-override (паттерн из 057, как dev-панели). Tabs создаются runtime в `_ready` через `add_tab()` (per F-058-IMPL-1 — .tscn-decl half hybrid API не верифицирован).
-- `scripts/presentation/dev/editor/hex_tile_palette.gd` — `class_name HexTilePalette extends VBoxContainer` (или GridContainer — TBD при имплементации). Создаётся `LayersPanel` и помещается в body таба `hexes` через `add_tab()`. Итерирует sources в `hex_terrain.tres`, генерирует Button-grid с TextureRect, добавляет `Erase`-item в конце. ButtonGroup для radio-mode. Сигнал `selection_changed(value: Variant)` (`{"source_id": int, "atlas_coord": Vector2i}` или `&"erase"`). ~100-130 строк.
+- `scripts/presentation/dev/editor/layers_panel.gd` — `class_name LayersPanel extends BasePanel`. Owns `HexTilePalette` (внутренний Control), создаёт его в `_ready` и помещает в `get_body_container()`. В 060 при добавлении spawners/objects этот файл мигрирует на `extends TabbedBasePanel` + `add_tab()` для каждого слоя; `HexTilePalette` уже отделена и просто переедет в первый таб без изменений. ~80 строк.
+- `scenes/dev/editor/layers_panel.tscn` — Control composition вокруг `base_panel.tscn` с прикреплённым `layers_panel.gd` script-override (паттерн из 057, как 5 dev-панелей в `map_editor.tscn`). Палитра инстанцируется runtime в `_ready`.
+- `scripts/presentation/dev/editor/hex_tile_palette.gd` — `class_name HexTilePalette extends VBoxContainer` (или GridContainer — TBD при имплементации). Создаётся `LayersPanel` и помещается напрямую в `get_body_container()`. Итерирует sources в `hex_terrain.tres`, генерирует Button-grid с TextureRect, добавляет `Erase`-item в конце. ButtonGroup для radio-mode. Сигнал `selection_changed(value: Variant)` (`{"source_id": int, "atlas_coord": Vector2i}` или `&"erase"`). ~100-130 строк.
 
 ### 5.2. Минимальные правки в существующих файлах
 
@@ -81,25 +81,34 @@ Spec 055 пробовал инкрементную миграцию — пров
 
 Именно в этом порядке: `_layers` нужен `InputDispatcher`-у, `_dispatcher` нужен в `_input(event)`, `_wire_panels` зависит от `_layers` для default selection.
 
-### 5.4. LayersPanel как `TabbedBasePanel` с одним табом
+### 5.4. LayersPanel как плоский `BasePanel` с миграцией в 060
 
-Архитектурное решение **Q-059-6 → TabbedBasePanel с 1 табом «Hexes»**. Альтернатива (BasePanel + ручной контент в body) была отвергнута: цена переезда на TabbedBasePanel в 060 — переписывание `LayersPanel`. Сейчас закладываем правильный фундамент.
+Архитектурное решение **Q-059-6 → BasePanel сейчас, миграция на TabbedBasePanel в 060**. Безопасный путь: BasePanel в стейдже с 057, на нём ездят 5 dev-панелей, нулевой риск. TabbedBasePanel зрелый только демо-сценой 058 — реальных потребителей пока нет, и 1-таб режим не покрыт smoke'ом 058. Не делаем ставку на непроверенный код-путь в первом реальном consumer'е.
 
-Tear-off в 1-tab случае: технически работает (можно потащить таб «Hexes» вниз, появится detached panel; tab-bar главной покажет placeholder; reattach восстанавливает). UX в 1-tab — странно, но не сломано. На smoke 059 не проверяем — вне AC. В 060 при добавлении 2 ещё табов tear-off становится осмысленным.
-
-Tabs создаются **runtime** в `LayersPanel._ready()` через `add_tab()` (F-058-IMPL-1: .tscn-declarative half hybrid API не верифицирован, runtime — единственный точно-работающий путь).
+Цена миграции в 060 при добавлении spawners/objects слоёв — переписать `extends BasePanel` → `extends TabbedBasePanel`, заменить `body_container.add_child(palette)` на `add_tab(palette, &"hexes", ...)`, добавить два дополнительных `add_tab()` для других палитр. ~1-2 часа работы. `HexTilePalette` остаётся без изменений (она просто Control, отделена от panel).
 
 ```gdscript
-# layers_panel.gd
+# layers_panel.gd (059)
 func _ready() -> void:
-    super._ready()  # TabbedBasePanel._ready → super._ready (BasePanel) + _setup_tab_bar
-    _add_hexes_tab()
-
-func _add_hexes_tab() -> void:
+    super._ready()
     var palette := HexTilePalette.new()
     palette.selection_changed.connect(_on_hex_palette_selection_changed)
-    add_tab(palette, &"hexes", &"", "Hexes")
+    get_body_container().add_child(palette)
 ```
+
+В 060 этот же файл превратится в:
+```gdscript
+# layers_panel.gd (060)
+class_name LayersPanel extends TabbedBasePanel  # was BasePanel
+
+func _ready() -> void:
+    super._ready()
+    add_tab(HexTilePalette.new(), &"hexes", &"", "Hexes")
+    add_tab(SpawnerPalette.new(), &"spawners", &"", "Spawners")
+    add_tab(ObjectPalette.new(), &"objects", &"", "Objects")
+```
+
+Никакого «фундамента под TabbedBasePanel» в 059 не закладывается — миграция точечная и дешёвая. Спек 060 включит её одной из T-задач.
 
 ### 5.5. InputDispatcher pipeline
 
@@ -176,7 +185,7 @@ func erase_floor(coord: Vector2i) -> void
 - **Q-059-3 → thin slice.** Только `hexes` слой, LMB-paint / RMB-erase / single+drag, save/load. **Без**: undo, HoverHighlight, paint preview, 1-9, eyedropper, Q/W/E/Tab, объектов, спаунеров, волн, валидаций. Это явный набор «нет» — фиксирован, не пересматривается без явного повода.
 - **Q-059-4 → no debug flags.** Кнопки «Map Editor» и «Level Editor (new)» в main menu — **обе видны всегда**, без debug/feature флагов. Никита/Стасян могут переключаться в любой момент, F-059-1 предупреждает использовать новый только для тестов.
 - **Q-059-5 → 300 строк hard cap на `editor_controller.gd`.** Soft caps: `input_dispatcher.gd` ~150, `layers_model.gd` ~100. AC13/AC14 это формализуют. Если на имплементации упирается в cap — finding + сигнал на доп модуль (например, выделение `LevelIO` для save/load).
-- **Q-059-6 → TabbedBasePanel с 1 табом «Hexes» для LayersPanel.** Альтернатива (BasePanel в этом спеке + миграция в 060) отвергнута — переписывать LayersPanel дороже чем нести 1-tab «странность» (которая на UX незаметна, потому что 1-tab — это нормальный sub-case TabbedBasePanel). Резолвлено мозгом, может быть пересмотрено на ревью PR.
+- **Q-059-6 → плоский BasePanel сейчас, миграция на TabbedBasePanel в 060.** Безопасный путь. TabbedBasePanel в 058 покрыт только демо-сценой; реальных потребителей с 1-табом не было. BasePanel — зрелый (5 dev-панелей в стейдже после 057), нулевой риск. Цена миграции в 060 — ~1-2 часа точечной правки (`extends BasePanel` → `extends TabbedBasePanel`, `body_container.add_child` → `add_tab`). `HexTilePalette` отделена от panel — переедет без изменений. Альтернатива (TabbedBasePanel в 1-табе сразу) отвергнута: рискуем UX 1-таба и непроверенным код-путём в первом реальном consumer'е. Резолвлено мозгом, может быть пересмотрено на ревью PR.
 - **Q-059-7 → переиспользовать существующий `level_meta_panel.gd`.** Не создаём новую meta-panel. Существующая (после 057 на BasePanel) — общая для обоих редакторов. Новый контроллер подписывается на её сигналы (`save_requested`, `load_requested`, `exit_requested`, `playtest_requested`, `name_changed`). `playtest_requested` в новом — toast «coming in 060». Резолвлено мозгом.
 - **Q-059-8 → HexTilePalette итерирует sources в hex_terrain.tres + Erase в конце.** При `_ready` HexTilePalette: `for src_id in tile_set.get_source_count()` → `var src := tile_set.get_source(src_id) as TileSetAtlasSource` → `for atlas_coord in src.get_tiles_count()`-iterate коллекцию. Кнопка с TextureRect (atlas region). В конце добавляется `Erase` Button с иконкой/текстом. Все Buttons в одной ButtonGroup. Конкретный layout (GridContainer 4-wide или VBox или HFlowContainer) — решается при имплементации. Резолвлено мозгом.
 - **Q-059-9 → anti-dup через `_last_painted_coord` в InputDispatcher.** Простой и достаточный для thin slice. Сбрасывается на release. Альтернатива (Set<Vector2i> всех закрашенных в текущем drag'е) — overkill для thin slice; пересмотрим если на 060 anti-dup потребует более сложной семантики.
@@ -197,8 +206,8 @@ func erase_floor(coord: Vector2i) -> void
 
 ## 10. Dependency / sequencing
 
-- Зависит от **Spec 058** (TabbedBasePanel). Если 058 не merge'нут в staging до старта 059 — блокер. На момент написания спека: 058 в финальном смоук-стадии.
-- **Не зависит** от других in-progress спек. Не блокируется ничем кроме 058.
-- **Разблокирует Spec 060** (level-editor: layers + palettes + delete old MapEditorController).
-- После merge 059 в staging — review pause перед стартом 060 per `docs/workflow.md`. Если на 059 имплементации обнаружились проблемы фундамента (например, EditorController не помещается в 300 строк, или TabbedBasePanel в 1-tab случае ломает UX) — это окно чтобы доработать 059 до старта 060.
+- **Не зависит** от Spec 058 (TabbedBasePanel) — после flip Q-059-6 на BasePanel. На момент написания спека 058 уже в стейдже, но если бы не было — 059 всё равно стартанул бы. **060** будет зависеть от 058 (там добавим табы spawners/objects).
+- **Не зависит** от других in-progress спек.
+- **Разблокирует Spec 060** (level-editor: layers + palettes + delete old MapEditorController). 060 включит миграцию `LayersPanel` на `TabbedBasePanel` как одну из T-задач.
+- После merge 059 в staging — review pause перед стартом 060 per `docs/workflow.md`. Если на 059 имплементации обнаружились проблемы фундамента (например, EditorController не помещается в 300 строк, или модульное разделение `LayersModel`/`InputDispatcher` создаёт неудобство) — это окно чтобы доработать 059 до старта 060.
 - Параллельная жизнь старого `MapEditorController` обязательна до конца Spec 060 (design.md §8 — «Никита может продолжать авторство»).
