@@ -76,10 +76,6 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _dispatcher == null:
 		return
-	# TEMP debug — diagnose paint silence (F-059-IMPL-?). Remove after fix.
-	if event is InputEventMouseButton and event.pressed:
-		var mb := event as InputEventMouseButton
-		print("[DEBUG059] _unhandled_input MB pressed btn=", mb.button_index)
 	if _dispatcher.handle(event):
 		get_viewport().set_input_as_handled()
 
@@ -87,9 +83,6 @@ func _unhandled_input(event: InputEvent) -> void:
 # ── Public API for InputDispatcher ────────────────────────────────
 
 func paint_floor(coord: Vector2i, source_id: int, atlas_coord: Vector2i) -> void:
-	# TEMP debug — diagnose paint silence. Remove after fix.
-	print("[DEBUG059] paint_floor coord=", coord, " src=", source_id, " atlas=", atlas_coord,
-		" tml=", _grid.tile_map_layer if _grid else "null")
 	if _grid == null or _grid.tile_map_layer == null:
 		return
 	_grid.tile_map_layer.set_cell(coord, source_id, atlas_coord)
@@ -97,8 +90,6 @@ func paint_floor(coord: Vector2i, source_id: int, atlas_coord: Vector2i) -> void
 
 
 func erase_floor(coord: Vector2i) -> void:
-	# TEMP debug — diagnose paint silence. Remove after fix.
-	print("[DEBUG059] erase_floor coord=", coord)
 	if _grid == null or _grid.tile_map_layer == null:
 		return
 	_grid.tile_map_layer.set_cell(coord, -1)
@@ -151,21 +142,21 @@ func _on_palette_selection(value: Variant) -> void:
 func _on_save() -> void:
 	var path := MAPS_DIR + _level.name + ".json"
 	if LevelSerializer.save(_level, path):
-		_toast("Saved: " + path)
+		_toast("Saved: " + path, &"success")
 	else:
-		_toast("Save FAILED — see Output")
+		_toast("Save FAILED — see Output", &"error")
 
 
 func _on_load(path: String) -> void:
 	var loaded := LevelSerializer.load_from(path)
 	if loaded == null:
-		_toast("Load FAILED — see Output")
+		_toast("Load FAILED — see Output", &"error")
 		return
 	_level = loaded
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(_level.name)
 	_refresh_grid_from_level()
-	_toast("Loaded: " + path)
+	_toast("Loaded: " + path, &"success")
 
 
 func _on_exit() -> void:
@@ -174,7 +165,7 @@ func _on_exit() -> void:
 
 func _on_playtest_disabled() -> void:
 	_toast(Localization.t("ui_level_editor_playtest_disabled_toast",
-		"Playtest not yet wired in new editor — coming in spec 060"))
+		"Playtest not yet wired in new editor — coming in spec 060"), &"warn")
 
 
 func _on_name_changed(new_name: String) -> void:
@@ -229,8 +220,12 @@ func _remove_floor_cell(coord: Vector2i) -> void:
 			return
 
 
-func _toast(text: String) -> void:
-	if _toast_layer != null and _toast_layer.has_method("show_toast"):
-		_toast_layer.show_toast(text)
+func _toast(text: String, level: StringName = &"info") -> void:
+	# ToastLayer (in our HUD) listens to EventBus.ui_toast_requested(text,
+	# duration_sec, level). Emit on EventBus rather than calling a method —
+	# that's the canonical interface. duration=0.0 means use config default
+	# (config/game_speed.cfg [ui] toast_default_duration_sec, default 2.5s).
+	if Engine.has_singleton("EventBus") or EventBus != null:
+		EventBus.ui_toast_requested.emit(text, 0.0, level)
 	else:
 		GameLogger.info("EditorController", text)
