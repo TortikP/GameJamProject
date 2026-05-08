@@ -53,6 +53,15 @@ var _dispatcher: InputDispatcher
 
 func _ready() -> void:
 	_resolve_nodes()
+	# TEMP debug — diagnose 'tile_map_layer is null' (F-059-IMPL-?). Remove after fix.
+	print("[DEBUG059] _grid=", _grid)
+	if _grid != null:
+		print("[DEBUG059] _grid.get_children()=", _grid.get_children())
+		print("[DEBUG059] _grid.tile_map_layer=", _grid.tile_map_layer)
+		print("[DEBUG059] _grid.vfx_overlay=", _grid.vfx_overlay)
+		print("[DEBUG059] _grid.has_node(Terrain)?=", _grid.has_node("Terrain"))
+		if _grid.has_node("Terrain"):
+			print("[DEBUG059] _grid.get_node(Terrain)=", _grid.get_node("Terrain"))
 	if _grid != null:
 		_grid.initialize()
 	_level = LevelData.new()
