@@ -1047,6 +1047,7 @@
     "ui_skill_offer_smoke_status_label_text":  "(initializing…)",
     "ui_skill_offer_smoke_title_text":  "040 — skill offer smoke harness",
     "ui_spawner_placeholder_label_text":  "1",
+    "ui_tabs_all_detached_hint":  "(All tabs detached — drag a detached panel back here)",
     "ui_tile_objects_smoke_help_text":  "018 tile-objects smoke\n-------------------------\nConsole output (Output panel) shows:\n  - All 6 tile objects loaded with their fields\n  - burning tile_effect verified (duration=2)\n  - F1-F4 emit and log the 4 EventBus signals\n\nFull in-arena smoke (lava walk, barrel break, fountain aura) requires\nthe TileSet \u0027object_id\u0027 custom data layer (T005a, manual in editor).\n",
     "ui_tutorial_checklist_kill":  "Kill enemy",
     "ui_tutorial_checklist_left_threat":  "Leave attack",

@@ -1047,6 +1047,7 @@
     "ui_skill_offer_smoke_status_label_text":  "",
     "ui_skill_offer_smoke_title_text":  "",
     "ui_spawner_placeholder_label_text":  "1",
+    "ui_tabs_all_detached_hint":  "(Все табы оторваны — перетащите detached-панель обратно сюда)",
     "ui_tile_objects_smoke_help_text":  "018 smoke tile-objects\n-------------------------\nOutput показывает:\n  - все 6 tile objects загружены с полями\n  - burning tile_effect проверен (duration=2)\n  - F1-F4 отправляют и логируют 4 сигнала EventBus\n\nПолный in-arena smoke (lava walk, barrel break, fountain aura) требует\ncustom data layer \u0027object_id\u0027 в TileSet (T005a, вручную в editor).\n",
     "ui_tutorial_checklist_kill":  "Убить врага",
     "ui_tutorial_checklist_left_threat":  "Выйти из атаки",
