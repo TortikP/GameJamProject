@@ -22,11 +22,41 @@
 class_name PanelDragHandler
 extends Node
 
+## Emitted when the user releases LMB ending an in-progress drag. Carries
+## the global position of the release. Consumers (e.g. PanelTabBar for
+## tab-tear-off reattach) listen to this to detect drop targets without
+## polling drag state every frame.
+signal drag_ended(release_pos: Vector2)
+
 var _base_panel: BasePanel
 var _drag_handle: Control
 
 var _is_dragging: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
+
+
+## Whether this handler is currently mid-drag. Public read-only state
+## used by PanelTabBar to coordinate handoff timing.
+func is_dragging() -> bool:
+	return _is_dragging
+
+
+## Public drag handoff: caller (e.g. PanelTabBar during tab tear-off)
+## initiates a drag on this handler's panel without an LMB-press event
+## having been delivered to the handle. Idempotent within a single
+## gesture: if already dragging, returns no-op.
+##
+## After setting _is_dragging=true via _begin_drag, we synchronously call
+## _do_drag(global_pos) to snap the panel to the cursor. This guards
+## against the edge case where the first MouseMotion event after handoff
+## doesn't reach this handler (R1 in spec 058 plan.md §Risks).
+func begin_drag_at(global_pos: Vector2) -> void:
+	if _is_dragging:
+		return
+	if not _base_panel.is_draggable() or _base_panel.is_locked():
+		return
+	_begin_drag(global_pos)
+	_do_drag(global_pos)
 
 
 func setup(base_panel: BasePanel, drag_handle: Control) -> void:
@@ -67,6 +97,7 @@ func _input(event: InputEvent) -> void:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
 			_is_dragging = false
+			drag_ended.emit(mb.global_position)
 
 
 func _do_drag(mouse_global: Vector2) -> void:
