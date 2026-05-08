@@ -68,7 +68,7 @@ func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
 	if mb.button_index == MOUSE_BUTTON_LEFT:
 		if mb.pressed:
 			_drag_state = DragState.PAINTING
-			_act_at(_grid.coord_under_mouse(), false)
+			_act_at(_grid.coord_under_mouse_raw(), false)
 		else:
 			_drag_state = DragState.NONE
 			_last_painted_coord = NO_COORD
@@ -76,7 +76,7 @@ func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
 	if mb.button_index == MOUSE_BUTTON_RIGHT:
 		if mb.pressed:
 			_drag_state = DragState.ERASING
-			_act_at(_grid.coord_under_mouse(), true)
+			_act_at(_grid.coord_under_mouse_raw(), true)
 		else:
 			_drag_state = DragState.NONE
 			_last_painted_coord = NO_COORD
@@ -85,7 +85,7 @@ func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
 
 
 func _handle_mouse_drag(_mm: InputEventMouseMotion) -> bool:
-	var coord := _grid.coord_under_mouse()
+	var coord := _grid.coord_under_mouse_raw()
 	if coord == _last_painted_coord:
 		return false
 	_act_at(coord, _drag_state == DragState.ERASING)
@@ -99,7 +99,14 @@ func _handle_mouse_drag(_mm: InputEventMouseMotion) -> bool:
 ## Always updates _last_painted_coord — even on no-op exits, so that
 ## holding RMB over a coord that has nothing to erase doesn't re-trigger
 ## the controller call every motion event in the same hex.
+##
+## Skips entirely on the (-1, -1) sentinel — coord_under_mouse_raw returns
+## that when the cursor is over the HUD canvas layer (no Node2D-space
+## position resolves) or beyond MAP_HALF_LIMIT. We don't want to paint
+## a phantom hex at (-1, -1) on the very edge of the world.
 func _act_at(coord: Vector2i, erase: bool) -> void:
+	if coord == Vector2i(-1, -1):
+		return
 	if erase or _layers.is_erase():
 		_controller.erase_floor(coord)
 		_last_painted_coord = coord
