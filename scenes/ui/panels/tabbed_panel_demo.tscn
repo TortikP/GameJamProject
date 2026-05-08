@@ -23,38 +23,6 @@ panel_id = &"demo_tabbed_main"
 panel_title_fallback = "Main Tabbed"
 min_panel_size = Vector2(220, 140)
 
-[node name="TabA" type="Label" parent="MainTabbed/VBoxContainer/BodyPanel/BodyContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-text = "I am tab A"
-horizontal_alignment = 1
-vertical_alignment = 1
-metadata/tab_title_fallback = "Tab A"
-
-[node name="TabB" type="VBoxContainer" parent="MainTabbed/VBoxContainer/BodyPanel/BodyContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-metadata/tab_title_fallback = "Tab B"
-
-[node name="Action1Button" type="Button" parent="MainTabbed/VBoxContainer/BodyPanel/BodyContainer/TabB"]
-layout_mode = 2
-text = "Action 1"
-
-[node name="Action2Button" type="Button" parent="MainTabbed/VBoxContainer/BodyPanel/BodyContainer/TabB"]
-layout_mode = 2
-text = "Action 2"
-
-[node name="TabC" type="Label" parent="MainTabbed/VBoxContainer/BodyPanel/BodyContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-text = "Empty tab C"
-horizontal_alignment = 1
-vertical_alignment = 1
-metadata/tab_title_fallback = "Tab C"
-
 [node name="OtherTabbed" parent="." instance=ExtResource("1_tbp")]
 layout_mode = 1
 anchors_preset = 1
@@ -68,16 +36,6 @@ grow_horizontal = 0
 panel_id = &"demo_tabbed_other"
 panel_title_fallback = "Other Tabbed"
 min_panel_size = Vector2(200, 120)
-
-[node name="Foo" type="Label" parent="OtherTabbed/VBoxContainer/BodyPanel/BodyContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-text = "Other panel — drop here should be rejected"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-metadata/tab_title_fallback = "Foo"
 
 [node name="CenteredTabbed" parent="." instance=ExtResource("1_tbp")]
 layout_mode = 1
@@ -95,13 +53,3 @@ grow_vertical = 2
 panel_id = &"demo_tabbed_centered"
 panel_title_fallback = "Centered Tabbed"
 min_panel_size = Vector2(200, 120)
-
-[node name="Bar" type="Label" parent="CenteredTabbed/VBoxContainer/BodyPanel/BodyContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-text = "Centered panel — non-default anchors\nDetach me to verify AC10"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-metadata/tab_title_fallback = "Bar"
