@@ -41,3 +41,27 @@ Plan, видимо, перепутал labels для 329 и 387.
 **Action для Андрея.** Подтверди трактовку. Если нужно «detach/reattach считать user-driven» — flip 329 и 387 на true, мелкое изменение.
 
 ---
+
+## F-060-IMPL-2 — Φ-6 cap pressure: extracted into TWO new files, not EditorIO
+
+**Фаза:** Φ-6 (T-060-43 fallback).
+
+**Что нашёл.** Φ-6 controller, even with aggressive doc-trimming, sat at 326 lines when fully implemented per plan §Φ-6.c. T-060-43 specifies the fallback: "extract `_prompt_autosave_restore` + `_check_multi_wave_warning` в EditorIO с callback'ами." But this contradicts plan §Φ-2's explicit constraint: "EditorIO не открывает ConfirmModal сам... IO has no scene-tree opinions." Putting the prompt in IO crosses the I/O-only boundary that Φ-2 was careful to draw.
+
+**Что сделал.** Two new sibling files instead of stuffing into IO:
+
+1. **`level_mutations.gd`** (45 lines, RefCounted, all-static). Holds `set_or_update_floor_cell`, `remove_at_coord`, `refresh_overlay`. Pure data-mutation primitives — no I/O, no rendering, no signals. Used by all paint/erase methods + cascade.
+2. **`editor_startup.gd`** (87 lines, RefCounted, all-static). One-shot startup flow: `run(io, level, meta_panel, confirm_modal, tree) -> LevelData`. Branches on ActiveLevel.has_queued / autosave-prompt-needed / blank slate. Internally calls `confirm_modal.ask` and emits the multi-wave warning toast — this WAS in controller, now it's here.
+
+Controller drops to 269 / 300 with margin. Single `_ready` line: `_level = await EditorStartup.run(_io, _level, _meta_panel, _confirm_modal, get_tree())`.
+
+**Trade-offs.**
+- (+) Both new files are static-only — no instance state, no lifecycle quirks, easy to test/reason about.
+- (+) Φ-2's "IO has no modal" boundary stays intact.
+- (+) Controller reads as a thin orchestrator — _ready, mutations, slot handlers — without the autosave/handoff branching mid-file.
+- (−) Two new files vs the plan's one-file-extension. Mild abstraction inflation.
+- (−) `editor_startup.gd` references `EventBus` directly for toasts — same pattern as the legacy controller, but now in a third place. Deferred refactor candidate.
+
+**Action для Андрея.** Confirm extraction approach. If you'd rather have a single editor_lifecycle.gd merging both helpers, or push the data-helpers back into controller and only extract startup, I can collapse — both alternatives are simple post-Φ-6 commits.
+
+---

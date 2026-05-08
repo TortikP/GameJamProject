@@ -75,17 +75,17 @@
 
 ## Φ-6. EditorController: public API + overlay wiring + autosave + handoff
 
-- [ ] **T-060-33.** Добавить @export'ы `objects_overlay_path`, `spawners_overlay_path`, `help_modal_path`. Резолвнуть в `_resolve_nodes`. **[Φ-6] [≤10 строк]**
-- [ ] **T-060-34.** Реализовать mutation методы `paint_spawner`, `erase_spawner`, `paint_object`, `erase_object` (см. plan §Φ-6.c code). Каждый дёргает `_io.enqueue_autosave(_level)` после успеха. Overlays получают `refresh(...)` если их has_method. **[Φ-6] [≤100 строк]**
-- [ ] **T-060-35.** Реализовать `cascade_at(coord) -> bool` — комбинация всех трёх erase'ов (см. plan §Φ-6.c). Один enqueue_autosave. **[Φ-6] [≤25 строк]**
-- [ ] **T-060-36.** Реализовать helpers `notify_active_layer_changed(layer_id)`, `quick_select_in_active_palette(n)`, `show_help()`. **[Φ-6] [≤20 строк]**
-- [ ] **T-060-37.** Game Editor handoff: в `_ready` после `_wire_panels()` — `if ActiveLevel.has_queued()`: consume + `_io.load_from` + `_io.refresh_grid_from_level` + `_meta_panel.set_level_name` + `_check_multi_wave_warning`. **[Φ-6] [≤25 строк]**
-- [ ] **T-060-38.** Autosave restore prompt: `_prompt_autosave_restore(age_sec)` через ConfirmModal child HUD (modal добавится в Φ-9.b). Если modal == null — silent clear_autosave. **[Φ-6] [≤30 строк] [R6: await process_frame перед .ask]**
-- [ ] **T-060-39.** Multi-wave warning toast: `_check_multi_wave_warning` (см. plan §Φ-6.d). 4-секундный warn-toast если waves.size() > 1. **[Φ-6] [≤10 строк]**
-- [ ] **T-060-40.** Заменить `_on_playtest_disabled` (toast «coming in 060») → `_on_playtest` (functional). Подключить через `_meta_panel.playtest_requested.connect(_on_playtest)`. **[Φ-6] [≤15 строк]**
-- [ ] **T-060-41.** Расширить `_on_exit` — если `ActiveGame.has_queued_for_editor()`: → `game_editor.tscn`, иначе `main_menu.tscn`. **[Φ-6] [≤10 строк]**
-- [ ] **T-060-42.** Подписаться `_meta_panel.playtest_requested` на `_on_playtest`. Удалить старый stub `_on_playtest_disabled`. Удалить loc-key `ui_level_editor_playtest_disabled_toast` (orphan, идёт в Φ-11). **[Φ-6] [≤5 строк]**
-- [ ] **T-060-43.** **Если controller > 300 строк** — extract `_prompt_autosave_restore` + `_check_multi_wave_warning` в EditorIO с callback'ами. Запасной план R1. **[Φ-6] [≤30 строк net, condicional]**
+- [x] **T-060-33.** Добавить @export'ы `objects_overlay_path`, `spawners_overlay_path`, `help_modal_path`. Резолвнуть в `_resolve_nodes`. **[Φ-6] [≤10 строк]** *(also added `confirm_modal_path` since prompt needs the modal)*
+- [x] **T-060-34.** Реализовать mutation методы `paint_spawner`, `erase_spawner`, `paint_object`, `erase_object` (см. plan §Φ-6.c code). Каждый дёргает `_io.enqueue_autosave(_level)` после успеха. Overlays получают `refresh(...)` если их has_method. **[Φ-6] [≤100 строк]**
+- [x] **T-060-35.** Реализовать `cascade_at(coord) -> bool` — комбинация всех трёх erase'ов (см. plan §Φ-6.c). Один enqueue_autosave. **[Φ-6] [≤25 строк]**
+- [x] **T-060-36.** Реализовать helpers `notify_active_layer_changed(layer_id)`, `quick_select_in_active_palette(n)`, `show_help()`. **[Φ-6] [≤20 строк]**
+- [x] **T-060-37.** Game Editor handoff: в `_ready` после `_wire_panels()` — `if ActiveLevel.has_queued()`: consume + `_io.load_from` + `_io.refresh_grid_from_level` + `_meta_panel.set_level_name` + `_check_multi_wave_warning`. **[Φ-6] [≤25 строк]** *(extracted to EditorStartup — F-060-IMPL-2)*
+- [x] **T-060-38.** Autosave restore prompt: `_prompt_autosave_restore(age_sec)` через ConfirmModal child HUD (modal добавится в Φ-9.b). Если modal == null — silent clear_autosave. **[Φ-6] [≤30 строк] [R6: await process_frame перед .ask]** *(extracted to EditorStartup — F-060-IMPL-2)*
+- [x] **T-060-39.** Multi-wave warning toast: `_check_multi_wave_warning` (см. plan §Φ-6.d). 4-секундный warn-toast если waves.size() > 1. **[Φ-6] [≤10 строк]** *(extracted to EditorStartup — F-060-IMPL-2)*
+- [x] **T-060-40.** Заменить `_on_playtest_disabled` (toast «coming in 060») → `_on_playtest` (functional). Подключить через `_meta_panel.playtest_requested.connect(_on_playtest)`. **[Φ-6] [≤15 строк]**
+- [x] **T-060-41.** Расширить `_on_exit` — если `ActiveGame.has_queued_for_editor()`: → `game_editor.tscn`, иначе `main_menu.tscn`. **[Φ-6] [≤10 строк]**
+- [x] **T-060-42.** Подписаться `_meta_panel.playtest_requested` на `_on_playtest`. Удалить старый stub `_on_playtest_disabled`. Удалить loc-key `ui_level_editor_playtest_disabled_toast` (orphan, идёт в Φ-11). **[Φ-6] [≤5 строк]**
+- [x] **T-060-43.** **Если controller > 300 строк** — extract `_prompt_autosave_restore` + `_check_multi_wave_warning` в EditorIO с callback'ами. Запасной план R1. **[Φ-6] [≤30 строк net, condicional]** *(extracted to NEW files level_mutations.gd + editor_startup.gd instead of EditorIO — F-060-IMPL-2 explains divergence from plan's EditorIO target. Controller fits at 269 / 300.)*
 - [ ] **T-060-44.** Smoke: все 3 слоя paint/erase. Cascade. Save/Load. Game Editor → Edit → Exit → Game Editor. Playtest cycle. Autosave (закрыть без save → reopen → modal → restore работает). **[Φ-6] [smoke big]**
 
 → Commit: `feat(060): EditorController full API + overlay wiring + handoff cycles`.
