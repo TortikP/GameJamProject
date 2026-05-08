@@ -56,7 +56,7 @@ func handle(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion and _drag_state != DragState.NONE:
 		return _handle_mouse_drag(event)
 	if event is InputEventKey and event.pressed:
-		var ke := event as InputEventKey
+		var ke: InputEventKey = event as InputEventKey
 		if ke.keycode == KEY_ESCAPE:
 			_drag_state = DragState.NONE
 			_last_painted_coord = NO_COORD
@@ -104,14 +104,13 @@ func _act_at(coord: Vector2i, erase: bool) -> void:
 		_controller.erase_floor(coord)
 		_last_painted_coord = coord
 		return
-	var sel := _layers.get_active_selection()
+	var sel: Variant = _layers.get_active_selection()
 	if typeof(sel) != TYPE_DICTIONARY:
 		# No tile selected (initial state). Don't paint, but still
 		# record the coord so we don't spam this branch every motion.
 		_last_painted_coord = coord
 		return
-	var d := sel as Dictionary
-	_controller.paint_floor(coord,
-		int(d["source_id"]),
-		d["atlas_coord"] as Vector2i)
+	var d: Dictionary = sel as Dictionary
+	var atlas: Vector2i = d["atlas_coord"]
+	_controller.paint_floor(coord, int(d["source_id"]), atlas)
 	_last_painted_coord = coord

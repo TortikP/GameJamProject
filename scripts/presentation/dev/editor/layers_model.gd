@@ -37,5 +37,5 @@ func set_selection(layer: StringName, value: Variant) -> void:
 ## True when active layer's selection is the erase sentinel.
 ## Convenience for InputDispatcher._act_at to decide paint vs erase.
 func is_erase() -> bool:
-	var sel := get_active_selection()
+	var sel: Variant = get_active_selection()
 	return typeof(sel) == TYPE_STRING_NAME and StringName(sel) == &"erase"

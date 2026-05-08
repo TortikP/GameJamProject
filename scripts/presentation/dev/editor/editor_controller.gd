@@ -178,9 +178,9 @@ func _refresh_grid_from_level() -> void:
 		return
 	_grid.tile_map_layer.clear()
 	for cell in _level.floor_cells:
-		var coord := cell["coord"] as Vector2i
-		var source_id := int(cell["source_id"])
-		var atlas := cell["atlas_coord"] as Vector2i
+		var coord: Vector2i = cell["coord"]
+		var source_id: int = int(cell["source_id"])
+		var atlas: Vector2i = cell["atlas_coord"]
 		_grid.tile_map_layer.set_cell(coord, source_id, atlas)
 
 
@@ -190,7 +190,8 @@ func _refresh_grid_from_level() -> void:
 func _set_or_update_floor_cell(coord: Vector2i, source_id: int,
 		atlas_coord: Vector2i) -> void:
 	for cell in _level.floor_cells:
-		if (cell["coord"] as Vector2i) == coord:
+		var cell_coord: Vector2i = cell["coord"]
+		if cell_coord == coord:
 			cell["source_id"] = source_id
 			cell["atlas_coord"] = atlas_coord
 			return
@@ -203,7 +204,8 @@ func _set_or_update_floor_cell(coord: Vector2i, source_id: int,
 
 func _remove_floor_cell(coord: Vector2i) -> void:
 	for i in range(_level.floor_cells.size() - 1, -1, -1):
-		if (_level.floor_cells[i]["coord"] as Vector2i) == coord:
+		var cell_coord: Vector2i = _level.floor_cells[i]["coord"]
+		if cell_coord == coord:
 			_level.floor_cells.remove_at(i)
 			return
 

@@ -36,13 +36,13 @@ func _ready() -> void:
 
 
 func _build_buttons() -> void:
-	var tileset := load(TILESET_PATH) as TileSet
+	var tileset: TileSet = load(TILESET_PATH) as TileSet
 	if tileset == null:
 		push_warning("[HexTilePalette] cannot load %s" % TILESET_PATH)
 		return
 	for source_idx in tileset.get_source_count():
 		var source_id := tileset.get_source_id(source_idx)
-		var src := tileset.get_source(source_id) as TileSetAtlasSource
+		var src: TileSetAtlasSource = tileset.get_source(source_id) as TileSetAtlasSource
 		if src == null:
 			continue
 		for tile_idx in src.get_tiles_count():
