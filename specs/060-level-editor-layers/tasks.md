@@ -175,7 +175,7 @@
 ## Φ-12. Smoke prelude + PR
 
 - [ ] **T-060-68.** Полный manual smoke по checklist'у F-060-9 (см. spec.md §7). Каждый пункт — pass/fail. Если fail — back-fix в той же ветке (новые коммиты). **[Φ-12] [big smoke]**
-- [ ] **T-060-69.** Final size check: `wc -l` всех новых/изменённых файлов. Hard cap: editor_controller ≤300 (AC33). Soft caps: editor_io ≤200 (AC34), input_dispatcher ≤220 (AC35), layers_model ≤120 (AC36). Если cap нарушен — finding или extract. **[Φ-12] [check]**
+- [x] **T-060-69.** Final size check: `wc -l` всех новых/изменённых файлов. Hard cap: editor_controller ≤300 (AC33). Soft caps: editor_io ≤200 (AC34), input_dispatcher ≤220 (AC35), layers_model ≤120 (AC36). Если cap нарушен — finding или extract. **[Φ-12] [check]**
 - [ ] **T-060-70.** Push, открыть PR на staging. PR description: ссылка на spec.md / plan.md, summary изменений, F-060-* список, manual smoke checklist для ревьюера. PR URL: https://github.com/TortikP/GameJamProject/pull/new/andrey/060-level-editor-layers (если spec/plan/tasks уже запушены — иначе compare URL). **[Φ-12] [PR]**
 
 ---
