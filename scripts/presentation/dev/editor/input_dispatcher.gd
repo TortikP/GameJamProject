@@ -206,11 +206,8 @@ func _act_objects(coord: Vector2i, erase: bool) -> void:
 
 # ── Flash ─────────────────────────────────────────────────────────
 
-## Spawn a delete-flash on a coord. Stub in Φ-5 — DeleteFlash class
-## lands in Φ-7.a and this body becomes
-## `DeleteFlash.spawn_at(_grid, coord, _grid)`. The Φ-5 stub keeps the
-## phase committable in isolation; the wrappers above already call
-## _spawn_flash on every successful erase, so Φ-7 becomes a single-line
-## body change.
-func _spawn_flash(_coord: Vector2i) -> void:
-	pass
+## Spawn a delete-flash on a coord. Parent = HexGrid (Node2D) so the
+## flash inherits world transform; grid supplies tile_map_layer for
+## coord-to-local conversion and tile_size for polygon shape.
+func _spawn_flash(coord: Vector2i) -> void:
+	DeleteFlash.spawn_at(_grid, coord, _grid)

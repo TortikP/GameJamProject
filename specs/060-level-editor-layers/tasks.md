@@ -94,8 +94,8 @@
 
 ## Φ-7. Visual effects
 
-- [ ] **T-060-45.** Создать `delete_flash.gd` (см. plan §Φ-7.a code). Static `spawn_at(parent, coord, grid)`. Tween fade-out 150ms. **[Φ-7] [≤40 строк]**
-- [ ] **T-060-46.** Создать `editor_help_modal.gd` + `editor_help_modal.tscn` (см. plan §Φ-7.b code). 10 строк шорткатов hard-coded с loc-keys (loc-keys в Φ-11). Esc/F1 закрывают. **[Φ-7] [≤80 строк]**
+- [x] **T-060-45.** Создать `delete_flash.gd` (см. plan §Φ-7.a code). Static `spawn_at(parent, coord, grid)`. Tween fade-out 150ms. **[Φ-7] [≤40 строк]**
+- [x] **T-060-46.** Создать `editor_help_modal.gd` + `editor_help_modal.tscn` (см. plan §Φ-7.b code). 10 строк шорткатов hard-coded с loc-keys (loc-keys в Φ-11). Esc/F1 закрывают. **[Φ-7] [≤80 строк]**
 - [ ] **T-060-47.** Smoke: erase любого слоя → красный flash на 150ms. F1 → modal с таблицей. Esc/F1 закрывают. **[Φ-7] [smoke]**
 
 → Commit: `feat(060): DeleteFlash + EditorHelpModal`.
