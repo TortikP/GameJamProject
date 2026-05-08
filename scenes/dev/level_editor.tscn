@@ -1,0 +1,62 @@
+[gd_scene load_steps=8 format=3 uid="uid://level_editor_001"]
+
+[ext_resource type="Script" path="res://scripts/presentation/dev/editor/editor_controller.gd" id="1_ec"]
+[ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hex"]
+[ext_resource type="Script" path="res://scripts/presentation/godmode/godmode_camera.gd" id="3_cam"]
+[ext_resource type="PackedScene" path="res://scenes/ui/toast_layer.tscn" id="4_toast"]
+[ext_resource type="PackedScene" path="res://scenes/dev/editor/layers_panel.tscn" id="5_lp"]
+[ext_resource type="PackedScene" uid="uid://52k1drd6uyfx" path="res://scenes/ui/panels/base_panel.tscn" id="6_bp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/level_meta_panel.gd" id="7_mp"]
+
+[node name="LevelEditor" type="Node2D"]
+script = ExtResource("1_ec")
+hex_grid_path = NodePath("HexGrid")
+layers_panel_path = NodePath("HUD/LayersPanel")
+level_meta_panel_path = NodePath("HUD/LevelMetaPanel")
+toast_layer_path = NodePath("HUD/ToastLayer")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Background" type="ColorRect" parent="BackgroundLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="EditorCamera" type="Camera2D" parent="."]
+script = ExtResource("3_cam")
+allow_pan = true
+position_smoothing_enabled = true
+zoom = Vector2(0.5, 0.5)
+
+[node name="HexGrid" parent="." instance=ExtResource("2_hex")]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="LayersPanel" parent="HUD" instance=ExtResource("5_lp")]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 60.0
+offset_right = 280.0
+offset_bottom = 360.0
+
+[node name="LevelMetaPanel" parent="HUD" instance=ExtResource("6_bp")]
+script = ExtResource("7_mp")
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 240.0
+grow_horizontal = 0
+panel_id = &"level_meta"
+panel_title_key = &"ui_level_meta_panel_title"
+panel_title_fallback = "Level Meta"
+min_panel_size = Vector2(280, 180)
+persistence_scope_override = &"level_editor"
+
+[node name="ToastLayer" parent="HUD" instance=ExtResource("4_toast")]
