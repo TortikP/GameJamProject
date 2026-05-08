@@ -57,10 +57,20 @@ func _build_buttons() -> void:
 		btn.pressed.connect(_on_pressed.bind(object_id))
 		_grid.add_child(btn)
 		_quick_select_buttons.append(btn)
+	# Erase entry — always last; same icon + sentinel as the other two
+	# palettes. Dispatcher's is_erase() detects this in _act_objects.
+	var erase_btn := PaletteHelpers.make_erase_button(_button_group)
+	erase_btn.pressed.connect(_on_erase_pressed)
+	_grid.add_child(erase_btn)
+	_quick_select_buttons.append(erase_btn)
 
 
 func _on_pressed(object_id: StringName) -> void:
 	selection_changed.emit({"object_id": object_id})
+
+
+func _on_erase_pressed() -> void:
+	selection_changed.emit(&"erase")
 
 
 ## Programmatic activation by KEY_1..9 — see SpawnerPalette.quick_select
@@ -75,6 +85,12 @@ func quick_select(n: int) -> void:
 
 ## Restore stored selection without emitting. Returns true on match.
 func select_value(value: Variant) -> bool:
+	if typeof(value) == TYPE_STRING_NAME and StringName(value) == &"erase":
+		for btn in _quick_select_buttons:
+			if btn != null and btn.has_meta("is_erase"):
+				btn.button_pressed = true
+				return true
+		return false
 	if typeof(value) != TYPE_DICTIONARY:
 		return false
 	var target := StringName(String((value as Dictionary).get("object_id", "")))

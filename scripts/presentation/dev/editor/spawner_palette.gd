@@ -62,6 +62,18 @@ func _build_buttons() -> void:
 		btn.pressed.connect(_on_pressed.bind(&"enemy", entry["id"]))
 		_grid.add_child(btn)
 		_quick_select_buttons.append(btn)
+	# Erase entry — always last, AC14 quick-select stops at this slot
+	# only when there are <9 entries before it (which there are: Player
+	# + up to 12 enemies). Emits &"erase" sentinel so dispatcher's
+	# is_erase() check works the same as on the hexes layer.
+	var erase_btn := PaletteHelpers.make_erase_button(_button_group)
+	erase_btn.pressed.connect(_on_erase_pressed)
+	_grid.add_child(erase_btn)
+	_quick_select_buttons.append(erase_btn)
+
+
+func _on_erase_pressed() -> void:
+	selection_changed.emit(&"erase")
 
 
 func _list_enemy_entries() -> Array[Dictionary]:
@@ -117,6 +129,12 @@ func quick_select(n: int) -> void:
 
 ## Restore stored selection without emitting. Returns true on match.
 func select_value(value: Variant) -> bool:
+	if typeof(value) == TYPE_STRING_NAME and StringName(value) == &"erase":
+		for btn in _quick_select_buttons:
+			if btn != null and btn.has_meta("is_erase"):
+				btn.button_pressed = true
+				return true
+		return false
 	if typeof(value) != TYPE_DICTIONARY:
 		return false
 	var d: Dictionary = value

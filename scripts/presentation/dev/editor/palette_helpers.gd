@@ -52,6 +52,28 @@ static func load_texture(path: String) -> Texture2D:
 	return res as Texture2D
 
 
+## Build the standard "erase" button used by all three palettes:
+## red ✕ glyph, ICON_SIZE, toggle inside `group`, tagged with
+## is_erase=true meta so EditorPalettePrefs / select_value can spot
+## it. Caller wires `pressed` to its layer-specific erase emit.
+static func make_erase_button(group: ButtonGroup) -> Button:
+	var btn := Button.new()
+	btn.toggle_mode = true
+	btn.button_group = group
+	btn.custom_minimum_size = ICON_SIZE
+	btn.text = "✕"
+	btn.tooltip_text = Localization.t("ui_palette_erase_tooltip", "Erase")
+	btn.set_meta("is_erase", true)
+	UiTheme.apply_button_styling(btn)
+	# Bigger glyph + red font color override — distinct from any
+	# regular palette item, immediately reads as "destructive".
+	btn.add_theme_font_size_override("font_size", 36)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1.0))
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.5, 0.5, 1.0))
+	btn.add_theme_color_override("font_pressed_color", Color(1.0, 0.4, 0.4, 1.0))
+	return btn
+
+
 ## Decorate the first up-to-9 buttons with a Label showing the keyboard
 ## digit (1-9) in the top-left corner. The Label is mouse_filter=IGNORE
 ## so it doesn't intercept clicks. Buttons beyond index 8 are not

@@ -982,6 +982,7 @@
     "ui_music_lab_stop": "Stop",
     "ui_music_lab_switch_ab": "Switch A<>B",
     "ui_music_lab_title": "Music Lab - music tuning",
+    "ui_palette_erase_tooltip": "Erase",
     "ui_pause_main_menu_body": "Current run will end.",
     "ui_pause_main_menu_confirm": "Main Menu",
     "ui_pause_main_menu_title": "Return to main menu?",

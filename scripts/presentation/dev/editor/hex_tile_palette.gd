@@ -94,13 +94,7 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 
 
 func _make_erase_button() -> Button:
-	var btn := Button.new()
-	btn.toggle_mode = true
-	btn.button_group = _button_group
-	btn.custom_minimum_size = PaletteHelpers.ICON_SIZE
-	btn.text = Localization.t("ui_floor_palette_erase", "Erase")
-	UiTheme.apply_button_styling(btn)
-	btn.set_meta("is_erase", true)  # tag for select_value lookup
+	var btn := PaletteHelpers.make_erase_button(_button_group)
 	btn.pressed.connect(_on_erase_pressed)
 	return btn
 

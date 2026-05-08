@@ -183,7 +183,7 @@ func _act_hexes(coord: Vector2i, erase: bool) -> void:
 
 
 func _act_spawners(coord: Vector2i, erase: bool) -> void:
-	if erase:
+	if erase or _layers.is_erase():
 		if _controller.erase_spawner(coord):
 			_spawn_flash(coord)
 		return
@@ -195,7 +195,7 @@ func _act_spawners(coord: Vector2i, erase: bool) -> void:
 
 
 func _act_objects(coord: Vector2i, erase: bool) -> void:
-	if erase:
+	if erase or _layers.is_erase():
 		if _controller.erase_object(coord):
 			_spawn_flash(coord)
 		return
