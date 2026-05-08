@@ -111,3 +111,8 @@ Controller drops to 269 / 300 with margin. Single `_ready` line: `_level = await
 **Action для Андрея.** Smoke — детач Spawners → попробовать ресайз за все 8 краёв/углов. Если не работает — repro: дёрнуть `print(detached._resize_handler != null)` в `_spawn_detached` после `host.add_child`. Если null — гипотеза 1. Если true — лезть в ResizeFrame.visible или persistence.
 
 ---
+
+**Update (commit attempt 2 after Andrey reported the size bump didn't help).** Hypothesis 2 of the alt-hypotheses list was probably wrong. Most likely cause: tree-order. In `base_panel.tscn`, `ResizeFrame` was the FIRST child of root and `VBoxContainer` was LAST. Godot processes Control input in REVERSE child order — VBox / HeaderPanel / BodyPanel had click priority over the ResizeFrame handles in any overlap region. The 6px insets on VBoxContainer (offset_right=-6, offset_bottom=-6) mean handles in the outer 6px ring SHOULD be free, but apparently something inside VBox's subtree was still grabbing input on detached panels (main panel works because content has slack — no overlap with edge ring).
+
+**Fix attempt 2 (commit g):** moved ResizeFrame block to be the LAST child of root in `base_panel.tscn`. ResizeFrame now gets input priority; its handles capture clicks at panel edges before any VBoxContainer descendant can intercept. No visual change (handles have no draw geometry); no Code change needed (no `get_child(N)` lookups depend on order). If this doesn't help either, next step is runtime trace via `print(detached._resize_handler != null)` after `host.add_child` in `_spawn_detached`.
+
