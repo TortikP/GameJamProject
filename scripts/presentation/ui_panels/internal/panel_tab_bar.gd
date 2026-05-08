@@ -171,6 +171,18 @@ func _make_tab_button(tab_id: StringName, title_key: StringName, title_fallback:
 
 func _set_active(tab_id: StringName, by_user: bool = false) -> void:
 	_active_tab_id = tab_id
+	# If the target is detached, the request can't be visually expressed
+	# in this strip — its content lives in a floating panel, not in our
+	# body. Toggling the visibility loop below would just hide whatever
+	# attached tab is currently visible (and reveal nothing), leaving an
+	# empty body. _active_tab_id is already updated above (logical active
+	# for keyboard semantics + correct initial state on a future
+	# reattach), so we can safely bail.
+	for record in _tabs:
+		if record["tab_id"] == tab_id and bool(record["detached"]):
+			if by_user:
+				active_tab_changed.emit(tab_id)
+			return
 	for record in _tabs:
 		var is_active: bool = (record["tab_id"] == tab_id) and not record["detached"]
 		var content := record["content"] as Control
