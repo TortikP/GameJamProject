@@ -20,13 +20,13 @@
 
 ## Φ-2. EditorIO extract
 
-- [ ] **T-060-6.** Создать `scripts/presentation/dev/editor/editor_io.gd` со стабовым API (см. plan §Φ-2). `class_name EditorIO extends Node`. Все методы возвращают defaults (null/false/empty). **[Φ-2] [≤80 строк]**
-- [ ] **T-060-7.** Перенести `_on_save` логику из `editor_controller.gd` в `EditorIO.save(level)`. Контроллер дёргает `_io.save(_level)`. **[Φ-2] [≤30 строк net]**
-- [ ] **T-060-8.** Перенести `_on_load` логику в `EditorIO.load_from(path)`. Контроллер дёргает `_io.load_from(path)`. **[Φ-2] [≤30 строк net]**
-- [ ] **T-060-9.** Перенести `_refresh_grid_from_level` в `EditorIO.refresh_grid_from_level(level)`. Расширить параметром overlays — controller передаёт null'ы пока (overlays подключаются в Φ-6). **[Φ-2] [≤25 строк net]**
-- [ ] **T-060-10.** Добавить `Timer` autosave в `EditorIO._ready` (one_shot, wait_time=1.5). Реализовать `enqueue_autosave(level)` (start таймер) и `_on_autosave_fire` (write `__autosave__.json`). **[Φ-2] [≤30 строк] [R5: max-debounce — finding если важно]**
-- [ ] **T-060-11.** Реализовать `clear_autosave()` (DirAccess.remove если файл есть) и `check_autosave_on_ready() -> Dictionary {prompt_needed, age_sec}`. **[Φ-2] [≤25 строк]**
-- [ ] **T-060-12.** Реализовать `write_playtest_snapshot(level) -> bool` (то же что save, но в `__playtest__.json`). **[Φ-2] [≤10 строк]**
+- [x] **T-060-6.** Создать `scripts/presentation/dev/editor/editor_io.gd` со стабовым API (см. plan §Φ-2). `class_name EditorIO extends Node`. Все методы возвращают defaults (null/false/empty). **[Φ-2] [≤80 строк]**
+- [x] **T-060-7.** Перенести `_on_save` логику из `editor_controller.gd` в `EditorIO.save(level)`. Контроллер дёргает `_io.save(_level)`. **[Φ-2] [≤30 строк net]**
+- [x] **T-060-8.** Перенести `_on_load` логику в `EditorIO.load_from(path)`. Контроллер дёргает `_io.load_from(path)`. **[Φ-2] [≤30 строк net]**
+- [x] **T-060-9.** Перенести `_refresh_grid_from_level` в `EditorIO.refresh_grid_from_level(level)`. Расширить параметром overlays — controller передаёт null'ы пока (overlays подключаются в Φ-6). **[Φ-2] [≤25 строк net]**
+- [x] **T-060-10.** Добавить `Timer` autosave в `EditorIO._ready` (one_shot, wait_time=1.5). Реализовать `enqueue_autosave(level)` (start таймер) и `_on_autosave_fire` (write `__autosave__.json`). **[Φ-2] [≤30 строк] [R5: max-debounce — finding если важно]**
+- [x] **T-060-11.** Реализовать `clear_autosave()` (DirAccess.remove если файл есть) и `check_autosave_on_ready() -> Dictionary {prompt_needed, age_sec}`. **[Φ-2] [≤25 строк]**
+- [x] **T-060-12.** Реализовать `write_playtest_snapshot(level) -> bool` (то же что save, но в `__playtest__.json`). **[Φ-2] [≤10 строк]**
 - [ ] **T-060-13.** Smoke: проверить что 059'й цикл (paint floor → save → exit → load → paint visible) работает 1:1 как до refactor. **[Φ-2] [smoke] [R1: измерить размер controller'а — ожидаемо ≤200]**
 
 → Commit: `refactor(060): extract EditorIO from EditorController` (functional pure refactor, без новой UX).

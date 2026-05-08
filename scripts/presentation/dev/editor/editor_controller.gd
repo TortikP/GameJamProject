@@ -15,8 +15,10 @@ extends Node2D
 ##   3. data + LayersModel    — LevelData with default name/wave; LayersModel
 ##                              with default hex selection.
 ##   4. InputDispatcher       — needs grid + layers ready.
-##   5. _wire_panels          — connects signals; panels exist after step 1.
-##   6. _refresh_grid_from_level — sync TileMapLayer with empty floor_cells.
+##   5. EditorIO              — Node child, holds autosave Timer; setup()
+##                              after instantiation injects grid + overlays.
+##   6. _wire_panels          — connects signals; panels exist after step 1.
+##   7. _io.refresh_grid_from_level — sync TileMapLayer with empty floor_cells.
 ##
 ## Reordering breaks subtle invariants (panels firing signals at uninitialized
 ## controller, dispatcher receiving events before wire, etc.). Don't.
@@ -28,13 +30,13 @@ extends Node2D
 ##
 ## Anyone else needing to mutate floor goes through these too.
 ##
-## ## Hard cap: 300 lines (AC13)
+## ## Hard cap: 300 lines (AC33)
 ##
-## If approaching cap, surface as finding and extract a helper (likely
-## candidate: pull save/load + _refresh_grid_from_level into editor_io.gd).
+## Save/load/autosave/grid-sync extracted into EditorIO (Φ-2 of 060).
+## If the cap is exceeded again, next extraction candidates per plan §Φ-6:
+## _prompt_autosave_restore + _check_multi_wave_warning into EditorIO.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
-const MAPS_DIR := "res://data/maps/"
 
 @export var hex_grid_path: NodePath
 @export var layers_panel_path: NodePath
@@ -49,6 +51,7 @@ var _toast_layer: Node           # toast_layer.tscn root
 var _level: LevelData
 var _layers: LayersModel
 var _dispatcher: InputDispatcher
+var _io: EditorIO
 
 
 func _ready() -> void:
@@ -69,8 +72,13 @@ func _ready() -> void:
 	_layers = LayersModel.new()
 	_layers.set_selection(LayersModel.LAYER_HEXES, _default_hex_selection())
 	_dispatcher = InputDispatcher.new(self, _grid, _layers)
+	_io = EditorIO.new()
+	add_child(_io)
+	# Overlays are null in Φ-2 — wired in Φ-6 once level_editor.tscn
+	# adds ObjectsOverlay / SpawnersOverlay nodes.
+	_io.setup(_grid, null, null)
 	_wire_panels()
-	_refresh_grid_from_level()
+	_io.refresh_grid_from_level(_level)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -140,22 +148,21 @@ func _on_palette_selection(value: Variant) -> void:
 
 
 func _on_save() -> void:
-	var path := MAPS_DIR + _level.name + ".json"
-	if LevelSerializer.save(_level, path):
-		_toast("Saved: " + path, &"success")
+	if _io.save(_level):
+		_toast("Saved: " + EditorIO.MAPS_DIR + _level.name + ".json", &"success")
 	else:
 		_toast("Save FAILED — see Output", &"error")
 
 
 func _on_load(path: String) -> void:
-	var loaded := LevelSerializer.load_from(path)
+	var loaded := _io.load_from(path)
 	if loaded == null:
 		_toast("Load FAILED — see Output", &"error")
 		return
 	_level = loaded
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(_level.name)
-	_refresh_grid_from_level()
+	_io.refresh_grid_from_level(_level)
 	_toast("Loaded: " + path, &"success")
 
 
@@ -178,20 +185,6 @@ func _default_hex_selection() -> Dictionary:
 	# First atlas tile of source 0 in hex_terrain.tres = grass (Katya's
 	# default tile, post-032 tileset consolidation).
 	return {"source_id": 0, "atlas_coord": Vector2i.ZERO}
-
-
-## Sync TileMapLayer with _level.floor_cells. Clears existing cells first
-## (for the Load case where the previous in-memory level might have had
-## different cells).
-func _refresh_grid_from_level() -> void:
-	if _grid == null or _grid.tile_map_layer == null:
-		return
-	_grid.tile_map_layer.clear()
-	for cell in _level.floor_cells:
-		var coord: Vector2i = cell["coord"]
-		var source_id: int = int(cell["source_id"])
-		var atlas: Vector2i = cell["atlas_coord"]
-		_grid.tile_map_layer.set_cell(coord, source_id, atlas)
 
 
 ## Update an existing floor_cells entry by coord, or append if missing.
