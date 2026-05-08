@@ -203,6 +203,14 @@ func _wire_panels() -> void:
 
 func _on_layer_selection_changed(layer_id: StringName, value: Variant) -> void:
 	_layers.set_selection(layer_id, value)
+	# Clicking any palette button also makes that layer active. Avoids
+	# the "I clicked tree in detached objects panel but I'm still on
+	# hexes layer so paint goes to hexes" trap. set_active_tab no-ops
+	# when target is detached (panel_tab_bar guard) so this is safe
+	# regardless of detach state.
+	if _layers.active_layer != layer_id:
+		_layers.active_layer = layer_id
+		notify_active_layer_changed(layer_id)
 
 
 func _on_active_tab_changed(tab_id: StringName) -> void:
