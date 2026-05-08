@@ -17,7 +17,7 @@ extends VBoxContainer
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 
 const TILESET_PATH := "res://scenes/arena/tilesets/hex_terrain.tres"
-const ICON_SIZE := Vector2(48, 48)
+# ICON_SIZE moved to PaletteHelpers — uniform across all three palettes.
 
 signal selection_changed(value: Variant)
 
@@ -62,7 +62,7 @@ func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
 	var btn := Button.new()
 	btn.toggle_mode = true
 	btn.button_group = _button_group
-	btn.custom_minimum_size = ICON_SIZE
+	btn.custom_minimum_size = PaletteHelpers.ICON_SIZE
 	btn.text = ""
 
 	# Icon: cropped texture from the atlas — same region the
@@ -97,7 +97,7 @@ func _make_erase_button() -> Button:
 	var btn := Button.new()
 	btn.toggle_mode = true
 	btn.button_group = _button_group
-	btn.custom_minimum_size = ICON_SIZE
+	btn.custom_minimum_size = PaletteHelpers.ICON_SIZE
 	btn.text = Localization.t("ui_floor_palette_erase", "Erase")
 	UiTheme.apply_button_styling(btn)
 	btn.pressed.connect(_on_erase_pressed)

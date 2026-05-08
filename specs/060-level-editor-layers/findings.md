@@ -65,3 +65,28 @@ Controller drops to 269 / 300 with margin. Single `_ready` line: `_level = await
 **Action для Андрея.** Confirm extraction approach. If you'd rather have a single editor_lifecycle.gd merging both helpers, or push the data-helpers back into controller and only extract startup, I can collapse — both alternatives are simple post-Φ-6 commits.
 
 ---
+
+## F-060-IMPL-3 — AC4 / AC5 пропуск в Φ-4: иконки добавлены пост-фактум
+
+**Фаза:** Φ-4 follow-up.
+
+**Что нашёл.** spec.md AC4 и AC5 явно требовали иконки в палитрах: AC4 «иконка из data/enemies/<id>.json portrait», AC5 «иконка из TileObject.icon или sprite». В Φ-4 я ориентировался на plan §Φ-4 (там было «text-only buttons» как упрощение) и сделал палитры без иконок. Plan был мягче AC. AC жёстче — приоритет AC.
+
+**Что сделал.** Follow-up commit поднимает AC4/AC5:
+- `palette_helpers.gd` обзаводится `ICON_SIZE = Vector2(72, 72)` (общий размер для всех трёх палитр), `make_icon_button(group, label, texture, fallback_glyph)` и `load_texture(path)` (с res:// нормализацией). 29 → 71 строк.
+- `SpawnerPalette` теперь сканирует `data/enemies/*.json:sprite`, грузит PNG'и, кладёт как `btn.icon`. Player → glyph "★" (нет ассета, матчит idiom SpawnersOverlay).
+- `ObjectPalette` берёт `TileObject.sprite_path` через registry, грузит PNG, кладёт как icon.
+- `HexTilePalette` поднял `custom_minimum_size` 48→72 через ту же общую константу.
+- Missing-asset fallback: первая буква id монограммой.
+- Bump LayersPanel size: `level_editor.tscn` 264×300 → 304×420; `layers_panel.tscn` `min_panel_size` 220×240 → 280×360. Иначе 12 врагов в 3 столбца не помещались по высоте.
+
+**Trade-offs.**
+- (+) AC закрыты честно (была дыра в скоупе 060).
+- (+) Один общий ICON_SIZE — консистентно для всех трёх палитр. Поменять на 64/96 — одна правка.
+- (+) Спрайты из JSON — никаких новых ассетов не пилили.
+- (−) Бамп размера панели потенциально влияет на персистенс пользователя (если кто-то её ужал). Но `min_panel_size` это floor, не значение по умолчанию, так что persisted value берёт верх — должно быть мирно.
+- (−) JSON parse в `_list_enemy_entries` каждый раз при открытии редактора — не cached. На 12 врагов ~1мс. Будет дороже на 100+ — тогда достанем EnemyRegistry (которого пока нет).
+
+**Action для Андрея.** Smoke включает: иконки видны в spawner-табе (Player ★ + 12 врагов), object-табе (8 объектов), hex-табе (теперь 72px). Если ассет не находится → буква-монограмма (для тестов: переименуй временно `assets/sprites/enemies/angel.png`, кнопка должна показать "A").
+
+---

@@ -8,8 +8,14 @@ extends VBoxContainer
 ##
 ## Emits `selection_changed(value: Dictionary)`:
 ##   - Object picked: {"object_id": <object_id>}
+##
+## ## Icons (AC5)
+##
+## Each button shows the object's sprite from
+## `TileObject.sprite_path` (already a res:// path from the registry).
+## Objects whose asset is missing degrade to a single-letter monogram —
+## same fallback rule as SpawnerPalette and HexTilePalette.
 
-const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const TILE_OBJECTS_DIR := "res://data/tile_objects/"
 
 signal selection_changed(value: Dictionary)
@@ -42,21 +48,14 @@ func _build_buttons() -> void:
 		var obj: TileObject = _registry.get_object(object_id)
 		if obj == null or obj.id == &"":
 			continue
-		var label := Localization.t(
-			"%s_name" % String(object_id),
+		var label := Localization.t("%s_name" % String(object_id),
 			String(object_id).capitalize())
-		_add_button(label, object_id)
-
-
-func _add_button(label: String, object_id: StringName) -> void:
-	var btn := Button.new()
-	btn.text = label
-	btn.toggle_mode = true
-	btn.button_group = _button_group
-	UiTheme.apply_button_styling(btn)
-	btn.pressed.connect(_on_pressed.bind(object_id))
-	_grid.add_child(btn)
-	_quick_select_buttons.append(btn)
+		var tex: Texture2D = PaletteHelpers.load_texture(obj.sprite_path)
+		var btn := PaletteHelpers.make_icon_button(_button_group, label, tex,
+			String(object_id).substr(0, 1).to_upper())
+		btn.pressed.connect(_on_pressed.bind(object_id))
+		_grid.add_child(btn)
+		_quick_select_buttons.append(btn)
 
 
 func _on_pressed(object_id: StringName) -> void:

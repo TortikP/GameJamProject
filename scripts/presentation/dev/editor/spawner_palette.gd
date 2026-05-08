@@ -10,14 +10,14 @@ extends VBoxContainer
 ##   - Player picked:  {"kind": &"player", "ref": &""}
 ##   - Enemy picked:   {"kind": &"enemy",  "ref": <enemy_id>}
 ##
-## ## Source of truth
+## ## Icons (AC4)
 ##
-## Filename scan of data/enemies/*.json (no central registry exists for
-## enemies in spec 060). Each enemy_id = filename stem. Buttons are
-## text-only — icons would require loading sprite_path from each json,
-## skipped as an optimisation in 060 (spec §4 / plan §Φ-4 "Иконки").
+## Each enemy button shows its sprite from `data/enemies/<id>.json:sprite`
+## (relative path normalized to res:// by PaletteHelpers.load_texture).
+## Player has no sprite asset — uses a "★" glyph fallback to match the
+## SpawnersOverlay visual idiom. Enemies whose sprite path is missing
+## degrade to a single-letter monogram.
 
-const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const ENEMIES_DIR := "res://data/enemies/"
 
 signal selection_changed(value: Dictionary)
@@ -41,44 +41,59 @@ func _ready() -> void:
 func _build_buttons() -> void:
 	# Player always first — uniqueness is enforced controller-side
 	# (paint_spawner removes any existing player spawner before append).
-	_add_button(
+	var player_btn := PaletteHelpers.make_icon_button(_button_group,
 		Localization.t("ui_spawner_palette_player", "Player"),
-		&"player", &"")
+		null, "★")
+	player_btn.pressed.connect(_on_pressed.bind(&"player", &""))
+	_grid.add_child(player_btn)
+	_quick_select_buttons.append(player_btn)
 	# Enemies from data/enemies/*.json — sorted for stable 1-9 mapping
 	# across runs (DirAccess iteration order is filesystem-dependent).
-	var enemy_ids := _list_enemy_ids()
-	enemy_ids.sort()
-	for enemy_id in enemy_ids:
-		var label := Localization.t(
-			"%s_name" % String(enemy_id),
-			String(enemy_id).capitalize())
-		_add_button(label, &"enemy", enemy_id)
+	var entries := _list_enemy_entries()
+	for entry in entries:
+		var tex: Texture2D = PaletteHelpers.load_texture(String(entry["sprite_path"]))
+		var btn := PaletteHelpers.make_icon_button(_button_group,
+			String(entry["label"]), tex,
+			String(entry["id"]).substr(0, 1).to_upper())
+		btn.pressed.connect(_on_pressed.bind(&"enemy", entry["id"]))
+		_grid.add_child(btn)
+		_quick_select_buttons.append(btn)
 
 
-func _list_enemy_ids() -> Array[StringName]:
-	var ids: Array[StringName] = []
+func _list_enemy_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
 	var dir := DirAccess.open(ENEMIES_DIR)
 	if dir == null:
-		return ids
+		return entries
 	dir.list_dir_begin()
 	var fname := dir.get_next()
 	while fname != "":
 		if not dir.current_is_dir() and fname.ends_with(".json"):
-			ids.append(StringName(fname.get_basename()))
+			var enemy_id := StringName(fname.get_basename())
+			# Read sprite path from each JSON; same pattern Localization
+			# uses for asset-side keys. Cheaper than instantiating a full
+			# enemy registry just for icons.
+			var sprite_path := _read_sprite_field(ENEMIES_DIR + fname)
+			entries.append({
+				"id": enemy_id,
+				"label": Localization.t("%s_name" % String(enemy_id),
+					String(enemy_id).capitalize()),
+				"sprite_path": sprite_path,
+			})
 		fname = dir.get_next()
 	dir.list_dir_end()
-	return ids
+	entries.sort_custom(func(a, b): return String(a["id"]) < String(b["id"]))
+	return entries
 
 
-func _add_button(label: String, kind: StringName, ref: StringName) -> void:
-	var btn := Button.new()
-	btn.text = label
-	btn.toggle_mode = true
-	btn.button_group = _button_group
-	UiTheme.apply_button_styling(btn)
-	btn.pressed.connect(_on_pressed.bind(kind, ref))
-	_grid.add_child(btn)
-	_quick_select_buttons.append(btn)
+static func _read_sprite_field(json_path: String) -> String:
+	var raw := FileAccess.get_file_as_string(json_path)
+	if raw == "":
+		return ""
+	var parsed: Variant = JSON.parse_string(raw)
+	if not (parsed is Dictionary):
+		return ""
+	return str((parsed as Dictionary).get("sprite", ""))
 
 
 func _on_pressed(kind: StringName, ref: StringName) -> void:
@@ -87,8 +102,7 @@ func _on_pressed(kind: StringName, ref: StringName) -> void:
 
 ## Programmatic activation by KEY_1..9 in InputDispatcher. Buttons in a
 ## ButtonGroup with toggle_mode don't emit `pressed` when their
-## button_pressed property is set programmatically — emit explicitly so
-## the controller's selection updates (Godot quirk noted in plan §Φ-4.a).
+## button_pressed property is set programmatically — emit explicitly.
 func quick_select(n: int) -> void:
 	if n < 1 or n > _quick_select_buttons.size():
 		return
