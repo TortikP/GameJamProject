@@ -223,6 +223,15 @@ func _attached_tab_count() -> int:
 	return n
 
 
+## Public read-only view of currently-floating panels (one per
+## detached tab). Returns a copy. Used by consumers that need to
+## affect floating panels uniformly — e.g. LayersPanel's active-layer
+## highlight in spec 060. Pair with the META_ORIGIN_TAB_ID metadata
+## on each panel to identify which tab it hosts.
+func get_floating_panels() -> Array[BasePanel]:
+	return _floating_panels.duplicate()
+
+
 func _count_attached() -> int:
 	var n := 0
 	for record in _tabs:

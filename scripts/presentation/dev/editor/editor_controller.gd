@@ -50,6 +50,10 @@ func _ready() -> void:
 	_io.setup(_grid, _objects_overlay, _spawners_overlay)
 	_wire_panels()
 	_level = await EditorStartup.run(_io, _level, _meta_panel, _confirm_modal, get_tree())
+	# Initial active-layer highlight on the panel hosting the default
+	# active tab (hexes by LayersModel default).
+	if _layers_panel != null:
+		_layers_panel.update_layer_highlight(_layers.active_layer)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -140,6 +144,7 @@ func cascade_at(coord: Vector2i) -> bool:
 func notify_active_layer_changed(layer_id: StringName) -> void:
 	if _layers_panel != null:
 		_layers_panel.set_active_tab(layer_id)
+		_layers_panel.update_layer_highlight(layer_id)
 
 
 func quick_select_in_active_palette(n: int) -> void:
@@ -215,6 +220,8 @@ func _on_layer_selection_changed(layer_id: StringName, value: Variant) -> void:
 
 func _on_active_tab_changed(tab_id: StringName) -> void:
 	_layers.active_layer = tab_id
+	if _layers_panel != null:
+		_layers_panel.update_layer_highlight(tab_id)
 
 
 func _on_save() -> void:

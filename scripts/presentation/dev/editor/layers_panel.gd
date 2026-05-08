@@ -75,3 +75,29 @@ func get_palette_for_layer(layer_id: StringName) -> Node:
 		LayersModel.LAYER_OBJECTS:
 			return _object_palette
 	return null
+
+
+## Light-green tint applied to whichever panel header currently hosts
+## the active layer's tab content. Active = green, inactive = default.
+const ACTIVE_LAYER_TINT := Color(0.55, 0.95, 0.55, 1.0)
+const _NO_TINT := Color(0, 0, 0, 0)
+
+
+## Tint the panel header that hosts active_layer's content with a
+## light-green accent; clear any tint on the other panel(s). Called by
+## EditorController on every active_layer change. Works for both the
+## attached state (main LayersPanel hosts the active tab) and detached
+## (a floating BasePanel hosts it) — at most one header is tinted at
+## a time.
+func update_layer_highlight(active_layer: StringName) -> void:
+	# Main panel: tint if its currently-shown attached tab matches.
+	var main_match: bool = (get_active_tab_id() == active_layer)
+	set_header_accent(ACTIVE_LAYER_TINT if main_match else _NO_TINT)
+	# Floating panels (one per detached tab) — tint matching one.
+	for fp in get_floating_panels():
+		if fp == null or not is_instance_valid(fp):
+			continue
+		var fp_tab_id: StringName = StringName(
+			fp.get_meta(PanelTabBar.META_ORIGIN_TAB_ID, &""))
+		var matches: bool = (fp_tab_id == active_layer)
+		fp.set_header_accent(ACTIVE_LAYER_TINT if matches else _NO_TINT)

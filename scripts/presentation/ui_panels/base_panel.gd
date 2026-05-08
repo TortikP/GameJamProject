@@ -86,6 +86,12 @@ const ICON_EXPAND_PLUS    := preload("res://assets/icons/ui/expand_plus.png")
 ##    suggested 120×32 to reflect real layout requirements. ─────────
 @export var min_panel_size: Vector2 = Vector2(120, 88)
 
+## Optional tint applied to the header stylebox bg_color via lerp(0.55).
+## Color(0,0,0,0) = no tint, default theme colors. Used by spec 060
+## LayersPanel to highlight the panel hosting the active layer.
+## Public setter set_header_accent re-applies theme.
+var header_accent: Color = Color(0, 0, 0, 0)
+
 # ── Signals ────────────────────────────────────────────────────────
 signal locked_changed(is_locked: bool)
 signal collapsed_changed(is_collapsed: bool)
@@ -239,7 +245,12 @@ func _apply_title() -> void:
 
 func _apply_theme() -> void:
 	if _header_panel != null:
-		_header_panel.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
+		var header_sb: StyleBoxFlat = UiTheme.make_header_stylebox()
+		# Optional tint — see header_accent comment. Using lerp(0.55)
+		# rather than replace keeps text/border contrast readable.
+		if header_accent.a > 0.0:
+			header_sb.bg_color = header_sb.bg_color.lerp(header_accent, 0.55)
+		_header_panel.add_theme_stylebox_override("panel", header_sb)
 	if _body_panel != null:
 		# Pinned (no header) → full 4-side border so the body isn't open
 		# at the top. Otherwise the standard body stylebox (no top border)
@@ -261,6 +272,15 @@ func _apply_theme() -> void:
 		UiTheme.apply_button_styling(_collapse_button)
 		_collapse_button.icon = ICON_COLLAPSE_MINUS
 		_collapse_button.text = ""
+
+
+## Set or clear the header tint. Color with alpha=0 clears the tint.
+## Re-applies theme so the change is visible immediately. Used by
+## LayersPanel (spec 060) to highlight which panel hosts the active
+## layer's tab content.
+func set_header_accent(color: Color) -> void:
+	header_accent = color
+	_apply_theme()
 
 
 func _setup_handlers() -> void:

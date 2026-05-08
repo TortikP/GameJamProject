@@ -106,3 +106,13 @@ func get_active_tab_id() -> StringName:
 func set_active_tab(tab_id: StringName) -> void:
 	if _tab_bar != null:
 		_tab_bar.set_active(tab_id, false)
+
+
+## Read-only view of currently-floating panels (one per detached tab).
+## Used by consumers that need to affect floating panels uniformly —
+## e.g. LayersPanel's active-layer highlight (spec 060). Each panel
+## has metadata at PanelTabBar.META_ORIGIN_TAB_ID identifying its tab.
+func get_floating_panels() -> Array[BasePanel]:
+	if _tab_bar == null:
+		return []
+	return _tab_bar.get_floating_panels()
