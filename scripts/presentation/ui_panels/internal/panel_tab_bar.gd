@@ -211,6 +211,18 @@ func _first_attached_tab_id() -> StringName:
 	return &""
 
 
+## Count of tabs whose content is currently inside this strip's body
+## (not torn off into a floating panel). Used by _detach_tab_active_drag
+## to refuse the last detach and by callers that want to know if the
+## strip has any visible tabs at all.
+func _attached_tab_count() -> int:
+	var n := 0
+	for record in _tabs:
+		if not bool(record["detached"]):
+			n += 1
+	return n
+
+
 func _count_attached() -> int:
 	var n := 0
 	for record in _tabs:
@@ -284,6 +296,11 @@ func _input(event: InputEvent) -> void:
 ## meta+persistence, and hand off the drag gesture so it continues
 ## without an LMB release.
 func _detach_tab_active_drag(tab_id: StringName, mouse_global: Vector2) -> void:
+	# Block detach of the last attached tab — leaving the parent panel
+	# empty creates 1+ floating panels with one shell, which is just
+	# clutter. User can drag the tabbed panel itself instead.
+	if _attached_tab_count() <= 1:
+		return
 	var detached := _spawn_detached(tab_id)
 	if detached == null:
 		return
