@@ -23,6 +23,7 @@ signal selection_changed(value: Variant)
 
 var _button_group: ButtonGroup
 var _grid: HFlowContainer
+var _quick_select_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -33,6 +34,7 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("v_separation", 4)
 	add_child(_grid)
 	_build_buttons()
+	PaletteHelpers.decorate_quick_select_badges(_quick_select_buttons)
 
 
 func _build_buttons() -> void:
@@ -47,8 +49,12 @@ func _build_buttons() -> void:
 			continue
 		for tile_idx in src.get_tiles_count():
 			var atlas_coord := src.get_tile_id(tile_idx)
-			_grid.add_child(_make_tile_button(src, source_id, atlas_coord))
-	_grid.add_child(_make_erase_button())
+			var btn := _make_tile_button(src, source_id, atlas_coord)
+			_grid.add_child(btn)
+			_quick_select_buttons.append(btn)
+	var erase_btn := _make_erase_button()
+	_grid.add_child(erase_btn)
+	_quick_select_buttons.append(erase_btn)
 
 
 func _make_tile_button(atlas: TileSetAtlasSource, source_id: int,
@@ -104,3 +110,13 @@ func _on_tile_pressed(source_id: int, atlas_coord: Vector2i) -> void:
 
 func _on_erase_pressed() -> void:
 	selection_changed.emit(&"erase")
+
+
+## Programmatic activation by KEY_1..9 — see SpawnerPalette.quick_select
+## for the Godot toggle/ButtonGroup quirk that requires explicit emit.
+func quick_select(n: int) -> void:
+	if n < 1 or n > _quick_select_buttons.size():
+		return
+	var btn := _quick_select_buttons[n - 1]
+	btn.button_pressed = true
+	btn.pressed.emit()

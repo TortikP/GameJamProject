@@ -50,9 +50,9 @@
 
 ## Φ-4. Palettes (SpawnerPalette + ObjectPalette)
 
-- [ ] **T-060-22.** Реализовать `spawner_palette.gd` полностью (см. plan §Φ-4.a code). Player + N enemies из `data/enemies/*.json`. Text-only buttons. Метод `quick_select(n)`. Сбор `_quick_select_buttons` для Φ-5. **[Φ-4] [≤80 строк]**
-- [ ] **T-060-23.** Реализовать `object_palette.gd` полностью (см. plan §Φ-4.b code). `TileObjectRegistry` итерация. Без табов obstacles/interactive. Text-only buttons. **[Φ-4] [≤80 строк]**
-- [ ] **T-060-24.** Реализовать `_decorate_quick_select_badges()` — Label child каждой из первых 9 кнопок с цифрой. Дублировать в обеих палитрах (или вытащить в shared `palette_helpers.gd` — на усмотрение имплементера, **не** лезть в abstraction over одного use case без необходимости). Также добавить badges в `HexTilePalette` для consistency. **[Φ-4] [≤20 строк × 3 palette = ≤60]**
+- [x] **T-060-22.** Реализовать `spawner_palette.gd` полностью (см. plan §Φ-4.a code). Player + N enemies из `data/enemies/*.json`. Text-only buttons. Метод `quick_select(n)`. Сбор `_quick_select_buttons` для Φ-5. **[Φ-4] [≤80 строк]**
+- [x] **T-060-23.** Реализовать `object_palette.gd` полностью (см. plan §Φ-4.b code). `TileObjectRegistry` итерация. Без табов obstacles/interactive. Text-only buttons. **[Φ-4] [≤80 строк]**
+- [x] **T-060-24.** Реализовать `_decorate_quick_select_badges()` — Label child каждой из первых 9 кнопок с цифрой. Дублировать в обеих палитрах (или вытащить в shared `palette_helpers.gd` — на усмотрение имплементера, **не** лезть в abstraction over одного use case без необходимости). Также добавить badges в `HexTilePalette` для consistency. **[Φ-4] [≤20 строк × 3 palette = ≤60]** *(extracted to PaletteHelpers — 3 use cases justifies it)*
 - [ ] **T-060-25.** Smoke: spawners-таб видит Player + список enemy. Objects-таб видит N tile objects. Click меняет ButtonGroup. На первых 9 кнопках в каждой палитре — цифры в углу. **[Φ-4] [smoke]**
 
 → Commit: `feat(060): SpawnerPalette + ObjectPalette + 1-9 quick-select badges`.
