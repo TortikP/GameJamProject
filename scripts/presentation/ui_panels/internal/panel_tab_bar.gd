@@ -232,6 +232,17 @@ func get_floating_panels() -> Array[BasePanel]:
 	return _floating_panels.duplicate()
 
 
+## Returns true if the tab's content currently lives in this strip's
+## body (attached). False if torn off into a floating panel, or if
+## tab_id is unknown. Used by LayersPanel to decide whether the main
+## or the floating panel hosts a given layer.
+func is_tab_attached(tab_id: StringName) -> bool:
+	for record in _tabs:
+		if record["tab_id"] == tab_id:
+			return not bool(record["detached"])
+	return false
+
+
 func _count_attached() -> int:
 	var n := 0
 	for record in _tabs:

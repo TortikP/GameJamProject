@@ -85,14 +85,16 @@ const _NO_TINT := Color(0, 0, 0, 0)
 
 ## Tint the panel header that hosts active_layer's content with a
 ## light-green accent; clear any tint on the other panel(s). Called by
-## EditorController on every active_layer change. Works for both the
-## attached state (main LayersPanel hosts the active tab) and detached
-## (a floating BasePanel hosts it) — at most one header is tinted at
-## a time.
+## EditorController on every active_layer change. The decision is
+## based on whether active_layer's tab is currently attached here vs.
+## torn off — get_active_tab_id() returns the LOGICAL active id (which
+## is updated even when the target tab is detached, per the
+## panel_tab_bar set_active no-op-on-detach guard), so it can't be
+## used as a "what's actually visible in this panel" check.
 func update_layer_highlight(active_layer: StringName) -> void:
-	# Main panel: tint if its currently-shown attached tab matches.
-	var main_match: bool = (get_active_tab_id() == active_layer)
-	set_header_accent(ACTIVE_LAYER_TINT if main_match else _NO_TINT)
+	# Main panel: tint only if active layer's tab is attached here.
+	var attached: bool = is_tab_attached(active_layer)
+	set_header_accent(ACTIVE_LAYER_TINT if attached else _NO_TINT)
 	# Floating panels (one per detached tab) — tint matching one.
 	for fp in get_floating_panels():
 		if fp == null or not is_instance_valid(fp):

@@ -116,3 +116,12 @@ func get_floating_panels() -> Array[BasePanel]:
 	if _tab_bar == null:
 		return []
 	return _tab_bar.get_floating_panels()
+
+
+## True iff tab's content is hosted inside THIS panel's body (vs torn
+## off into a floating panel). Used to decide which panel header gets
+## the active-layer highlight.
+func is_tab_attached(tab_id: StringName) -> bool:
+	if _tab_bar == null:
+		return false
+	return _tab_bar.is_tab_attached(tab_id)
