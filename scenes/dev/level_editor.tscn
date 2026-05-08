@@ -35,9 +35,8 @@ zoom = Vector2(0.5, 0.5)
 
 [node name="HexGrid" parent="." instance=ExtResource("2_hex")]
 
-[node name="HoverHighlight" type="Node2D" parent="."]
+[node name="HoverHighlight" type="Node2D" parent="HexGrid"]
 script = ExtResource("8_hh")
-grid = NodePath("../HexGrid")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 

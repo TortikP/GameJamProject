@@ -53,16 +53,17 @@ var _dispatcher: InputDispatcher
 
 func _ready() -> void:
 	_resolve_nodes()
-	# TEMP debug — diagnose 'tile_map_layer is null' (F-059-IMPL-?). Remove after fix.
-	print("[DEBUG059] _grid=", _grid)
+	# Workaround: hex_grid.tscn declares its export refs as
+	#   tile_map_layer = NodePath("Terrain")
+	# which Godot 4 doesn't auto-resolve in this scene context (the
+	# children Terrain / VFXOverlay exist on the instance, but the
+	# typed @export TileMapLayer fields read back null). Wire them
+	# explicitly. See findings.md F-059-IMPL-4.
 	if _grid != null:
-		print("[DEBUG059] _grid.get_children()=", _grid.get_children())
-		print("[DEBUG059] _grid.tile_map_layer=", _grid.tile_map_layer)
-		print("[DEBUG059] _grid.vfx_overlay=", _grid.vfx_overlay)
-		print("[DEBUG059] _grid.has_node(Terrain)?=", _grid.has_node("Terrain"))
-		if _grid.has_node("Terrain"):
-			print("[DEBUG059] _grid.get_node(Terrain)=", _grid.get_node("Terrain"))
-	if _grid != null:
+		if _grid.tile_map_layer == null:
+			_grid.tile_map_layer = _grid.get_node_or_null("Terrain") as TileMapLayer
+		if _grid.vfx_overlay == null:
+			_grid.vfx_overlay = _grid.get_node_or_null("VFXOverlay") as TileMapLayer
 		_grid.initialize()
 	_level = LevelData.new()
 	_layers = LayersModel.new()

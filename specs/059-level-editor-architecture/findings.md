@@ -32,3 +32,32 @@ Surfacing для ревью.
 Plan.md §Step 8 упоминал что `ui_level_meta_panel_title` может уже существовать. По факту в проекте были `ui_level_meta_title`, `ui_level_meta_name_label`, `ui_level_meta_playtest`, `ui_level_meta_untitled` — но не `_panel_title`. Все 4 ключа нужно было добавлять как новые, что и сделано.
 
 Не блокер — мелкая переоценка в плане, surfaceю для будущих спеков чтобы не опираться на «может быть уже есть».
+
+## F-059-IMPL-4 — `@export TileMapLayer` через `NodePath()` в hex_grid.tscn не резолвится
+
+**Симптом:** Сцена `level_editor.tscn` падает на startup'е с `[ERROR][HexGrid] tile_map_layer is null — call from controller after resolving nodes`. Debug print показал что HexGrid существует, его children Terrain/VFXOverlay существуют как `TileMapLayer` ноды, но `_grid.tile_map_layer == null` и `_grid.vfx_overlay == null`.
+
+**Корневая причина:** В `scenes/arena/hex_grid.tscn` экспортированные поля заданы синтаксисом:
+```
+tile_map_layer = NodePath("Terrain")
+vfx_overlay = NodePath("VFXOverlay")
+```
+А в `hex_grid.gd` они объявлены как typed Node-refs:
+```gdscript
+@export var tile_map_layer: TileMapLayer
+@export var vfx_overlay: TileMapLayer
+```
+Это смешанные типы: Godot 4 ожидает что `@export NodeType` поле сохраняется в .tscn как direct scene reference (не NodePath). NodePath — для `@export NodePath` (другое объявление). При загрузке Godot читает значение, видит type mismatch и тихо игнорирует — поле остаётся null.
+
+Почему map_editor.tscn и godmode.tscn работают с таким же синтаксисом — unclear. Возможные гипотезы (не проверены): другая версия Godot при создании сцены проставила эти binding'и в ином формате; runtime cache; разный resolve порядок при сложной сцене. Не наш cleanup на 059.
+
+**Workaround в 059:** В `EditorController._ready` явно set'аем оба поля до `_grid.initialize()`:
+```gdscript
+if _grid.tile_map_layer == null:
+    _grid.tile_map_layer = _grid.get_node_or_null("Terrain") as TileMapLayer
+if _grid.vfx_overlay == null:
+    _grid.vfx_overlay = _grid.get_node_or_null("VFXOverlay") as TileMapLayer
+```
+Идемпотентно (если поле уже заполнено — не трогает). Не калечит другим потребителям HexGrid.
+
+**Что должно быть сделано (отдельный chore PR):** пересохранить `hex_grid.tscn` через Godot UI — он перезапишет binding'и в правильном формате (direct scene ref). После этого workaround можно убрать. Это chore-задача за пределами 059.
