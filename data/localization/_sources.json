@@ -2674,6 +2674,10 @@
                                               "source":  "scenes/runtime/spawner_placeholder.tscn:16",
                                               "note":  "scene property"
                                           },
+    "ui_tabs_all_detached_hint":  {
+                                      "source":  "scripts/presentation/ui_panels/internal/panel_tab_bar.gd",
+                                      "note":  "PanelTabBar placeholder when all tabs are detached (spec 058)"
+                                  },
     "ui_tile_objects_smoke_help_text":  {
                                             "source":  "scenes/dev/tile_objects_smoke.tscn:15",
                                             "note":  "existing localization key in scene property"

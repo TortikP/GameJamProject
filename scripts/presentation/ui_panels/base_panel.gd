@@ -353,6 +353,21 @@ func toggle_collapse() -> void:
 		_collapse_handler.toggle()
 
 
+## Proxy to PanelDragHandler.begin_drag_at — used by PanelTabBar for
+## drag handoff during tab tear-off, where a tab-button press is being
+## "promoted" to a drag of a freshly spawned BasePanel without an
+## intervening LMB-release event.
+##
+## No-op (with a warning) if the panel has no drag handler — that
+## happens when header_visible=false, which makes the panel implicitly
+## non-draggable.
+func start_drag_at(global_pos: Vector2) -> void:
+	if _drag_handler != null:
+		_drag_handler.begin_drag_at(global_pos)
+	else:
+		push_warning("[BasePanel] start_drag_at called on '%s' with no drag handler" % String(panel_id))
+
+
 func reset_to_defaults() -> void:
 	# Phase 6 — restores position/size from .tscn defaults, then applies
 	# default_locked / default_collapsed. Used by future UI Catalog preview.
