@@ -52,11 +52,11 @@ func _ready() -> void:
 	_object_palette.selection_changed.connect(
 		_on_palette_selection.bind(LayersModel.LAYER_OBJECTS))
 	add_tab(_hex_palette, LayersModel.LAYER_HEXES,
-		&"ui_layers_panel_tab_hexes", "Hexes")
+		&"ui_layers_panel_tab_hexes", "Hexes (Q)")
 	add_tab(_spawner_palette, LayersModel.LAYER_SPAWNERS,
-		&"ui_layers_panel_tab_spawners", "Spawners")
+		&"ui_layers_panel_tab_spawners", "Spawners (W)")
 	add_tab(_object_palette, LayersModel.LAYER_OBJECTS,
-		&"ui_layers_panel_tab_objects", "Objects")
+		&"ui_layers_panel_tab_objects", "Objects (E)")
 
 
 func _on_palette_selection(value: Variant, layer_id: StringName) -> void:
