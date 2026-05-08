@@ -1,4 +1,4 @@
-extends PanelContainer
+extends BasePanel
 ## ObjectPalettePanel — TabBar (Spawners / Obstacles / Interactive) + filter
 ## row + clickable button list. Filters apply to Obstacles + Interactive only;
 ## hidden on the Spawners tab.
@@ -9,13 +9,16 @@ extends PanelContainer
 ##
 ## Spawner list comes from data/enemies/*.json + a hardcoded Player entry.
 ##
+## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
+## extends BasePanel. Body content lives in get_body_container(); header,
+## drag, resize, collapse, lock, persistence are handled by BasePanel.
+##
 ## Signals (consumed by MapEditorController):
 ##   object_picked(object_id: StringName)
 ##   spawner_picked(kind: StringName, ref: StringName)
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
-const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const ENEMIES_DIR: String = "res://data/enemies/"
 
@@ -41,9 +44,11 @@ var _current_tab: int = TAB_SPAWNERS
 
 
 func _ready() -> void:
-	_apply_theme()
-	EventBus.ui_theme_reloaded.connect(_apply_theme)
-	_build_ui()
+	# In Godot 4, parent _ready() is NOT auto-called when subclass overrides.
+	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
+	# drag/resize/collapse/lock/persistence handlers. Then build our body.
+	super._ready()
+	_build_body()
 	_rebuild_for_tab(_current_tab)
 
 
@@ -54,20 +59,15 @@ func setup(controller: Node, registry: TileObjectRegistry) -> void:
 		_rebuild_for_tab(_current_tab)
 
 
-func _apply_theme() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
-
-
-func _build_ui() -> void:
+func _build_body() -> void:
+	var body := get_body_container()
+	if body == null:
+		push_error("[ObjectPalettePanel] body container not available")
+		return
 	var vbox := VBoxContainer.new()
+	vbox.name = "ContentVBox"
 	vbox.add_theme_constant_override("separation", 6)
-	add_child(vbox)
-
-	var header := Label.new()
-	header.text = Localization.t("ui_object_palette_title", "Objects")
-	UiTheme.apply_label_kind(header, "header")
-	vbox.add_child(header)
-	_install_drag(header)
+	body.add_child(vbox)
 
 	_tab_bar = TabBar.new()
 	_tab_bar.clip_tabs = false  # show all 3 tabs always; no scroll arrows
@@ -250,12 +250,6 @@ func _untoggle_others(self_btn: Button) -> void:
 	for child in _content.get_children():
 		if child is Button and child != self_btn:
 			(child as Button).set_pressed_no_signal(false)
-
-
-func _install_drag(handle: Control) -> void:
-	var dragger := DraggablePanel.new()
-	add_child(dragger)
-	dragger.setup(self, handle)
 
 
 # ── Public selection API (eyedropper / 1-9 quick select) ───────────────────

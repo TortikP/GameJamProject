@@ -139,10 +139,10 @@ func load_layout() -> void:
 	var collapse_handler := _base_panel.get_node_or_null("_CollapseHandler") as PanelCollapseHandler
 	var lock_handler := _base_panel.get_node_or_null("_LockHandler") as PanelLockHandler
 
-	# 1. Position. TOP_LEFT preset detaches from any layout container
-	#    so position writes are absolute (mirrors drag handler's begin).
+	# 1. Position. Anchors are already TOP_LEFT (BasePanel._normalize_
+	#    anchors_to_top_left runs once in _ready, before persistence), so
+	#    position writes are absolute.
 	if cfg.has_section_key(_section_key, "position"):
-		_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		_base_panel.position = cfg.get_value(_section_key, "position") as Vector2
 
 	# 2. Size on expanded form. If currently collapsed (e.g. default_collapsed

@@ -126,6 +126,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_resolve_nodes()
+	_normalize_anchors_to_top_left()
 	_compute_effective_flags()
 	_apply_chrome_visibility()
 	_apply_title()
@@ -174,6 +175,41 @@ func _resolve_nodes() -> void:
 	_resize_frame    = $ResizeFrame as Control
 	_lock_button     = $VBoxContainer/HeaderPanel/HeaderRow/LockButton as Button
 	_collapse_button = $VBoxContainer/HeaderPanel/HeaderRow/CollapseButton as Button
+
+
+## Normalize root anchors to TOP_LEFT with default grow_direction so all
+## subsequent position writes (drag, resize, persistence-load, viewport
+## clamp) operate in absolute viewport coords.
+##
+## Why this exists: BasePanel.tscn defaults to PRESET_TOP_LEFT, but
+## consuming scenes (map_editor.tscn etc.) routinely override anchors_preset
+## to 1/7/11 with non-default `grow_horizontal/vertical` to position panels
+## by edge/corner. With those overrides, set_anchors_preset(TOP_LEFT, true)
+## inside drag/resize/persistence handlers — even with keep_offsets=true —
+## doesn't reliably preserve the visual rect when grow_direction != END
+## (Godot 4.6 quirk surfaced in spec 057).
+##
+## Single source of truth: do the conversion ONCE here, capture-and-restore
+## the absolute rect explicitly, set grow_direction back to defaults. After
+## this method returns the panel is in the same visual position but with
+## TOP_LEFT anchors and END/END grow — so subsequent `position = X` writes
+## go where you'd expect.
+##
+## See spec 057 finding F-057-IMPL-4 for the bug history.
+func _normalize_anchors_to_top_left() -> void:
+	# Snapshot absolute rect BEFORE touching anchors. global_position is
+	# valid here — we're inside _ready() so the node is in the tree.
+	var abs_pos: Vector2 = global_position
+	var abs_size: Vector2 = size
+	# Set anchors WITHOUT keep_offsets — we're about to write everything
+	# explicitly, no need for Godot to recompute offsets.
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Default grow_direction in case the scene set non-default values.
+	grow_horizontal = Control.GROW_DIRECTION_END
+	grow_vertical = Control.GROW_DIRECTION_END
+	# Restore absolute rect.
+	global_position = abs_pos
+	size = abs_size
 
 
 func _compute_effective_flags() -> void:

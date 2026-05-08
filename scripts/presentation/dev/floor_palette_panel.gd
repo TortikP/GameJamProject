@@ -1,4 +1,4 @@
-extends PanelContainer
+extends BasePanel
 ## FloorPalettePanel — pick a floor tile to paint. Dropdown switches between
 ## available TileSets (post-032: only hex_terrain.tres ships); each TileSet's
 ## tiles render as a button grid. Erase mode is a separate button.
@@ -6,6 +6,10 @@ extends PanelContainer
 ## Right-click on any tile button opens a "Replace all" popup, listing every
 ## OTHER tile_kind currently in the level — picking one swaps every painted
 ## cell of that kind to the right-clicked tile.
+##
+## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
+## extends BasePanel. Body content lives in get_body_container(); header,
+## drag, resize, collapse, lock, persistence are handled by BasePanel.
 ##
 ## Signals (consumed by MapEditorController):
 ##   tile_picked(source_id: int, atlas: Vector2i)
@@ -16,7 +20,6 @@ extends PanelContainer
 
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
-const DraggablePanel = preload("res://scripts/presentation/dev/draggable_panel.gd")
 
 const TILESETS: Array[Dictionary] = [
 	# Per 032-controller-refactor: single tileset post-refactor — hex_terrain.tres
@@ -45,9 +48,11 @@ var _current_path: String = ""
 
 
 func _ready() -> void:
-	_apply_theme()
-	EventBus.ui_theme_reloaded.connect(_apply_theme)
-	_build_ui()
+	# In Godot 4, parent _ready() is NOT auto-called when subclass overrides.
+	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
+	# drag/resize/collapse/lock/persistence handlers. Then build our body.
+	super._ready()
+	_build_body()
 	# Default selection: tileset[0]
 	_current_path = TILESETS[0].path
 	_current_tileset = load(_current_path) as TileSet
@@ -58,20 +63,15 @@ func setup(controller: Node) -> void:
 	_controller = controller
 
 
-func _apply_theme() -> void:
-	add_theme_stylebox_override("panel", UiTheme.make_panel_stylebox())
-
-
-func _build_ui() -> void:
+func _build_body() -> void:
+	var body := get_body_container()
+	if body == null:
+		push_error("[FloorPalettePanel] body container not available")
+		return
 	var vbox := VBoxContainer.new()
+	vbox.name = "ContentVBox"
 	vbox.add_theme_constant_override("separation", 6)
-	add_child(vbox)
-
-	var header := Label.new()
-	header.text = Localization.t("ui_floor_palette_title", "Floor")
-	UiTheme.apply_label_kind(header, "header")
-	vbox.add_child(header)
-	_install_drag(header)
+	body.add_child(vbox)
 
 	# Tileset dropdown — only useful when there's more than one option.
 	# Hidden in jam config (godmode-only); re-shows automatically if
@@ -263,12 +263,6 @@ func _label_for_atlas(source_id: int, atlas: Vector2i) -> String:
 			if tk != null and String(tk) != "":
 				return String(tk)
 	return "%d:%d,%d" % [source_id, atlas.x, atlas.y]
-
-
-func _install_drag(handle: Control) -> void:
-	var dragger := DraggablePanel.new()
-	add_child(dragger)
-	dragger.setup(self, handle)
 
 
 # ── Public selection API (eyedropper / 1-9 quick select) ───────────────────

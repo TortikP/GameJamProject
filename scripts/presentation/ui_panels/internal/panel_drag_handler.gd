@@ -10,10 +10,10 @@
 ## (CURSOR_MOVE) in base_panel.tscn. Native Godot handling — no
 ## DisplayServer.cursor_set_shape tricks.
 ##
-## On begin: switches anchors to PRESET_TOP_LEFT (keep_offsets=true) so
-## the panel's global_position becomes absolute. Subsequent motion writes
-## to _base_panel.global_position then move it directly, with no
-## container layout fights.
+## Anchors normalization is BasePanel's responsibility (see
+## BasePanel._normalize_anchors_to_top_left() — runs once in _ready).
+## The handler assumes TOP_LEFT anchors with END/END grow_direction so
+## global_position is absolute and writes go where expected.
 ##
 ## C2 (cant-lose-UI): the panel's HEADER must remain entirely inside
 ## the viewport. Body may spill past edges — only the drag handle
@@ -53,7 +53,8 @@ func _on_handle_gui_input(event: InputEvent) -> void:
 
 func _begin_drag(mouse_global: Vector2) -> void:
 	_is_dragging = true
-	_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT, true)
+	# Anchors are already TOP_LEFT (normalized by BasePanel._ready()), so
+	# global_position is absolute. Just capture the offset.
 	_drag_offset = _base_panel.global_position - mouse_global
 
 

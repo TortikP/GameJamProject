@@ -18,9 +18,10 @@
 ## the handle's direction vector); we capture initial state and listen
 ## to global _input for motion/release until button-up.
 ##
-## set_anchors_preset(TOP_LEFT, true) at resize start switches the
-## panel to absolute positioning so size/global_position writes during
-## resize don't fight with parent container layout.
+## Anchors normalization is BasePanel's responsibility (see
+## BasePanel._normalize_anchors_to_top_left() — runs once in _ready).
+## The handler assumes TOP_LEFT anchors with END/END grow_direction so
+## size/global_position writes are absolute.
 
 class_name PanelResizeHandler
 extends Node
@@ -110,10 +111,8 @@ func _begin_resize(dir: Vector2i, mouse_global: Vector2) -> void:
 	_initial_mouse = mouse_global
 	_initial_size = _base_panel.size
 	_initial_pos = _base_panel.global_position
-	# Switch to absolute positioning so size/global_position writes
-	# during resize are not perturbed by parent container layout.
-	# keep_offsets=true preserves the visual rect across the change.
-	_base_panel.set_anchors_preset(Control.PRESET_TOP_LEFT, true)
+	# Anchors are already TOP_LEFT (normalized by BasePanel._ready()), so
+	# size/global_position writes below are absolute.
 
 
 func _input(event: InputEvent) -> void:
