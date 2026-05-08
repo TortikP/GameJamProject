@@ -76,6 +76,10 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _dispatcher == null:
 		return
+	# TEMP debug — diagnose paint silence (F-059-IMPL-?). Remove after fix.
+	if event is InputEventMouseButton and event.pressed:
+		var mb := event as InputEventMouseButton
+		print("[DEBUG059] _unhandled_input MB pressed btn=", mb.button_index)
 	if _dispatcher.handle(event):
 		get_viewport().set_input_as_handled()
 
@@ -83,6 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 # ── Public API for InputDispatcher ────────────────────────────────
 
 func paint_floor(coord: Vector2i, source_id: int, atlas_coord: Vector2i) -> void:
+	# TEMP debug — diagnose paint silence. Remove after fix.
+	print("[DEBUG059] paint_floor coord=", coord, " src=", source_id, " atlas=", atlas_coord,
+		" tml=", _grid.tile_map_layer if _grid else "null")
 	if _grid == null or _grid.tile_map_layer == null:
 		return
 	_grid.tile_map_layer.set_cell(coord, source_id, atlas_coord)
@@ -90,6 +97,8 @@ func paint_floor(coord: Vector2i, source_id: int, atlas_coord: Vector2i) -> void
 
 
 func erase_floor(coord: Vector2i) -> void:
+	# TEMP debug — diagnose paint silence. Remove after fix.
+	print("[DEBUG059] erase_floor coord=", coord)
 	if _grid == null or _grid.tile_map_layer == null:
 		return
 	_grid.tile_map_layer.set_cell(coord, -1)
