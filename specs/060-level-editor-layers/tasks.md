@@ -8,10 +8,10 @@
 
 ## Φ-1. Framework patch (PanelTabBar + TabbedBasePanel)
 
-- [ ] **T-060-1.** В `panel_tab_bar.gd` добавить параметр `by_user: bool = false` к `_set_active(tab_id, by_user)`. Все 5 call sites обновить (см. plan §Φ-1 таблица): line 89/387/457 → `false`, line 242/329 → `true`. **[Φ-1] [≤15 строк] [R2: проверить tabbed_panel_demo не сломан]**
-- [ ] **T-060-2.** В `panel_tab_bar.gd` добавить `signal active_tab_changed(tab_id: StringName)` и emit в `_set_active` если `by_user == true`. **[Φ-1] [≤5 строк]**
-- [ ] **T-060-3.** В `panel_tab_bar.gd` добавить публичный `func set_active(tab_id: StringName, by_user: bool = false) -> void` — простой делегат в `_set_active`. **[Φ-1] [≤5 строк]**
-- [ ] **T-060-4.** В `tabbed_base_panel.gd` объявить `signal active_tab_changed(tab_id: StringName)`. В `_setup_tab_bar` подключить `_tab_bar.active_tab_changed` к лямбде, переэмитящей в собственный сигнал. Добавить `func set_active_tab(tab_id: StringName) -> void` делегирующий `_tab_bar.set_active(tab_id, false)`. **[Φ-1] [≤10 строк]**
+- [x] **T-060-1.** В `panel_tab_bar.gd` добавить параметр `by_user: bool = false` к `_set_active(tab_id, by_user)`. Все 5 call sites обновить (см. plan §Φ-1 таблица): line 89/387/457 → `false`, line 242/329 → `true`. **[Φ-1] [≤15 строк] [R2: проверить tabbed_panel_demo не сломан]**
+- [x] **T-060-2.** В `panel_tab_bar.gd` добавить `signal active_tab_changed(tab_id: StringName)` и emit в `_set_active` если `by_user == true`. **[Φ-1] [≤5 строк]**
+- [x] **T-060-3.** В `panel_tab_bar.gd` добавить публичный `func set_active(tab_id: StringName, by_user: bool = false) -> void` — простой делегат в `_set_active`. **[Φ-1] [≤5 строк]**
+- [x] **T-060-4.** В `tabbed_base_panel.gd` объявить `signal active_tab_changed(tab_id: StringName)`. В `_setup_tab_bar` подключить `_tab_bar.active_tab_changed` к лямбде, переэмитящей в собственный сигнал. Добавить `func set_active_tab(tab_id: StringName) -> void` делегирующий `_tab_bar.set_active(tab_id, false)`. **[Φ-1] [≤10 строк]**
 - [ ] **T-060-5.** Smoke: открыть `tabbed_panel_demo.tscn`, добавить временный print в demo на `active_tab_changed`, кликать по табам, убедиться что сигнал летит ТОЛЬКО на user click (не initial). Удалить print после проверки. **[Φ-1] [smoke]**
 
 → Commit: `feat(ui-panels): active_tab_changed signal + set_active API` (отдельный логический коммит, framework-only).

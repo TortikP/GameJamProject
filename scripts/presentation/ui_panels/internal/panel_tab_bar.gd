@@ -73,6 +73,19 @@ var _press_global_pos: Vector2 = Vector2.ZERO
 var _floating_panels: Array[BasePanel] = []
 
 
+# ── Signals ───────────────────────────────────────────────────────
+
+## Emitted when the active tab changes due to a genuine user click on a
+## tab button. Programmatic / system-driven activations (initial setup,
+## persistence restore, detach/reattach side-effects, unregister
+## fallthrough) do NOT emit — consumers wire layer-state to user intent,
+## not to side-effects of unrelated gestures (see findings F-060-IMPL-1).
+##
+## Re-emitted by TabbedBasePanel under the same name as a public-facing
+## signal; subscribe to the panel, not directly to the tab bar.
+signal active_tab_changed(tab_id: StringName)
+
+
 # ── Setup ─────────────────────────────────────────────────────────
 
 ## Single entry-point. Called by TabbedBasePanel after super._ready().
@@ -156,7 +169,7 @@ func _make_tab_button(tab_id: StringName, title_key: StringName, title_fallback:
 
 # ── Active-tab management ─────────────────────────────────────────
 
-func _set_active(tab_id: StringName) -> void:
+func _set_active(tab_id: StringName, by_user: bool = false) -> void:
 	_active_tab_id = tab_id
 	for record in _tabs:
 		var is_active: bool = (record["tab_id"] == tab_id) and not record["detached"]
@@ -166,6 +179,17 @@ func _set_active(tab_id: StringName) -> void:
 			content.visible = is_active
 		if button != null and is_instance_valid(button):
 			button.button_pressed = is_active
+	if by_user:
+		active_tab_changed.emit(tab_id)
+
+
+## Public delegate for programmatic tab activation, mainly for keyboard
+## shortcuts wired through the TabbedBasePanel.set_active_tab facade.
+## by_user defaults false — pass true only from genuine user gestures
+## that aren't the click site (which already routes through _set_active
+## directly). See active_tab_changed for the policy.
+func set_active(tab_id: StringName, by_user: bool = false) -> void:
+	_set_active(tab_id, by_user)
 
 
 func _first_attached_tab_id() -> StringName:
@@ -239,7 +263,7 @@ func _input(event: InputEvent) -> void:
 				return
 			var button := record["button"] as Button
 			if button != null and button.get_global_rect().has_point(mb.global_position):
-				_set_active(record["tab_id"])
+				_set_active(record["tab_id"], true)
 
 
 # ── Tear-off ──────────────────────────────────────────────────────
