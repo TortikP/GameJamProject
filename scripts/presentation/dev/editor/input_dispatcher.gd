@@ -8,18 +8,14 @@ extends RefCounted
 ## ## Layered dispatch (060)
 ##
 ## LMB / RMB on a hex routes through _act_at, which branches on
-## _layers.active_layer (hexes / spawners / objects) into the matching
-## paint_X / erase_X controller method. RMB erases the entity on the
-## active layer (no priority chain). Shift+RMB is a separate gesture:
-## cascade — wipes all entities on the hex regardless of active layer
-## (AC11 / spec.md §3.B). When the active hexes selection is the erase
-## sentinel, LMB also erases (059 convenience kept).
+## _layers.active_layer into paint_X / erase_X controller method.
+## RMB erases the entity on the active layer (no priority chain).
+## Shift+LMB / Shift+RMB → drag-cascade: wipes ALL layers on every
+## hex visited (AC11 / spec.md §3.B). Erase-sentinel selection on
+## hexes also makes LMB erase (059 convenience).
 ##
-## ## Drag + anti-dup
-##
-## LMB / RMB down → start PAINTING / ERASING; first action at coord.
-## Drag → action at every NEW coord (anti-dup via _last_painted_coord).
-## Up → end drag. Shift+RMB is no-drag (one-shot).
+## Drag + anti-dup. LMB/RMB down → PAINTING/ERASING; Shift down →
+## CASCADING. Drag → action per NEW coord (_last_painted_coord).
 ##
 ## ## Keyboard
 ##
@@ -41,7 +37,7 @@ extends RefCounted
 const NO_COORD := Vector2i(-99999, -99999)
 const NO_HEX := Vector2i(-1, -1)  # HexGrid.coord_under_mouse_raw sentinel
 
-enum DragState { NONE, PAINTING, ERASING }
+enum DragState { NONE, PAINTING, ERASING, CASCADING }
 
 var _controller: Variant  # EditorController (untyped — no class_name)
 var _grid: HexGrid
@@ -72,39 +68,45 @@ func handle(event: InputEvent) -> bool:
 # ── Mouse ─────────────────────────────────────────────────────────
 
 func _handle_mouse_button(mb: InputEventMouseButton) -> bool:
-	if mb.button_index == MOUSE_BUTTON_LEFT:
-		if mb.pressed:
-			_drag_state = DragState.PAINTING
-			_act_at(_grid.coord_under_mouse_raw(), false)
-		else:
-			_drag_state = DragState.NONE
-			_last_painted_coord = NO_COORD
+	var btn := mb.button_index
+	if btn != MOUSE_BUTTON_LEFT and btn != MOUSE_BUTTON_RIGHT:
+		return false
+	if not mb.pressed:
+		_drag_state = DragState.NONE
+		_last_painted_coord = NO_COORD
 		return true
-	if mb.button_index == MOUSE_BUTTON_RIGHT:
-		if mb.pressed:
-			# Shift+RMB → immediate cascade, distinct gesture from drag-erase.
-			# AC11 / Q-060-6: no undo, no confirmation, single flash.
-			if mb.shift_pressed:
-				var coord := _grid.coord_under_mouse_raw()
-				if coord != NO_HEX:
-					if _controller.cascade_at(coord):
-						_spawn_flash(coord)
-				return true
-			_drag_state = DragState.ERASING
-			_act_at(_grid.coord_under_mouse_raw(), true)
-		else:
-			_drag_state = DragState.NONE
-			_last_painted_coord = NO_COORD
-		return true
-	return false
+	# Shift+LMB/RMB → drag-cascade (AC11 / Q-060-6).
+	var coord := _grid.coord_under_mouse_raw()
+	if mb.shift_pressed:
+		_drag_state = DragState.CASCADING
+		_cascade_at(coord)
+	elif btn == MOUSE_BUTTON_LEFT:
+		_drag_state = DragState.PAINTING
+		_act_at(coord, false)
+	else:
+		_drag_state = DragState.ERASING
+		_act_at(coord, true)
+	return true
 
 
 func _handle_mouse_drag(_mm: InputEventMouseMotion) -> bool:
 	var coord := _grid.coord_under_mouse_raw()
 	if coord == _last_painted_coord:
 		return false
-	_act_at(coord, _drag_state == DragState.ERASING)
+	if _drag_state == DragState.CASCADING:
+		_cascade_at(coord)
+	else:
+		_act_at(coord, _drag_state == DragState.ERASING)
 	return true
+
+
+## Cascade helper — Shift+LMB/RMB down + CASCADING drag.
+func _cascade_at(coord: Vector2i) -> void:
+	if coord == NO_HEX:
+		return
+	if _controller.cascade_at(coord):
+		_spawn_flash(coord)
+	_last_painted_coord = coord
 
 
 # ── Keyboard ──────────────────────────────────────────────────────

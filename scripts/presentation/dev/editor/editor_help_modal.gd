@@ -19,7 +19,7 @@ const _SHORTCUTS: Array = [
 	[&"ui_help_key_1_9",       "1–9",       &"ui_help_desc_quick_select",    "Quick-select palette item"],
 	[&"ui_help_key_lmb",       "LMB",       &"ui_help_desc_paint",           "Paint"],
 	[&"ui_help_key_rmb",       "RMB",       &"ui_help_desc_erase",           "Erase on active layer"],
-	[&"ui_help_key_shift_rmb", "Shift+RMB", &"ui_help_desc_cascade",         "Cascade — erase everything (no undo)"],
+	[&"ui_help_key_shift_rmb", "Shift+LMB/RMB", &"ui_help_desc_cascade",         "Drag-cascade — erase all layers (no undo)"],
 	[&"ui_help_key_esc",       "Esc",       &"ui_help_desc_cancel_drag",     "Cancel current drag"],
 	[&"ui_help_key_f1",        "F1 / ?",    &"ui_help_desc_help",            "Show / hide this help"],
 ]
