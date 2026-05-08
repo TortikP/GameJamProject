@@ -457,14 +457,16 @@ func _reattach(panel: BasePanel) -> void:
 		button.visible = true
 	record["detached"] = false
 
-	# CRITICAL ORDER (R4 in spec 058 plan.md, refined): PanelPersistence
-	# is connected to panel.tree_exiting and will _flush_save() the
-	# synthetic section synchronously when the panel leaves the tree.
-	# tree_exited fires AFTER tree_exiting; erasing there guarantees we
-	# remove what _flush_save just wrote.
-	var section_key := _layout_section_key(panel.panel_id)
-	panel.tree_exited.connect(_erase_layout_section.bind(section_key), CONNECT_ONE_SHOT)
-
+	# DESIGN OVERRIDE (was R4 in spec 058 plan.md, deliberately reversed
+	# in spec 060): PanelPersistence._flush_save on tree_exiting writes
+	# the synthetic section's size/position to user://layouts.cfg. We
+	# used to erase it on tree_exited so detached state was ephemeral
+	# across cycles. Andrey reported: "size doesn't survive
+	# detach→reattach→detach", which IS the intended cross-cycle
+	# behavior — keep the section so the next detach loads it back via
+	# normal PanelPersistence.load_layout. Cost: stale sections
+	# accumulate across renamed/removed tabs, but that's a non-issue
+	# for the editor's small fixed tab set.
 	_floating_panels.erase(panel)
 	panel.queue_free()
 
@@ -550,8 +552,8 @@ func unregister_tab(tab_id: StringName) -> void:
 	if record["detached"]:
 		for panel in _floating_panels.duplicate():
 			if StringName(panel.get_meta(META_ORIGIN_TAB_ID, &"")) == tab_id:
-				var section_key := _layout_section_key(panel.panel_id)
-				panel.tree_exited.connect(_erase_layout_section.bind(section_key), CONNECT_ONE_SHOT)
+				# Synthetic layout section is preserved across unregister
+				# (same design override as _reattach — see comment there).
 				_floating_panels.erase(panel)
 				panel.queue_free()
 				break
