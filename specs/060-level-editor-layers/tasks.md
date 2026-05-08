@@ -162,10 +162,10 @@
 
 ## Φ-11. Loc-keys cleanup + new keys
 
-- [ ] **T-060-63.** Сгенерировать suspect orphan list через grep (см. plan §Φ-11). Verify each — действительно ли в живом коде нет references. Сохранить итоговый ORPHAN-список. **[Φ-11] [check]**
-- [ ] **T-060-64.** Удалить orphan ключи из `data/localization/en.json` и `ru.json`. Убедиться что JSON остаётся валидным (json validate). Не трогать `_sources.json` если оно автоген. **[Φ-11] [bulk delete]**
-- [ ] **T-060-65.** Добавить новые ключи в en.json и ru.json (parallel update — paired diff): tabs, palette labels, multi-wave warning, autosave restore prompt, help modal shortcuts. См. plan §Φ-11 таблица. **[Φ-11] [~25 ключей × 2]**
-- [ ] **T-060-66.** Переименовать `ui_main_menu_level_editor_new_button_text` → `ui_main_menu_level_editor_button_text` в обоих файлах. **[Φ-11] [2 строки]**
+- [x] **T-060-63.** Сгенерировать suspect orphan list через grep (см. plan §Φ-11). Verify each — действительно ли в живом коде нет references. Сохранить итоговый ORPHAN-список. **[Φ-11] [check]**
+- [x] **T-060-64.** Удалить orphan ключи из `data/localization/en.json` и `ru.json`. Убедиться что JSON остаётся валидным (json validate). Не трогать `_sources.json` если оно автоген. **[Φ-11] [bulk delete]**
+- [x] **T-060-65.** Добавить новые ключи в en.json и ru.json (parallel update — paired diff): tabs, palette labels, multi-wave warning, autosave restore prompt, help modal shortcuts. См. plan §Φ-11 таблица. **[Φ-11] [~25 ключей × 2]**
+- [x] **T-060-66.** Переименовать `ui_main_menu_level_editor_new_button_text` → `ui_main_menu_level_editor_button_text` в обоих файлах. **[Φ-11] [2 строки]**
 - [ ] **T-060-67.** Smoke: переключить язык Ru/En в редакторе, все labels читаются (не сырые ключи в UI). Help modal обоих языков. Multi-wave warning toast обоих языков. **[Φ-11] [smoke]**
 
 → Commit: `chore(060): localization keys — orphan cleanup + new keys`.
