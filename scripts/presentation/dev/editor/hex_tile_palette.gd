@@ -100,6 +100,7 @@ func _make_erase_button() -> Button:
 	btn.custom_minimum_size = PaletteHelpers.ICON_SIZE
 	btn.text = Localization.t("ui_floor_palette_erase", "Erase")
 	UiTheme.apply_button_styling(btn)
+	btn.set_meta("is_erase", true)  # tag for select_value lookup
 	btn.pressed.connect(_on_erase_pressed)
 	return btn
 
@@ -120,3 +121,27 @@ func quick_select(n: int) -> void:
 	var btn := _quick_select_buttons[n - 1]
 	btn.button_pressed = true
 	btn.pressed.emit()
+
+
+## Restore a stored selection visually without emitting selection_changed.
+## Caller (EditorController._restore_palette_selections) updates the
+## LayersModel separately. Returns true if a matching button was found.
+func select_value(value: Variant) -> bool:
+	if typeof(value) == TYPE_STRING_NAME and StringName(value) == &"erase":
+		for btn in _quick_select_buttons:
+			if btn != null and btn.has_meta("is_erase"):
+				btn.button_pressed = true
+				return true
+		return false
+	if typeof(value) == TYPE_DICTIONARY:
+		var d: Dictionary = value
+		var target_src: int = int(d.get("source_id", -1))
+		var target_atlas: Vector2i = d.get("atlas_coord", Vector2i.ZERO)
+		for btn in _quick_select_buttons:
+			if btn == null or not btn.has_meta("source_id"):
+				continue
+			if int(btn.get_meta("source_id")) == target_src \
+					and Vector2i(btn.get_meta("atlas_coord")) == target_atlas:
+				btn.button_pressed = true
+				return true
+	return false

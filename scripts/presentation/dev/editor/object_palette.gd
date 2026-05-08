@@ -53,6 +53,7 @@ func _build_buttons() -> void:
 		var tex: Texture2D = PaletteHelpers.load_texture(obj.sprite_path)
 		var btn := PaletteHelpers.make_icon_button(_button_group, label, tex,
 			String(object_id).substr(0, 1).to_upper())
+		btn.set_meta("object_id", object_id)
 		btn.pressed.connect(_on_pressed.bind(object_id))
 		_grid.add_child(btn)
 		_quick_select_buttons.append(btn)
@@ -70,3 +71,17 @@ func quick_select(n: int) -> void:
 	var btn := _quick_select_buttons[n - 1]
 	btn.button_pressed = true
 	btn.pressed.emit()
+
+
+## Restore stored selection without emitting. Returns true on match.
+func select_value(value: Variant) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	var target := StringName(String((value as Dictionary).get("object_id", "")))
+	for btn in _quick_select_buttons:
+		if btn == null or not btn.has_meta("object_id"):
+			continue
+		if StringName(btn.get_meta("object_id")) == target:
+			btn.button_pressed = true
+			return true
+	return false

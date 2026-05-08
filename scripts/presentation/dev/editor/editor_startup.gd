@@ -85,3 +85,45 @@ static func _apply(io: EditorIO, loaded: LevelData, meta_panel: Node) -> void:
 static func _toast(text: String, level: StringName) -> void:
 	if EventBus != null:
 		EventBus.ui_toast_requested.emit(text, 0.0, level)
+
+
+## Restore active layer + per-palette selections from EditorPalettePrefs.
+## Falls back to first-button per palette when no record exists. Called
+## by EditorController._ready after _wire_panels — extracted here to
+## keep the controller under its 300-line cap (AC33).
+##
+## Order matters:
+##   1. Loop palettes — try select_value (no emit) or quick_select(1)
+##      (emits → _on_layer_selection_changed during is_restoring updates
+##      _layers but skips active_layer change + save).
+##   2. After loop, save current state per layer (covers first-run case).
+##   3. Set active_layer + sync UI tab + highlight.
+##   4. Save active_layer.
+static func restore_palettes(layers_panel: Node, layers: LayersModel) -> void:
+	if layers_panel == null:
+		return
+	layers.is_restoring = true
+	for layer_id in LayersModel.LAYER_ORDER:
+		var palette: Node = layers_panel.get_palette_for_layer(layer_id)
+		if palette == null:
+			continue
+		var stored: Variant = EditorPalettePrefs.load_selection(layer_id)
+		var matched := false
+		if stored != null and palette.has_method("select_value"):
+			matched = palette.select_value(stored)
+		if matched:
+			layers.set_selection(layer_id, stored)
+		elif palette.has_method("quick_select"):
+			palette.quick_select(1)  # emits; slot updates _layers in-restore
+	layers.is_restoring = false
+	# Persist resolved state (covers first-run + degraded-restore case).
+	for layer_id in LayersModel.LAYER_ORDER:
+		var sel: Variant = layers.get_selection(layer_id)
+		if sel != null:
+			EditorPalettePrefs.save_selection(layer_id, sel)
+	# Restore + sync active layer.
+	var stored_active: StringName = EditorPalettePrefs.load_active_layer()
+	layers.active_layer = stored_active
+	layers_panel.set_active_tab(stored_active)
+	layers_panel.update_layer_highlight(stored_active)
+	EditorPalettePrefs.save_active_layer(stored_active)

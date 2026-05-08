@@ -28,6 +28,12 @@ const LAYER_ORDER: Array[StringName] = [LAYER_HEXES, LAYER_SPAWNERS, LAYER_OBJEC
 
 var active_layer: StringName = LAYER_HEXES
 
+## True while EditorStartup.restore_palettes is doing its initial pass.
+## Read by EditorController._on_layer_selection_changed to skip
+## active_layer mutation + prefs save during restore (the restore
+## itself sets state directly and saves at the end).
+var is_restoring: bool = false
+
 # Per-layer selection. Keys are layer ids (StringName), values are
 # layer-specific Variants. Untyped on purpose — see schema above.
 var _selections: Dictionary = {}
@@ -37,6 +43,13 @@ var _selections: Dictionary = {}
 ## hasn't picked anything in that layer yet.
 func get_active_selection() -> Variant:
 	return _selections.get(active_layer, null)
+
+
+## Returns selection for a specific layer (any layer, not just active).
+## Used by EditorPalettePrefs after restore to capture the resolved
+## selection state for save-back.
+func get_selection(layer: StringName) -> Variant:
+	return _selections.get(layer, null)
 
 
 ## Sets the selection for a specific layer. Doesn't change active_layer.

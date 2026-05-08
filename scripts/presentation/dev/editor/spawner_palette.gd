@@ -44,6 +44,8 @@ func _build_buttons() -> void:
 	var player_btn := PaletteHelpers.make_icon_button(_button_group,
 		Localization.t("ui_spawner_palette_player", "Player"),
 		null, "★")
+	player_btn.set_meta("kind", &"player")
+	player_btn.set_meta("ref", &"")
 	player_btn.pressed.connect(_on_pressed.bind(&"player", &""))
 	_grid.add_child(player_btn)
 	_quick_select_buttons.append(player_btn)
@@ -55,6 +57,8 @@ func _build_buttons() -> void:
 		var btn := PaletteHelpers.make_icon_button(_button_group,
 			String(entry["label"]), tex,
 			String(entry["id"]).substr(0, 1).to_upper())
+		btn.set_meta("kind", &"enemy")
+		btn.set_meta("ref", entry["id"])
 		btn.pressed.connect(_on_pressed.bind(&"enemy", entry["id"]))
 		_grid.add_child(btn)
 		_quick_select_buttons.append(btn)
@@ -109,3 +113,20 @@ func quick_select(n: int) -> void:
 	var btn := _quick_select_buttons[n - 1]
 	btn.button_pressed = true
 	btn.pressed.emit()
+
+
+## Restore stored selection without emitting. Returns true on match.
+func select_value(value: Variant) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	var d: Dictionary = value
+	var target_kind := StringName(String(d.get("kind", "")))
+	var target_ref := StringName(String(d.get("ref", "")))
+	for btn in _quick_select_buttons:
+		if btn == null or not btn.has_meta("kind"):
+			continue
+		if StringName(btn.get_meta("kind")) == target_kind \
+				and StringName(btn.get_meta("ref")) == target_ref:
+			btn.button_pressed = true
+			return true
+	return false

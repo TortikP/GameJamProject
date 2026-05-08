@@ -43,17 +43,13 @@ func _ready() -> void:
 		_grid.initialize()
 	_level = LevelData.new()
 	_layers = LayersModel.new()
-	_layers.set_selection(LayersModel.LAYER_HEXES, _default_hex_selection())
 	_dispatcher = InputDispatcher.new(self, _grid, _layers)
 	_io = EditorIO.new()
 	add_child(_io)
 	_io.setup(_grid, _objects_overlay, _spawners_overlay)
 	_wire_panels()
+	EditorStartup.restore_palettes(_layers_panel, _layers)
 	_level = await EditorStartup.run(_io, _level, _meta_panel, _confirm_modal, get_tree())
-	# Initial active-layer highlight on the panel hosting the default
-	# active tab (hexes by LayersModel default).
-	if _layers_panel != null:
-		_layers_panel.update_layer_highlight(_layers.active_layer)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -145,6 +141,7 @@ func notify_active_layer_changed(layer_id: StringName) -> void:
 	if _layers_panel != null:
 		_layers_panel.set_active_tab(layer_id)
 		_layers_panel.update_layer_highlight(layer_id)
+	EditorPalettePrefs.save_active_layer(layer_id)
 
 
 func quick_select_in_active_palette(n: int) -> void:
@@ -208,6 +205,11 @@ func _wire_panels() -> void:
 
 func _on_layer_selection_changed(layer_id: StringName, value: Variant) -> void:
 	_layers.set_selection(layer_id, value)
+	if _layers.is_restoring:
+		# During EditorStartup.restore_palettes — accept the model update
+		# but skip side-effects (active_layer change, prefs save). Restore
+		# does both itself after its loop completes.
+		return
 	# Clicking any palette button also makes that layer active. Avoids
 	# the "I clicked tree in detached objects panel but I'm still on
 	# hexes layer so paint goes to hexes" trap. set_active_tab no-ops
@@ -216,12 +218,14 @@ func _on_layer_selection_changed(layer_id: StringName, value: Variant) -> void:
 	if _layers.active_layer != layer_id:
 		_layers.active_layer = layer_id
 		notify_active_layer_changed(layer_id)
+	EditorPalettePrefs.save_selection(layer_id, value)
 
 
 func _on_active_tab_changed(tab_id: StringName) -> void:
 	_layers.active_layer = tab_id
 	if _layers_panel != null:
 		_layers_panel.update_layer_highlight(tab_id)
+	EditorPalettePrefs.save_active_layer(tab_id)
 
 
 func _on_save() -> void:
@@ -266,10 +270,6 @@ func _on_name_changed(new_name: String) -> void:
 
 
 # Internal helpers
-
-func _default_hex_selection() -> Dictionary:
-	return {"source_id": 0, "atlas_coord": Vector2i.ZERO}
-
 
 func _toast(text: String, level: StringName = &"info") -> void:
 	if EventBus != null:
