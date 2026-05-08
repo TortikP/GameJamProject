@@ -93,6 +93,18 @@ func clear_all() -> void:
 		child.queue_free()
 
 
+## Bulk-rebuild from a LevelData.objects array. Each entry is
+## `{"coord": Vector2i, "object_id": StringName}`. Used by the new
+## level editor (060) — clears existing children and re-paints from
+## scratch. Per-coord set_object remains for incremental editing.
+func refresh(objects: Array) -> void:
+	clear_all()
+	for entry in objects:
+		var coord: Vector2i = entry["coord"]
+		var object_id: StringName = StringName(entry["object_id"])
+		set_object(coord, object_id)
+
+
 # ── Internal ────────────────────────────────────────────────────────────────
 
 static func _node_name(coord: Vector2i) -> String:

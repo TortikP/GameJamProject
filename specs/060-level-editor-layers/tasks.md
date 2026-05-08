@@ -104,9 +104,9 @@
 
 ## Φ-8. Cross-refs to level_editor.tscn
 
-- [ ] **T-060-48.** В `game_editor_controller.gd:222` заменить `map_editor.tscn` → `level_editor.tscn`. **[Φ-8] [1 строка]**
-- [ ] **T-060-49.** В `pause_menu.gd:141` (`_on_back_to_editor`) заменить путь. **[Φ-8] [1 строка]**
-- [ ] **T-060-50.** В `godmode/godmode_input.gd:80` (back-to-editor branch) заменить путь. **[Φ-8] [1 строка]**
+- [x] **T-060-48.** В `game_editor_controller.gd:222` заменить `map_editor.tscn` → `level_editor.tscn`. **[Φ-8] [1 строка]**
+- [x] **T-060-49.** В `pause_menu.gd:141` (`_on_back_to_editor`) заменить путь. **[Φ-8] [1 строка]**
+- [x] **T-060-50.** В `godmode/godmode_input.gd:80` (back-to-editor branch) заменить путь. **[Φ-8] [1 строка]**
 - [ ] **T-060-51.** Smoke: Game Editor → Edit (любая карта) → новый level editor с правильно загруженной картой. Playtest → ESC → Pause → Back to Editor → новый level editor с теми же изменениями. **[Φ-8] [smoke]**
 
 → Commit: `refactor(060): cross-refs map_editor.tscn → level_editor.tscn` (можно слить с Φ-10 в один коммит).
@@ -124,7 +124,7 @@
 
 ### Φ-9.b. level_editor.tscn updates
 
-- [ ] **T-060-56.** В `level_editor.tscn` добавить:
+- [x] **T-060-56.** В `level_editor.tscn` добавить:
   - `ObjectsOverlay` (Node2D, script `objects_overlay.gd`) — child HexGrid.
   - `SpawnersOverlay` (Node2D, script `spawners_overlay.gd`) — child HexGrid.
   - `ConfirmModal` (instance `scenes/ui/confirm_modal.tscn`) — child HUD.

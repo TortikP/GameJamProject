@@ -90,6 +90,20 @@ func clear_all() -> void:
 		child.queue_free()
 
 
+## Bulk-rebuild from a LevelData.spawners array. Each entry is
+## `{"coord": Vector2i, "kind": StringName, "ref": StringName, "timer": int}`.
+## Used by the new level editor (060). Per-coord set_spawner remains
+## for incremental editing.
+func refresh(spawners: Array) -> void:
+	clear_all()
+	for entry in spawners:
+		var coord: Vector2i = entry["coord"]
+		var kind: StringName = StringName(entry["kind"])
+		var ref: StringName = StringName(entry.get("ref", &""))
+		var timer: int = int(entry.get("timer", 1))
+		set_spawner(coord, kind, ref, timer)
+
+
 # ── Internal ────────────────────────────────────────────────────────────────
 
 static func _node_name(coord: Vector2i) -> String:
