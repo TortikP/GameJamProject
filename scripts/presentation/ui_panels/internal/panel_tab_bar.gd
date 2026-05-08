@@ -338,8 +338,12 @@ func _spawn_detached(tab_id: StringName) -> BasePanel:
 	detached.panel_id = _synthetic_panel_id(tab_id)
 	detached.panel_title_key = record["title_key"]
 	detached.panel_title_fallback = record["title_fallback"]
-	# Reasonable default — consumers can resize. Inherit from tabbed parent if set.
-	detached.min_panel_size = Vector2(180, 120)
+	# 280×360 accommodates the 72×72 icon palettes (~3 columns × 4 rows
+	# of 72 + chrome). The previous 180×120 default was too small for
+	# the icon-mode palettes — content overflowed past panel bounds and
+	# the resize handles at the right/bottom edges were covered by body
+	# content, making the floating panel feel unresizable.
+	detached.min_panel_size = Vector2(280, 360)
 	detached.set_meta(META_ORIGIN_PANEL_ID, _tabbed_panel.panel_id)
 	detached.set_meta(META_ORIGIN_TAB_ID, tab_id)
 
@@ -352,6 +356,13 @@ func _spawn_detached(tab_id: StringName) -> BasePanel:
 	host.add_child(detached)
 	# detached._ready has now run: anchors normalized, persistence loaded
 	# (which may have set position/size from a saved synthetic section).
+	# A persisted size from before this commit's min bump (or the tscn
+	# 300×200 default if no persistence) might leave size below the new
+	# min — force up so resize handles aren't covered by overflow.
+	if detached.size.x < detached.min_panel_size.x:
+		detached.size.x = detached.min_panel_size.x
+	if detached.size.y < detached.min_panel_size.y:
+		detached.size.y = detached.min_panel_size.y
 
 	# Reparent the tab content into the detached panel's body.
 	var body := _tabbed_panel.get_body_container()

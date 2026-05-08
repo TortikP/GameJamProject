@@ -90,3 +90,24 @@ Controller drops to 269 / 300 with margin. Single `_ready` line: `_level = await
 **Action для Андрея.** Smoke включает: иконки видны в spawner-табе (Player ★ + 12 врагов), object-табе (8 объектов), hex-табе (теперь 72px). Если ассет не находится → буква-монограмма (для тестов: переименуй временно `assets/sprites/enemies/angel.png`, кнопка должна показать "A").
 
 ---
+
+## F-060-IMPL-4 — Detached-панель не ресайзится: best-guess фикс без репро
+
+**Что нашёл.** Андрей сообщил, что panels detached от LayersPanel не ресайзятся (только основная панель ресайзится). Не могу воспроизвести без Godot — анализ по коду показал что инфраструктура (PanelResizeHandler, ResizeFrame, _setup_handlers) работает идентично для main и floating.
+
+**Гипотеза.** `_spawn_detached` создавал floating-панель с `min_panel_size = Vector2(180, 120)` и `.tscn`-default size `300×200`. С Φ-4 палитрами по 72×72 (3 ряда × 4 строки = ~216×288 + chrome) контент тела может переполнить bounds → handles ResizeFrame на правом/нижнем краях перекрываются OS-овским hit-test'ом BodyPanel (PanelContainer mouse_filter STOP). User видит handles только если кликает в самый край.
+
+**Что сделал.** В `panel_tab_bar.gd._spawn_detached`:
+- `min_panel_size`: 180×120 → **280×360**.
+- После `host.add_child(detached)` (где запускается persistence load_layout, тоже могущий установить размер ниже нового min) принудительно `size = max(size, min_panel_size)`.
+
+**Почему гипотеза слабая.** Main панель (LayersPanel) тоже использует body+content overlap по идентичной схеме, и user пишет что она ресайзится. Если бы причина была в overlap'е, оба сломаны были бы.
+
+**Альтернативные гипотезы (если фикс не помог).**
+1. `_resize_handler` не создаётся для detached'a (race в _ready ordering — host.add_child запускает _ready СРАЗУ, может быть до того как BasePanel._setup_handlers завершит).
+2. Persistence load_layout перетирает size после resize пользователя — тогда нужно проверить debounce в panel_persistence.
+3. ResizeFrame.visible = false из-за collapse-handler interaction.
+
+**Action для Андрея.** Smoke — детач Spawners → попробовать ресайз за все 8 краёв/углов. Если не работает — repro: дёрнуть `print(detached._resize_handler != null)` в `_spawn_detached` после `host.add_child`. Если null — гипотеза 1. Если true — лезть в ResizeFrame.visible или persistence.
+
+---
