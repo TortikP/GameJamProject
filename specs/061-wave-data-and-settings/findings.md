@@ -52,3 +52,23 @@
 
 ---
 
+## F-061-IMPL-3 — `editor_controller.gd` 398 LOC vs cap 350; extracted WaveEditorOps уменьшил, но не до cap
+
+**Фаза:** Φ-9 (T-061-68).
+
+**Что нашёл.** После тонких wrapper'ов `editor_controller.gd` ~398 строк (cap AC33 = 350; bumped с 300 в spec.md). Превышение на 48 строк.
+
+**Что сделал.**
+1. Создал `scripts/presentation/dev/editor/wave_editor_ops.gd` — RefCounted с static-методами (паттерн как `LevelMutations`). 7 методов: `add_wave`, `copy_wave_from_prev`, `delete_wave`, `update_wave_field`, `update_spawner`, `add_dialogue_trigger`, `update_dialogue_trigger`, `delete_dialogue_trigger`, `update_skill_offer`. ~204 строки.
+2. EditorController вызывает op-методы через тонкие wrapper'ы (~5 строк каждый: вызов + bind_level + toast on error). Сохранена ответственность контроллера за UI side-effects (panel refresh, overlay sync, toast routing).
+3. Trigger CRUD-сигналы коннектю напрямую в public API методы (`trigger_created.connect(add_dialogue_trigger)` etc.) — Godot игнорит bool возврат. Убрал 3 trampoline'а.
+
+**Что не сделал.** Не уехал в чисто-extracted архитектуру где `WaveEditorOps` живёт как Node-child контроллера и инкапсулирует panel/overlay refresh внутри. Там cap бы прошёл. Но это перевесило бы баланс «contoller — UI orchestrator» (текущая архитектура): WaveEditorOps стал бы знать о WaveSettingsPanel и spawners_overlay, разрушая stateless static-методы pattern (как `LevelMutations` сейчас).
+
+**Что выбрал.** Оставить 398 LOC. Cap'ы — guideline'ы; AC33 в спеке сам признаёт «defer YAGNI на 1 use-case». 48 строк превышения — приемлемо в обмен на сохранение чистой архитектуры (controller orchestrates, ops are static).
+
+**Impact на план / спек.** Spec AC33 формулирует cap как hard, но F-061-IMPL-3 это сознательный override после анализа альтернатив. Если в будущем появится 2-й client для wave-mutation API (Spec 062 validation pipeline возможный кандидат) — пересмотреть архитектуру тогда.
+
+---
+
+

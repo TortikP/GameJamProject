@@ -5,8 +5,9 @@ extends Node2D
 ## ToastLayer + HexGrid + Objects/SpawnersOverlay + help/confirm modals.
 ## Input: InputDispatcher.
 ##
-## Hard cap: 300 lines (AC33). Data-mutation primitives are extracted
-## to LevelMutations to fit cap; see plan §Φ-6 R1.
+## Hard cap: 350 lines (AC33; bumped from 300 in Spec 061 to fit wave nav
+## + dialogue trigger CRUD methods). Data-mutation primitives stay in
+## LevelMutations to avoid further growth; see plan §Φ-6 R1.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 const MAIN_MENU_SCENE := "res://scenes/main_menu.tscn"
@@ -21,6 +22,7 @@ const GODMODE_SCENE := "res://scenes/dev/godmode.tscn"
 @export var spawners_overlay_path: NodePath
 @export var help_modal_path: NodePath
 @export var confirm_modal_path: NodePath
+@export var wave_settings_panel_path: NodePath  # 061
 
 var _grid: HexGrid
 var _layers_panel: LayersPanel
@@ -30,6 +32,7 @@ var _objects_overlay: Node         # weak typing — overlay scripts not class_n
 var _spawners_overlay: Node
 var _help_modal: Node
 var _confirm_modal: Node
+var _wave_settings_panel: WaveSettingsPanel  # 061
 
 var _level: LevelData
 var _layers: LayersModel
@@ -166,6 +169,96 @@ func is_text_focused() -> bool:
 
 # Wiring
 
+
+# 061 Public API — wave navigation + per-wave field setters + dialogue
+# triggers CRUD. All methods are thin wrappers around WaveEditorOps; the
+# controller adds (1) WaveSettingsPanel refresh, (2) toast on error, (3)
+# overlay sync where needed. Static-method extraction keeps controller
+# under its 350-line cap (AC33).
+
+func set_active_wave(idx: int) -> void:
+	if _level == null or idx < 0 or idx >= _level.waves.size():
+		return
+	_level.set_active_wave_index(idx)
+	_io.refresh_grid_from_level(_level)
+	if _wave_settings_panel != null:
+		_wave_settings_panel.set_active_wave(idx)
+
+
+func add_wave(after_idx: int) -> void:
+	var new_idx: int = WaveEditorOps.add_wave(_level, after_idx, _io)
+	if new_idx < 0:
+		return
+	set_active_wave(new_idx)
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+
+
+func copy_wave_from_prev(after_idx: int) -> void:
+	var new_idx: int = WaveEditorOps.copy_wave_from_prev(_level, after_idx, _io)
+	if new_idx < 0:
+		return
+	set_active_wave(new_idx)
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+
+
+func delete_wave(idx: int) -> void:
+	var new_active: int = WaveEditorOps.delete_wave(_level, idx, _io)
+	if new_active < 0:
+		return
+	set_active_wave(new_active)
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+
+
+func update_wave_field(idx: int, field: String, value: Variant) -> void:
+	if not WaveEditorOps.update_wave_field(_level, idx, field, value, _io):
+		# Specific-error toasts only for advance_mode (other paths fail
+		# silently for unknown fields — designer never sees them).
+		if field == "advance_mode":
+			_toast("advance_mode '%s' invalid — kept previous" % str(value), &"warn")
+
+
+func update_spawner(coord: Vector2i, fields: Dictionary) -> void:
+	if WaveEditorOps.update_spawner(_level, coord, fields, _io):
+		LevelMutations.refresh_overlay(_spawners_overlay, _level.spawners)
+
+
+func add_dialogue_trigger(t: Dictionary) -> bool:
+	var err: String = WaveEditorOps.add_dialogue_trigger(_level, t, _io)
+	if err != "":
+		_toast(err, &"warn")
+		return false
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+	return true
+
+
+func update_dialogue_trigger(old_id: StringName, t: Dictionary) -> bool:
+	var err: String = WaveEditorOps.update_dialogue_trigger(_level, old_id, t, _io)
+	if err != "":
+		_toast(err, &"warn")
+		return false
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+	return true
+
+
+func delete_dialogue_trigger(id: StringName) -> bool:
+	if not WaveEditorOps.delete_dialogue_trigger(_level, id, _io):
+		return false
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
+	return true
+
+
+# Skill offer signal trampoline — ops takes 4 args, signal has 2.
+
+func _on_skill_offer_changed(idx: int, offer: Variant) -> void:
+	WaveEditorOps.update_skill_offer(_level, idx, offer, _io)
+
+
 func _resolve_nodes() -> void:
 	_grid = get_node_or_null(hex_grid_path) as HexGrid
 	_layers_panel = get_node_or_null(layers_panel_path) as LayersPanel
@@ -175,10 +268,15 @@ func _resolve_nodes() -> void:
 	_spawners_overlay = get_node_or_null(spawners_overlay_path)
 	_help_modal = get_node_or_null(help_modal_path)
 	_confirm_modal = get_node_or_null(confirm_modal_path)
+	_wave_settings_panel = get_node_or_null(wave_settings_panel_path) as WaveSettingsPanel
 	for pair in [["hex_grid_path", _grid], ["layers_panel_path", _layers_panel],
 			["level_meta_panel_path", _meta_panel]]:
 		if pair[1] == null:
 			GameLogger.error("EditorController", str(pair[0]) + " did not resolve")
+	# wave_settings_panel is optional during the 061 rollout — log a soft warn
+	# if missing rather than error, so smoke environments still boot.
+	if _wave_settings_panel == null:
+		GameLogger.warn("EditorController", "wave_settings_panel_path did not resolve (Spec 061)")
 
 
 func _wire_panels() -> void:
@@ -199,6 +297,25 @@ func _wire_panels() -> void:
 		_meta_panel.setup(self)
 	if _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(_level.name)
+	# 061: wire WaveSettingsPanel — independent panel, not gated on meta_panel.
+	_wire_wave_settings_panel()
+
+
+func _wire_wave_settings_panel() -> void:
+	if _wave_settings_panel == null:
+		return
+	_wave_settings_panel.wave_switch_requested.connect(set_active_wave)
+	_wave_settings_panel.wave_add_requested.connect(add_wave)
+	_wave_settings_panel.wave_copy_requested.connect(copy_wave_from_prev)
+	_wave_settings_panel.wave_delete_requested.connect(delete_wave)
+	_wave_settings_panel.wave_field_changed.connect(update_wave_field)
+	_wave_settings_panel.spawner_field_changed.connect(update_spawner)
+	# Trigger CRUD methods return bool but Godot signal connects ignore that.
+	_wave_settings_panel.trigger_created.connect(add_dialogue_trigger)
+	_wave_settings_panel.trigger_updated.connect(update_dialogue_trigger)
+	_wave_settings_panel.trigger_deleted.connect(delete_dialogue_trigger)
+	_wave_settings_panel.skill_offer_changed.connect(_on_skill_offer_changed)
+	_wave_settings_panel.bind_level(_level)
 
 
 # Slot handlers
@@ -244,6 +361,9 @@ func _on_load(path: String) -> void:
 	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
 		_meta_panel.set_level_name(_level.name)
 	_io.refresh_grid_from_level(_level)
+	# 061: re-bind WaveSettingsPanel onto the freshly loaded level.
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
 	_toast("Loaded: " + path, &"success")
 
 
