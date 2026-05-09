@@ -617,24 +617,31 @@ func _build_spawner_section(parent: Control) -> void:
 
 
 func _populate_spawner_ref_dropdown() -> void:
-	# Mirror SpawnerPalette enemy list — read EnemyDB if present, else
-	# leave empty (controller validates ref string anyway).
+	# Mirror SpawnerPalette — enumerate data/enemies/*.json directly via
+	# DirAccess. There's no EnemyDB autoload (early Φ-4 plan claimed there
+	# was; corrected post-bug-report). Stable sort matches SpawnerPalette
+	# so the same id maps to the same dropdown index across panels.
 	if _spawner_form_ref_dd == null:
 		return
 	_spawner_form_ref_dd.clear()
-	# Try EnemyDB autoload first; fall back to a small static list.
-	var db: Node = get_node_or_null("/root/EnemyDB")
-	if db != null and db.has_method("get_all_ids"):
-		var ids: Array = db.get_all_ids()
-		for i in ids.size():
-			var id: StringName = StringName(str(ids[i]))
-			_spawner_form_ref_dd.add_item(String(id), i)
-			_spawner_form_ref_dd.set_item_metadata(i, id)
-	else:
-		# Defensive empty dropdown — controller can still update via direct
-		# field setter if designer types ref elsewhere. Logged via warn-once.
-		GameLogger.warn_once("wave_settings_panel.no_enemy_db",
-			"WaveSettingsPanel: EnemyDB autoload not found — ref dropdown empty")
+	var dir := DirAccess.open("res://data/enemies/")
+	if dir == null:
+		GameLogger.warn("WaveSettingsPanel",
+			"data/enemies/ not openable — ref dropdown empty")
+		return
+	var ids: Array[StringName] = []
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if not dir.current_is_dir() and fname.ends_with(".json"):
+			ids.append(StringName(fname.get_basename()))
+		fname = dir.get_next()
+	dir.list_dir_end()
+	ids.sort_custom(func(a, b): return String(a) < String(b))
+	for i in ids.size():
+		var id: StringName = ids[i]
+		_spawner_form_ref_dd.add_item(String(id), i)
+		_spawner_form_ref_dd.set_item_metadata(i, id)
 
 
 # ─── Skill offer section (port from old wave_panel.gd) ──────────────────────
