@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://level_editor_001"]
+[gd_scene load_steps=14 format=3 uid="uid://level_editor_001"]
 
 [ext_resource type="Script" path="res://scripts/presentation/dev/editor/editor_controller.gd" id="1_ec"]
 [ext_resource type="PackedScene" path="res://scenes/arena/hex_grid.tscn" id="2_hex"]
@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_modal.tscn" id="11_cm"]
 [ext_resource type="PackedScene" path="res://scenes/dev/editor/editor_help_modal.tscn" id="12_help"]
 [ext_resource type="PackedScene" path="res://scenes/dev/wave_settings_panel.tscn" id="13_wsp"]
+[ext_resource type="PackedScene" path="res://scenes/dev/wave_picker_panel.tscn" id="14_wpp"]
 
 [node name="LevelEditor" type="Node2D"]
 script = ExtResource("1_ec")
@@ -25,6 +26,7 @@ spawners_overlay_path = NodePath("HexGrid/SpawnersOverlay")
 help_modal_path = NodePath("HUD/EditorHelpModal")
 confirm_modal_path = NodePath("HUD/ConfirmModal")
 wave_settings_panel_path = NodePath("HUD/WaveSettingsPanel")
+wave_picker_panel_path = NodePath("HUD/WavePickerPanel")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="."]
 layer = -10
@@ -87,10 +89,24 @@ persistence_scope_override = &"level_editor"
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -360.0
-offset_top = 256.0
+offset_left = -380.0
+offset_top = 480.0
 offset_right = -16.0
-offset_bottom = 760.0
+offset_bottom = 980.0
+grow_horizontal = 0
+persistence_scope_override = &"level_editor"
+
+[node name="WavePickerPanel" parent="HUD" instance=ExtResource("14_wpp")]
+; 061 + tabbed rework: small panel above WaveSettings — just the wave
+; switcher list + add/copy/delete buttons. Designer can detach with the
+; panel collapse/anchor button.
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 240.0
+offset_right = -16.0
+offset_bottom = 470.0
 grow_horizontal = 0
 persistence_scope_override = &"level_editor"
 

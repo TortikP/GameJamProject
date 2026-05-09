@@ -8,4 +8,4 @@ script = ExtResource("2_wsp")
 panel_id = &"wave_settings_panel"
 panel_title_key = &"ui_wavesettings_title"
 panel_title_fallback = "Wave Settings"
-min_panel_size = Vector2(360, 600)
+min_panel_size = Vector2(380, 480)
