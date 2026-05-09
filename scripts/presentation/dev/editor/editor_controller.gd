@@ -55,6 +55,11 @@ func _ready() -> void:
 	_wire_panels()
 	EditorStartup.restore_palettes(_layers_panel, _layers)
 	_level = await EditorStartup.run(_io, _level, _meta_panel, _confirm_modal, get_tree())
+	# 061 + tabbed rework: _wire_panels above bound panels to the default
+	# _level (1 wave). EditorStartup.run reassigns _level to the loaded one
+	# (N waves) but panels still hold the stale reference. Re-push so the
+	# wave picker / settings show the actual level on first paint.
+	_push_level_to_panels()
 
 
 func _unhandled_input(event: InputEvent) -> void:
