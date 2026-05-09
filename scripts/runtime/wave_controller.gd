@@ -77,6 +77,15 @@ var _is_transitioning: bool = false
 # header for the race detail.
 var _wave_ending: bool = false
 
+# 061: advance_mode runtime state. True iff the active wave's advance_mode
+# blocks timer-driven advance and we're waiting on _check_auto_clear to
+# fire (no living enemies + no pending spawners). Set by:
+#   - _advance_wave (mode == "clear"): set true on wave start.
+#   - _on_world_turn_ended (mode == "timer_and_clear" + ttn reached 0): set true.
+# Cleared on _advance_wave to next wave. Read by HUD (Pillar 1) via
+# EventBus.wave_advance_blocked which we emit on transitions.
+var _waiting_for_clear: bool = false
+
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
 
@@ -102,6 +111,7 @@ func start_level(level: LevelData) -> void:
 	_level = level
 	_current_wave_index = -1
 	_turns_into_wave = 0
+	_waiting_for_clear = false  # 061: cold reset between levels
 	_resolve_actors_node()
 	# 039: signal that the battle is now beginning (Director connects handlers).
 	EventBus.battle_started.emit(StringName(level.name))
@@ -138,11 +148,24 @@ func _advance_wave() -> void:
 	_apply_wave_snapshot(_current_wave_index)
 	_turns_into_wave = 0
 	var w: Dictionary = _level.waves[_current_wave_index]
-	GameLogger.info("WaveController", "wave_started %d (special=%s, ttn=%d)" % [
-		_current_wave_index, bool(w.get("is_special", false)),
-		int(w.get("turns_to_next", 0))
+	# 061: reset advance-mode state for the new wave. If new wave's mode is
+	# "clear", we never advance via timer — set waiting immediately so HUD
+	# shows the indicator from wave start (auto-clear path will end the wave).
+	var advance_mode: String = String(w.get("advance_mode", "timer"))
+	var was_waiting: bool = _waiting_for_clear
+	_waiting_for_clear = (advance_mode == "clear")
+	if was_waiting != _waiting_for_clear:
+		EventBus.wave_advance_blocked.emit(_waiting_for_clear)
+	# 061: derive bool for EventBus.wave_started signature (kept bool for backward
+	# compat — see Q-061-1 / F-061-4). is_wave_special() handles the string→bool
+	# derivation correctly post-Φ-1 migration.
+	var is_special: bool = _level.is_wave_special(_current_wave_index)
+	GameLogger.info("WaveController", "wave_started %d (special=%s, ttn=%d, mode=%s)" % [
+		_current_wave_index, is_special,
+		int(w.get("turns_to_next", 0)),
+		advance_mode,
 	])
-	EventBus.wave_started.emit(_current_wave_index, bool(w.get("is_special", false)))
+	EventBus.wave_started.emit(_current_wave_index, is_special)
 	# Settle window — visuals tween, placeholders pop in. Clears the lock
 	# automatically. Spec AC-W16: GameSpeed.wait("battle", "wave_transition_sec").
 	_release_transition_lock_after_delay()
@@ -365,7 +388,29 @@ func _on_world_turn_ended(_turn: int) -> void:
 		var w: Dictionary = _level.waves[_current_wave_index]
 		var ttn: int = int(w.get("turns_to_next", 0))
 		if ttn > 0 and _turns_into_wave >= ttn:
-			_end_current_wave()
+			# 061: advance_mode gates timer-driven end.
+			# - "timer" (default): timer reaching 0 ends the wave. Existing behavior.
+			# - "clear": timer ignored entirely. Wave ends only when last enemy
+			#   dies (handled by _check_auto_clear). _waiting_for_clear is
+			#   already true from _advance_wave.
+			# - "timer_and_clear": timer expiring sets the waiting flag. Wave
+			#   ends when last enemy dies (or immediately if already none).
+			#   Re-runs _check_auto_clear synchronously so a stuck-empty wave
+			#   (already cleared at the moment of timer expiry) advances now.
+			var advance_mode: String = String(w.get("advance_mode", "timer"))
+			match advance_mode:
+				"timer":
+					_end_current_wave()
+				"clear":
+					pass  # never advance via timer
+				"timer_and_clear":
+					if not _waiting_for_clear:
+						_waiting_for_clear = true
+						EventBus.wave_advance_blocked.emit(true)
+					_check_auto_clear()
+				_:
+					# Unknown mode (validate() rejected it; defensive fallback to timer).
+					_end_current_wave()
 
 
 func _spawn_from_pending(entry: Dictionary) -> void:
