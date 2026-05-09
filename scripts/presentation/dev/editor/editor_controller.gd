@@ -197,7 +197,8 @@ func _push_active_wave_to_panels(idx: int) -> void:
 
 
 func _push_level_to_panels() -> void:
-	_push_level_to_panels()
+	if _wave_settings_panel != null:
+		_wave_settings_panel.bind_level(_level)
 	if _wave_picker_panel != null:
 		_wave_picker_panel.bind_level(_level)
 
