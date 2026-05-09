@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/dev/spawners_overlay.gd" id="10_sp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_modal.tscn" id="11_cm"]
 [ext_resource type="PackedScene" path="res://scenes/dev/editor/editor_help_modal.tscn" id="12_help"]
+[ext_resource type="PackedScene" path="res://scenes/dev/wave_settings_panel.tscn" id="13_wsp"]
 
 [node name="LevelEditor" type="Node2D"]
 script = ExtResource("1_ec")
@@ -23,6 +24,7 @@ objects_overlay_path = NodePath("HexGrid/ObjectsOverlay")
 spawners_overlay_path = NodePath("HexGrid/SpawnersOverlay")
 help_modal_path = NodePath("HUD/EditorHelpModal")
 confirm_modal_path = NodePath("HUD/ConfirmModal")
+wave_settings_panel_path = NodePath("HUD/WaveSettingsPanel")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="."]
 layer = -10
@@ -76,6 +78,20 @@ panel_id = &"level_meta"
 panel_title_key = &"ui_level_meta_panel_title"
 panel_title_fallback = "Level Meta"
 min_panel_size = Vector2(280, 180)
+persistence_scope_override = &"level_editor"
+
+[node name="WaveSettingsPanel" parent="HUD" instance=ExtResource("13_wsp")]
+; 061: anchored to right edge below LevelMetaPanel. First-run position
+; uses LevelMetaPanel's offset_bottom (240) + small gap. After first drag
+; BasePanel.persistence saves layout per-scope so this default is one-shot.
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 256.0
+offset_right = -16.0
+offset_bottom = 760.0
+grow_horizontal = 0
 persistence_scope_override = &"level_editor"
 
 [node name="EditorHelpModal" parent="HUD" instance=ExtResource("12_help")]
