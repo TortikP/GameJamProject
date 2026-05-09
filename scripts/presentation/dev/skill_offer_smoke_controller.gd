@@ -150,7 +150,7 @@ func _on_btn_no_offer() -> void:
 	var lvl: LevelData = LevelData.new()
 	lvl.waves = [{
 		"index": 0,
-		"is_special": false,
+		"is_special": "normal",
 		"turns_to_next": 0,
 		"floor": [],
 		"objects": [],
@@ -186,7 +186,7 @@ func _on_btn_validation() -> void:
 	var lvl: LevelData = LevelData.new()
 	lvl.waves = [{
 		"index": 0,
-		"is_special": false,
+		"is_special": "normal",
 		"turns_to_next": 0,
 		"floor": [{ "coord": Vector2i(0, 0), "source_id": 0, "atlas_coord": Vector2i.ZERO }],
 		"objects": [],
@@ -241,7 +241,7 @@ func _setup_offer(offer: Dictionary) -> void:
 	var lvl: LevelData = LevelData.new()
 	lvl.waves = [{
 		"index": 0,
-		"is_special": false,
+		"is_special": "normal",
 		"turns_to_next": 0,
 		"floor": [],
 		"objects": [],

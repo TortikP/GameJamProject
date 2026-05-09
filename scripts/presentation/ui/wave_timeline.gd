@@ -392,7 +392,9 @@ func _draw() -> void:
 	for i in _anchor_positions.size():
 		var ax: float = _anchor_positions[i]
 		var w: Dictionary = _level.waves[i]
-		var is_special: bool = bool(w.get("is_special", false))
+		# 061: is_special is now String — use helper. Direct bool() cast would break
+		# because bool("normal") == true in GDScript.
+		var is_special: bool = _level.is_wave_special(i)
 		var radius: float = UiThemeScript.WAVE_ANCHOR_RADIUS
 		if is_special:
 			radius *= UiThemeScript.WAVE_ANCHOR_SPECIAL_RADIUS_MULT
@@ -495,7 +497,8 @@ func _gui_input(event: InputEvent) -> void:
 		var ax: float = _anchor_positions[i]
 		var w: Dictionary = _level.waves[i]
 		var radius: float = UiThemeScript.WAVE_ANCHOR_RADIUS
-		if bool(w.get("is_special", false)):
+		# 061: see comment above re is_wave_special.
+		if _level.is_wave_special(i):
 			radius *= UiThemeScript.WAVE_ANCHOR_SPECIAL_RADIUS_MULT
 		if local_pos.distance_to(Vector2(ax, BAR_Y)) <= radius + 2.0:
 			if mb.button_index == MOUSE_BUTTON_LEFT:
