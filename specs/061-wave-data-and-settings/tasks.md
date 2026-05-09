@@ -165,6 +165,7 @@
 
 ## Φ-12. Backward-compat smoke (AC34-36)
 
+- [x] **T-061-DRYRUN.** Python dry-run миграции `data/maps/{1,sample_skill_offer,story_map_03}.json`. Логика 1:1 копия Φ-1 `from_dict()` миграции. Результат: version 2→3, все `is_special: true` → `"boss"`, `false` → `"normal"`, новые поля добавлены, invariants (contiguous indices, last-wave ttn=0, valid advance_mode, amount/delay≥1) — OK на всех 3х. Уверенность что Godot-side миграция тоже пройдёт — высокая. **[Φ-12] [done — Claude pre-smoke]**
 - [ ] **T-061-74.** Smoke `data/maps/1.json`: load → no errors → switcher показывает 1 wave → save → JSON v3 + new fields. Reload — diff после нормализации = 0 в floor/objects/spawners. **[Φ-12] [smoke critical]**
 - [ ] **T-061-75.** Smoke `data/maps/sample_skill_offer.json`: load → 3 waves → wave 2 has `is_special` → wave-section показывает поле как `"boss"` (после миграции из bool). Save → JSON has `"is_special": "boss"`. Skill_offer per-wave работает. **[Φ-12] [smoke critical]**
 - [ ] **T-061-76.** Smoke `data/maps/story_map_03.json`: load → много волн → переключаться между ними, поля корректны. Триггеры (если есть) — в level-секции. Save → idempotent. **[Φ-12] [smoke critical]**
