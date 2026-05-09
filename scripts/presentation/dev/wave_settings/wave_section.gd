@@ -5,7 +5,6 @@ extends VBoxContainer
 ## Fields specific to one wave:
 ##   - is_special (free-form string)
 ##   - turns_to_next
-##   - respawn_player (hidden on wave 0)
 ##   - advance_mode (enum dropdown)
 ##   - music_config (raw JSON)
 ##
@@ -23,8 +22,6 @@ var _refreshing: bool = false
 
 var _is_special_edit: LineEdit
 var _ttn_spin: SpinBox
-var _respawn_row: HBoxContainer
-var _respawn_cb: CheckBox
 var _advance_mode_dd: OptionButton
 var _music_config_edit: LineEdit
 
@@ -78,16 +75,6 @@ func _build() -> void:
 	_ttn_spin.value_changed.connect(_on_ttn_changed)
 	ttn_row.add_child(_ttn_spin)
 
-	# respawn_player — hidden on wave 0.
-	_respawn_row = HBoxContainer.new()
-	add_child(_respawn_row)
-	var rp_lbl := _make_label("ui_wavesettings_respawn_player", "respawn_player:")
-	rp_lbl.custom_minimum_size = Vector2(120, 0)
-	_respawn_row.add_child(rp_lbl)
-	_respawn_cb = CheckBox.new()
-	_respawn_cb.toggled.connect(_on_respawn_toggled)
-	_respawn_row.add_child(_respawn_cb)
-
 	# advance_mode.
 	var am_row := HBoxContainer.new()
 	add_child(am_row)
@@ -132,10 +119,6 @@ func _refresh() -> void:
 		_is_special_edit.text = String(w.get("is_special", "normal"))
 	if _ttn_spin != null:
 		_ttn_spin.set_value_no_signal(int(w.get("turns_to_next", 0)))
-	if _respawn_row != null:
-		_respawn_row.visible = (_active_wave > 0)
-	if _respawn_cb != null:
-		_respawn_cb.set_pressed_no_signal(bool(w.get("respawn_player", false)))
 	if _advance_mode_dd != null:
 		var am: String = String(w.get("advance_mode", "timer"))
 		for i in _advance_mode_dd.item_count:
@@ -172,10 +155,6 @@ func _on_is_special_submitted(text: String) -> void:
 
 func _on_ttn_changed(v: float) -> void:
 	_emit_field("turns_to_next", int(v))
-
-
-func _on_respawn_toggled(pressed: bool) -> void:
-	_emit_field("respawn_player", pressed)
 
 
 func _on_advance_mode_selected(idx: int) -> void:

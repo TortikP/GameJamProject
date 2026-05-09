@@ -1124,7 +1124,6 @@
     "ui_wavesettings_level_name": "имя:",
     "ui_wavesettings_music_config": "music_config:",
     "ui_wavesettings_music_config_hint": "Сырой JSON-объект, переопределяющий level music_config на этой волне. Пусто = откат к уровню.",
-    "ui_wavesettings_respawn_player": "респавн игрока:",
     "ui_wavesettings_skill_offer_header": "Выбор скилла",
     "ui_wavesettings_spawners_header": "Спавнеры",
     "ui_wavesettings_switcher_add": "+ Волна",

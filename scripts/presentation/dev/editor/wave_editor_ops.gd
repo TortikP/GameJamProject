@@ -79,8 +79,6 @@ static func update_wave_field(level: LevelData, idx: int, field: String,
 			w["is_special"] = String(value)
 		"turns_to_next":
 			w["turns_to_next"] = int(value)
-		"respawn_player":
-			w["respawn_player"] = bool(value)
 		"advance_mode":
 			var s: String = String(value)
 			if not (s in LevelData.VALID_ADVANCE_MODES):

@@ -27,7 +27,7 @@ class_name LevelData
 ## Spawner schema gains a `timer: int >= 1` field — see 024 spec, section
 ## "Расширение LevelData". Legacy spawners default to timer=1 on migration.
 
-const SCHEMA_VERSION: int = 3  # 061: bump from 2 (is_special bool→String; added wave.respawn_player/advance_mode/music_config and spawner.amount/delay).
+const SCHEMA_VERSION: int = 3  # 061: bump from 2 (is_special bool→String; added wave.advance_mode/music_config and spawner.amount/delay).
 
 # 061: wave.is_special transitioned bool→String. Free-form string per design.md D5.
 # Convention (not enforced): "normal" | "boss" | "miniboss_*".
@@ -68,7 +68,7 @@ var spawners: Array[Dictionary] = []
 
 # All waves in order. Each entry is a Dictionary with keys:
 #   "index" (int), "is_special" (String, 061), "turns_to_next" (int),
-#   "respawn_player" (bool, 061), "advance_mode" (String, 061),
+#   "advance_mode" (String, 061),
 #   "music_config" (Dictionary, 061; per-wave override over level music_config),
 #   "floor" (Array of floor-cell dicts),
 #   "objects" (Array of object dicts),
@@ -93,7 +93,6 @@ var waves: Array[Dictionary] = [{
 	"floor": [],
 	"objects": [],
 	"spawners": [],
-	"respawn_player": true,
 	"advance_mode": "timer",
 	"music_config": {},
 }]
@@ -217,18 +216,10 @@ func validate() -> Array[String]:
 			if dly_v < 1:
 				errors.append("Wave %d: spawner delay must be >= 1 (got %d)" % [i, dly_v])
 
-		# 061: advance_mode enum + respawn_player consistency + clear-without-enemy WARN.
+		# 061: advance_mode enum + clear-without-enemy WARN.
 		var am: String = String(w.get("advance_mode", DEFAULT_ADVANCE_MODE))
 		if not (am in VALID_ADVANCE_MODES):
 			errors.append("Wave %d: advance_mode '%s' invalid (expected timer|clear|timer_and_clear)" % [i, am])
-		if i > 0 and bool(w.get("respawn_player", false)):
-			var has_player_spawner: bool = false
-			for s in w.get("spawners", []):
-				if s.get("kind", &"") == &"player":
-					has_player_spawner = true
-					break
-			if not has_player_spawner:
-				errors.append("Wave %d: respawn_player=true but no player spawner on this wave" % i)
 		if am == "clear":
 			var has_enemy: bool = false
 			for s in w.get("spawners", []):
@@ -321,7 +312,6 @@ func to_dict() -> Dictionary:
 			"index": int(w.get("index", i)),
 			"is_special": String(w.get("is_special", DEFAULT_IS_SPECIAL)),
 			"turns_to_next": int(w.get("turns_to_next", 0)),
-			"respawn_player": bool(w.get("respawn_player", false)),
 			"advance_mode": String(w.get("advance_mode", DEFAULT_ADVANCE_MODE)),
 			"music_config": (w.get("music_config", {}) as Dictionary).duplicate(true) if w.get("music_config") is Dictionary else {},
 			"floor": _floor_to_arr(w.get("floor", [])),
@@ -375,7 +365,6 @@ static func from_dict(d: Dictionary) -> LevelData:
 			"index": 0,
 			"is_special": DEFAULT_IS_SPECIAL,
 			"turns_to_next": 0,
-			"respawn_player": true,
 			"advance_mode": DEFAULT_ADVANCE_MODE,
 			"music_config": {},
 			"floor": _floor_arr_to_dicts(d.get("floor", [])),
@@ -390,7 +379,7 @@ static func from_dict(d: Dictionary) -> LevelData:
 
 	# 061: forward-only migration to v3. Idempotent — safe to re-run on already-v3 data.
 	# - is_special: bool → String (false→"normal", true→"boss")
-	# - respawn_player / advance_mode / music_config: add-if-missing
+	# - advance_mode / music_config: add-if-missing
 	# - spawner.amount / delay: add-if-missing
 	for i in lvl.waves.size():
 		var w: Dictionary = lvl.waves[i]
@@ -401,8 +390,6 @@ static func from_dict(d: Dictionary) -> LevelData:
 			w["is_special"] = String(raw_is_special)
 		else:
 			w["is_special"] = DEFAULT_IS_SPECIAL  # malformed type → safe default
-		if not w.has("respawn_player"):
-			w["respawn_player"] = (i == 0)  # wave 0 implicit true; rest default false
 		if not w.has("advance_mode") or not (w["advance_mode"] is String):
 			w["advance_mode"] = DEFAULT_ADVANCE_MODE
 		if not w.has("music_config") or not (w["music_config"] is Dictionary):
@@ -440,14 +427,11 @@ func make_wave_copy_no_spawners(src_idx: int, target_idx: int,
 		turns_to_next: int = DEFAULT_TURNS_TO_NEXT) -> Dictionary:
 	var src: Dictionary = waves[src_idx] if src_idx >= 0 and src_idx < waves.size() else _make_empty_wave(0)
 	# 061: inherit metadata from source wave (is_special, advance_mode,
-	# music_config). respawn_player defaults to false on copy — designer must
-	# opt-in (otherwise duplicating a wave with respawn_player=true would
-	# silently re-spawn the hero on every wave switch).
+	# music_config).
 	return {
 		"index": target_idx,
 		"is_special": String(src.get("is_special", DEFAULT_IS_SPECIAL)),
 		"turns_to_next": turns_to_next,
-		"respawn_player": false,
 		"advance_mode": String(src.get("advance_mode", DEFAULT_ADVANCE_MODE)),
 		"music_config": (src.get("music_config", {}) as Dictionary).duplicate(true) if src.get("music_config") is Dictionary else {},
 		"floor": _deep_copy_floor(src.get("floor", [])),
@@ -510,14 +494,11 @@ func _sync_active_wave_to_root() -> void:
 
 
 static func _make_empty_wave(idx: int) -> Dictionary:
-	# 061: wave 0 implicit respawn_player=true (ensures runtime spawns hero on
-	# fresh level start); other waves default false (designer must explicitly
-	# request respawn). is_special defaults to "normal" (free-form string).
+	# 061: is_special defaults to "normal" (free-form string).
 	return {
 		"index": idx,
 		"is_special": DEFAULT_IS_SPECIAL,
 		"turns_to_next": 0,
-		"respawn_player": idx == 0,
 		"advance_mode": DEFAULT_ADVANCE_MODE,
 		"music_config": {},
 		"floor": [],
@@ -630,7 +611,6 @@ static func _wave_dict_from_arr(d: Dictionary) -> Dictionary:
 		"index": int(d.get("index", 0)),
 		"is_special": d.get("is_special", DEFAULT_IS_SPECIAL),
 		"turns_to_next": int(d.get("turns_to_next", 0)),
-		"respawn_player": bool(d.get("respawn_player", false)),
 		"advance_mode": String(d.get("advance_mode", DEFAULT_ADVANCE_MODE)),
 		"music_config": (d.get("music_config", {}) as Dictionary).duplicate(true) if d.get("music_config") is Dictionary else {},
 		"floor": _floor_arr_to_dicts(d.get("floor", [])),

@@ -1124,7 +1124,6 @@
     "ui_wavesettings_level_name": "name:",
     "ui_wavesettings_music_config": "music_config:",
     "ui_wavesettings_music_config_hint": "Raw JSON object overriding level music_config for this wave. Empty = fallback.",
-    "ui_wavesettings_respawn_player": "respawn_player:",
     "ui_wavesettings_skill_offer_header": "Skill Offer",
     "ui_wavesettings_spawners_header": "Spawners",
     "ui_wavesettings_switcher_add": "+ Wave",
