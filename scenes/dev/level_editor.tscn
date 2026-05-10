@@ -74,12 +74,12 @@ anchor_right = 1.0
 offset_left = -360.0
 offset_top = 16.0
 offset_right = -16.0
-offset_bottom = 146.0
+offset_bottom = 240.0
 grow_horizontal = 0
 panel_id = &"level_meta"
 panel_title_key = &"ui_level_meta_panel_title"
 panel_title_fallback = "Level Meta"
-min_panel_size = Vector2(280, 110)
+min_panel_size = Vector2(280, 180)
 persistence_scope_override = &"level_editor"
 
 [node name="WaveSettingsPanel" parent="HUD" instance=ExtResource("13_wsp")]
@@ -88,23 +88,23 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -380.0
-offset_top = 400.0
+offset_top = 496.0
 offset_right = -16.0
-offset_bottom = 900.0
+offset_bottom = 996.0
 grow_horizontal = 0
 persistence_scope_override = &"level_editor"
 
 [node name="WavePickerPanel" parent="HUD" instance=ExtResource("14_wpp")]
-; 061 + tabbed rework: small panel above WaveSettings — just the wave
-; switcher list + add/copy/delete buttons. Designer can detach with the
-; panel collapse/anchor button.
+; 061 + tabbed rework: small panel below LevelMetaPanel — wave switcher
+; list + add/delete buttons. Designer can detach with the panel collapse
+; button.
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -380.0
-offset_top = 160.0
+offset_top = 256.0
 offset_right = -16.0
-offset_bottom = 390.0
+offset_bottom = 486.0
 grow_horizontal = 0
 persistence_scope_override = &"level_editor"
 
