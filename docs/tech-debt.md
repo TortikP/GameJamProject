@@ -107,3 +107,16 @@
 
 1. **Быстрый (1 минута):** открыть каждый в редакторе → последнюю волну → ttn=0 → save. После — убрать строки из `tests/maps_validate_baseline.txt`.
 2. **Архитектурный:** релакс валидатора — `last_wave_ttn_must_be_zero` warn, не error. Аргумент: dev-фикстуры с одной волной могут иметь ttn>0 как «не достигнуто», а полноценные уровни всё равно проверяются другими invariants. Решение по запросу tech-designer'а (Stasyan).
+---
+
+## F-061-6 — pas-058 R6 пересмотрен: lock не блокирует tab switching
+
+**Surface'ил:** smoke-проверка 061 в редакторе (Andrey). **Severity:** medium UX. **User-visible:** да.
+
+Спека 058 (`plan.md:337`) задокументировала R6 как: «если panel locked, ни drag, ни click-переключение табов не работает», и тут же пометила решение как «surface при имплементации, AC из spec не проверяет locked state — finding на будущее или smoke ad-hoc».
+
+Smoke 061 surface'ил это: на залоченной WaveSettings-панели нельзя переключать табы — это контр-интуитивно. Lock в UX-смысле = «не двигай структурно» (drag/resize/detach), но переключение таба — это view-state, не редактирование data, и должно оставаться доступным независимо от lock'а.
+
+**Что сделано:** Перенёс `is_locked()` check из `_on_tab_button_gui_input` (press handler) в `_detach_tab_active_drag` (drag handler). Click-switch теперь работает на залоченной панели; detach (drag-отрыв таба) по-прежнему блокируется — структурное изменение остаётся под lock'ом. Collapsed-проверка осталась в press handler (collapsed = body скрыт, switch'ить не во что).
+
+**Owner spec'а 058** может откатить если решит что оригинальный intent был правильным — прецедента в реальном UX не было, R6 явно был open question.
