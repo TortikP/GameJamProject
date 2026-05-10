@@ -43,7 +43,7 @@ const RUN_CHOICES: Array[Dictionary] = [
 @onready var _start_btn: Button = $VBox/StartButton
 @onready var _continue_btn: Button = $VBox/ContinueButton
 @onready var _godmode_btn: Button = $VBox/GodmodeButton
-@onready var _map_editor_btn: Button = $VBox/MapEditorButton
+@onready var _level_editor_btn: Button = $VBox/LevelEditorButton
 @onready var _game_editor_btn: Button = $VBox/GameEditorButton
 @onready var _load_game_btn: Button = $VBox/LoadGameButton
 @onready var _load_custom_btn: Button = $VBox/LoadCustomLevelButton
@@ -76,7 +76,7 @@ func _ready() -> void:
 	_start_btn.pressed.connect(_on_start)
 	_continue_btn.pressed.connect(_on_continue)
 	_godmode_btn.pressed.connect(_on_godmode)
-	_map_editor_btn.pressed.connect(_on_map_editor)
+	_level_editor_btn.pressed.connect(_on_level_editor)
 	_game_editor_btn.pressed.connect(_on_game_editor)
 	_load_game_btn.pressed.connect(_on_load_game)
 	_load_custom_btn.pressed.connect(_on_load_custom)
@@ -109,8 +109,8 @@ func _apply_theme() -> void:
 	_subtitle.add_theme_font_size_override("font_size", UiTheme.FS_DISPLAY)
 	_subtitle.add_theme_constant_override("outline_size", 4)
 	_subtitle.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-	for btn in [_start_btn, _continue_btn, _godmode_btn, _map_editor_btn,
-				_game_editor_btn, _load_game_btn,
+	for btn in [_start_btn, _continue_btn, _godmode_btn,
+				_level_editor_btn, _game_editor_btn, _load_game_btn,
 				_load_custom_btn, _settings_btn, _credits_btn,
 				_ui_catalog_btn, _quit_btn]:
 		UiTheme.apply_button_styling(btn)
@@ -134,11 +134,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_close_run_mode_dialog()
 		return
-	# 020 — Ctrl+E from main menu opens map editor. Handled here so the
+	# Ctrl+E from main menu opens the level editor. Handled here so the
 	# user doesn't have to start a run first to discover the editor.
 	if event.is_action_pressed("dev_open_editor"):
 		get_viewport().set_input_as_handled()
-		_on_map_editor()
+		_on_level_editor()
 
 
 func _on_start() -> void:
@@ -221,8 +221,8 @@ func _on_godmode() -> void:
 	get_tree().change_scene_to_file("res://scenes/dev/godmode.tscn")
 
 
-func _on_map_editor() -> void:
-	get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
+func _on_level_editor() -> void:
+	get_tree().change_scene_to_file("res://scenes/dev/level_editor.tscn")
 
 
 func _on_game_editor() -> void:

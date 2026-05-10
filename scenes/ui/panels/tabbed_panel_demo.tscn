@@ -1,0 +1,55 @@
+[gd_scene format=3 load_steps=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/panels/tabbed_base_panel.tscn" id="1_tbp"]
+[ext_resource type="Script" path="res://scripts/presentation/ui_panels/tabbed_panel_demo.gd" id="2_demo"]
+
+[node name="TabbedPanelDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_demo")
+
+[node name="MainTabbed" parent="." instance=ExtResource("1_tbp")]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 340.0
+offset_bottom = 280.0
+panel_id = &"demo_tabbed_main"
+panel_title_fallback = "Main Tabbed"
+min_panel_size = Vector2(220, 140)
+
+[node name="OtherTabbed" parent="." instance=ExtResource("1_tbp")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 200.0
+grow_horizontal = 0
+panel_id = &"demo_tabbed_other"
+panel_title_fallback = "Other Tabbed"
+min_panel_size = Vector2(200, 120)
+
+[node name="CenteredTabbed" parent="." instance=ExtResource("1_tbp")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = 60.0
+offset_right = 140.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+panel_id = &"demo_tabbed_centered"
+panel_title_fallback = "Centered Tabbed"
+min_panel_size = Vector2(200, 120)

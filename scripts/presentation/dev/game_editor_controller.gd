@@ -219,7 +219,7 @@ func _on_row_edit_requested(row: PanelContainer) -> void:
 	# then change scene.
 	ActiveLevel.queue(map_path)
 	ActiveGame.queue_for_editor(save_path)
-	get_tree().change_scene_to_file("res://scenes/dev/map_editor.tscn")
+	get_tree().change_scene_to_file("res://scenes/dev/level_editor.tscn")
 
 
 func _on_intro_toggled(pressed: bool, row: PanelContainer) -> void:

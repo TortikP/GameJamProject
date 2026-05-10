@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "status_id": "slowed(2)"
+          "status_id": "slowed(3)"
         }
       ]
     }

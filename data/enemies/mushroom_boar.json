@@ -3,16 +3,17 @@
   "name": "mushroom_boar_name",
   "desc": "mushroom_boar_desc",
   "sprite": "assets/sprites/enemies/mushroom_boar.png",
-  "max_hp": 40,
+  "max_hp": 5,
   "team": "enemy",
   "speed": 4,
   "skills": [
-	"mushroom_boar_tusk_attack",
-	"mushroom_boar_spores",
+    "mushroom_boar_tusk_attack",
+    "mushroom_boar_spores",
     "mushroom_boar_weaken"
   ],
   "passive_skills": [
-    "passive_persistent_venom"
+    "passive_iron_vitality",
+    "passive_wide_pulse"
   ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "mushroom_boar_tusk_attack"

@@ -5,9 +5,14 @@
   "tooltip": "passive_wide_pulse_tooltip",
   "desc": "passive_wide_pulse_desc",
   "icon": "icons/skills/passive_wide_pulse.png",
-  "mood": ["ascended"],
+  "mood": [
+    "ascended"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "area_radius_bonus", "amount": 1}
+    {
+      "kind": "area_radius_bonus",
+      "amount": 1
+    }
   ]
 }

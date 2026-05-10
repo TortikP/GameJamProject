@@ -1,0 +1,11 @@
+[gd_scene format=3 load_steps=3]
+
+[ext_resource type="PackedScene" uid="uid://52k1drd6uyfx" path="res://scenes/ui/panels/base_panel.tscn" id="1_bp"]
+[ext_resource type="Script" path="res://scripts/presentation/dev/editor/layers_panel.gd" id="2_lp"]
+
+[node name="LayersPanel" instance=ExtResource("1_bp")]
+script = ExtResource("2_lp")
+panel_id = &"layers_panel"
+panel_title_key = &"ui_layers_panel_title"
+panel_title_fallback = "Layers"
+min_panel_size = Vector2(280, 160)

@@ -53,6 +53,11 @@ var _level: LevelData = null
 var _runtime_current_wave: int = 0
 var _runtime_turns_into_wave: int = 0
 
+# 061: latched from EventBus.wave_advance_blocked. RUNTIME-only HUD cue
+# per Pillar 1 — when WaveController is gating advance on a kill-the-rest
+# condition, draw a "(waiting for clear)" tag near the current anchor.
+var _runtime_waiting_for_clear: bool = false
+
 # 048: once the final wave is cleared, freeze the cursor at the end of
 # the final wave's bar segment. Without this, world_turn_ended ticks during
 # the absorption ritual / post-level dialogue would keep advancing the
@@ -102,6 +107,8 @@ func _ready() -> void:
 		# 048: extra safety net — if wave_cleared on final wave is missed for
 		# any reason, level_completed still freezes the cursor.
 		EventBus.level_completed.connect(_on_level_completed)
+		# 061: HUD cue for advance_mode-driven waiting state.
+		EventBus.wave_advance_blocked.connect(_on_wave_advance_blocked)
 		# 051d: in battle/HUD this widget is purely visual — never eat input.
 		# .tscn root has mouse_filter = STOP (needed for EDIT-mode anchor
 		# clicks); flip to IGNORE in RUNTIME so clicks on the top strip fall
@@ -392,7 +399,9 @@ func _draw() -> void:
 	for i in _anchor_positions.size():
 		var ax: float = _anchor_positions[i]
 		var w: Dictionary = _level.waves[i]
-		var is_special: bool = bool(w.get("is_special", false))
+		# 061: is_special is now String — use helper. Direct bool() cast would break
+		# because bool("normal") == true in GDScript.
+		var is_special: bool = _level.is_wave_special(i)
 		var radius: float = UiThemeScript.WAVE_ANCHOR_RADIUS
 		if is_special:
 			radius *= UiThemeScript.WAVE_ANCHOR_SPECIAL_RADIUS_MULT
@@ -431,6 +440,23 @@ func _draw() -> void:
 			top + Vector2(0, 5),
 		])
 		draw_colored_polygon(pts, UiThemeScript.WAVE_CURSOR_COLOR)
+
+	# 061: Pillar 1 cue — show "(waiting for clear)" near the current cursor
+	# when WaveController has blocked timer-driven advance. RUNTIME only;
+	# EDIT mode anchors don't reflect runtime state.
+	if mode == Mode.RUNTIME and _runtime_waiting_for_clear and _level != null \
+			and _level.waves.size() > 0 and not _anchor_positions.is_empty():
+		var anchor_x: float = _anchor_positions[clampi(_runtime_current_wave, 0, _anchor_positions.size() - 1)]
+		var lbl_text: String = Localization.t("ui_wave_waiting_for_clear", "(waiting for clear)")
+		var font: Font = ThemeDB.fallback_font
+		var fs: int = UiThemeScript.FS_BODY
+		var tw: float = font.get_string_size(lbl_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var pos: Vector2 = Vector2(anchor_x - tw * 0.5, BAR_Y + UiThemeScript.WAVE_BAR_HEIGHT + 14.0 + fs)
+		# Outlined for legibility over busy backdrops (Pillar 1 visibility doctrine).
+		draw_string_outline(font, pos, lbl_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+				UiThemeScript.WORLD_TEXT_OUTLINE_SIZE, UiThemeScript.WORLD_TEXT_OUTLINE_COLOR)
+		draw_string(font, pos, lbl_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+				UiThemeScript.WAVE_ANCHOR_CURRENT)
 
 
 	# 039: dialogue trigger markers (EDIT mode only, AC-D20).
@@ -495,7 +521,8 @@ func _gui_input(event: InputEvent) -> void:
 		var ax: float = _anchor_positions[i]
 		var w: Dictionary = _level.waves[i]
 		var radius: float = UiThemeScript.WAVE_ANCHOR_RADIUS
-		if bool(w.get("is_special", false)):
+		# 061: see comment above re is_wave_special.
+		if _level.is_wave_special(i):
 			radius *= UiThemeScript.WAVE_ANCHOR_SPECIAL_RADIUS_MULT
 		if local_pos.distance_to(Vector2(ax, BAR_Y)) <= radius + 2.0:
 			if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -570,6 +597,18 @@ func _on_level_completed(_score: int) -> void:
 	# 048: belt-and-suspenders. wave_cleared on final wave already freezes;
 	# this handles the case where _level is null at wave_cleared time.
 	_runtime_finished = true
+	queue_redraw()
+
+
+# 061: WaveController toggles its advance gate (advance_mode "clear" or
+# "timer_and_clear" waiting on last enemy). RUNTIME-only — EDIT mode never
+# subscribes. Drawn label uses ui_wave_waiting_for_clear loc-key.
+func _on_wave_advance_blocked(blocked: bool) -> void:
+	if mode != Mode.RUNTIME:
+		return
+	if _runtime_waiting_for_clear == blocked:
+		return
+	_runtime_waiting_for_clear = blocked
 	queue_redraw()
 
 

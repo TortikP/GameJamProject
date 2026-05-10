@@ -4,7 +4,7 @@
   "tooltip": "stapler_staple_shot_tooltip",
   "desc": "stapler_staple_shot_desc",
   "icon": "icons/skills/stapler_staple_shot.png",
-  "cooldown": 2,
+  "cooldown": 4,
   "behaviour_tags": [
     "ranged",
     "damage"
@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "damage": 9,
-          "status_id": "slowed(2)"
+          "damage": 6,
+          "status_id": "rooted(3)"
         }
       ]
     }

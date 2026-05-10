@@ -77,6 +77,32 @@ var _is_transitioning: bool = false
 # header for the race detail.
 var _wave_ending: bool = false
 
+# 061: advance_mode runtime state. True iff the active wave's advance_mode
+# blocks timer-driven advance and we're waiting on _check_auto_clear to
+# fire (no living enemies + no pending spawners). Set by _start_wave
+# when mode == "clear", cleared on _advance_wave to next wave. Read by
+# HUD (Pillar 1) via EventBus.wave_advance_blocked which we emit on
+# transitions.
+var _waiting_for_clear: bool = false
+
+# IMPL-10: TurnManager turn snapshot at wave-start. Used to filter the
+# synthesized "initial" world_turn_ended emit from godmode_setup
+# (_emit_initial_turn fires turn=1 before wave_started, but for editor
+# playtest it can race start_level and arrive AFTER spawners are
+# installed — eating the first tick and making timer=1 spawners fire
+# instantly). Filtering on `turn == _wave_start_turn` is a clean
+# discriminator: real player ticks always arrive on a higher turn.
+var _wave_start_turn: int = -1
+
+# IMPL-10b: when a wave is started via _check_auto_clear (mid-cast last
+# enemy died → wave change while player's action is still resolving),
+# the player's pending TurnManager.advance() will fire one world_turn_ended
+# emit shortly. That emit is the closure of the action that TRIGGERED
+# the wave change, not a wave-N+1 turn — skip its spawner tick.
+# Distinct from _wave_start_turn (which catches the level-boot synthesized
+# emit and the same-turn race between start_level and _emit_initial_turn).
+var _skip_next_world_turn_for_spawner_tick: bool = false
+
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
 
@@ -102,6 +128,7 @@ func start_level(level: LevelData) -> void:
 	_level = level
 	_current_wave_index = -1
 	_turns_into_wave = 0
+	_waiting_for_clear = false  # 061: cold reset between levels
 	_resolve_actors_node()
 	# 039: signal that the battle is now beginning (Director connects handlers).
 	EventBus.battle_started.emit(StringName(level.name))
@@ -138,11 +165,25 @@ func _advance_wave() -> void:
 	_apply_wave_snapshot(_current_wave_index)
 	_turns_into_wave = 0
 	var w: Dictionary = _level.waves[_current_wave_index]
-	GameLogger.info("WaveController", "wave_started %d (special=%s, ttn=%d)" % [
-		_current_wave_index, bool(w.get("is_special", false)),
-		int(w.get("turns_to_next", 0))
+	# 061: reset advance-mode state for the new wave. If new wave's mode is
+	# "clear", we never advance via timer — set waiting immediately so HUD
+	# shows the indicator from wave start (auto-clear path will end the wave).
+	var advance_mode: String = String(w.get("advance_mode", "timer"))
+	var was_waiting: bool = _waiting_for_clear
+	_waiting_for_clear = (advance_mode == "clear")
+	_wave_start_turn = TurnManager.current()
+	if was_waiting != _waiting_for_clear:
+		EventBus.wave_advance_blocked.emit(_waiting_for_clear)
+	# 061: derive bool for EventBus.wave_started signature (kept bool for backward
+	# compat — see Q-061-1 / F-061-4). is_wave_special() handles the string→bool
+	# derivation correctly post-Φ-1 migration.
+	var is_special: bool = _level.is_wave_special(_current_wave_index)
+	GameLogger.info("WaveController", "wave_started %d (special=%s, ttn=%d, mode=%s)" % [
+		_current_wave_index, is_special,
+		int(w.get("turns_to_next", 0)),
+		advance_mode,
 	])
-	EventBus.wave_started.emit(_current_wave_index, bool(w.get("is_special", false)))
+	EventBus.wave_started.emit(_current_wave_index, is_special)
 	# Settle window — visuals tween, placeholders pop in. Clears the lock
 	# automatically. Spec AC-W16: GameSpeed.wait("battle", "wave_transition_sec").
 	_release_transition_lock_after_delay()
@@ -333,8 +374,23 @@ func _clear_pending_spawners() -> void:
 
 # ── World-turn handling ─────────────────────────────────────────────────────
 
-func _on_world_turn_ended(_turn: int) -> void:
+func _on_world_turn_ended(turn: int) -> void:
 	if _level == null or _current_wave_index < 0:
+		return
+	# IMPL-10: skip the synthesized initial emit (or any emit that arrives
+	# at the same turn as wave_start). Without this, godmode_setup's
+	# _emit_initial_turn racing start_level can eat one tick and make
+	# timer=1 spawners fire instantly. Real player turns always arrive on
+	# turn > _wave_start_turn because TurnManager.advance() increments
+	# before emitting.
+	if turn == _wave_start_turn:
+		return
+	# IMPL-10b: if the wave just started via _check_auto_clear (mid-cast),
+	# the upcoming TurnManager.advance() emit is the closure of the action
+	# that triggered the wave change, not a wave turn. Consume one such
+	# emit without ticking. Subsequent emits are genuine player turns.
+	if _skip_next_world_turn_for_spawner_tick:
+		_skip_next_world_turn_for_spawner_tick = false
 		return
 	_turns_into_wave += 1
 
@@ -365,7 +421,20 @@ func _on_world_turn_ended(_turn: int) -> void:
 		var w: Dictionary = _level.waves[_current_wave_index]
 		var ttn: int = int(w.get("turns_to_next", 0))
 		if ttn > 0 and _turns_into_wave >= ttn:
-			_end_current_wave()
+			# 061: advance_mode gates timer-driven end.
+			# - "timer" (default): timer reaching 0 ends the wave. Existing behavior.
+			# - "clear": timer ignored entirely. Wave ends only when last enemy
+			#   dies (handled by _check_auto_clear). _waiting_for_clear is
+			#   already true from _start_wave.
+			var advance_mode: String = String(w.get("advance_mode", "timer"))
+			match advance_mode:
+				"timer":
+					_end_current_wave()
+				"clear":
+					pass  # never advance via timer
+				_:
+					# Unknown mode (validate() rejected it; defensive fallback to timer).
+					_end_current_wave()
 
 
 func _spawn_from_pending(entry: Dictionary) -> void:
@@ -417,7 +486,15 @@ func _check_auto_clear() -> void:
 	if _living_enemies_count() > 0:
 		return
 	# All clear — _end_current_wave handles score bonus + signal + advance.
+	var prev_wave := _current_wave_index
 	_end_current_wave()
+	# IMPL-10b: if a new wave actually started (we didn't just complete the
+	# level), the player's currently-resolving action will fire one
+	# world_turn_ended emit shortly (cast_fsm awaits ability_cast_delay
+	# THEN calls TurnManager.advance). That emit is the closure of the
+	# kill-cast turn, not a wave-N+1 turn — skip its spawner tick.
+	if _current_wave_index != prev_wave and _current_wave_index < _level.waves.size():
+		_skip_next_world_turn_for_spawner_tick = true
 
 
 # 052: shared wave-end path. Called from two sites:

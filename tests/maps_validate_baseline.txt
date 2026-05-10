@@ -1,0 +1,13 @@
+# Maps with known validate() failures, exempt from `test_061_migration.gd`'s
+# Invariant 2 check. Migration roundtrip and per-wave shape are still tested.
+#
+# Each line: `filename.json: short reason`. Comments with `#`. Blank lines OK.
+# Cleanup tracked in `docs/tech-debt.md` (F-061-4 etc).
+#
+# When a map is fixed, remove its line. New entries should be tracked under a
+# tech-debt entry — don't silently baseline things you could fix.
+
+office_intro.json: tile (3,2) holds both `object_on_chair` and a `player` spawner — pre-061 authoring intent (player sits on chair), validator sees collision. F-061-4.
+sample_dialogues.json: last wave has turns_to_next>0 (legacy data) — F-061-5.
+sample_music_test.json: last wave has turns_to_next>0 (dev fixture) — F-061-5.
+sample_preset_test.json: last wave has turns_to_next>0 (dev fixture) — F-061-5.

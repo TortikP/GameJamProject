@@ -86,6 +86,12 @@ const ICON_EXPAND_PLUS    := preload("res://assets/icons/ui/expand_plus.png")
 ##    suggested 120×32 to reflect real layout requirements. ─────────
 @export var min_panel_size: Vector2 = Vector2(120, 88)
 
+## Optional tint applied to the header stylebox bg_color via lerp(0.55).
+## Color(0,0,0,0) = no tint, default theme colors. Used by spec 060
+## LayersPanel to highlight the panel hosting the active layer.
+## Public setter set_header_accent re-applies theme.
+var header_accent: Color = Color(0, 0, 0, 0)
+
 # ── Signals ────────────────────────────────────────────────────────
 signal locked_changed(is_locked: bool)
 signal collapsed_changed(is_collapsed: bool)
@@ -126,6 +132,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_resolve_nodes()
+	_normalize_anchors_to_top_left()
 	_compute_effective_flags()
 	_apply_chrome_visibility()
 	_apply_title()
@@ -176,6 +183,41 @@ func _resolve_nodes() -> void:
 	_collapse_button = $VBoxContainer/HeaderPanel/HeaderRow/CollapseButton as Button
 
 
+## Normalize root anchors to TOP_LEFT with default grow_direction so all
+## subsequent position writes (drag, resize, persistence-load, viewport
+## clamp) operate in absolute viewport coords.
+##
+## Why this exists: BasePanel.tscn defaults to PRESET_TOP_LEFT, but
+## consuming scenes (level_editor.tscn etc.) routinely override anchors_preset
+## to 1/7/11 with non-default `grow_horizontal/vertical` to position panels
+## by edge/corner. With those overrides, set_anchors_preset(TOP_LEFT, true)
+## inside drag/resize/persistence handlers — even with keep_offsets=true —
+## doesn't reliably preserve the visual rect when grow_direction != END
+## (Godot 4.6 quirk surfaced in spec 057).
+##
+## Single source of truth: do the conversion ONCE here, capture-and-restore
+## the absolute rect explicitly, set grow_direction back to defaults. After
+## this method returns the panel is in the same visual position but with
+## TOP_LEFT anchors and END/END grow — so subsequent `position = X` writes
+## go where you'd expect.
+##
+## See spec 057 finding F-057-IMPL-4 for the bug history.
+func _normalize_anchors_to_top_left() -> void:
+	# Snapshot absolute rect BEFORE touching anchors. global_position is
+	# valid here — we're inside _ready() so the node is in the tree.
+	var abs_pos: Vector2 = global_position
+	var abs_size: Vector2 = size
+	# Set anchors WITHOUT keep_offsets — we're about to write everything
+	# explicitly, no need for Godot to recompute offsets.
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Default grow_direction in case the scene set non-default values.
+	grow_horizontal = Control.GROW_DIRECTION_END
+	grow_vertical = Control.GROW_DIRECTION_END
+	# Restore absolute rect.
+	global_position = abs_pos
+	size = abs_size
+
+
 func _compute_effective_flags() -> void:
 	# Static effective flags from exports + header_visible cascade.
 	# When header_visible == false the panel is "pinned" — no chrome,
@@ -203,7 +245,12 @@ func _apply_title() -> void:
 
 func _apply_theme() -> void:
 	if _header_panel != null:
-		_header_panel.add_theme_stylebox_override("panel", UiTheme.make_header_stylebox())
+		var header_sb: StyleBoxFlat = UiTheme.make_header_stylebox()
+		# Optional tint — see header_accent comment. Using lerp(0.55)
+		# rather than replace keeps text/border contrast readable.
+		if header_accent.a > 0.0:
+			header_sb.bg_color = header_sb.bg_color.lerp(header_accent, 0.55)
+		_header_panel.add_theme_stylebox_override("panel", header_sb)
 	if _body_panel != null:
 		# Pinned (no header) → full 4-side border so the body isn't open
 		# at the top. Otherwise the standard body stylebox (no top border)
@@ -225,6 +272,15 @@ func _apply_theme() -> void:
 		UiTheme.apply_button_styling(_collapse_button)
 		_collapse_button.icon = ICON_COLLAPSE_MINUS
 		_collapse_button.text = ""
+
+
+## Set or clear the header tint. Color with alpha=0 clears the tint.
+## Re-applies theme so the change is visible immediately. Used by
+## LayersPanel (spec 060) to highlight which panel hosts the active
+## layer's tab content.
+func set_header_accent(color: Color) -> void:
+	header_accent = color
+	_apply_theme()
 
 
 func _setup_handlers() -> void:
@@ -315,6 +371,21 @@ func toggle_lock() -> void:
 func toggle_collapse() -> void:
 	if _collapse_handler != null:
 		_collapse_handler.toggle()
+
+
+## Proxy to PanelDragHandler.begin_drag_at — used by PanelTabBar for
+## drag handoff during tab tear-off, where a tab-button press is being
+## "promoted" to a drag of a freshly spawned BasePanel without an
+## intervening LMB-release event.
+##
+## No-op (with a warning) if the panel has no drag handler — that
+## happens when header_visible=false, which makes the panel implicitly
+## non-draggable.
+func start_drag_at(global_pos: Vector2) -> void:
+	if _drag_handler != null:
+		_drag_handler.begin_drag_at(global_pos)
+	else:
+		push_warning("[BasePanel] start_drag_at called on '%s' with no drag handler" % String(panel_id))
 
 
 func reset_to_defaults() -> void:

@@ -3,13 +3,13 @@
   "name": "burning_bear_name",
   "desc": "burning_bear_desc",
   "sprite": "assets/sprites/enemies/burning_bear.png",
-  "max_hp": 220,
+  "max_hp": 320,
   "team": "enemy",
   "speed": 4,
   "skills": [
-	"burning_bear_tire_throw",
-	"burning_bear_burning_claw",
-	"burning_bear_summon_bear",
+    "burning_bear_tire_throw",
+    "burning_bear_burning_claw",
+    "burning_bear_summon_bear",
     "burning_bear_hellshake"
   ],
   "passive_skills": [

@@ -3,16 +3,17 @@
   "name": "bear_name",
   "desc": "bear_desc",
   "sprite": "assets/sprites/enemies/bear.png",
-  "max_hp": 50,
+  "max_hp": 120,
   "team": "enemy",
   "speed": 3,
   "skills": [
-	"bear_ball_throw",
-	"bear_paw_suck",
+    "bear_ball_throw",
+    "bear_paw_suck",
     "bear_hallo"
   ],
   "passive_skills": [
-    "passive_chitin_guard"
+    "passive_chitin_guard",
+    "passive_cruel_focus"
   ],
   "behavior_id": "default_ranged",
   "fallback_skill_id": "bear_ball_throw"

@@ -30,7 +30,9 @@ const PLACEHOLDER_TEXTURE: Texture2D = null  # null = no texture, just modulated
                                             # feet (~y=+32 in actor-local
                                             # coords). Tune as art settles.
 
-var _registry: TileObjectRegistry  # resolved from grid in _ready
+const TILE_OBJECTS_DIR := "res://data/tile_objects/"
+
+var _registry: TileObjectRegistry  # bound externally OR self-loaded in _ready
 
 
 func _ready() -> void:
@@ -41,10 +43,19 @@ func _ready() -> void:
 	# adjacent-canopy overlap problem (sprites taller than hex spacing will
 	# always overlap by some amount), but makes the stacking deterministic.
 	y_sort_enabled = true
+	# Self-load registry if no host bound one. Editor (level_editor.tscn)
+	# doesn't go through godmode_setup which otherwise calls bind_registry.
+	# Without this fallback, _resolve_texture short-circuits to silhouettes
+	# for every object — the user-visible "circles and rectangles instead
+	# of objects" bug.
+	if _registry == null:
+		_registry = TileObjectRegistry.new()
+		_registry.load_from_dir(TILE_OBJECTS_DIR)
 
 
-## Late-binding registry hook — controller calls this AFTER grid.initialize()
-## so the registry exists. Without it, set_object can only place placeholders.
+## Late-binding registry hook — godmode_setup calls this with the
+## grid's own registry (which may have runtime additions). Editor
+## context falls through to the self-loaded one in _ready.
 func bind_registry(registry: TileObjectRegistry) -> void:
 	_registry = registry
 
@@ -91,6 +102,18 @@ func clear_object(coord: Vector2i) -> void:
 func clear_all() -> void:
 	for child in get_children():
 		child.queue_free()
+
+
+## Bulk-rebuild from a LevelData.objects array. Each entry is
+## `{"coord": Vector2i, "object_id": StringName}`. Used by the new
+## level editor (060) — clears existing children and re-paints from
+## scratch. Per-coord set_object remains for incremental editing.
+func refresh(objects: Array) -> void:
+	clear_all()
+	for entry in objects:
+		var coord: Vector2i = entry["coord"]
+		var object_id: StringName = StringName(entry["object_id"])
+		set_object(coord, object_id)
 
 
 # ── Internal ────────────────────────────────────────────────────────────────

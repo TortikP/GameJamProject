@@ -5,9 +5,15 @@
   "tooltip": "passive_static_discharge_tooltip",
   "desc": "passive_static_discharge_desc",
   "icon": "icons/skills/passive_static_discharge.png",
-  "mood": ["burnout"],
+  "mood": [
+    "burnout"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "damage_aura", "amount": 3, "radius": 1}
+    {
+      "kind": "damage_aura",
+      "amount": 3,
+      "radius": 3
+    }
   ]
 }

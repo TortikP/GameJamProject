@@ -9,30 +9,48 @@ hand-editable if you want to tweak something quickly without launching the game.
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `name` | string | yes | Human-readable name. Filename is `<sanitized_name>.json` (lowercase, `[^a-z0-9_-]` → `_`). |
-| `version` | int | yes | Schema version. Current = `2` (added `waves[]` in 024). |
+| `version` | int | yes | Schema version. Current = `3` (added wave-level `respawn_player`/`advance_mode`/`music_config` in 061). |
 | `tileset_path` | string | yes | `res://...` path to a `.tres` TileSet. Default: `res://scenes/arena/tilesets/hex_terrain.tres`. |
 | `waves` | array | yes | Sequence of waves. Wave 0 = initial state. Last wave's `turns_to_next` must be 0. |
+| `dialogue_triggers` | array | optional | Per-level event→dialogue bindings (added in 039). See section below. |
+| `music_config` | object | optional | Procedural music config (added in 042). See section below. |
 
-`v1` files (with root-level `floor` / `objects` / `spawners` and no `waves[]`)
-are accepted for read and migrated transparently into a single-wave layout.
-The editor always writes `v2`. Hand-edited `v1` files keep working.
+### Migration
+
+`v1` files (root-level `floor`/`objects`/`spawners`, no `waves[]`) are accepted for read and folded into a single-wave layout. `v2` files (`is_special` as bool, no `respawn_player`/`advance_mode`/`music_config`) are migrated transparently:
+
+- `is_special: true` → `"boss"`, `is_special: false` → `"normal"` (free-form string post-061).
+- `respawn_player` defaults to `true` for wave 0 and `false` for the rest.
+- `advance_mode` defaults to `"timer"`.
+- `music_config` defaults to `{}` (per-wave override; falls back to level-level `music_config`).
+
+Migration is idempotent. The editor always writes `v3`. Hand-edited `v1`/`v2` files keep working.
 
 ## `waves[]` entry
 
 ```json
 {
   "index": 0,
-  "is_special": false,
+  "is_special": "normal",
   "turns_to_next": 5,
+  "respawn_player": true,
+  "advance_mode": "timer",
+  "music_config": {},
   "floor":    [ /* same shape as legacy LevelData.floor */ ],
   "objects":  [ /* same shape as legacy LevelData.objects */ ],
-  "spawners": [ /* same shape as legacy LevelData.spawners + "timer": int */ ]
+  "spawners": [ /* see "spawners[]" section below */ ]
 }
 ```
 
 - `index` — must equal the wave's position in the array (0-based, contiguous). The loader reindexes defensively.
-- `is_special` — visual tag only in v1 of 024 (renders as a larger anchor on the timeline). No mechanical effect yet.
+- `is_special` — free-form string visual tag (061). Convention: `"normal"` (default), `"boss"`, `"miniboss_*"`. Anchors with non-`"normal"` value render larger on the timeline. No mechanical effect — runtime-side it's surfaced via `is_wave_special()` (any non-`"normal"` value is special).
 - `turns_to_next` — turns from this wave's start until the next wave auto-advances. Must be `>= 1` for every wave except the last; the last wave **must** have `turns_to_next: 0`. Auto-clear (kill all enemies + no pending spawners) advances earlier and credits the unused turns to `RunScore`.
+- `respawn_player` (061) — bool. When `true`, the player actor is re-spawned at the wave's player spawner on wave start. Wave 0 implicit `true` (designer can leave it absent on a fresh wave 0). Validation requires that `respawn_player: true` waves have a `kind: "player"` spawner.
+- `advance_mode` (061) — `"timer"` (default), `"clear"`, or `"timer_and_clear"`. Controls how `WaveController` ends this wave:
+  - `"timer"` — wave ends when `turns_into_wave >= turns_to_next` (existing behaviour).
+  - `"clear"` — timer is ignored entirely; wave ends only when the last enemy dies (auto-clear path). Validation WARNs if no enemy spawner exists.
+  - `"timer_and_clear"` — timer expiry sets a "waiting for clear" gate; wave ends when the last enemy dies. The HUD draws a `(waiting for clear)` cue near the cursor while the gate is active.
+- `music_config` (061) — Dictionary. Per-wave override over the level-level `music_config`. Empty `{}` falls back to level config. Same shape as the level field (see 042 section).
 - `floor` / `objects` / `spawners` — full snapshot of the world at this wave's start. No diffs. Reordering or inserting waves does not cascade to neighbours.
 
 ## `floor[]` entry (per wave)

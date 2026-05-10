@@ -5,9 +5,14 @@
   "tooltip": "passive_thorned_echo_tooltip",
   "desc": "passive_thorned_echo_desc",
   "icon": "icons/skills/passive_thorned_echo.png",
-  "mood": ["burnout"],
+  "mood": [
+    "burnout"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "reflect_percent", "amount": 25}
+    {
+      "kind": "reflect_percent",
+      "amount": 20
+    }
   ]
 }

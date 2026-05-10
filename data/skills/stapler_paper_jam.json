@@ -4,7 +4,7 @@
   "tooltip": "stapler_paper_jam_tooltip",
   "desc": "stapler_paper_jam_desc",
   "icon": "icons/skills/stapler_paper_jam.png",
-  "cooldown": 2,
+  "cooldown": 4,
   "behaviour_tags": [
     "ranged",
     "damage"
@@ -26,11 +26,12 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 3
       },
       "effects": [
         {
-          "status_id": "rooted(1)"
+          "damage": 4,
+          "status_id": "slowed(5)"
         }
       ]
     }

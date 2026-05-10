@@ -17,7 +17,7 @@ extends Camera2D
 ## is disabled, zoom-to-cursor degrades to plain scale (since `_process`
 ## would overwrite any cursor-anchored shift). When `_follow_target` is null
 ## or freed, camera reverts to free-mode (current editor behaviour).
-## map_editor never calls set_follow_target — stays in free-mode by default.
+## level_editor never calls set_follow_target — stays in free-mode by default.
 
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 

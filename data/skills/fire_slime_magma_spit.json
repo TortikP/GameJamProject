@@ -27,12 +27,12 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 3
       },
       "effects": [
         {
-          "damage": 12,
-          "status_id": "burning(2,3,3)"
+          "damage": 7,
+          "status_id": "burning(3,3,3)"
         }
       ]
     }

@@ -4,7 +4,7 @@
   "tooltip": "teapot_spill_the_t_tooltip",
   "desc": "teapot_spill_the_t_desc",
   "icon": "icons/skills/teapot_spill_the_t.png",
-  "cooldown": 3,
+  "cooldown": 5,
   "behaviour_tags": [
     "ranged"
   ],
@@ -24,11 +24,12 @@
         "range": 5
       },
       "area": {
-        "kind": "chain",
-        "max_chain_length": 1
+        "kind": "zone_circle",
+        "radius": 3
       },
       "effects": [
         {
+          "damage": 3,
           "entity_id": "lava_pool"
         }
       ]

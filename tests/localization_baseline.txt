@@ -1,0 +1,32 @@
+# Pre-existing localization misses (not regressions from spec 061).
+#
+# Each line: a `ui_*` translation key that is referenced in code but missing
+# or empty in en.json and/or ru.json. Recorded here so that
+# tests/check_localization_keys.py passes on baseline state and fails ONLY on
+# new regressions.
+#
+# Cleanup is tracked in docs/tech-debt.md (T-DEBT-loc-baseline). When a key is
+# fixed, remove it from this file. When you knowingly introduce a new untranslated
+# key, ADD it here AND link to the spec/owner — don't leave it implicit.
+#
+# Format: one key per line, comments with `#`. Blank lines ignored.
+
+# --- existing as of 061 PR (2026-05-09) — owners TBD ---
+ui_cancel
+ui_panel
+ui_toast_requested
+
+# campaign system (older spec)
+ui_campaign_defeat_body_text
+ui_campaign_defeat_menu_button_text
+ui_campaign_defeat_title_text
+
+# consequence system
+ui_consequence_move
+
+# skill_offer dev/smoke controller (not user-facing in shipping build)
+ui_skill_offer_smoke_status_label_text
+ui_skill_offer_smoke_title_text
+
+# top HUD
+ui_top_hud_bar_help_button_tooltip_text
