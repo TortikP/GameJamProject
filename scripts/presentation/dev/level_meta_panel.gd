@@ -107,9 +107,11 @@ func _build_body() -> void:
 	btn_row.add_child(_exit_btn)
 	vbox.add_child(btn_row)
 
-	# File dialog (hidden until used). Stays parented to self (the panel root)
-	# rather than the body container — it's a popup, not part of the body
-	# layout flow.
+	# File dialog (hidden until used). Parented to body container so it
+	# stays inside the panel subtree but doesn't sit as a sibling of
+	# ResizeFrame at panel root. Sibling-of-ResizeFrame placement was the
+	# only structural difference between this panel and the others, and
+	# the only one that didn't get cursor-change on resize-handle hover.
 	_file_dialog = FileDialog.new()
 	_file_dialog.access = FileDialog.ACCESS_RESOURCES
 	_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -118,7 +120,7 @@ func _build_body() -> void:
 	_file_dialog.use_native_dialog = false
 	_file_dialog.size = Vector2i(720, 480)
 	_file_dialog.file_selected.connect(_on_file_picked)
-	add_child(_file_dialog)
+	body.add_child(_file_dialog)
 
 
 func _make_btn(text: String, on_pressed: Callable) -> Button:
