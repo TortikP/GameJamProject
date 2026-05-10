@@ -7,8 +7,14 @@ extends VBoxContainer
 ## `spawners` tab on TabbedBasePanel.
 ##
 ## Emits `selection_changed(value: Dictionary)`:
-##   - Player picked:  {"kind": &"player", "ref": &""}
-##   - Enemy picked:   {"kind": &"enemy",  "ref": <enemy_id>}
+##   - Player picked:  {"kind": &"player", "ref": &"", "timer": <spin>}
+##   - Enemy picked:   {"kind": &"enemy",  "ref": <enemy_id>, "timer": <spin>}
+##   - Erase:          &"erase" (sentinel, no timer)
+##
+## `timer` is the per-session "spawn-after-N-turns" value applied to every
+## newly-placed spawner. Per-spawner editing was removed in F-061-IMPL-6
+## (post-spawners-tab teardown). Existing spawners on loaded maps keep
+## their original timer untouched.
 ##
 ## ## Icons (AC4)
 ##
@@ -20,15 +26,36 @@ extends VBoxContainer
 
 const ENEMIES_DIR := "res://data/enemies/"
 
+const TIMER_MIN: int = 0
+const TIMER_MAX: int = 99
+const TIMER_DEFAULT: int = 1
+
 signal selection_changed(value: Dictionary)
 
 var _button_group: ButtonGroup
 var _grid: HFlowContainer
+var _timer_spin: SpinBox
 var _quick_select_buttons: Array[Button] = []
 
 
 func _ready() -> void:
 	_button_group = ButtonGroup.new()
+	# Timer row (above grid). Single SpinBox controls the `timer` field
+	# applied to all newly placed spawners — F-061-IMPL-6.
+	var timer_row := HBoxContainer.new()
+	timer_row.add_theme_constant_override("separation", 6)
+	add_child(timer_row)
+	var timer_lbl := Label.new()
+	timer_lbl.text = Localization.t("ui_spawner_palette_timer", "Spawn timer:")
+	timer_lbl.tooltip_text = Localization.t("ui_spawner_palette_timer_hint",
+		"Turns until spawner triggers. 0 = immediate. Applied to newly-placed spawners.")
+	timer_row.add_child(timer_lbl)
+	_timer_spin = SpinBox.new()
+	_timer_spin.min_value = TIMER_MIN
+	_timer_spin.max_value = TIMER_MAX
+	_timer_spin.step = 1
+	_timer_spin.value = TIMER_DEFAULT
+	timer_row.add_child(_timer_spin)
 	_grid = HFlowContainer.new()
 	_grid.name = "SpawnerGrid"
 	_grid.add_theme_constant_override("h_separation", 4)
@@ -113,7 +140,10 @@ static func _read_sprite_field(json_path: String) -> String:
 
 
 func _on_pressed(kind: StringName, ref: StringName) -> void:
-	selection_changed.emit({"kind": kind, "ref": ref})
+	var t: int = TIMER_DEFAULT
+	if _timer_spin != null:
+		t = int(_timer_spin.value)
+	selection_changed.emit({"kind": kind, "ref": ref, "timer": t})
 
 
 ## Programmatic activation by KEY_1..9 in InputDispatcher. Buttons in a

@@ -1,11 +1,15 @@
 class_name WaveSettingsPanel
 extends TabbedBasePanel
 
-## WaveSettings (Spec 061 + tabbed rework). Hosts four section-tabs:
+## WaveSettings (Spec 061 + tabbed rework). Hosts three section-tabs:
 ##   Q · Wave        — fields of the active wave (is_special, ttn, ...)
-##   W · Spawners    — list + edit form for active wave's spawners
-##   E · Skill Offer — post-wave skill offer config
-##   R · Level       — level name + dialogue triggers CRUD (level-scoped)
+##   W · Skill Offer — post-wave skill offer config
+##   E · Level       — level name + dialogue triggers CRUD (level-scoped)
+##
+## (Spawners had a tab through F-061-IMPL-5; removed post-smoke per UX
+## feedback — only `timer` was a useful per-spawner field, moved to the
+## SpawnerPalette as a single SpinBox applied to newly-placed spawners.
+## `amount`/`delay` remain in schema but are not editable from UI.)
 ##
 ## The wave switcher (which wave is active) lives in a separate small
 ## WavePickerPanel — there's no room for a sticky switcher in the tab
@@ -15,14 +19,12 @@ extends TabbedBasePanel
 ## so the controller doesn't need to know about the section split.
 
 const WaveSection := preload("res://scripts/presentation/dev/wave_settings/wave_section.gd")
-const SpawnersSection := preload("res://scripts/presentation/dev/wave_settings/spawners_section.gd")
 const SkillOfferSection := preload("res://scripts/presentation/dev/wave_settings/skill_offer_section.gd")
 const LevelSection := preload("res://scripts/presentation/dev/wave_settings/level_section.gd")
 
 # ── Re-emitted section signals (contract preserved from monolith) ───────────
 
 signal wave_field_changed(idx: int, field: String, value: Variant)
-signal spawner_field_changed(coord: Vector2i, fields: Dictionary)
 signal trigger_created(trigger_dict: Dictionary)
 signal trigger_updated(old_id: StringName, trigger_dict: Dictionary)
 signal trigger_deleted(trigger_id: StringName)
@@ -33,7 +35,6 @@ var _level: LevelData = null
 var _active_wave: int = 0
 
 var _wave_section: WaveSettingsWaveSection
-var _spawners_section: WaveSettingsSpawnersSection
 var _skill_offer_section: WaveSettingsSkillOfferSection
 var _level_section: WaveSettingsLevelSection
 
@@ -80,13 +81,6 @@ func _build_tabs() -> void:
 	add_tab(_wave_section, &"wave",
 		&"ui_wavesettings_tab_wave", "Wave")
 
-	_spawners_section = SpawnersSection.new()
-	_spawners_section.spawner_field_changed.connect(
-		func(coord: Vector2i, fields: Dictionary) -> void:
-			spawner_field_changed.emit(coord, fields))
-	add_tab(_spawners_section, &"spawners",
-		&"ui_wavesettings_tab_spawners", "Spawners")
-
 	_skill_offer_section = SkillOfferSection.new()
 	_skill_offer_section.skill_offer_changed.connect(
 		func(idx: int, offer: Variant) -> void:
@@ -110,4 +104,4 @@ func _build_tabs() -> void:
 
 
 func _all_sections() -> Array[Node]:
-	return [_wave_section, _spawners_section, _skill_offer_section, _level_section]
+	return [_wave_section, _skill_offer_section, _level_section]

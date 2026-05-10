@@ -1038,6 +1038,8 @@
     "ui_spawner_form_ref": "ref:",
     "ui_spawner_form_timer": "таймер:",
     "ui_spawner_palette_player": "Игрок",
+    "ui_spawner_palette_timer": "Таймер спавна:",
+    "ui_spawner_palette_timer_hint": "Через сколько ходов сработает спавнер. 0 = мгновенно. Применяется к новым спавнерам.",
     "ui_spawner_placeholder_label_text": "1",
     "ui_tabs_all_detached_hint": "(Все табы оторваны — перетащите detached-панель обратно сюда)",
     "ui_tile_objects_smoke_help_text": "018 smoke tile-objects\n-------------------------\nOutput показывает:\n  - все 6 tile objects загружены с полями\n  - burning tile_effect проверен (duration=2)\n  - F1-F4 отправляют и логируют 4 сигнала EventBus\n\nПолный in-arena smoke (lava walk, barrel break, fountain aura) требует\ncustom data layer 'object_id' в TileSet (T005a, вручную в editor).\n",

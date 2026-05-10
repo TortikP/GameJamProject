@@ -90,7 +90,8 @@ func erase_floor(coord: Vector2i) -> bool:
 	return true
 
 
-func paint_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
+func paint_spawner(coord: Vector2i, kind: StringName, ref: StringName,
+		timer: int = LevelData.DEFAULT_SPAWNER_TIMER) -> void:
 	# Player uniqueness: drop ALL existing players regardless of coord;
 	# enemies replace any existing spawner at the same coord.
 	if kind == &"player":
@@ -101,7 +102,7 @@ func paint_spawner(coord: Vector2i, kind: StringName, ref: StringName) -> void:
 		LevelMutations.remove_at_coord(_level.spawners, coord)
 	_level.spawners.append({
 		"coord": coord, "kind": kind, "ref": ref,
-		"timer": LevelData.DEFAULT_SPAWNER_TIMER,
+		"timer": timer,
 	})
 	LevelMutations.refresh_overlay(_spawners_overlay, _level.spawners)
 	_io.enqueue_autosave(_level)
@@ -244,11 +245,6 @@ func update_wave_field(idx: int, field: String, value: Variant) -> void:
 			_toast("advance_mode '%s' invalid — kept previous" % str(value), &"warn")
 
 
-func update_spawner(coord: Vector2i, fields: Dictionary) -> void:
-	if WaveEditorOps.update_spawner(_level, coord, fields, _io):
-		LevelMutations.refresh_overlay(_spawners_overlay, _level.spawners)
-
-
 func add_dialogue_trigger(t: Dictionary) -> bool:
 	var err: String = WaveEditorOps.add_dialogue_trigger(_level, t, _io)
 	if err != "":
@@ -341,7 +337,6 @@ func _wire_wave_settings_panel() -> void:
 	if _wave_settings_panel == null:
 		return
 	_wave_settings_panel.wave_field_changed.connect(update_wave_field)
-	_wave_settings_panel.spawner_field_changed.connect(update_spawner)
 	# Trigger CRUD methods return bool but Godot signal connects ignore that.
 	_wave_settings_panel.trigger_created.connect(add_dialogue_trigger)
 	_wave_settings_panel.trigger_updated.connect(update_dialogue_trigger)
