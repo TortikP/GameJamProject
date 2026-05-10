@@ -60,7 +60,7 @@ var tileset_path: String = DEFAULT_TILESET_PATH
 #
 # Floor entries:    {"coord": Vector2i, "source_id": int, "atlas_coord": Vector2i}
 # Object entries:   {"coord": Vector2i, "object_id": StringName}
-# Spawner entries:  {"coord": Vector2i, "kind": StringName, "ref": StringName, "timer": int}
+# Spawner entries:  {"coord": Vector2i, "kind": StringName, "ref": StringName, "timer": int, "amount": int, "delay": int}
 #   kind ∈ {&"player", &"enemy"}. For player, ref is &"". For enemy, ref = enemy_id.
 var floor_cells: Array[Dictionary] = []
 var objects: Array[Dictionary] = []
@@ -549,6 +549,14 @@ static func _deep_copy_spawners(arr: Variant) -> Array[Dictionary]:
 				"kind": StringName(entry.get("kind", &"")),
 				"ref": StringName(entry.get("ref", &"")),
 				"timer": int(entry.get("timer", DEFAULT_SPAWNER_TIMER)),
+				# 061 F-061-IMPL-4: amount/delay were missed when v3 schema landed.
+				# Without these, any _sync_root_to_active_wave / _sync_active_wave_to_root
+				# call (e.g. start of validate()) silently strips amount/delay from the
+				# in-memory wave dict. Saved JSON survives because _spawners_to_arr
+				# re-defaults via int(get("amount", DEFAULT)), but runtime spawner
+				# state was corrupted between sync calls. Caught by tests/test_061_migration.
+				"amount": int(entry.get("amount", DEFAULT_SPAWNER_AMOUNT)),
+				"delay": int(entry.get("delay", DEFAULT_SPAWNER_DELAY)),
 			})
 	return out
 
