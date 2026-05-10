@@ -37,13 +37,6 @@ func _ready() -> void:
 	# operations + add_tab are only valid after.
 	# (CLAUDE.md trap row — same gotcha hit in spec 057.)
 	super._ready()
-	# Diagnostic — remove once resize bug is fixed.
-	print("[layers diag] resizable=%s effective=%s locked=%s rf=%s rf_visible=%s rf_handler=%s" % [
-		resizable, is_resizable(), is_locked(),
-		get_node_or_null("ResizeFrame"),
-		get_node_or_null("ResizeFrame").visible if get_node_or_null("ResizeFrame") != null else "n/a",
-		get_node_or_null("_ResizeHandler"),
-	])
 	_hex_palette = HexTilePalette.new()
 	_spawner_palette = SpawnerPalette.new()
 	_object_palette = ObjectPalette.new()
