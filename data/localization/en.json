@@ -1110,6 +1110,8 @@
     "ui_tutorial_wait_title": "Wave start",
     "ui_tutorial_wave_clear_body": "No enemies or spawn markers are left. If a skill choice or new wave is opening, let the transition finish.",
     "ui_tutorial_wave_clear_title": "Wave almost clear",
+    "ui_wave_panel_skill_offer": "Skill offer after this wave",
+    "ui_wave_panel_skill_offer_preview": "Preview",
     "ui_wave_timeline_add_wave": "Add wave",
     "ui_wave_waiting_for_clear": "(waiting for clear)",
     "ui_wavepicker_title": "Wave Picker",

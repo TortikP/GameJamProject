@@ -1110,6 +1110,8 @@
     "ui_tutorial_wait_title": "Начало волны",
     "ui_tutorial_wave_clear_body": "Врагов и меток нет. Если открывается выбор навыка или новая волна, просто дождись перехода.",
     "ui_tutorial_wave_clear_title": "Волна очищена",
+    "ui_wave_panel_skill_offer": "Предложение скилла после этой волны",
+    "ui_wave_panel_skill_offer_preview": "Превью",
     "ui_wave_timeline_add_wave": "Добавить волну",
     "ui_wave_waiting_for_clear": "(жду очистки)",
     "ui_wavepicker_title": "Выбор волны",
