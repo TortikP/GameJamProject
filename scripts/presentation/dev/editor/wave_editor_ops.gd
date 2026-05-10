@@ -134,10 +134,6 @@ static func update_spawner(level: LevelData, coord: Vector2i,
 					s["ref"] = StringName(str(fields[k]))
 				"timer":
 					s["timer"] = max(1, int(fields[k]))
-				"amount":
-					s["amount"] = max(1, int(fields[k]))
-				"delay":
-					s["delay"] = max(1, int(fields[k]))
 				_:
 					GameLogger.warn("WaveEditorOps",
 						"update_spawner: unknown field '%s'" % k)

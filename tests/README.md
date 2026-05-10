@@ -22,8 +22,7 @@ Spec 061 — covers the data-integrity portion of T-061-74/75/76 (Φ-12 backward
 compat smoke). For every map in `data/maps/*.json` (excluding scratch files):
 
 - migrates v1/v2 → v3 via `LevelData.from_dict()`
-- asserts schema version, per-wave field types, advance_mode enum, spawner
-  amount/delay ≥ 1
+- asserts schema version, per-wave field types, advance_mode enum
 - runs `LevelData.validate()` and asserts no non-WARN errors (skipped for
   files in `maps_validate_baseline.txt` — see that file's header)
 - mirrors the editor save→reload path (`to_dict → JSON.stringify →

@@ -124,11 +124,6 @@ func _test_file(fname: String) -> void:
 			_fail(fname, "wave %d: advance_mode '%s' not in valid set" % [i, am])
 		if not (w.get("music_config") is Dictionary):
 			_fail(fname, "wave %d: music_config is not Dictionary" % i)
-		for s in w.get("spawners", []):
-			if int(s.get("amount", 0)) < 1:
-				_fail(fname, "wave %d: spawner amount<1" % i)
-			if int(s.get("delay", 0)) < 1:
-				_fail(fname, "wave %d: spawner delay<1" % i)
 
 	# I4. Idempotent roundtrip through real save path:
 	#   to_dict → JSON.stringify → JSON.parse_string → from_dict → to_dict

@@ -1,13 +1,13 @@
 # Spec 061 — Wave data + settings panel + dialogue triggers (LevelData v3)
 
 **Статус:** Spec фаза. Plan и Tasks — после ревью у Андрея.
-**Обсуждали:** Андрей (идея, scope, отвечал на Q1-Q3 + Q-061-1..6 в Clarify), Никита (фидбек по advance_mode и cleanup OQ-2), brain (декомпозиция, surface'инг runtime impact'а на is_special / amount / delay).
+**Обсуждали:** Андрей (идея, scope, отвечал на Q1-Q3 + Q-061-1..6 в Clarify), Никита (фидбек по advance_mode и cleanup OQ-2), brain (декомпозиция, surface'инг runtime impact'а на is_special).
 
 ---
 
 ## 1. Что строим (one-paragraph summary)
 
-Возвращаем wave editing в Level Editor (удалённый в 060) — без полного таймлайна. Минимальный `WaveSwitcher` (список волн + add/copy/delete) + новая `WaveSettingsPanel` с группами `level / wave / spawner / skill_offer / dialogue_triggers / music_config`. Параллельно — bump `LevelData.SCHEMA_VERSION` 2→3 с forward-only миграцией: `is_special: bool → String`, новые `wave.respawn_player`, `wave.advance_mode`, `wave.music_config`, `spawner.amount`, `spawner.delay`. Один runtime-фичур делается «по дороге» — `advance_mode = "timer_and_clear"` (Никитино: следующая волна не начнётся пока есть враги). Spawner `amount`/`delay` — schema-only, runtime warn-once. Dialogue triggers интегрируются в `WaveSettingsPanel` (а не отдельной панелью): wave-scoped — в группе `wave`, level-scoped (включая `level_completed`) — в группе `level`. Полный таймлайн с drag-reorder и validator-бейджами — это Spec 063, не 061.
+Возвращаем wave editing в Level Editor (удалённый в 060) — без полного таймлайна. Минимальный `WaveSwitcher` (список волн + add/copy/delete) + новая `WaveSettingsPanel` с группами `level / wave / spawner / skill_offer / dialogue_triggers / music_config`. Параллельно — bump `LevelData.SCHEMA_VERSION` 2→3 с forward-only миграцией: `is_special: bool → String`, новые `wave.respawn_player`, `wave.advance_mode`, `wave.music_config`. Один runtime-фичур делается «по дороге» — `advance_mode = "timer_and_clear"` (Никитино: следующая волна не начнётся пока есть враги). Dialogue triggers интегрируются в `WaveSettingsPanel` (а не отдельной панелью): wave-scoped — в группе `wave`, level-scoped (включая `level_completed`) — в группе `level`. Полный таймлайн с drag-reorder и validator-бейджами — это Spec 063, не 061.
 
 ---
 
@@ -27,7 +27,6 @@
 **Что не входит (см. §4):**
 - Wave timeline UI (drag-reorder, badges, inline ttn ±) — Spec 063.
 - Validation pipeline (REJECT/WARN автоматизация UI) — Spec 062.
-- Runtime для `spawner.amount > 1` или `spawner.delay > 1` — отдельный спек после 062.
 - Music editor — design.md §11.
 - Exp-bar / level-up via kills — отдельный спек после metaprogression.
 
@@ -48,7 +47,7 @@
 - **AC6.** Внутри панели — VBox с пятью collapsible-секциями (через UiTheme collapse-кнопку или просто заголовки + body). В порядке сверху вниз:
   1. **Level** — `name` (read-only mirror из LevelMetaPanel), список **level-scoped dialogue_triggers** (CRUD).
   2. **Wave** — поля активной волны: `is_special` (~~LineEdit, free-form~~ → **OptionButton с пресетами `normal/boss/miniboss/elite`** per F-061-IMPL-5), `turns_to_next` (SpinBox), `respawn_player` (CheckBox), `advance_mode` (OptionButton: timer/clear/timer_and_clear).
-  3. **Spawners** — список спаунеров активной волны, на клик строки — edit form с `kind`/`ref`/`timer`/`amount`/`delay`. `amount`/`delay` помечены тэгом `(schema-only)` (Q-061-3).
+  3. **Spawners** — список спаунеров активной волны, на клик строки — edit form с `kind`/`ref`/`timer`. (Spawners-таб удалён в IMPL-6, оставлено для исторической записи.)
   4. **Skill Offer** — reuse секция из удалённого `wave_panel.gd` (gd-код можно подсмотреть в `673e377^:scripts/presentation/dev/wave_panel.gd:_build_skill_offer_section`). Bind/unbind пер-волне.
   5. **Dialogue Triggers (wave-scoped)** — read-only mirror из level-секции (выше), фильтр `conditions.wave_index == active_wave`. Без CRUD — CRUD только в level-секции, чтобы не плодить точек редактирования.
   6. **Music config** — JSON LineEdit (advanced) для per-wave override. Пустое поле = level fallback. (Q-061-2.)
@@ -57,8 +56,6 @@
 
 ### C. Per-spawner редактирование
 
-- **AC9.** В секции `Spawners` — `ItemList`/VBox с одной строкой на спаунер. Формат: `«{kind} {ref} @ {coord} · t={timer} a={amount} d={delay}»`.
-- **AC10.** Клик по строке — открывается edit-form под списком: SpinBox для `timer` (≥1), SpinBox для `amount` (≥1), SpinBox для `delay` (≥1), OptionButton для `ref` (filtered по EnemyDB или фиксированный список — тот же что в SpawnerPalette).
 - **AC11.** Изменения апплаятся live — `EditorController.update_spawner(coord, fields)` → автосейв debounced.
 - **AC12.** `kind` НЕ редактируется через эту секцию — change kind происходит через delete + paint в SpawnerPalette (consistency с layer model 060).
 
@@ -84,14 +81,11 @@
 - **AC21.** Spawner entry — новые поля:
   | Field | v2 | v3 | Default | Migration |
   |---|---|---|---|---|
-  | `amount` | — | int | `1` | добавляется при load если отсутствует |
-  | `delay` | — | int | `1` | добавляется при load если отсутствует |
 - **AC22.** Migration policy: forward-only на `LevelData.from_dict()`. Если `version < 3` ИЛИ отсутствует — мигрируем по таблицам выше. Записываем всегда v3. Старые v2 файлы читаются, но после save'а становятся v3.
 - **AC23.** Validation:
   - `respawn_player`: если `true` для `wave > 0` — на этой волне должен быть player-spawner (иначе ERR).
   - `advance_mode`: только `"timer" | "clear" | "timer_and_clear"` (ERR если другое).
   - `is_special`: любая строка проходит (free-form per design.md D5).
-  - `spawner.amount/delay`: ≥1 (ERR если меньше).
 
 ### F. Backward compat — readers с `is_special` как bool
 
@@ -108,10 +102,9 @@
 - **AC28.** Если `advance_mode = "clear"` И `waves[N].spawners` не содержит ни одного enemy — это «безвыходная» волна (никогда не advance'нется). Validation WARN при save.
 - **AC29.** Если `advance_mode = "timer"` И финальная волна (turns_to_next = 0) — текущее поведение auto-clear не меняется.
 
-### H. Spawner amount/delay — schema-only
+### H. (Removed) Spawner amount/delay
 
-- **AC30.** WaveController читает `amount`/`delay` из schema но **не реализует repeat-spawning runtime**. На load level — если хоть один spawner имеет `amount > 1` ИЛИ `delay > 1` — `GameLogger.warn_once("spawner_repeat_not_implemented", "...")`. Поведение спаунера — как при `amount=1` (срабатывает один раз).
-- **AC31.** UI редактирует поля и сохраняет в JSON. Контентщикам можно указывать значения и подготовить карты — фактический runtime приедет в follow-up.
+_Removed per F-061-IMPL-9 — schema fields were never landed; runtime warn-once and AC30-31 dropped. Spawner remains v2 shape in 061: `coord/kind/ref/timer`._
 
 ### I. EditorController public API расширение
 
@@ -139,7 +132,6 @@
 
 - **Wave timeline UI** (drag-reorder, badges, inline ttn ±, активная волна сильно подсвечена, маркеры триггеров на таймлайне) — Spec 063. В 061 — только `ItemList`.
 - **Validation pipeline UI** (REJECT/WARN визуализация на полях, save-blocking UI) — Spec 062. В 061 валидация остаётся как в 060: `LevelData.validate()` возвращает массив, save проходит без блокировки (warn'ы логируются).
-- **Spawner amount/delay runtime** — schema-only (AC30-31). Real runtime — отдельный спек.
 - **Music editor UI** — `music_config` через JSON-LineEdit, без интерпретации полей. Полноценный редактор — design.md §11.
 - **Exp-bar / level-up via kills** — обсуждается отдельно. В 061 schema не расширяется под это.
 - **Per-wave settings persistence** в layout (058) — стандартный BasePanel persistence работает «из коробки», ничего custom.
@@ -179,9 +171,9 @@
 
 - `scripts/core/maps/level_data.gd`:
   - `SCHEMA_VERSION = 3`.
-  - В `from_dict()`: миграционная ветка после load if `lvl.version < 3` ИЛИ если поля отсутствуют. Конвертит `is_special: bool → String`, добавляет `respawn_player` / `advance_mode` / `wave.music_config` / `spawner.amount` / `spawner.delay` с дефолтами. После миграции `lvl.version = SCHEMA_VERSION`.
+  - В `from_dict()`: миграционная ветка после load if `lvl.version < 3` ИЛИ если поля отсутствуют. Конвертит `is_special: bool → String`, добавляет `respawn_player` / `advance_mode` / `wave.music_config` с дефолтами. После миграции `lvl.version = SCHEMA_VERSION`.
   - В `to_dict()`: сериализует все новые поля.
-  - В `validate()`: добавляет проверки `respawn_player` для wave > 0, `advance_mode` enum, `spawner.amount/delay >= 1`. WARN на `advance_mode = "clear"` без enemy spawner'ов.
+  - В `validate()`: добавляет проверки `respawn_player` для wave > 0, `advance_mode` enum. WARN на `advance_mode = "clear"` без enemy spawner'ов.
   - Новый helper `func is_wave_special(idx: int) -> bool` (string → bool derive).
   - В `_make_empty_wave` и `make_wave_copy_no_spawners` — defaults для новых полей.
   - В `_wave_dict_from_arr` и `_spawners_arr_to_dicts_with_default_timer` — read новых полей с дефолтами для legacy.
@@ -242,8 +234,6 @@
    "kind": "player" | "enemy",
    "ref": String,
    "timer": int,                      // ≥1
-+  "amount": int,                     // ≥1, default 1 (schema-only in 061 — runtime warn-once)
-+  "delay": int                       // ≥1, default 1 (ignored if amount=1)
  }
 
  // LevelData top-level
@@ -274,7 +264,7 @@ func update_wave_field(idx: int, field: String, value: Variant) -> void
 
 # Spawner field updates
 func update_spawner(coord: Vector2i, fields: Dictionary) -> void
-# Supported keys in fields: "ref", "timer", "amount", "delay".
+# Supported keys in fields: "ref", "timer".
 
 # Dialogue triggers CRUD — все возвращают bool (true = applied, false = validation rejected)
 func add_dialogue_trigger(t: Dictionary) -> bool
@@ -294,7 +284,7 @@ AC1-AC36 из §3. Сводка:
 - E (Schema migration): AC19-AC23
 - F (is_special readers): AC24-AC25
 - G (advance_mode runtime): AC26-AC29
-- H (amount/delay schema-only): AC30-AC31
+- H (amount/delay schema-only): REMOVED per F-061-IMPL-9
 - I (EditorController API): AC32-AC33
 - J (Backward-compat smoke): AC34-AC36
 
@@ -303,8 +293,8 @@ AC1-AC36 из §3. Сводка:
 ## 7. Findings (для других)
 
 - **F-061-1 (для Никиты):** Wave editing вернулся. Многоволновые карты редактируются полностью. Dialogue triggers — в WaveSettingsPanel, секция «Dialogue Triggers (level-scoped)». Wave-scoped тоже редактируются там же (через level-секцию), а в группе `wave` отображаются read-only mirror. Документация семантики `id` vs `dialogue_id` — `docs/systems/level-editor/dialogue-triggers.md`.
-- **F-061-2 (для Стасяна):** SCHEMA_VERSION = 3. `is_special` теперь строка (free-form, конвенция: `"normal" | "boss" | "miniboss_*"`, validator не ограничивает). Spawner gains `amount`/`delay` поля (schema-only, runtime warn-once). Wave gains `respawn_player`/`advance_mode`/`music_config`. JSON-схема обновлена в `data/maps/_schema.md`.
-- **F-061-3 (для Андрея):** Owner WaveController — Андрей. `advance_mode = "timer_and_clear"` runtime реализован в этом спеке. `advance_mode = "clear"` тоже (как side-effect). Repeat-spawners (`amount > 1`) — НЕ runtime, schema только.
+- **F-061-2 (для Стасяна):** SCHEMA_VERSION = 3. `is_special` теперь строка (free-form, конвенция: `"normal" | "boss" | "miniboss_*"`, validator не ограничивает). Wave gains `respawn_player`/`advance_mode`/`music_config`. JSON-схема обновлена в `data/maps/_schema.md`.
+- **F-061-3 (для Андрея):** Owner WaveController — Андрей. `advance_mode = "timer_and_clear"` runtime реализован в этом спеке. `advance_mode = "clear"` тоже (как side-effect).
 - **F-061-4 (для Алексея):** EventBus сигнал `wave_started(index, is_special: bool)` сохраняет `bool` сигнатуру. WaveController derive'ит из строки. Все 4 рантайм-консьюмера (skill_offer_controller, tutorial_director, campaign_controller, music_director) код не меняют.
 - **F-061-5 (для будущего, exp-bar):** Schema 061 НЕ расширяется под exp-bar / level-up via kills. Когда фича придёт в работу — это отдельный спек, возможно с новой v4 миграцией. См. plan.md §2 (metaprogression) и докер-спек для exp-bar (TBD).
 - **F-061-6 (потенциальный):** WaveSettingsPanel — большая панель (soft cap 600 строк). Если при имплементации превысит — кандидат на extraction trigger CRUD в отдельный sub-panel. Решать на месте.
@@ -320,7 +310,7 @@ AC1-AC36 из §3. Сводка:
 - **Q3 → Dialogue triggers интегрируются в WaveSettingsPanel.** Полный CRUD — в level-секции. Wave-секция — read-only mirror с фильтром по `wave_index`. `level_completed` — в level-секции, по подтверждению Андрея «логически про финальную волну, но одна точка для level-scoped». Старая standalone панель НЕ восстанавливается.
 - **Q-061-1 → `is_special` в schema String, EventBus остаётся bool.** Helper `LevelData.is_wave_special(idx)` для derive. Минимальный runtime touch. Альтернатива (b) — менять сигнал на String — отвергнута: 5 консьюмеров без реальной потребности в строке (никто не дифференцирует boss vs miniboss runtime'ом сейчас).
 - **Q-061-2 → `music_config` per-wave override + level fallback.** Non-breaking. UI прячет per-wave под advanced JSON. Альтернатива (b) удаление level-level — отвергнута как breaking. Альтернатива (c) ошибка в design.md — отвергнута, design.md §7 явно описывает per-wave.
-- **Q-061-3 → Spawner amount/delay schema-only.** Runtime warn-once. Альтернатива (b) полный runtime — defer, scope 061 уже жирный, runtime — отдельный спек после 062. UI помечает поля тэгом `(schema-only)` для прозрачности.
+- **Q-061-3 → Removed.** Изначальное решение было schema-only поля `spawner.amount/delay` с runtime warn-once. Удалено целиком в F-061-IMPL-9 — поля не нужны, схема осталась v3 без них.
 - **Q-061-4 → `advance_mode` runtime в 061.** Никитина опция = `"timer_and_clear"`. Schema enum трёх значений: `"timer" | "clear" | "timer_and_clear"`. Runtime изменение в `wave_controller.gd` ~30 строк. Делаем сразу, потому что: (1) Никита просит прямо, (2) маленькая правка, (3) частично решает геймдиз-проблему «бесплатного скилла за убегание». Pillar 1 — UI индикатор «застрял пока есть враги» в runtime HUD (AC27).
 - **Q-061-5 → Standalone WaveSettingsPanel.** Не таб в LayersPanel. Layers и settings — концептуально разные оси (что я рисую vs параметры волны/спаунера/уровня). Смешение запутает. Альтернатива (b) таб — отвергнута; (c) inline в LayersPanel — отвергнута.
 - **Q-061-6 → exp-bar НЕ в scope.** Никаких спекулятивных полей в schema 061. Если фича придёт — отдельный спек, возможно v4 миграция. Поле `wave.skill_offer.source = "defeated_enemies"` уже в схеме (040) и частично reflects идею.
@@ -331,7 +321,6 @@ AC1-AC36 из §3. Сводка:
 
 - **Wave timeline UI** — Spec 063 (drag-reorder, badges от validator'а, inline `turns_to_next` ±, активная волна сильно подсвечена, маркеры триггеров на таймлайне).
 - **Validation pipeline UI** — Spec 062 (REJECT/WARN визуализация на полях, save-blocking).
-- **Spawner amount/delay runtime** — отдельный спек после 062.
 - **Music editor UI** — design.md §11.
 - **Exp-bar / level-up via kills** — отдельный спек после metaprogression.
 - **Standalone dialogue_trigger panel restoration** — replaced groups в WaveSettingsPanel.

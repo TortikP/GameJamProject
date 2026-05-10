@@ -67,7 +67,7 @@
   - `scenes/dev/wave_settings_panel.tscn` — сцена (instance of base_panel).
 - **Как проверить:** Открыть level editor (Ctrl+E), правая панель «Wave Settings» — вверху список волн с +/Copy/Delete, ниже секции Level / Wave / Spawners / Skill Offer / Dialogue Triggers (this wave). Smoke по T-061-74..77 (spec/061/tasks.md).
 - **Дизайн:** [`specs/061-wave-data-and-settings/spec.md`](../specs/061-wave-data-and-settings/spec.md) §3, [`specs/061-wave-data-and-settings/plan.md`](../specs/061-wave-data-and-settings/plan.md) §Φ-4..Φ-8.
-- **Заметки:** Файл панели ~1380 LOC (vs soft cap 600) — F-061-IMPL-2, extract отложен до второго consumer'а. Spawner-форма amount/delay полей помечена `(schema-only)` — runtime их игнорит до соответствующей фичи.
+- **Заметки:** Файл панели ~1380 LOC (vs soft cap 600) — F-061-IMPL-2, extract отложен до второго consumer'а.
 
 ## dialogue-triggers-editor
 

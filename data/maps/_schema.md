@@ -9,7 +9,7 @@ hand-editable if you want to tweak something quickly without launching the game.
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `name` | string | yes | Human-readable name. Filename is `<sanitized_name>.json` (lowercase, `[^a-z0-9_-]` → `_`). |
-| `version` | int | yes | Schema version. Current = `3` (added wave-level `respawn_player`/`advance_mode`/`music_config` and spawner `amount`/`delay` in 061). |
+| `version` | int | yes | Schema version. Current = `3` (added wave-level `respawn_player`/`advance_mode`/`music_config` in 061). |
 | `tileset_path` | string | yes | `res://...` path to a `.tres` TileSet. Default: `res://scenes/arena/tilesets/hex_terrain.tres`. |
 | `waves` | array | yes | Sequence of waves. Wave 0 = initial state. Last wave's `turns_to_next` must be 0. |
 | `dialogue_triggers` | array | optional | Per-level event→dialogue bindings (added in 039). See section below. |
@@ -17,13 +17,12 @@ hand-editable if you want to tweak something quickly without launching the game.
 
 ### Migration
 
-`v1` files (root-level `floor`/`objects`/`spawners`, no `waves[]`) are accepted for read and folded into a single-wave layout. `v2` files (`is_special` as bool, no `respawn_player`/`advance_mode`/`music_config`/`amount`/`delay`) are migrated transparently:
+`v1` files (root-level `floor`/`objects`/`spawners`, no `waves[]`) are accepted for read and folded into a single-wave layout. `v2` files (`is_special` as bool, no `respawn_player`/`advance_mode`/`music_config`) are migrated transparently:
 
 - `is_special: true` → `"boss"`, `is_special: false` → `"normal"` (free-form string post-061).
 - `respawn_player` defaults to `true` for wave 0 and `false` for the rest.
 - `advance_mode` defaults to `"timer"`.
 - `music_config` defaults to `{}` (per-wave override; falls back to level-level `music_config`).
-- spawner `amount`/`delay` default to `1` (no behavioural change vs v2).
 
 Migration is idempotent. The editor always writes `v3`. Hand-edited `v1`/`v2` files keep working.
 
@@ -80,8 +79,8 @@ One object per coord per wave. The editor enforces this; hand edits that break i
 ## `spawners[]` entry (per wave)
 
 ```json
-{ "coord": [4, 4], "kind": "player", "ref": "",        "timer": 1, "amount": 1, "delay": 1 }
-{ "coord": [6, 4], "kind": "enemy",  "ref": "manekin", "timer": 3, "amount": 1, "delay": 1 }
+{ "coord": [4, 4], "kind": "player", "ref": "",        "timer": 1 }
+{ "coord": [6, 4], "kind": "enemy",  "ref": "manekin", "timer": 3 }
 ```
 
 - `coord` — must match the same wave's `floor[]` coord and not collide with another spawner or object.
@@ -90,8 +89,6 @@ One object per coord per wave. The editor enforces this; hand edits that break i
   - For `player`: `""` (empty).
   - For `enemy`: enemy_id matching a JSON file in `data/enemies/` (without `.json`). Currently: `manekin`.
 - `timer` — integer `>= 1`. Counted **down** at the end of each `world_turn_ended` from the wave's start. When the timer ticks from 1→0, the actor instantiates on the next world-turn end and the placeholder disappears. Pending spawners are discarded if the wave changes before they fire.
-- `amount` (061) — integer `>= 1`. **Schema-only in 061** — the editor stores it; runtime currently treats every spawner as `amount = 1`. Reserved for "spawn N enemies in a row from this spawner". Designer-facing UI tags the field `(schema-only)` when `> 1` so the editor doesn't lie about effect.
-- `delay` (061) — integer `>= 1`. **Schema-only in 061** — also reserved. Future use: cooldown between successive spawns when `amount > 1`. Schema field exists so v3 maps don't need re-migration when runtime support lands.
 
 If `kind == "enemy"` and `ref` is unknown, the spawner is skipped at load time.
 

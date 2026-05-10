@@ -21,12 +21,8 @@
 - [ ] **T-061-4.** В `level_data.gd` поднять `SCHEMA_VERSION` 2→3, добавить новые `const`'ы (`DEFAULT_IS_SPECIAL`, `DEFAULT_ADVANCE_MODE`, `VALID_ADVANCE_MODES`, `DEFAULT_SPAWNER_AMOUNT`, `DEFAULT_SPAWNER_DELAY`). **[Φ-1] [≤15 строк]**
 - [ ] **T-061-5.** Обновить `_make_empty_wave(idx)` — добавить дефолты `is_special: "normal"`, `respawn_player: false`, `advance_mode: "timer"`, `music_config: {}`. **[Φ-1] [≤10 строк]**
 - [ ] **T-061-6.** Обновить `make_wave_copy_no_spawners(...)` — наследовать из source `is_special` (already string после миграции), `respawn_player` (можно false default чтобы не дублировать player-спаунер), `advance_mode`, `music_config`. **[Φ-1] [≤10 строк]**
-- [ ] **T-061-7.** В `from_dict` после цикла `lvl.waves.append(...)` добавить миграционный блок (см. plan §Φ-1.b). Идемпотентно: бул→строка, `respawn_player` add-if-missing, `advance_mode` add-if-missing, `wave.music_config` add-if-missing, `spawner.amount`/`delay` add-if-missing. После — `lvl.version = SCHEMA_VERSION`. **[Φ-1] [≤40 строк]**
 - [ ] **T-061-8.** В `_wave_dict_from_arr` — читать `respawn_player`/`advance_mode`/`music_config` с дефолтами. **[Φ-1] [≤15 строк]**
-- [ ] **T-061-9.** В `_spawners_arr_to_dicts_with_default_timer` — добавить `amount`/`delay` defaults. **[Φ-1] [≤8 строк]**
 - [ ] **T-061-10.** В `to_dict` (внутри per-wave entry build) — записать `respawn_player`/`advance_mode`/`music_config`. **[Φ-1] [≤8 строк]**
-- [ ] **T-061-11.** В `_spawners_to_arr` — записать `amount`/`delay`. **[Φ-1] [≤5 строк]**
-- [ ] **T-061-12.** В `validate()` добавить блок per-wave валидаций (`advance_mode` enum, `respawn_player` requires player spawner для wave > 0, `advance_mode=clear` без enemy = WARN, `spawner.amount/delay >= 1`). **[Φ-1] [≤35 строк]**
 - [ ] **T-061-13.** Добавить публичный helper `func is_wave_special(idx: int) -> bool`. **[Φ-1] [≤8 строк]**
 - [ ] **T-061-14.** Smoke: открыть `data/maps/1.json` в редакторе, save, проверить JSON: `version: 3`, новые поля присутствуют, `is_special: "normal"`. Diff `git diff data/maps/1.json` содержит только ожидаемые изменения. **[Φ-1] [smoke]**
 
@@ -80,7 +76,6 @@
 
 - [ ] **T-061-36.** Реализовать `_build_spawner_section()` — header + `ItemList` + collapsible edit form (build пустой). **[Φ-5] [≤30 строк]**
 - [ ] **T-061-37.** Реализовать `_refresh_spawner_list()` — итерация по `_level.waves[_active_wave].spawners`, формат строки. Trigger из `set_active_wave`. **[Φ-5] [≤20 строк]**
-- [ ] **T-061-38.** Реализовать `_build_spawner_form()` — поля `kind` (Label read-only), `ref` (OptionButton), `timer/amount/delay` (SpinBox'ы), `(schema-only)` бейдж рядом с amount если >1. **[Φ-5] [≤55 строк]**
 - [ ] **T-061-39.** Реализовать `_on_spawner_selected(idx)` — open form, populate с values из `_level.spawners[idx]`, set `_selected_spawner_coord`. **[Φ-5] [≤20 строк]**
 - [ ] **T-061-40.** Реализовать emit'ы — каждый control в form'е на change → `spawner_field_changed(_selected_spawner_coord, {field: value})` с guard `_refreshing`. **[Φ-5] [≤15 строк]**
 - [ ] **T-061-41.** Smoke (Φ-5): кликнуть на enemy spawner в списке, изменить timer 1→3, autosave, reload, значение сохранилось. **[Φ-5] [smoke]**
@@ -165,7 +160,6 @@
 
 ## Φ-12. Backward-compat smoke (AC34-36)
 
-- [x] **T-061-DRYRUN.** Python dry-run миграции `data/maps/{1,sample_skill_offer,story_map_03}.json`. Логика 1:1 копия Φ-1 `from_dict()` миграции. Результат: version 2→3, все `is_special: true` → `"boss"`, `false` → `"normal"`, новые поля добавлены, invariants (contiguous indices, last-wave ttn=0, valid advance_mode, amount/delay≥1) — OK на всех 3х. Уверенность что Godot-side миграция тоже пройдёт — высокая. **[Φ-12] [done — Claude pre-smoke]**
 - [ ] **T-061-74.** Smoke `data/maps/1.json`: load → no errors → switcher показывает 1 wave → save → JSON v3 + new fields. Reload — diff после нормализации = 0 в floor/objects/spawners. **[Φ-12] [smoke critical]**
 - [ ] **T-061-75.** Smoke `data/maps/sample_skill_offer.json`: load → 3 waves → wave 2 has `is_special` → wave-section показывает поле как `"boss"` (после миграции из bool). Save → JSON has `"is_special": "boss"`. Skill_offer per-wave работает. **[Φ-12] [smoke critical]**
 - [ ] **T-061-76.** Smoke `data/maps/story_map_03.json`: load → много волн → переключаться между ними, поля корректны. Триггеры (если есть) — в level-секции. Save → idempotent. **[Φ-12] [smoke critical]**

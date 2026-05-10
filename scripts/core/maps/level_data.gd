@@ -27,7 +27,7 @@ class_name LevelData
 ## Spawner schema gains a `timer: int >= 1` field — see 024 spec, section
 ## "Расширение LevelData". Legacy spawners default to timer=1 on migration.
 
-const SCHEMA_VERSION: int = 3  # 061: bump from 2 (is_special bool→String; added wave.advance_mode/music_config and spawner.amount/delay).
+const SCHEMA_VERSION: int = 3  # 061: bump from 2 (is_special bool→String; added wave.advance_mode/music_config).
 
 # 061: wave.is_special transitioned bool→String. Free-form string per design.md D5.
 # Convention (not enforced): "normal" | "boss" | "miniboss_*".
@@ -36,10 +36,6 @@ const DEFAULT_IS_SPECIAL: String = "normal"
 # 061: wave.advance_mode controls how WaveController auto-advances. See spec §3.G.
 const DEFAULT_ADVANCE_MODE: String = "timer"
 const VALID_ADVANCE_MODES: Array[String] = ["timer", "clear", "timer_and_clear"]
-
-# 061: spawner.amount/delay are schema-only in 061 (runtime warn-once if >1).
-const DEFAULT_SPAWNER_AMOUNT: int = 1
-const DEFAULT_SPAWNER_DELAY: int = 1
 
 # Defaults match hex_terrain.tres source 0 atlas (0,0) = grass tile (post-032
 # tileset consolidation; godmode_terrain.tres deleted).
@@ -60,7 +56,7 @@ var tileset_path: String = DEFAULT_TILESET_PATH
 #
 # Floor entries:    {"coord": Vector2i, "source_id": int, "atlas_coord": Vector2i}
 # Object entries:   {"coord": Vector2i, "object_id": StringName}
-# Spawner entries:  {"coord": Vector2i, "kind": StringName, "ref": StringName, "timer": int, "amount": int, "delay": int}
+# Spawner entries:  {"coord": Vector2i, "kind": StringName, "ref": StringName, "timer": int}
 #   kind ∈ {&"player", &"enemy"}. For player, ref is &"". For enemy, ref = enemy_id.
 var floor_cells: Array[Dictionary] = []
 var objects: Array[Dictionary] = []
@@ -72,7 +68,7 @@ var spawners: Array[Dictionary] = []
 #   "music_config" (Dictionary, 061; per-wave override over level music_config),
 #   "floor" (Array of floor-cell dicts),
 #   "objects" (Array of object dicts),
-#   "spawners" (Array of spawner dicts incl. "timer", "amount" 061, "delay" 061).
+#   "spawners" (Array of spawner dicts: coord/kind/ref/timer).
 # Wave 0 = initial state. Last wave's turns_to_next must be 0.
 # Defaults to a single empty wave so a freshly-constructed LevelData is valid
 # under the new model without explicit init. Inline literal (not _make_empty_wave)
@@ -208,13 +204,6 @@ func validate() -> Array[String]:
 			# intentionally use this to defer a spawn that auto-clear will skip.
 			if i < waves.size() - 1 and timer_v > ttn:
 				errors.append("WARN: Wave %d: spawner timer (%d) > turns_to_next (%d) — won't trigger" % [i, timer_v, ttn])
-			# 061: amount/delay >= 1 (schema-only in 061; runtime warn-once handled in WaveController).
-			var amt_v: int = int(s.get("amount", DEFAULT_SPAWNER_AMOUNT))
-			if amt_v < 1:
-				errors.append("Wave %d: spawner amount must be >= 1 (got %d)" % [i, amt_v])
-			var dly_v: int = int(s.get("delay", DEFAULT_SPAWNER_DELAY))
-			if dly_v < 1:
-				errors.append("Wave %d: spawner delay must be >= 1 (got %d)" % [i, dly_v])
 
 		# 061: advance_mode enum + clear-without-enemy WARN.
 		var am: String = String(w.get("advance_mode", DEFAULT_ADVANCE_MODE))
@@ -380,7 +369,6 @@ static func from_dict(d: Dictionary) -> LevelData:
 	# 061: forward-only migration to v3. Idempotent — safe to re-run on already-v3 data.
 	# - is_special: bool → String (false→"normal", true→"boss")
 	# - advance_mode / music_config: add-if-missing
-	# - spawner.amount / delay: add-if-missing
 	for i in lvl.waves.size():
 		var w: Dictionary = lvl.waves[i]
 		var raw_is_special: Variant = w.get("is_special", DEFAULT_IS_SPECIAL)
@@ -394,11 +382,6 @@ static func from_dict(d: Dictionary) -> LevelData:
 			w["advance_mode"] = DEFAULT_ADVANCE_MODE
 		if not w.has("music_config") or not (w["music_config"] is Dictionary):
 			w["music_config"] = {}
-		for s in w.get("spawners", []):
-			if not s.has("amount") or int(s.get("amount", 0)) < 1:
-				s["amount"] = DEFAULT_SPAWNER_AMOUNT
-			if not s.has("delay") or int(s.get("delay", 0)) < 1:
-				s["delay"] = DEFAULT_SPAWNER_DELAY
 		lvl.waves[i] = w
 	lvl.version = SCHEMA_VERSION  # silently bump after migration
 
@@ -549,14 +532,6 @@ static func _deep_copy_spawners(arr: Variant) -> Array[Dictionary]:
 				"kind": StringName(entry.get("kind", &"")),
 				"ref": StringName(entry.get("ref", &"")),
 				"timer": int(entry.get("timer", DEFAULT_SPAWNER_TIMER)),
-				# 061 F-061-IMPL-4: amount/delay were missed when v3 schema landed.
-				# Without these, any _sync_root_to_active_wave / _sync_active_wave_to_root
-				# call (e.g. start of validate()) silently strips amount/delay from the
-				# in-memory wave dict. Saved JSON survives because _spawners_to_arr
-				# re-defaults via int(get("amount", DEFAULT)), but runtime spawner
-				# state was corrupted between sync calls. Caught by tests/test_061_migration.
-				"amount": int(entry.get("amount", DEFAULT_SPAWNER_AMOUNT)),
-				"delay": int(entry.get("delay", DEFAULT_SPAWNER_DELAY)),
 			})
 	return out
 
@@ -601,8 +576,6 @@ static func _spawners_to_arr(arr: Variant) -> Array:
 				"kind": String(entry.get("kind", &"")),
 				"ref": String(entry.get("ref", &"")),
 				"timer": int(entry.get("timer", DEFAULT_SPAWNER_TIMER)),
-				"amount": int(entry.get("amount", DEFAULT_SPAWNER_AMOUNT)),
-				"delay": int(entry.get("delay", DEFAULT_SPAWNER_DELAY)),
 			})
 	return out
 
@@ -660,7 +633,6 @@ static func _objects_arr_to_dicts(arr: Variant) -> Array[Dictionary]:
 
 
 static func _spawners_arr_to_dicts_with_default_timer(arr: Variant) -> Array[Dictionary]:
-	# 061: read amount/delay with defaults; legacy spawners get amount=1/delay=1.
 	# Function name kept for stability (callers in v2-era specs reference it).
 	var out: Array[Dictionary] = []
 	if not (arr is Array):
@@ -672,8 +644,6 @@ static func _spawners_arr_to_dicts_with_default_timer(arr: Variant) -> Array[Dic
 				"kind": StringName(entry.get("kind", "")),
 				"ref": StringName(entry.get("ref", "")),
 				"timer": int(entry.get("timer", DEFAULT_SPAWNER_TIMER)),
-				"amount": int(entry.get("amount", DEFAULT_SPAWNER_AMOUNT)),
-				"delay": int(entry.get("delay", DEFAULT_SPAWNER_DELAY)),
 			})
 	return out
 
