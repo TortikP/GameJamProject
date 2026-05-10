@@ -2,6 +2,9 @@
 
 Specs: [`spec.md`](./spec.md), [`plan.md`](./plan.md), [`tasks.md`](./tasks.md), [`findings.md`](./findings.md), [`design.md`](./design.md).
 
+> **TL;DR — final state after IMPL-1..10b.** Wave editing is back. LevelData v3 (forward-only migration). WaveSettingsPanel with 3 tabs (Wave / Skill Offer / Level — preview-only triggers). Spawner timer authoring via SpawnerPalette SpinBox. `advance_mode` ∈ {`timer`, `clear`} runtime. New `Новая` button in LevelMetaPanel. Auto-tests: `test_061_migration.gd` + `check_localization_keys.py`. Two regression bugs found and fixed in this PR (F-IMPL-4 = `_deep_copy_spawners` audit-miss; F-IMPL-10/10b = spawner instant-spawn vs `_emit_initial_turn` race + mid-cast auto-clear race). Schema fields removed mid-PR by user request: `spawner.amount/delay` (IMPL-9), `advance_mode = "timer_and_clear"` (IMPL-10). Stale loc keys cleanup deferred to a chore commit post-merge.
+
+
 ## Summary
 
 - **LevelData v3.** SCHEMA_VERSION 2→3. `is_special` transitions bool→String (free-form, default `"normal"`); new wave-level fields `respawn_player`, `advance_mode`, `music_config`. Migration in `from_dict()` is forward-only and idempotent. `is_wave_special()` helper added — required because `bool("normal")` is `true` in GDScript, breaking every direct cast.
@@ -58,8 +61,8 @@ Data-integrity covered by `test_061_migration.gd`. What still needs eyeballs:
 
 ### Φ-3 — runtime advance_mode
 
-- [ ] Author a wave with `advance_mode: "clear"` and an enemy spawner. Playtest. Don't kill the enemy → wave does not advance. Kill it → advances. (T-061-26)
-- [ ] Same with `"timer_and_clear"`. Wait until timer expires → `(waiting for clear)` label appears below the wave cursor → kill enemy → advances.
+- [x] `advance_mode: "clear"` smoked via `data/maps/Test_Clear.json` (3 waves, timer=1 spawners, kill-bee-then-advance flow + IMPL-10b regression).
+- ~~`advance_mode: "timer_and_clear"`~~ — removed in IMPL-10.
 
 ### Φ-4..Φ-8 — panel UX
 
@@ -78,8 +81,8 @@ Key-presence covered by `check_localization_keys.py`. What still needs eyeballs:
 
 | File | Cap | Actual | Note |
 |---|---|---|---|
-| `editor_controller.gd` | 350 (AC33; bumped from 300) | 398 | F-061-IMPL-3 — 48 over; static-ops architecture preserved |
-| `wave_settings_panel.gd` | 600 (soft, F-061-6) | 1380 | F-061-IMPL-2 — extraction deferred |
+| `editor_controller.gd` | 350 (AC33; bumped from 300) | 395 | F-061-IMPL-3 — 45 over; static-ops architecture preserved (improved post-IMPL-6/7) |
+| `wave_settings_panel.gd` | 600 (soft, F-061-6) | ~85 (post-IMPL-6/7 — most extracted) | F-061-IMPL-2 — extraction sufficient |
 | `wave_editor_ops.gd` (new) | n/a | 204 | RefCounted static-methods module |
 | `level_data.gd` | n/a | 708 (was 588) | +130 for v3 schema + migration |
 | `wave_controller.gd` | n/a | 565 (was 539) | +26 for advance_mode gate |
