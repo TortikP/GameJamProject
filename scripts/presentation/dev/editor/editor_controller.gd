@@ -245,31 +245,6 @@ func update_wave_field(idx: int, field: String, value: Variant) -> void:
 			_toast("advance_mode '%s' invalid — kept previous" % str(value), &"warn")
 
 
-func add_dialogue_trigger(t: Dictionary) -> bool:
-	var err: String = WaveEditorOps.add_dialogue_trigger(_level, t, _io)
-	if err != "":
-		_toast(err, &"warn")
-		return false
-	_push_level_to_panels()
-	return true
-
-
-func update_dialogue_trigger(old_id: StringName, t: Dictionary) -> bool:
-	var err: String = WaveEditorOps.update_dialogue_trigger(_level, old_id, t, _io)
-	if err != "":
-		_toast(err, &"warn")
-		return false
-	_push_level_to_panels()
-	return true
-
-
-func delete_dialogue_trigger(id: StringName) -> bool:
-	if not WaveEditorOps.delete_dialogue_trigger(_level, id, _io):
-		return false
-	_push_level_to_panels()
-	return true
-
-
 # Skill offer signal trampoline — ops takes 4 args, signal has 2.
 
 func _on_skill_offer_changed(idx: int, offer: Variant) -> void:
@@ -337,10 +312,6 @@ func _wire_wave_settings_panel() -> void:
 	if _wave_settings_panel == null:
 		return
 	_wave_settings_panel.wave_field_changed.connect(update_wave_field)
-	# Trigger CRUD methods return bool but Godot signal connects ignore that.
-	_wave_settings_panel.trigger_created.connect(add_dialogue_trigger)
-	_wave_settings_panel.trigger_updated.connect(update_dialogue_trigger)
-	_wave_settings_panel.trigger_deleted.connect(delete_dialogue_trigger)
 	_wave_settings_panel.skill_offer_changed.connect(_on_skill_offer_changed)
 	_wave_settings_panel.bind_level(_level)
 

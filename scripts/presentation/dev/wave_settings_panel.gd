@@ -25,9 +25,6 @@ const LevelSection := preload("res://scripts/presentation/dev/wave_settings/leve
 # ── Re-emitted section signals (contract preserved from monolith) ───────────
 
 signal wave_field_changed(idx: int, field: String, value: Variant)
-signal trigger_created(trigger_dict: Dictionary)
-signal trigger_updated(old_id: StringName, trigger_dict: Dictionary)
-signal trigger_deleted(trigger_id: StringName)
 signal skill_offer_changed(idx: int, offer: Variant)
 signal skill_offer_preview_requested(idx: int)
 
@@ -92,13 +89,6 @@ func _build_tabs() -> void:
 		&"ui_wavesettings_tab_skill_offer", "Skill Offer")
 
 	_level_section = LevelSection.new()
-	_level_section.trigger_created.connect(
-		func(d: Dictionary) -> void: trigger_created.emit(d))
-	_level_section.trigger_updated.connect(
-		func(old_id: StringName, d: Dictionary) -> void:
-			trigger_updated.emit(old_id, d))
-	_level_section.trigger_deleted.connect(
-		func(tid: StringName) -> void: trigger_deleted.emit(tid))
 	add_tab(_level_section, &"level",
 		&"ui_wavesettings_tab_level", "Level")
 
