@@ -19,12 +19,13 @@ localization-coverage smokes — UI behaviour stays manual (see
 ### `test_061_migration.gd`
 
 Spec 061 — covers the data-integrity portion of T-061-74/75/76 (Φ-12 backward-
-compat smoke). For every map in `data/maps/*.json`:
+compat smoke). For every map in `data/maps/*.json` (excluding scratch files):
 
 - migrates v1/v2 → v3 via `LevelData.from_dict()`
 - asserts schema version, per-wave field types, advance_mode enum, spawner
   amount/delay ≥ 1
-- runs `LevelData.validate()` and asserts no non-WARN errors
+- runs `LevelData.validate()` and asserts no non-WARN errors (skipped for
+  files in `maps_validate_baseline.txt` — see that file's header)
 - mirrors the editor save→reload path (`to_dict → JSON.stringify →
   JSON.parse_string → from_dict → to_dict`) and asserts the dict is
   idempotent — F-061-IMPL-1 catch.
@@ -34,8 +35,16 @@ playtest-time advance_mode logic, panel visibility. Those stay manual in
 `specs/061-wave-data-and-settings/PR.md`.
 
 ```sh
+# Linux/macOS, godot in PATH:
 godot --headless --script tests/test_061_migration.gd
+
+# Windows PowerShell — full path or alias if godot.exe is not in PATH:
+& "C:\Games\Godot_v4.5.1-stable_win64.exe\Godot_v4.5.1-stable_win64.exe" --headless --script tests/test_061_migration.gd
 ```
+
+Filename filter — these are skipped automatically: `__*.json` (autosave/playtest
+scratch), `Untitled*.json`, `untitled.json`, `maps_*_name.json` (spec-040 test
+detritus). If you author a real map starting with one of those prefixes, rename it.
 
 ### `check_localization_keys.py`
 
