@@ -89,3 +89,12 @@
 - Если поведение в игре ломается (например, чёрный квадрат под игроком) — переписать карту: object отдельно, player отдельно.
 
 В тестах файл занесён в `tests/maps_validate_baseline.txt` — миграция и roundtrip всё равно проверяются, но `validate()` пропускается. После решения — убрать строку из baseline'а.
+---
+
+## F-061-5 — sample_dialogues.json: turns_to_next на последней волне
+
+**Surface'ил:** `tests/test_061_migration.gd` (061). **Severity:** trivial. **User-visible:** нет (dev fixture).
+
+`data/maps/sample_dialogues.json` — последняя волна (wave 1) имеет `turns_to_next: 6`, валидатор требует `== 0` (wave ttn=0 = «финальная, ничего не ждём»). Файл — dev-fixture для spec 003 dialogue-системы, не игровая карта.
+
+**Что нужно:** Открыть в редакторе, выставить ttn=0 на последней волне, save. Один клик. После — убрать строку из `tests/maps_validate_baseline.txt`.
