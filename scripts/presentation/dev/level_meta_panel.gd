@@ -52,14 +52,6 @@ func _ready() -> void:
 		get_node_or_null("_ResizeHandler"),
 	])
 	_build_body()
-	# After build_body — print children that sit at panel root + filedialog state.
-	var roots := []
-	for child in get_children():
-		roots.append("%s(%s vis=%s)" % [child.name, child.get_class(), child.visible])
-	print("[meta diag2] root_children=%s" % str(roots))
-	if _file_dialog != null:
-		print("[meta diag3] filedialog visible=%s position=%s size=%s" % [
-			_file_dialog.visible, _file_dialog.position, _file_dialog.size])
 
 
 func setup(controller: Node) -> void:
