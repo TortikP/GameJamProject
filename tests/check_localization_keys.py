@@ -22,7 +22,10 @@ LOC_DIR = REPO / "data" / "localization"
 BASELINE_PATH = pathlib.Path(__file__).resolve().parent / "localization_baseline.txt"
 
 # Match: "ui_..." or &"ui_..." anywhere in a .gd / .tscn file.
-KEY_RE = re.compile(r'&?"(ui_[a-z][a-z0-9_]*)"')
+# Trailing underscore is rejected to skip concat-prefix patterns like
+# `Localization.t("ui_foo_" + variant, ...)` — those aren't real keys, just
+# string-builder fragments.
+KEY_RE = re.compile(r'&?"(ui_[a-z](?:[a-z0-9_]*[a-z0-9])?)"')
 
 # Subdirectories not worth scanning.
 SKIP_PARTS = {".git", ".godot", ".import", "addons"}
