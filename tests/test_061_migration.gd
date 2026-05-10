@@ -12,11 +12,12 @@ extends SceneTree
 const MAPS_DIR := "res://data/maps/"
 const BASELINE_PATH := "res://tests/maps_validate_baseline.txt"
 
-# Filename patterns to skip (transient editor state, scratch saves).
+# Filename patterns to skip (transient editor state, scratch saves, non-map configs).
 # Convention: __NAME__.json = autosave/playtest scratch (BasePanel pattern);
 # "Untitled*" / "untitled.json" = unsaved editor sessions; "maps_*_name.json" = test-data
-# detritus from spec 040 era.
-const SKIP_PREFIXES: Array[String] = ["__", "Untitled", "untitled", "maps_"]
+# detritus from spec 040 era; "music_track_*" = music configs that share schema
+# with maps but aren't game-playable maps (per data/maps/_schema.md).
+const SKIP_PREFIXES: Array[String] = ["__", "Untitled", "untitled", "maps_", "music_track_"]
 
 var _failures: Array[String] = []
 var _checked: int = 0
