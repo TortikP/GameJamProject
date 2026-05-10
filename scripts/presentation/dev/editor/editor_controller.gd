@@ -284,6 +284,7 @@ func _wire_panels() -> void:
 	var meta_signals: Array = [
 		[&"save_requested", _on_save], [&"load_requested", _on_load],
 		[&"exit_requested", _on_exit], [&"playtest_requested", _on_playtest],
+		[&"new_requested", _on_new],
 		[&"name_changed", _on_name_changed],
 	]
 	for entry in meta_signals:
@@ -348,6 +349,31 @@ func _on_save() -> void:
 		_toast("Saved: " + EditorIO.MAPS_DIR + _level.name + ".json", &"success")
 	else:
 		_toast("Save FAILED — see Output", &"error")
+
+
+func _on_new() -> void:
+	# Dirty tracking isn't wired up yet (set_dirty has no callers as of 061),
+	# so we always confirm — better safe than silent loss.
+	if _confirm_modal != null and _confirm_modal.has_method("ask"):
+		var ok: bool = await _confirm_modal.ask(
+			"ui_level_meta_new_confirm_title", "ui_level_meta_new_confirm_body",
+			"ui_level_meta_new_confirm_action", "ui_common_cancel", true)
+		if not ok:
+			return
+	# Empty level via v1 fallback path of from_dict({}): produces a single
+	# default-shaped wave with empty floor/objects/spawners and v3 defaults.
+	var fresh := LevelData.from_dict({})
+	if fresh == null:
+		_toast("Could not create new level", &"error")
+		return
+	fresh.name = Localization.t("ui_level_meta_untitled", "Untitled")
+	_level = fresh
+	_io.clear_autosave()
+	if _meta_panel != null and _meta_panel.has_method("set_level_name"):
+		_meta_panel.set_level_name(_level.name)
+	_io.refresh_grid_from_level(_level)
+	_push_level_to_panels()
+	_toast("New level — Untitled", &"success")
 
 
 func _on_load(path: String) -> void:
