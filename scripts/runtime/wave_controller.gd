@@ -79,12 +79,20 @@ var _wave_ending: bool = false
 
 # 061: advance_mode runtime state. True iff the active wave's advance_mode
 # blocks timer-driven advance and we're waiting on _check_auto_clear to
-# fire (no living enemies + no pending spawners). Set by:
-#   - _advance_wave (mode == "clear"): set true on wave start.
-#   - _on_world_turn_ended (mode == "timer_and_clear" + ttn reached 0): set true.
-# Cleared on _advance_wave to next wave. Read by HUD (Pillar 1) via
-# EventBus.wave_advance_blocked which we emit on transitions.
+# fire (no living enemies + no pending spawners). Set by _start_wave
+# when mode == "clear", cleared on _advance_wave to next wave. Read by
+# HUD (Pillar 1) via EventBus.wave_advance_blocked which we emit on
+# transitions.
 var _waiting_for_clear: bool = false
+
+# IMPL-10: TurnManager turn snapshot at wave-start. Used to filter the
+# synthesized "initial" world_turn_ended emit from godmode_setup
+# (_emit_initial_turn fires turn=1 before wave_started, but for editor
+# playtest it can race start_level and arrive AFTER spawners are
+# installed — eating the first tick and making timer=1 spawners fire
+# instantly). Filtering on `turn == _wave_start_turn` is a clean
+# discriminator: real player ticks always arrive on a higher turn.
+var _wave_start_turn: int = -1
 
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
@@ -154,6 +162,7 @@ func _advance_wave() -> void:
 	var advance_mode: String = String(w.get("advance_mode", "timer"))
 	var was_waiting: bool = _waiting_for_clear
 	_waiting_for_clear = (advance_mode == "clear")
+	_wave_start_turn = TurnManager.current()
 	if was_waiting != _waiting_for_clear:
 		EventBus.wave_advance_blocked.emit(_waiting_for_clear)
 	# 061: derive bool for EventBus.wave_started signature (kept bool for backward
@@ -356,8 +365,16 @@ func _clear_pending_spawners() -> void:
 
 # ── World-turn handling ─────────────────────────────────────────────────────
 
-func _on_world_turn_ended(_turn: int) -> void:
+func _on_world_turn_ended(turn: int) -> void:
 	if _level == null or _current_wave_index < 0:
+		return
+	# IMPL-10: skip the synthesized initial emit (or any emit that arrives
+	# at the same turn as wave_start). Without this, godmode_setup's
+	# _emit_initial_turn racing start_level can eat one tick and make
+	# timer=1 spawners fire instantly. Real player turns always arrive on
+	# turn > _wave_start_turn because TurnManager.advance() increments
+	# before emitting.
+	if turn == _wave_start_turn:
 		return
 	_turns_into_wave += 1
 
@@ -392,22 +409,13 @@ func _on_world_turn_ended(_turn: int) -> void:
 			# - "timer" (default): timer reaching 0 ends the wave. Existing behavior.
 			# - "clear": timer ignored entirely. Wave ends only when last enemy
 			#   dies (handled by _check_auto_clear). _waiting_for_clear is
-			#   already true from _advance_wave.
-			# - "timer_and_clear": timer expiring sets the waiting flag. Wave
-			#   ends when last enemy dies (or immediately if already none).
-			#   Re-runs _check_auto_clear synchronously so a stuck-empty wave
-			#   (already cleared at the moment of timer expiry) advances now.
+			#   already true from _start_wave.
 			var advance_mode: String = String(w.get("advance_mode", "timer"))
 			match advance_mode:
 				"timer":
 					_end_current_wave()
 				"clear":
 					pass  # never advance via timer
-				"timer_and_clear":
-					if not _waiting_for_clear:
-						_waiting_for_clear = true
-						EventBus.wave_advance_blocked.emit(true)
-					_check_auto_clear()
 				_:
 					# Unknown mode (validate() rejected it; defensive fallback to timer).
 					_end_current_wave()

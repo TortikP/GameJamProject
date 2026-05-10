@@ -1124,7 +1124,6 @@
     "ui_wavesettings_advance_clear": "clear",
     "ui_wavesettings_advance_mode": "advance_mode:",
     "ui_wavesettings_advance_timer": "timer",
-    "ui_wavesettings_advance_timer_and_clear": "timer + clear",
     "ui_wavesettings_dialogue_triggers_header": "Dialogue Triggers",
     "ui_wavesettings_is_special": "is_special:",
     "ui_wavesettings_is_special_boss": "boss",

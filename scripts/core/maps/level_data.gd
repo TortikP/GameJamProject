@@ -35,7 +35,7 @@ const DEFAULT_IS_SPECIAL: String = "normal"
 
 # 061: wave.advance_mode controls how WaveController auto-advances. See spec §3.G.
 const DEFAULT_ADVANCE_MODE: String = "timer"
-const VALID_ADVANCE_MODES: Array[String] = ["timer", "clear", "timer_and_clear"]
+const VALID_ADVANCE_MODES: Array[String] = ["timer", "clear"]
 
 # Defaults match hex_terrain.tres source 0 atlas (0,0) = grass tile (post-032
 # tileset consolidation; godmode_terrain.tres deleted).
@@ -208,7 +208,7 @@ func validate() -> Array[String]:
 		# 061: advance_mode enum + clear-without-enemy WARN.
 		var am: String = String(w.get("advance_mode", DEFAULT_ADVANCE_MODE))
 		if not (am in VALID_ADVANCE_MODES):
-			errors.append("Wave %d: advance_mode '%s' invalid (expected timer|clear|timer_and_clear)" % [i, am])
+			errors.append("Wave %d: advance_mode '%s' invalid (expected timer|clear)" % [i, am])
 		if am == "clear":
 			var has_enemy: bool = false
 			for s in w.get("spawners", []):
@@ -380,6 +380,12 @@ static func from_dict(d: Dictionary) -> LevelData:
 			w["is_special"] = DEFAULT_IS_SPECIAL  # malformed type → safe default
 		if not w.has("advance_mode") or not (w["advance_mode"] is String):
 			w["advance_mode"] = DEFAULT_ADVANCE_MODE
+		# Forward-only migration: timer_and_clear was removed in F-061-IMPL-10
+		# (it was idle-waiting in the "fast player" case and equivalent to
+		# "clear" in the "slow player" case). Convert to "clear" — closer
+		# in intent ("don't advance until enemies are dead").
+		if String(w["advance_mode"]) == "timer_and_clear":
+			w["advance_mode"] = "clear"
 		if not w.has("music_config") or not (w["music_config"] is Dictionary):
 			w["music_config"] = {}
 		lvl.waves[i] = w

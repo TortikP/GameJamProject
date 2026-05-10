@@ -92,8 +92,6 @@ func _build() -> void:
 	_advance_mode_dd.set_item_metadata(0, "timer")
 	_advance_mode_dd.add_item(Localization.t("ui_wavesettings_advance_clear", "clear"), 1)
 	_advance_mode_dd.set_item_metadata(1, "clear")
-	_advance_mode_dd.add_item(Localization.t("ui_wavesettings_advance_timer_and_clear", "timer + clear"), 2)
-	_advance_mode_dd.set_item_metadata(2, "timer_and_clear")
 	_advance_mode_dd.item_selected.connect(_on_advance_mode_selected)
 	am_row.add_child(_advance_mode_dd)
 
