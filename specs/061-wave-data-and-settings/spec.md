@@ -339,7 +339,7 @@ AC1-AC36 из §3. Сводка:
 - **Tab tear-off для WaveSettingsPanel** — не AC. Если работает as-is из 058 — bonus.
 - **Schema downgrade v3 → v2** — никогда.
 - **Расширение CURATED_EVENTS** — существующий список (8 events) сохраняется. Новые events — отдельная задача когда понадобятся.
-- **Dialogue-trigger CRUD UI** — после F-061-IMPL-7 удалён, осталось read-only preview. Никита работает с таблицами → JSON; если возникнет нужда в графическом authoring'е — отдельный спек (~064 wave-editor-ux per Andrey verbal).
+- **Dialogue-trigger CRUD UI** — после F-061-IMPL-7 удалён, осталось read-only preview. Никита работает с таблицами → JSON; если возникнет нужда в графическом authoring'е — рассмотреть в Spec 063 (UX-переработка редактора волн / wave timeline UI), либо отдельным спеком позже.
 - **Stale-loc-keys cleanup** — `ui_spawner_form_*`, `ui_wavesettings_tab_spawners`, `ui_trigger_*` остаются в `data/localization/{en,ru}.json` после IMPL-6/7 как unused. Cleanup отдельным chore-коммитом или на post-061 cleanup-spec'е.
 
 ---
