@@ -3,7 +3,7 @@ extends VBoxContainer
 
 ## Wave-section of WaveSettingsPanel (Spec 061 + tabbed rework).
 ## Fields specific to one wave:
-##   - is_special (enum dropdown — see IS_SPECIAL_PRESETS)
+##   - is_special (free-form string)
 ##   - turns_to_next
 ##   - advance_mode (enum dropdown)
 ##   - music_config (raw JSON)
@@ -14,18 +14,13 @@ extends VBoxContainer
 const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 
-# 061 post-review: switched from free-form LineEdit (design.md D5) to fixed enum.
-# Free-form was never used in maps; runtime collapses everything to bool via
-# is_wave_special() anyway. F-061-IMPL-5. Need a new tag? Add to this list.
-const IS_SPECIAL_PRESETS: Array[String] = ["normal", "boss", "miniboss", "elite"]
-
 signal wave_field_changed(idx: int, field: String, value: Variant)
 
 var _level: LevelData = null
 var _active_wave: int = 0
 var _refreshing: bool = false
 
-var _is_special_dd: OptionButton
+var _is_special_edit: LineEdit
 var _ttn_spin: SpinBox
 var _advance_mode_dd: OptionButton
 var _music_config_edit: LineEdit
@@ -51,22 +46,21 @@ func set_active_wave(idx: int) -> void:
 # ── Build ───────────────────────────────────────────────────────────────────
 
 func _build() -> void:
-	# is_special — enum dropdown (post-061 UX review, see IS_SPECIAL_PRESETS doc).
+	# is_special — free-form per design D5.
 	var spec_row := HBoxContainer.new()
 	add_child(spec_row)
 	var spec_lbl := _make_label("ui_wavesettings_is_special", "is_special:")
 	spec_lbl.custom_minimum_size = Vector2(120, 0)
 	spec_lbl.tooltip_text = Localization.t("ui_wavesettings_is_special_hint",
-		"Wave category tag. Runtime treats anything except \"normal\" as special.")
+		"Free-form. Convention: \"normal\" | \"boss\" | \"miniboss_*\".")
 	spec_row.add_child(spec_lbl)
-	_is_special_dd = OptionButton.new()
-	_is_special_dd.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for i in IS_SPECIAL_PRESETS.size():
-		var v: String = IS_SPECIAL_PRESETS[i]
-		_is_special_dd.add_item(Localization.t("ui_wavesettings_is_special_" + v, v), i)
-		_is_special_dd.set_item_metadata(i, v)
-	_is_special_dd.item_selected.connect(_on_is_special_selected)
-	spec_row.add_child(_is_special_dd)
+	_is_special_edit = LineEdit.new()
+	_is_special_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_is_special_edit.placeholder_text = "normal | boss | miniboss_*"
+	_is_special_edit.text_submitted.connect(_on_is_special_submitted)
+	_is_special_edit.focus_exited.connect(
+		func() -> void: _on_is_special_submitted(_is_special_edit.text))
+	spec_row.add_child(_is_special_edit)
 
 	# turns_to_next.
 	var ttn_row := HBoxContainer.new()
@@ -121,21 +115,8 @@ func _refresh() -> void:
 		return
 	_refreshing = true
 	var w: Dictionary = _level.waves[_active_wave]
-	if _is_special_dd != null:
-		var current: String = String(w.get("is_special", "normal"))
-		var found: int = -1
-		for i in _is_special_dd.item_count:
-			if String(_is_special_dd.get_item_metadata(i)) == current:
-				found = i
-				break
-		if found < 0:
-			# Legacy free-form value not in current preset enum (none in shipping
-			# maps, but possible if someone hand-edited JSON). Display as "normal";
-			# saving overwrites only if user touches the dropdown.
-			GameLogger.warn("WaveSection",
-				"is_special '%s' not in preset enum, displaying as 'normal'" % current)
-			found = 0
-		_is_special_dd.select(found)
+	if _is_special_edit != null:
+		_is_special_edit.text = String(w.get("is_special", "normal"))
 	if _ttn_spin != null:
 		_ttn_spin.set_value_no_signal(int(w.get("turns_to_next", 0)))
 	if _advance_mode_dd != null:
@@ -168,8 +149,8 @@ func _emit_field(field: String, value: Variant) -> void:
 
 # ── Signal handlers ─────────────────────────────────────────────────────────
 
-func _on_is_special_selected(idx: int) -> void:
-	_emit_field("is_special", String(_is_special_dd.get_item_metadata(idx)))
+func _on_is_special_submitted(text: String) -> void:
+	_emit_field("is_special", text.strip_edges())
 
 
 func _on_ttn_changed(v: float) -> void:
