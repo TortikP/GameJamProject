@@ -91,10 +91,19 @@
 В тестах файл занесён в `tests/maps_validate_baseline.txt` — миграция и roundtrip всё равно проверяются, но `validate()` пропускается. После решения — убрать строку из baseline'а.
 ---
 
-## F-061-5 — sample_dialogues.json: turns_to_next на последней волне
+## F-061-5 — три dev-фикстуры с turns_to_next>0 на последней волне
 
-**Surface'ил:** `tests/test_061_migration.gd` (061). **Severity:** trivial. **User-visible:** нет (dev fixture).
+**Surface'ил:** `tests/test_061_migration.gd` (061). **Severity:** trivial. **User-visible:** нет (все три — dev fixtures).
 
-`data/maps/sample_dialogues.json` — последняя волна (wave 1) имеет `turns_to_next: 6`, валидатор требует `== 0` (wave ttn=0 = «финальная, ничего не ждём»). Файл — dev-fixture для spec 003 dialogue-системы, не игровая карта.
+Три файла в `data/maps/` имеют последнюю волну с `turns_to_next != 0`, валидатор требует `== 0` (ttn=0 = «финальная волна, ничего не ждём после»):
 
-**Что нужно:** Открыть в редакторе, выставить ttn=0 на последней волне, save. Один клик. После — убрать строку из `tests/maps_validate_baseline.txt`.
+- `sample_dialogues.json` — fixture для spec 003 dialogue-системы
+- `sample_music_test.json` — fixture для music_director'а
+- `sample_preset_test.json` — fixture для preset-системы
+
+Все три — одно-волновые/двух-волновые тестовые карты, не игровой контент.
+
+**Варианты cleanup'а:**
+
+1. **Быстрый (1 минута):** открыть каждый в редакторе → последнюю волну → ttn=0 → save. После — убрать строки из `tests/maps_validate_baseline.txt`.
+2. **Архитектурный:** релакс валидатора — `last_wave_ttn_must_be_zero` warn, не error. Аргумент: dev-фикстуры с одной волной могут иметь ttn>0 как «не достигнуто», а полноценные уровни всё равно проверяются другими invariants. Решение по запросу tech-designer'а (Stasyan).

@@ -9,3 +9,5 @@
 
 office_intro.json: tile (3,2) holds both `object_on_chair` and a `player` spawner — pre-061 authoring intent (player sits on chair), validator sees collision. F-061-4.
 sample_dialogues.json: last wave has turns_to_next>0 (legacy data) — F-061-5.
+sample_music_test.json: last wave has turns_to_next>0 (dev fixture) — F-061-5.
+sample_preset_test.json: last wave has turns_to_next>0 (dev fixture) — F-061-5.
