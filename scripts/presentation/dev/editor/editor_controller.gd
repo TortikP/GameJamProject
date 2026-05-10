@@ -216,6 +216,10 @@ func add_wave(after_idx: int) -> void:
 	_push_level_to_panels()
 
 
+## Unused since 2026-05-10 — picker UI dropped the "Copy from prev" button
+## per user decision (add_wave already copies floor+objects, button gave
+## marginal value). Kept callable for ~a week in case the decision flips;
+## remove in a follow-up chore: if still unused.
 func copy_wave_from_prev(after_idx: int) -> void:
 	var new_idx: int = WaveEditorOps.copy_wave_from_prev(_level, after_idx, _io)
 	if new_idx < 0:
@@ -329,7 +333,6 @@ func _wire_wave_picker_panel() -> void:
 		return
 	_wave_picker_panel.wave_switch_requested.connect(set_active_wave)
 	_wave_picker_panel.wave_add_requested.connect(add_wave)
-	_wave_picker_panel.wave_copy_requested.connect(copy_wave_from_prev)
 	_wave_picker_panel.wave_delete_requested.connect(delete_wave)
 	_wave_picker_panel.bind_level(_level)
 

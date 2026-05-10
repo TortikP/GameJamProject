@@ -10,7 +10,6 @@ const UiTheme = preload("res://scripts/presentation/ui_theme.gd")
 
 signal wave_switch_requested(idx: int)
 signal wave_add_requested(after_idx: int)
-signal wave_copy_requested(after_idx: int)
 signal wave_delete_requested(idx: int)
 
 var _level: LevelData = null
@@ -19,7 +18,6 @@ var _refreshing: bool = false
 
 var _list: ItemList
 var _add_btn: Button
-var _copy_btn: Button
 var _delete_btn: Button
 
 
@@ -68,10 +66,6 @@ func _build() -> void:
 		Localization.t("ui_wavesettings_switcher_add", "+ Wave"),
 		_on_add_pressed)
 	btn_row.add_child(_add_btn)
-	_copy_btn = _make_btn(
-		Localization.t("ui_wavesettings_switcher_copy", "Copy from prev"),
-		_on_copy_pressed)
-	btn_row.add_child(_copy_btn)
 	_delete_btn = _make_btn(
 		Localization.t("ui_wavesettings_switcher_delete", "Delete"),
 		_on_delete_pressed)
@@ -101,8 +95,6 @@ func _refresh() -> void:
 		_list.add_item("Wave %d%s · ttn=%d" % [i, spec_seg, ttn])
 	if _active_wave >= 0 and _active_wave < _list.item_count:
 		_list.select(_active_wave)
-	if _copy_btn != null:
-		_copy_btn.disabled = (_active_wave <= 0)
 	if _delete_btn != null:
 		_delete_btn.disabled = (_level.waves.size() <= 1)
 	_refreshing = false
@@ -118,10 +110,6 @@ func _on_item_selected(idx: int) -> void:
 
 func _on_add_pressed() -> void:
 	wave_add_requested.emit(_active_wave)
-
-
-func _on_copy_pressed() -> void:
-	wave_copy_requested.emit(_active_wave)
 
 
 func _on_delete_pressed() -> void:
