@@ -44,6 +44,10 @@ func _ready() -> void:
 		get_node_or_null("ResizeFrame").visible if get_node_or_null("ResizeFrame") != null else "n/a",
 		get_node_or_null("_ResizeHandler"),
 	])
+	var roots := []
+	for child in get_children():
+		roots.append("%s(%s vis=%s)" % [child.name, child.get_class(), child.visible])
+	print("[layers diag2] root_children=%s" % str(roots))
 	_hex_palette = HexTilePalette.new()
 	_spawner_palette = SpawnerPalette.new()
 	_object_palette = ObjectPalette.new()
