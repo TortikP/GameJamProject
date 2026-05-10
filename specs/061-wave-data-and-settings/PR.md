@@ -25,25 +25,42 @@ Specs: [`spec.md`](./spec.md), [`plan.md`](./plan.md), [`tasks.md`](./tasks.md),
 
 Φ-0..Φ-3 + Φ-9..Φ-11 are code-only and don't require manual smoke beyond the section below. Φ-12 backward-compat is the critical batch — Python dry-run already passed (commit `290c100`); Godot smoke is needed for the save+reload roundtrip.
 
-### Φ-12 — backward-compat (critical)
-- [ ] `data/maps/1.json`: load → no errors → switcher shows 1 wave → save → JSON v3 + new fields. Reload — diff after normalization = 0 in floor/objects/spawners. (T-061-74)
-- [ ] `data/maps/sample_skill_offer.json`: load → 3 waves → wave 2 has `is_special` displayed as `"boss"` (post-migration) → save → JSON contains `"is_special": "boss"`. Skill_offer per-wave unchanged. (T-061-75)
-- [ ] `data/maps/story_map_03.json`: load → multi-wave switcher works → triggers (if any) appear in Level section + wave-mirror filter. Save → idempotent. (T-061-76)
-- [ ] Playtest each v2 map after save-as-v3 — same behaviour vs v2 (one seed → identical event order). (T-061-77)
+### Auto-tests added (`tests/`)
+
+Two non-UI smokes are now automated. Run before manual pass:
+
+- `godot --headless --script tests/test_061_migration.gd` — exercises Φ-12 data-integrity invariants on every `data/maps/*.json` (load → migrate → JSON-roundtrip → assert idempotent + per-wave shape + `validate()` clean). Mirrors the editor save+reload path 1:1.
+- `python3 tests/check_localization_keys.py` — verifies every `ui_*` key referenced in code is present and non-empty in both `en.json` and `ru.json`. Caught two 061-introduced misses (`ui_wave_panel_skill_offer{,_preview}` — fixed); 10 pre-existing misses recorded in `tests/localization_baseline.txt` and tracked as F-061-3 in `docs/tech-debt.md`.
+
+Both should print `OK` and exit 0 on this branch. See `tests/README.md` for the convention.
+
+### Φ-12 — backward-compat (UI-side, manual)
+
+Data-integrity covered by `test_061_migration.gd`. What still needs eyeballs:
+
+- [ ] `data/maps/1.json` opens in editor without errors in console; switcher shows the right number of waves; save → JSON on disk is human-readable and not byte-identical churn. (UI part of T-061-74)
+- [ ] `data/maps/sample_skill_offer.json`: wave 2's `is_special` field shows `"boss"` in the wave-section UI (post-migration display). Skill_offer per-wave UI works on switching. (UI part of T-061-75)
+- [ ] `data/maps/story_map_03.json`: switcher works across multi-wave; triggers (if any) appear in Level section + wave-mirror. (UI part of T-061-76)
+- [ ] Playtest each v2 map after save-as-v3 — same behaviour vs v2 (one seed → identical event order). **Auto-tests can't verify runtime behaviour.** (T-061-77)
 
 ### Φ-3 — runtime advance_mode
+
 - [ ] Author a wave with `advance_mode: "clear"` and an enemy spawner. Playtest. Don't kill the enemy → wave does not advance. Kill it → advances. (T-061-26)
 - [ ] Same with `"timer_and_clear"`. Wait until timer expires → `(waiting for clear)` label appears below the wave cursor → kill enemy → advances.
 
 ### Φ-4..Φ-8 — panel UX
+
 - [ ] Open level editor (Ctrl+E). Right-side `Wave Settings` panel renders with all six sections. (T-061-69)
 - [ ] Switcher: + Wave appends, Copy from prev clones (no spawners), Delete removes selected (≥2 waves required). (T-061-71)
 - [ ] Wave 0: respawn_player row hidden. Wave 1+: visible, default off. (T-061-41)
 - [ ] Spawner amount > 1 → `(schema-only)` tag becomes visible.
 - [ ] Trigger CRUD: Add → form → Save → row appears. Empty id → red error under form. Duplicate id → error.
 
-### Φ-11 — localization
-- [ ] Switch ru ↔ en. All Wave Settings labels render in both languages (no raw keys visible). (T-061-73)
+### Φ-11 — localization (UI-side, manual)
+
+Key-presence covered by `check_localization_keys.py`. What still needs eyeballs:
+
+- [ ] Switch ru ↔ en via the in-game toggle. All Wave Settings labels render in both languages without overflow or layout breakage. (T-061-73)
 
 ## File caps
 

@@ -49,3 +49,29 @@
 
 **План:** Не блокер для merge'а 061. Открыть отдельный фикс когда кто-то полезет в `panel_*_handler` инфраструктуру — там точечно сравнить путь mouse-cascade meta vs layers через подключение `_input` ловушки в handler'е.
 
+---
+
+## F-061-3 — 10 устаревших ui_* ключей без локализации
+
+**Surface'ил:** `tests/check_localization_keys.py` при бутстрапе (061). **Severity:** low. **User-visible:** да, но fallback-строки в коде покрывают (рендерится английский по умолчанию).
+
+10 ключей `ui_*` используются в коде (`Localization.t(...)` или `&"ui_..."`) но отсутствуют либо пусты в `data/localization/{en,ru}.json`. Все — до 061; таких регрессий 061 не вносит (две, которые внёс — `ui_wave_panel_skill_offer{,_preview}` — починены в этой ветке).
+
+**Список и предполагаемое происхождение:**
+
+| Key | en | ru | Owner-spec |
+|---|---|---|---|
+| `ui_cancel` | ❌ | ❌ | generic, 009-ui-kit area |
+| `ui_panel` | ❌ | ❌ | 055-ui-panels |
+| `ui_toast_requested` | ❌ | ❌ | 009-ui-kit |
+| `ui_campaign_defeat_body_text` | ✅ | ❌ | campaign system |
+| `ui_campaign_defeat_menu_button_text` | ✅ | ❌ | campaign system |
+| `ui_campaign_defeat_title_text` | ✅ | ❌ | campaign system |
+| `ui_consequence_move` | ✅ | ❌ | consequence system |
+| `ui_skill_offer_smoke_status_label_text` | ✅ | ❌ | dev/smoke (skill_offer_smoke_controller.gd) |
+| `ui_skill_offer_smoke_title_text` | ✅ | ❌ | dev/smoke |
+| `ui_top_hud_bar_help_button_tooltip_text` | ✅ | ❌ | HUD |
+
+Перечислены в `tests/localization_baseline.txt` — тест зелёный с baseline'ом, ловит только новые регрессии.
+
+**План:** Cleanup-чур (1 PR, ~30 минут): добавить недостающие переводы, удалить ключи из baseline'а. Не блокирует 061 merge. Когда сделаем — `tests/check_localization_keys.py` сам напечатает stale baseline entries как hint.
