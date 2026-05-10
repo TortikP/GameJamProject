@@ -22,12 +22,27 @@ const GameLogger = preload("res://scripts/infrastructure/game_logger.gd")
 static func add_wave(level: LevelData, after_idx: int, io: EditorIO) -> int:
 	if level == null:
 		return -1
-	# Fold any pending edits from root fields into the active wave so the
-	# new wave doesn't pick up a stale snapshot from another wave.
-	level.set_active_wave_index(level.get_active_wave_index())
+	# Fold pending grid edits from root scratchpad into waves[active] so we
+	# read the *current* state of the previous wave, not a stale snapshot.
+	# set_active_wave_index(same_idx) early-returns without folding — call
+	# the explicit sync helper instead.
+	level.sync_root_to_active_wave()
 	var new_idx: int = clampi(after_idx + 1, 0, level.waves.size())
-	var blank: Dictionary = LevelData._make_empty_wave(new_idx)
-	level.waves.insert(new_idx, blank)
+	var new_wave: Dictionary
+	# Default behaviour: inherit floor + objects from the previous wave so
+	# designers can build a level that transforms gradually wave-to-wave.
+	# Spawners are NOT copied — duplicating the player/enemies is almost
+	# never wanted. Wave-level metadata (is_special, advance_mode,
+	# music_config) is reset to defaults so a boss wave doesn't silently
+	# propagate. copy_wave_from_prev (separate button) keeps metadata.
+	if after_idx >= 0 and after_idx < level.waves.size():
+		new_wave = level.make_wave_copy_no_spawners(after_idx, new_idx)
+		new_wave["is_special"] = LevelData.DEFAULT_IS_SPECIAL
+		new_wave["advance_mode"] = LevelData.DEFAULT_ADVANCE_MODE
+		new_wave["music_config"] = {}
+	else:
+		new_wave = LevelData._make_empty_wave(new_idx)
+	level.waves.insert(new_idx, new_wave)
 	_reindex_waves(level)
 	io.enqueue_autosave(level)
 	return new_idx
@@ -36,7 +51,8 @@ static func add_wave(level: LevelData, after_idx: int, io: EditorIO) -> int:
 static func copy_wave_from_prev(level: LevelData, after_idx: int, io: EditorIO) -> int:
 	if level == null or after_idx <= 0 or after_idx >= level.waves.size():
 		return -1
-	level.set_active_wave_index(level.get_active_wave_index())
+	# See add_wave: explicit fold instead of set_active_wave_index(same).
+	level.sync_root_to_active_wave()
 	var new_idx: int = after_idx + 1
 	var copy: Dictionary = level.make_wave_copy_no_spawners(after_idx, new_idx)
 	level.waves.insert(new_idx, copy)
