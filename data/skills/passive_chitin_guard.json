@@ -5,9 +5,14 @@
   "tooltip": "passive_chitin_guard_tooltip",
   "desc": "passive_chitin_guard_desc",
   "icon": "icons/skills/passive_chitin_guard.png",
-  "mood": ["tranquility"],
+  "mood": [
+    "tranquility"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "damage_reduction", "amount": 2}
+    {
+      "kind": "damage_reduction",
+      "amount": 3
+    }
   ]
 }

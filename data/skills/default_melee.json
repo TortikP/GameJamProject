@@ -4,7 +4,7 @@
   "tooltip": "default_melee_tooltip",
   "desc": "default_melee_desc",
   "icon": "icons/skills/default_melee.png",
-  "cooldown": 1,
+  "cooldown": 2,
   "behaviour_tags": [
     "melee",
     "damage"
@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "damage": 10
+          "damage": 14
         }
       ]
     }

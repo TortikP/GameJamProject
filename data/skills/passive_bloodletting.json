@@ -5,9 +5,14 @@
   "tooltip": "passive_bloodletting_tooltip",
   "desc": "passive_bloodletting_desc",
   "icon": "icons/skills/passive_bloodletting.png",
-  "mood": ["burnout"],
+  "mood": [
+    "burnout"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "lifesteal_percent", "amount": 30}
+    {
+      "kind": "lifesteal_percent",
+      "amount": 40
+    }
   ]
 }

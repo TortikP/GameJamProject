@@ -5,9 +5,14 @@
   "tooltip": "passive_swift_steps_tooltip",
   "desc": "passive_swift_steps_desc",
   "icon": "icons/skills/passive_swift_steps.png",
-  "mood": ["neutral"],
+  "mood": [
+    "neutral"
+  ],
   "level": 0,
   "passive_effects": [
-    {"kind": "move_speed", "amount": 1}
+    {
+      "kind": "move_speed",
+      "amount": 1
+    }
   ]
 }

@@ -30,8 +30,8 @@
       },
       "effects": [
         {
-          "damage": 7,
-          "status_id": "poisoned(2,4,2)"
+          "damage": 6,
+          "status_id": "poisoned(4,2,2)"
         }
       ]
     }

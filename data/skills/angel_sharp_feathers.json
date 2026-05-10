@@ -22,15 +22,15 @@
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",
-        "range": 4
+        "range": 3
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 2
+        "radius": 3
       },
       "effects": [
         {
-          "damage": 8
+          "damage": 7
         }
       ]
     }

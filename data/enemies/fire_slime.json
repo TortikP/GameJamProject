@@ -3,15 +3,17 @@
   "name": "fire_slime_name",
   "desc": "fire_slime_desc",
   "sprite": "assets/sprites/enemies/fire_slime.png",
-  "max_hp": 30,
+  "max_hp": 28,
   "team": "enemy",
-  "speed": 2,
+  "speed": 3,
   "skills": [
-	"fire_slime_magma_spit",
+    "fire_slime_magma_spit",
     "fire_slime_firey_touch"
   ],
   "passive_skills": [
-    "passive_cruel_focus"
+    "passive_cruel_focus",
+    "passive_static_discharge",
+    "passive_thorned_echo"
   ],
   "behavior_id": "default_melee",
   "fallback_skill_id": "fire_slime_firey_touch"

@@ -22,7 +22,7 @@
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",
-        "range": 4
+        "range": 3
       },
       "area": {
         "kind": "zone_circle",
@@ -30,7 +30,8 @@
       },
       "effects": [
         {
-          "status_id": "shielded(2,5,2)"
+          "heal": 10,
+          "status_id": "shielded(4,5,2)"
         }
       ]
     }

@@ -4,7 +4,7 @@
   "tooltip": "mushroom_boar_spores_tooltip",
   "desc": "mushroom_boar_spores_desc",
   "icon": "icons/skills/mushroom_boar_spores.png",
-  "cooldown": 4,
+  "cooldown": 5,
   "behaviour_tags": [
     "ranged",
     "debuff"
@@ -26,11 +26,12 @@
       },
       "area": {
         "kind": "zone_circle",
-        "radius": 1
+        "radius": 3
       },
       "effects": [
         {
-          "status_id": "stunned(1)"
+          "damage": 2,
+          "status_id": "poisoned(5,4,2)"
         }
       ]
     }

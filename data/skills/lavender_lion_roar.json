@@ -24,11 +24,11 @@
       },
       "area": {
         "kind": "zone_circle",
-        "max_chain_length": 1
+        "radius": 3
       },
       "effects": [
         {
-          "status_id": "strong(2,10,3)"
+          "status_id": "strong(3,10,3)"
         }
       ]
     }

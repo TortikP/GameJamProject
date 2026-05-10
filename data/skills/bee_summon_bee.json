@@ -4,7 +4,7 @@
   "tooltip": "bee_summon_bee_tooltip",
   "desc": "bee_summon_bee_desc",
   "icon": "icons/skills/bee_summon_bee.png",
-  "cooldown": 5,
+  "cooldown": 6,
   "behaviour_tags": [
     "summon"
   ],
@@ -21,7 +21,7 @@
       "animation": "cast_ascended",
       "target": {
         "kind": "hex",
-        "range": 3
+        "range": 2
       },
       "area": {
         "kind": "chain",
