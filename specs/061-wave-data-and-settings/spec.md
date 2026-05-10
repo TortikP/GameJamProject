@@ -47,7 +47,7 @@
 - **AC5.** `WaveSettingsPanel extends BasePanel` — отдельная панель в `HUD`, sibling LayersPanel и LevelMetaPanel. Не таб в LayersPanel (Q-061-5: layers и settings — разные оси, смешение запутает).
 - **AC6.** Внутри панели — VBox с пятью collapsible-секциями (через UiTheme collapse-кнопку или просто заголовки + body). В порядке сверху вниз:
   1. **Level** — `name` (read-only mirror из LevelMetaPanel), список **level-scoped dialogue_triggers** (CRUD).
-  2. **Wave** — поля активной волны: `is_special` (LineEdit с подсказкой `"normal" | "boss" | "miniboss_*"`, free-form), `turns_to_next` (SpinBox), `respawn_player` (CheckBox), `advance_mode` (OptionButton: timer/clear/timer_and_clear).
+  2. **Wave** — поля активной волны: `is_special` (~~LineEdit, free-form~~ → **OptionButton с пресетами `normal/boss/miniboss/elite`** per F-061-IMPL-5), `turns_to_next` (SpinBox), `respawn_player` (CheckBox), `advance_mode` (OptionButton: timer/clear/timer_and_clear).
   3. **Spawners** — список спаунеров активной волны, на клик строки — edit form с `kind`/`ref`/`timer`/`amount`/`delay`. `amount`/`delay` помечены тэгом `(schema-only)` (Q-061-3).
   4. **Skill Offer** — reuse секция из удалённого `wave_panel.gd` (gd-код можно подсмотреть в `673e377^:scripts/presentation/dev/wave_panel.gd:_build_skill_offer_section`). Bind/unbind пер-волне.
   5. **Dialogue Triggers (wave-scoped)** — read-only mirror из level-секции (выше), фильтр `conditions.wave_index == active_wave`. Без CRUD — CRUD только в level-секции, чтобы не плодить точек редактирования.
