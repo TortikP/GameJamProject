@@ -75,3 +75,17 @@
 Перечислены в `tests/localization_baseline.txt` — тест зелёный с baseline'ом, ловит только новые регрессии.
 
 **План:** Cleanup-чур (1 PR, ~30 минут): добавить недостающие переводы, удалить ключи из baseline'а. Не блокирует 061 merge. Когда сделаем — `tests/check_localization_keys.py` сам напечатает stale baseline entries как hint.
+---
+
+## F-061-4 — office_intro.json: collision player+object на одной клетке
+
+**Surface'ил:** `tests/test_061_migration.gd` при бутстрапе (061). **Severity:** low. **User-visible:** нет в шиппинге (карта используется как intro-сцена).
+
+`office_intro.json` имеет на тайле `(3, 2)` одновременно `object_on_chair` и `player` spawner. Валидатор `LevelData.validate()` ловит как `tile already occupied`, но судя по имени объекта и сцене — задумывалось «игрок сидит на стуле в офисном интро», т.е. это намеренный co-occupation, а не баг данных.
+
+**Что нужно решить (cleanup-чур):**
+
+- Если поведение в игре ОК — релаксировать validate: разрешить `kind: "player"` сосуществовать с object на той же клетке, или ввести явный флаг `allow_object_underfoot` на спавнере.
+- Если поведение в игре ломается (например, чёрный квадрат под игроком) — переписать карту: object отдельно, player отдельно.
+
+В тестах файл занесён в `tests/maps_validate_baseline.txt` — миграция и roundtrip всё равно проверяются, но `validate()` пропускается. После решения — убрать строку из baseline'а.
