@@ -1,0 +1,872 @@
+{
+	"dialogue_triggers": [],
+	"music_config": {
+
+	},
+	"name": "Test_Clear",
+	"tileset_path": "res://scenes/arena/tilesets/hex_terrain.tres",
+	"version": 3,
+	"waves": [
+		{
+			"advance_mode": "clear",
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						8
+					],
+					"source_id": 0
+				}
+			],
+			"index": 0,
+			"is_special": "normal",
+			"music_config": {
+
+			},
+			"objects": [],
+			"spawners": [
+				{
+					"coord": [
+						7,
+						10
+					],
+					"kind": "player",
+					"ref": "",
+					"timer": 1
+				},
+				{
+					"coord": [
+						11,
+						7
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 3
+		},
+		{
+			"advance_mode": "clear",
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						8
+					],
+					"source_id": 0
+				}
+			],
+			"index": 1,
+			"is_special": "normal",
+			"music_config": {
+
+			},
+			"objects": [],
+			"spawners": [
+				{
+					"coord": [
+						12,
+						9
+					],
+					"kind": "enemy",
+					"ref": "fire_slime",
+					"timer": 1
+				},
+				{
+					"coord": [
+						8,
+						7
+					],
+					"kind": "enemy",
+					"ref": "fire_slime",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 3
+		},
+		{
+			"advance_mode": "clear",
+			"floor": [
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						10
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						12,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						7
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						7,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						8,
+						11
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						10,
+						9
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						11,
+						8
+					],
+					"source_id": 0
+				},
+				{
+					"atlas_coord": [
+						0,
+						0
+					],
+					"coord": [
+						9,
+						8
+					],
+					"source_id": 0
+				}
+			],
+			"index": 2,
+			"is_special": "normal",
+			"music_config": {
+
+			},
+			"objects": [],
+			"spawners": [
+				{
+					"coord": [
+						9,
+						7
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						9,
+						8
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						10,
+						9
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						11,
+						9
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						12,
+						9
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						12,
+						8
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						11,
+						8
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						10,
+						8
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						10,
+						7
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				},
+				{
+					"coord": [
+						11,
+						7
+					],
+					"kind": "enemy",
+					"ref": "bee",
+					"timer": 1
+				}
+			],
+			"turns_to_next": 3
+		}
+	]
+}

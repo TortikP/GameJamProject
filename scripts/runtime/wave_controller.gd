@@ -94,6 +94,15 @@ var _waiting_for_clear: bool = false
 # discriminator: real player ticks always arrive on a higher turn.
 var _wave_start_turn: int = -1
 
+# IMPL-10b: when a wave is started via _check_auto_clear (mid-cast last
+# enemy died → wave change while player's action is still resolving),
+# the player's pending TurnManager.advance() will fire one world_turn_ended
+# emit shortly. That emit is the closure of the action that TRIGGERED
+# the wave change, not a wave-N+1 turn — skip its spawner tick.
+# Distinct from _wave_start_turn (which catches the level-boot synthesized
+# emit and the same-turn race between start_level and _emit_initial_turn).
+var _skip_next_world_turn_for_spawner_tick: bool = false
+
 
 # ── Setup / lifecycle ───────────────────────────────────────────────────────
 
@@ -376,6 +385,13 @@ func _on_world_turn_ended(turn: int) -> void:
 	# before emitting.
 	if turn == _wave_start_turn:
 		return
+	# IMPL-10b: if the wave just started via _check_auto_clear (mid-cast),
+	# the upcoming TurnManager.advance() emit is the closure of the action
+	# that triggered the wave change, not a wave turn. Consume one such
+	# emit without ticking. Subsequent emits are genuine player turns.
+	if _skip_next_world_turn_for_spawner_tick:
+		_skip_next_world_turn_for_spawner_tick = false
+		return
 	_turns_into_wave += 1
 
 	# Decrement timers + spawn anything that hit 0. Iterate over a copy so
@@ -470,7 +486,15 @@ func _check_auto_clear() -> void:
 	if _living_enemies_count() > 0:
 		return
 	# All clear — _end_current_wave handles score bonus + signal + advance.
+	var prev_wave := _current_wave_index
 	_end_current_wave()
+	# IMPL-10b: if a new wave actually started (we didn't just complete the
+	# level), the player's currently-resolving action will fire one
+	# world_turn_ended emit shortly (cast_fsm awaits ability_cast_delay
+	# THEN calls TurnManager.advance). That emit is the closure of the
+	# kill-cast turn, not a wave-N+1 turn — skip its spawner tick.
+	if _current_wave_index != prev_wave and _current_wave_index < _level.waves.size():
+		_skip_next_world_turn_for_spawner_tick = true
 
 
 # 052: shared wave-end path. Called from two sites:
