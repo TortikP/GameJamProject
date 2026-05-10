@@ -44,6 +44,13 @@ func _ready() -> void:
 	# super._ready() invokes BasePanel: resolve nodes, apply theme, install
 	# drag/resize/collapse/lock/persistence handlers. Then build our body.
 	super._ready()
+	# Diagnostic — remove once resize bug is fixed.
+	print("[meta diag] resizable=%s effective=%s locked=%s rf=%s rf_visible=%s rf_handler=%s" % [
+		resizable, is_resizable(), is_locked(),
+		get_node_or_null("ResizeFrame"),
+		get_node_or_null("ResizeFrame").visible if get_node_or_null("ResizeFrame") != null else "n/a",
+		get_node_or_null("_ResizeHandler"),
+	])
 	_build_body()
 
 
