@@ -191,7 +191,8 @@ func _act_spawners(coord: Vector2i, erase: bool) -> void:
 	if typeof(sel) != TYPE_DICTIONARY:
 		return
 	var d: Dictionary = sel as Dictionary
-	_controller.paint_spawner(coord, d["kind"], d["ref"])
+	_controller.paint_spawner(coord, d["kind"], d["ref"],
+		int(d.get("timer", LevelData.DEFAULT_SPAWNER_TIMER)))
 
 
 func _act_objects(coord: Vector2i, erase: bool) -> void:

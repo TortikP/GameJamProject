@@ -275,8 +275,13 @@ func _on_tab_button_gui_input(event: InputEvent, tab_id: StringName) -> void:
 		if mb.button_index != MOUSE_BUTTON_LEFT:
 			return
 		if mb.pressed:
-			# R5/R6: ignore tab interaction when parent is collapsed/locked.
-			if _tabbed_panel.is_collapsed() or _tabbed_panel.is_locked():
+			# Collapsed panel has no body to switch to — ignore.
+			# Locked panel: switch IS allowed (view-state), only detach is
+			# blocked (see _detach_tab_active_drag). Spec 058 R6 originally
+			# said "lock blocks both switch and detach" but that was flagged
+			# as 'surface при имплементации' — UX feedback says switch should
+			# work on locked panels.
+			if _tabbed_panel.is_collapsed():
 				accept_event()
 				return
 			_pressed_tab_id = tab_id
@@ -316,6 +321,11 @@ func _input(event: InputEvent) -> void:
 ## meta+persistence, and hand off the drag gesture so it continues
 ## without an LMB release.
 func _detach_tab_active_drag(tab_id: StringName, mouse_global: Vector2) -> void:
+	# 058 R6 (revised post-061-smoke): locked panel blocks structural changes
+	# (drag/detach/resize) but NOT view-state (tab switch, scroll). Lock check
+	# moved here from press handler.
+	if _tabbed_panel.is_locked():
+		return
 	# Block detach of the last attached tab — leaving the parent panel
 	# empty creates 1+ floating panels with one shell, which is just
 	# clutter. User can drag the tabbed panel itself instead.

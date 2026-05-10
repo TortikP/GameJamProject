@@ -8,4 +8,4 @@ script = ExtResource("2_lp")
 panel_id = &"layers_panel"
 panel_title_key = &"ui_layers_panel_title"
 panel_title_fallback = "Layers"
-min_panel_size = Vector2(280, 360)
+min_panel_size = Vector2(280, 160)

@@ -30,6 +30,13 @@ signal upgrade_chosen(modifier_id: StringName)
 signal wave_started(index: int, is_special: bool)
 signal wave_cleared(index: int, unused_turns: int)
 signal level_completed(total_score: int)
+
+# 061: emitted when WaveController toggles its advance gate. True = next
+# advance is blocked pending kill-of-last-enemy (advance_mode "clear" while
+# enemies live, or "timer_and_clear" after ttn expired). False = advance
+# is no longer blocked (next wave applied or mode allows timer advance).
+# HUDs subscribe to surface a "(waiting for clear)" cue per Pillar 1.
+signal wave_advance_blocked(blocked: bool)
 # 039: synthesized event — emitted by WaveController one frame before
 # _apply_wave_snapshot on wave N>0. Allows triggers to react "before the
 # new wave content is live". arg index = the incoming wave index.

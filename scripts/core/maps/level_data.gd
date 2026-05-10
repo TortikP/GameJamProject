@@ -27,7 +27,15 @@ class_name LevelData
 ## Spawner schema gains a `timer: int >= 1` field — see 024 spec, section
 ## "Расширение LevelData". Legacy spawners default to timer=1 on migration.
 
-const SCHEMA_VERSION: int = 2  # 024: bump from 1 (added waves[]).
+const SCHEMA_VERSION: int = 3  # 061: bump from 2 (is_special bool→String; added wave.advance_mode/music_config).
+
+# 061: wave.is_special transitioned bool→String. Free-form string per design.md D5.
+# Convention (not enforced): "normal" | "boss" | "miniboss_*".
+const DEFAULT_IS_SPECIAL: String = "normal"
+
+# 061: wave.advance_mode controls how WaveController auto-advances. See spec §3.G.
+const DEFAULT_ADVANCE_MODE: String = "timer"
+const VALID_ADVANCE_MODES: Array[String] = ["timer", "clear"]
 
 # Defaults match hex_terrain.tres source 0 atlas (0,0) = grass tile (post-032
 # tileset consolidation; godmode_terrain.tres deleted).
@@ -55,10 +63,12 @@ var objects: Array[Dictionary] = []
 var spawners: Array[Dictionary] = []
 
 # All waves in order. Each entry is a Dictionary with keys:
-#   "index" (int), "is_special" (bool), "turns_to_next" (int),
+#   "index" (int), "is_special" (String, 061), "turns_to_next" (int),
+#   "advance_mode" (String, 061),
+#   "music_config" (Dictionary, 061; per-wave override over level music_config),
 #   "floor" (Array of floor-cell dicts),
 #   "objects" (Array of object dicts),
-#   "spawners" (Array of spawner dicts incl. "timer").
+#   "spawners" (Array of spawner dicts: coord/kind/ref/timer).
 # Wave 0 = initial state. Last wave's turns_to_next must be 0.
 # Defaults to a single empty wave so a freshly-constructed LevelData is valid
 # under the new model without explicit init. Inline literal (not _make_empty_wave)
@@ -74,11 +84,13 @@ var music_config: Dictionary = {}
 
 var waves: Array[Dictionary] = [{
 	"index": 0,
-	"is_special": false,
+	"is_special": "normal",
 	"turns_to_next": 0,
 	"floor": [],
 	"objects": [],
 	"spawners": [],
+	"advance_mode": "timer",
+	"music_config": {},
 }]
 
 # Which wave the root view fields (floor_cells/objects/spawners) currently
@@ -193,6 +205,19 @@ func validate() -> Array[String]:
 			if i < waves.size() - 1 and timer_v > ttn:
 				errors.append("WARN: Wave %d: spawner timer (%d) > turns_to_next (%d) — won't trigger" % [i, timer_v, ttn])
 
+		# 061: advance_mode enum + clear-without-enemy WARN.
+		var am: String = String(w.get("advance_mode", DEFAULT_ADVANCE_MODE))
+		if not (am in VALID_ADVANCE_MODES):
+			errors.append("Wave %d: advance_mode '%s' invalid (expected timer|clear)" % [i, am])
+		if am == "clear":
+			var has_enemy: bool = false
+			for s in w.get("spawners", []):
+				if s.get("kind", &"") == &"enemy":
+					has_enemy = true
+					break
+			if not has_enemy:
+				errors.append("WARN: Wave %d: advance_mode=clear with no enemy spawner — wave will never advance" % i)
+
 		# 040-wave-skill-choice: optional skill_offer Dictionary per wave.
 		var so: Variant = w.get("skill_offer", null)
 		if so != null:
@@ -269,10 +294,15 @@ func to_dict() -> Dictionary:
 	var waves_out: Array = []
 	for i in waves.size():
 		var w: Dictionary = waves[i]
+		# 061 F-061-IMPL-1: serialize is_special as String. After Φ-1 migration
+		# in-memory is_special is always String, but String(...) cast is
+		# defensive against any path that might leave a bool in the dict.
 		var entry: Dictionary = {
 			"index": int(w.get("index", i)),
-			"is_special": bool(w.get("is_special", false)),
+			"is_special": String(w.get("is_special", DEFAULT_IS_SPECIAL)),
 			"turns_to_next": int(w.get("turns_to_next", 0)),
+			"advance_mode": String(w.get("advance_mode", DEFAULT_ADVANCE_MODE)),
+			"music_config": (w.get("music_config", {}) as Dictionary).duplicate(true) if w.get("music_config") is Dictionary else {},
 			"floor": _floor_to_arr(w.get("floor", [])),
 			"objects": _objects_to_arr(w.get("objects", [])),
 			"spawners": _spawners_to_arr(w.get("spawners", [])),
@@ -319,10 +349,13 @@ static func from_dict(d: Dictionary) -> LevelData:
 		# Legacy v1: pack root floor/objects/spawners into a single wave[0].
 		# turns_to_next=0 makes it the only/final wave — runtime fires
 		# level_completed once auto-clear or default flow finishes it.
+		# 061: legacy v1 fallback — single wave with v3 defaults.
 		lvl.waves.append({
 			"index": 0,
-			"is_special": false,
+			"is_special": DEFAULT_IS_SPECIAL,
 			"turns_to_next": 0,
+			"advance_mode": DEFAULT_ADVANCE_MODE,
+			"music_config": {},
 			"floor": _floor_arr_to_dicts(d.get("floor", [])),
 			"objects": _objects_arr_to_dicts(d.get("objects", [])),
 			"spawners": _spawners_arr_to_dicts_with_default_timer(d.get("spawners", [])),
@@ -332,6 +365,32 @@ static func from_dict(d: Dictionary) -> LevelData:
 		# Defensive: empty waves list → synthesize an empty wave 0 so the
 		# rest of the codebase can rely on waves.size() >= 1.
 		lvl.waves.append(_make_empty_wave(0))
+
+	# 061: forward-only migration to v3. Idempotent — safe to re-run on already-v3 data.
+	# - is_special: bool → String (false→"normal", true→"boss")
+	# - advance_mode / music_config: add-if-missing
+	for i in lvl.waves.size():
+		var w: Dictionary = lvl.waves[i]
+		var raw_is_special: Variant = w.get("is_special", DEFAULT_IS_SPECIAL)
+		if raw_is_special is bool:
+			w["is_special"] = "boss" if bool(raw_is_special) else DEFAULT_IS_SPECIAL
+		elif raw_is_special is String or raw_is_special is StringName:
+			w["is_special"] = String(raw_is_special)
+		else:
+			w["is_special"] = DEFAULT_IS_SPECIAL  # malformed type → safe default
+		if not w.has("advance_mode") or not (w["advance_mode"] is String):
+			w["advance_mode"] = DEFAULT_ADVANCE_MODE
+		# Forward-only migration: timer_and_clear was removed in F-061-IMPL-10
+		# (it was idle-waiting in the "fast player" case and equivalent to
+		# "clear" in the "slow player" case). Convert to "clear" — closer
+		# in intent ("don't advance until enemies are dead").
+		if String(w["advance_mode"]) == "timer_and_clear":
+			w["advance_mode"] = "clear"
+		if not w.has("music_config") or not (w["music_config"] is Dictionary):
+			w["music_config"] = {}
+		lvl.waves[i] = w
+	lvl.version = SCHEMA_VERSION  # silently bump after migration
+
 	# Reindex defensively (file may have non-contiguous indices; we trust order).
 	for i in lvl.waves.size():
 		lvl.waves[i]["index"] = i
@@ -356,10 +415,14 @@ static func from_dict(d: Dictionary) -> LevelData:
 func make_wave_copy_no_spawners(src_idx: int, target_idx: int,
 		turns_to_next: int = DEFAULT_TURNS_TO_NEXT) -> Dictionary:
 	var src: Dictionary = waves[src_idx] if src_idx >= 0 and src_idx < waves.size() else _make_empty_wave(0)
+	# 061: inherit metadata from source wave (is_special, advance_mode,
+	# music_config).
 	return {
 		"index": target_idx,
-		"is_special": false,
+		"is_special": String(src.get("is_special", DEFAULT_IS_SPECIAL)),
 		"turns_to_next": turns_to_next,
+		"advance_mode": String(src.get("advance_mode", DEFAULT_ADVANCE_MODE)),
+		"music_config": (src.get("music_config", {}) as Dictionary).duplicate(true) if src.get("music_config") is Dictionary else {},
 		"floor": _deep_copy_floor(src.get("floor", [])),
 		"objects": _deep_copy_objects(src.get("objects", [])),
 		"spawners": [],
@@ -379,6 +442,17 @@ func snapshot_root_as_wave(idx: int = 0, turns_to_next: int = 0,
 		"objects": _deep_copy_objects(objects),
 		"spawners": _deep_copy_spawners(spawners),
 	}
+
+
+# ── 061 helpers ─────────────────────────────────────────────────────────────
+
+## 061: derive bool from string is_special. Use this everywhere instead of
+## bool(w.get("is_special", false)) — that breaks after v3 migration because
+## bool("normal") = true in GDScript.
+func is_wave_special(idx: int) -> bool:
+	if idx < 0 or idx >= waves.size():
+		return false
+	return String(waves[idx].get("is_special", DEFAULT_IS_SPECIAL)) != DEFAULT_IS_SPECIAL
 
 
 # ── Internal helpers ────────────────────────────────────────────────────────
@@ -409,10 +483,13 @@ func _sync_active_wave_to_root() -> void:
 
 
 static func _make_empty_wave(idx: int) -> Dictionary:
+	# 061: is_special defaults to "normal" (free-form string).
 	return {
 		"index": idx,
-		"is_special": false,
+		"is_special": DEFAULT_IS_SPECIAL,
 		"turns_to_next": 0,
+		"advance_mode": DEFAULT_ADVANCE_MODE,
+		"music_config": {},
 		"floor": [],
 		"objects": [],
 		"spawners": [],
@@ -512,10 +589,17 @@ static func _spawners_to_arr(arr: Variant) -> Array:
 # ── JSON array forms → in-memory dicts (Array → Vector2i, etc.) ─────────────
 
 static func _wave_dict_from_arr(d: Dictionary) -> Dictionary:
+	# 061 F-061-IMPL-1: read is_special as raw value (no bool() cast). Type can
+	# be bool (legacy v2) or String (v3). The migration block in from_dict()
+	# normalizes to String afterward. Casting to bool here would corrupt v3
+	# reloads — bool("normal") = true in GDScript, which migration would then
+	# rewrite to "boss".
 	var out: Dictionary = {
 		"index": int(d.get("index", 0)),
-		"is_special": bool(d.get("is_special", false)),
+		"is_special": d.get("is_special", DEFAULT_IS_SPECIAL),
 		"turns_to_next": int(d.get("turns_to_next", 0)),
+		"advance_mode": String(d.get("advance_mode", DEFAULT_ADVANCE_MODE)),
+		"music_config": (d.get("music_config", {}) as Dictionary).duplicate(true) if d.get("music_config") is Dictionary else {},
 		"floor": _floor_arr_to_dicts(d.get("floor", [])),
 		"objects": _objects_arr_to_dicts(d.get("objects", [])),
 		"spawners": _spawners_arr_to_dicts_with_default_timer(d.get("spawners", [])),
@@ -555,6 +639,7 @@ static func _objects_arr_to_dicts(arr: Variant) -> Array[Dictionary]:
 
 
 static func _spawners_arr_to_dicts_with_default_timer(arr: Variant) -> Array[Dictionary]:
+	# Function name kept for stability (callers in v2-era specs reference it).
 	var out: Array[Dictionary] = []
 	if not (arr is Array):
 		return out

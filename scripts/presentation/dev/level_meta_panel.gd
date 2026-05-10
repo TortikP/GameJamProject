@@ -1,11 +1,11 @@
 extends BasePanel
-## LevelMetaPanel — top-right panel: level name input + 4 action buttons
-## (Save / Load / Playtest / Exit).
+## LevelMetaPanel — top-right panel: level name input + 5 action buttons
+## (New / Save / Load / Playtest / Exit).
 ##
 ## Load opens a Godot FileDialog rooted at res://data/maps/. The picked path
-## comes back through the load_requested signal. Save / Playtest / Exit are
-## just notify-the-controller signals — the controller handles validation,
-## sanitization, autosave, scene-change.
+## comes back through the load_requested signal. New / Save / Playtest /
+## Exit are just notify-the-controller signals — the controller handles
+## confirm modal, validation, sanitization, autosave, scene-change.
 ##
 ## Spec 057: migrated from extends PanelContainer + DraggablePanel mixin to
 ## extends BasePanel. Body content lives in get_body_container(); header,
@@ -26,12 +26,14 @@ signal save_requested()
 signal load_requested(path: String)
 signal playtest_requested()
 signal exit_requested()
+signal new_requested()
 signal name_changed(new_name: String)
 
 var _controller: Node = null
 
 var _name_edit: LineEdit
 var _dirty_marker: Label
+var _new_btn: Button
 var _save_btn: Button
 var _load_btn: Button
 var _playtest_btn: Button
@@ -97,10 +99,12 @@ func _build_body() -> void:
 	# Buttons
 	var btn_row := HBoxContainer.new()
 	btn_row.add_theme_constant_override("separation", 4)
+	_new_btn = _make_btn(Localization.t("ui_level_meta_new", "New"), _on_new)
 	_save_btn = _make_btn(Localization.t("ui_common_save", "Save"), _on_save)
 	_load_btn = _make_btn(Localization.t("ui_common_load", "Load"), _on_load)
 	_playtest_btn = _make_btn(Localization.t("ui_level_meta_playtest", "Playtest"), _on_playtest)
 	_exit_btn = _make_btn(Localization.t("ui_common_exit", "Exit"), _on_exit)
+	btn_row.add_child(_new_btn)
 	btn_row.add_child(_save_btn)
 	btn_row.add_child(_load_btn)
 	btn_row.add_child(_playtest_btn)
@@ -135,6 +139,10 @@ func _on_name_changed(new_name: String) -> void:
 
 func _on_save() -> void:
 	save_requested.emit()
+
+
+func _on_new() -> void:
+	new_requested.emit()
 
 
 func _on_load() -> void:

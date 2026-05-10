@@ -56,7 +56,38 @@
 
 ## Реестр
 
-_Здесь пусто. Первые блоки появятся когда начнём трогать фичи._
+## wave-settings-panel
+
+- **Название:** Wave Settings (правая панель в level editor).
+- **Статус:** working
+- **Спек(и):** [`061-wave-data-and-settings`](../specs/061-wave-data-and-settings/) — переключатель волн, поля is_special/turns_to_next/respawn_player/advance_mode/music_config, секция спавнеров, skill_offer (порт 040), мirror dialogue triggers этой волны.
+- **Код:**
+  - `scripts/presentation/dev/wave_settings_panel.gd` — UI;
+  - `scripts/presentation/dev/editor/wave_editor_ops.gd` — мутации (статические методы);
+  - `scenes/dev/wave_settings_panel.tscn` — сцена (instance of base_panel).
+- **Как проверить:** Открыть level editor (Ctrl+E), правая панель «Wave Settings» — вверху список волн с +/Copy/Delete, ниже секции Level / Wave / Spawners / Skill Offer / Dialogue Triggers (this wave). Smoke по T-061-74..77 (spec/061/tasks.md).
+- **Дизайн:** [`specs/061-wave-data-and-settings/spec.md`](../specs/061-wave-data-and-settings/spec.md) §3, [`specs/061-wave-data-and-settings/plan.md`](../specs/061-wave-data-and-settings/plan.md) §Φ-4..Φ-8.
+- **Заметки:** Файл панели ~1380 LOC (vs soft cap 600) — F-061-IMPL-2, extract отложен до второго consumer'а.
+
+## dialogue-triggers-editor
+
+- **Название:** Dialogue Triggers — CRUD внутри Wave Settings.
+- **Статус:** working
+- **Спек(и):** [`039-dialogue-triggers`](../specs/039-dialogue-triggers/) — оригинал; [`061-wave-data-and-settings`](../specs/061-wave-data-and-settings/) — миграция в WaveSettingsPanel.
+- **Код:** `scripts/presentation/dev/wave_settings_panel.gd` (секция Level → Dialogue Triggers + wave-mirror); ops в `wave_editor_ops.gd`.
+- **Как проверить:** В level editor открыть Wave Settings → секция «Level → Dialogue Triggers». Add → форма с id / event / dialogue_id / play_mode / conditions. Save → запись появляется в списке. Validate: пустой id → красная ошибка под формой, дубль id → тоже.
+- **Дизайн:** [`docs/systems/level-editor/dialogue-triggers.md`](systems/level-editor/dialogue-triggers.md) — designer-facing reference.
+- **Заметки:** CURATED_EVENTS — фиксированный список из 8 EventBus сигналов + Custom... для всего остального. Conditions: wave_index/absolute_turn/cleared_in_turns_lt/chance/mood/once_per_run.
+
+## wave-advance-mode
+
+- **Название:** advance_mode runtime gate — timer/clear/timer_and_clear.
+- **Статус:** working
+- **Спек(и):** [`061-wave-data-and-settings`](../specs/061-wave-data-and-settings/) §3.G.
+- **Код:** `scripts/runtime/wave_controller.gd` (`_on_world_turn_ended` match), `scripts/infrastructure/event_bus.gd` (signal `wave_advance_blocked`), `scripts/presentation/ui/wave_timeline.gd` («waiting for clear» label).
+- **Как проверить:** Сделать в редакторе волну с advance_mode=clear, без enemy spawner'а — validate WARN. С enemy: запустить playtest, не убивать врага → волна не двигается. Убить → переход. timer_and_clear: дождаться истечения timer → виден label «(waiting for clear)» → убить врага → переход.
+- **Дизайн:** [`specs/061-wave-data-and-settings/design.md`](../specs/061-wave-data-and-settings/design.md) §G.
+- **Заметки:** Pillar 1 visual cue — outlined string под cursor'ом. Локализация `ui_wave_waiting_for_clear`.
 
 <!--
 Шаблон для копирования:
